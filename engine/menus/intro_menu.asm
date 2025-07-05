@@ -62,6 +62,8 @@ NewGame:
 	xor a
 	ld [wDebugFlags], a
 	call ResetWRAM
+	call RandomizeStarters ; Our new function call
+
 	call NewGame_ClearTilemapEtc
 	call PlayerProfileSetup
 	call OakSpeech

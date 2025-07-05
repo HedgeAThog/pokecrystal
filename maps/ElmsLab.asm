@@ -157,90 +157,70 @@ LabTryToLeaveScript:
 	end
 
 CyndaquilPokeBallScript:
-	checkevent EVENT_GOT_A_POKEMON_FROM_ELM
-	iftrue LookAtElmPokeBallScript
-	turnobject ELMSLAB_ELM, DOWN
-	reanchormap
-	pokepic CYNDAQUIL
-	cry CYNDAQUIL
-	waitbutton
-	closepokepic
-	opentext
-	writetext TakeCyndaquilText
-	yesorno
-	iffalse DidntChooseStarterScript
-	disappear ELMSLAB_POKE_BALL1
-	setevent EVENT_GOT_CYNDAQUIL_FROM_ELM
-	writetext ChoseStarterText
-	promptbutton
-	waitsfx
-	getmonname STRING_BUFFER_3, CYNDAQUIL
-	writetext ReceivedStarterText
-	playsound SFX_CAUGHT_MON
-	waitsfx
-	promptbutton
-	givepoke CYNDAQUIL, 5, BERRY
-	closetext
-	readvar VAR_FACING
-	ifequal RIGHT, ElmDirectionsScript
-	applymovement PLAYER, AfterCyndaquilMovement
-	sjump ElmDirectionsScript
+    checkevent EVENT_GOT_A_POKEMON_FROM_ELM
+    iftrue LookAtElmPokeBallScript
+    turnobject ELMSLAB_ELM, DOWN
+    reanchormap
+    readmem wRandomStarter1      ; Read starter 1 ID into wScriptVar
+    pokepic 0                    ; Show pic from wScriptVar
+    cry 0                        ; Play cry from wScriptVar
+    waitbutton
+    closepokepic
+    opentext
+    getmonname STRING_BUFFER_3, 0  ; Get name from wScriptVar for the text
+    writetext TakeThisPokemonText2 ; Use text that prints the name
+    yesorno
+    iffalse DidntChooseStarterScript
+    closetext
+    disappear ELMSLAB_POKE_BALL1
+    setevent EVENT_GOT_CYNDAQUIL_FROM_ELM
+	readmem wRandomStarter1
+    givepoke 0, 5, BERRY         ; Give Pokémon from wScriptVar, Level 5, with a Berry
+    sjump ElmDirectionsScript
 
 TotodilePokeBallScript:
-	checkevent EVENT_GOT_A_POKEMON_FROM_ELM
-	iftrue LookAtElmPokeBallScript
-	turnobject ELMSLAB_ELM, DOWN
-	reanchormap
-	pokepic TOTODILE
-	cry TOTODILE
-	waitbutton
-	closepokepic
-	opentext
-	writetext TakeTotodileText
-	yesorno
-	iffalse DidntChooseStarterScript
-	disappear ELMSLAB_POKE_BALL2
-	setevent EVENT_GOT_TOTODILE_FROM_ELM
-	writetext ChoseStarterText
-	promptbutton
-	waitsfx
-	getmonname STRING_BUFFER_3, TOTODILE
-	writetext ReceivedStarterText
-	playsound SFX_CAUGHT_MON
-	waitsfx
-	promptbutton
-	givepoke TOTODILE, 5, BERRY
-	closetext
-	applymovement PLAYER, AfterTotodileMovement
-	sjump ElmDirectionsScript
+    checkevent EVENT_GOT_A_POKEMON_FROM_ELM
+    iftrue LookAtElmPokeBallScript
+    turnobject ELMSLAB_ELM, DOWN
+    reanchormap
+    readmem wRandomStarter2
+    pokepic 0
+    cry 0
+    waitbutton
+    closepokepic
+    opentext
+    getmonname STRING_BUFFER_3, 0
+    writetext TakeThisPokemonText2
+    yesorno
+    iffalse DidntChooseStarterScript
+    closetext
+    disappear ELMSLAB_POKE_BALL2
+    setevent EVENT_GOT_TOTODILE_FROM_ELM
+	readmem wRandomStarter2
+    givepoke 0, 5, BERRY
+    sjump ElmDirectionsScript
 
 ChikoritaPokeBallScript:
-	checkevent EVENT_GOT_A_POKEMON_FROM_ELM
-	iftrue LookAtElmPokeBallScript
-	turnobject ELMSLAB_ELM, DOWN
-	reanchormap
-	pokepic CHIKORITA
-	cry CHIKORITA
-	waitbutton
-	closepokepic
-	opentext
-	writetext TakeChikoritaText
-	yesorno
-	iffalse DidntChooseStarterScript
-	disappear ELMSLAB_POKE_BALL3
-	setevent EVENT_GOT_CHIKORITA_FROM_ELM
-	writetext ChoseStarterText
-	promptbutton
-	waitsfx
-	getmonname STRING_BUFFER_3, CHIKORITA
-	writetext ReceivedStarterText
-	playsound SFX_CAUGHT_MON
-	waitsfx
-	promptbutton
-	givepoke CHIKORITA, 5, BERRY
-	closetext
-	applymovement PLAYER, AfterChikoritaMovement
-	sjump ElmDirectionsScript
+    checkevent EVENT_GOT_A_POKEMON_FROM_ELM
+    iftrue LookAtElmPokeBallScript
+    turnobject ELMSLAB_ELM, DOWN
+    reanchormap
+    readmem wRandomStarter2
+    pokepic 0
+    cry 0
+    waitbutton
+    closepokepic
+    opentext
+    getmonname STRING_BUFFER_3, 0
+    writetext TakeThisPokemonText2
+    yesorno
+    iffalse DidntChooseStarterScript
+    closetext
+    disappear ELMSLAB_POKE_BALL3
+    setevent EVENT_GOT_CHIKORITA_FROM_ELM
+	readmem wRandomStarter3
+    givepoke 0, 5, BERRY
+    sjump ElmDirectionsScript
 
 DidntChooseStarterScript:
 	writetext DidntChooseStarterText
@@ -725,48 +705,14 @@ AfterChikoritaMovement:
 
 ElmText_Intro:
 	text "ELM: <PLAY_G>!"
-	line "There you are!"
-
-	para "I needed to ask"
-	line "you a favor."
-
-	para "I'm conducting new"
-	line "#MON research"
-
-	para "right now. I was"
-	line "wondering if you"
-
-	para "could help me with"
-	line "it, <PLAY_G>."
-
-	para "You see…"
-
-	para "I'm writing a"
-	line "paper that I want"
-
-	para "to present at a"
-	line "conference."
-
-	para "But there are some"
-	line "things I don't"
-
-	para "quite understand"
-	line "yet."
-
-	para "So!"
-
-	para "I'd like you to"
-	line "raise a #MON"
-
-	para "that I recently"
-	line "caught."
+	line "wussuhhh"
 	done
 
 ElmText_Accepted:
 	text "Thanks, <PLAY_G>!"
 
 	para "You're a great"
-	line "help!"
+	line "homie!"
 	done
 
 ElmText_Refused:
@@ -775,68 +721,28 @@ ElmText_Refused:
 	done
 
 ElmText_ResearchAmbitions:
-	text "When I announce my"
-	line "findings, I'm sure"
-
-	para "we'll delve a bit"
-	line "deeper into the"
-
-	para "many mysteries of"
-	line "#MON."
-
-	para "You can count on"
-	line "it!"
+	text "E"
+	line ""
 	done
 
 ElmText_GotAnEmail:
-	text "Oh, hey! I got an"
+	text "Oh, hey! pingas"
 	line "e-mail!"
-
-	para "<……><……><……>"
-	line "Hm… Uh-huh…"
-
-	para "Okay…"
 	done
 
 ElmText_MissionFromMrPokemon:
 	text "Hey, listen."
 
-	para "I have an acquain-"
-	line "tance called MR."
-	cont "#MON."
-
-	para "He keeps finding"
-	line "weird things and"
-
-	para "raving about his"
-	line "discoveries."
-
-	para "Anyway, I just got"
-	line "an e-mail from him"
-
-	para "saying that this"
-	line "time it's real."
-
 	para "It is intriguing,"
 	line "but we're busy"
-
-	para "with our #MON"
-	line "research…"
-
-	para "Wait!"
-
-	para "I know!"
-
-	para "<PLAY_G>, can you"
-	line "go in our place?"
 	done
 
 ElmText_ChooseAPokemon:
 	text "I want you to"
 	line "raise one of the"
 
-	para "#MON contained"
-	line "in these BALLS."
+	para ""
+	line "BALLS."
 
 	para "You'll be that"
 	line "#MON's first"
@@ -1367,6 +1273,13 @@ ElmsLabPCText:
 	para "…It says on the"
 	line "screen…"
 	done
+
+TakeThisPokemonText2:
+    text "ELM: So, you want"
+    line "@"
+    text_ram wStringBuffer3
+    text "?"
+    done
 
 ElmsLab_MapEvents:
 	db 0, 0 ; filler

@@ -3024,6 +3024,10 @@ wRegisteredItem:: db
 
 wPlayerState:: db
 
+wRandomStarter1:: db
+wRandomStarter2:: db
+wRandomStarter3:: db
+
 wHallOfFameCount:: db
 	ds 1
 wTradeFlags:: flag_array NUM_NPC_TRADES

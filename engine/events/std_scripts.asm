@@ -478,6 +478,13 @@ BugContestResults_CopyContestantsToResults:
 	end
 
 InitializeEventsScript:
+	; --- Give Pokegear and skip Mom event ---
+    setflag ENGINE_POKEGEAR
+    setflag ENGINE_PHONE_CARD
+    addcellnum PHONE_MOM
+    setmapscene PLAYERS_HOUSE_1F, SCENE_PLAYERSHOUSE1F_NOOP ; Disables the floor trigger
+    ; --- End of new code ---
+
 	setevent EVENT_EARLS_ACADEMY_EARL
 	setevent EVENT_RADIO_TOWER_ROCKET_TAKEOVER
 	setevent EVENT_GOLDENROD_CITY_ROCKET_TAKEOVER

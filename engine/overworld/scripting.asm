@@ -1920,29 +1920,33 @@ Script_checkphonecall:
 	ret
 
 Script_givepoke:
-	call GetScriptByte
-	ld [wCurPartySpecies], a
-	call GetScriptByte
-	ld [wCurPartyLevel], a
-	call GetScriptByte
-	ld [wCurItem], a
-	call GetScriptByte
-	and a
-	ld b, a
-	jr z, .ok
-	ld hl, wScriptPos
-	ld e, [hl]
-	inc hl
-	ld d, [hl]
-	call GetScriptByte
-	call GetScriptByte
-	call GetScriptByte
-	call GetScriptByte
+    call GetScriptByte
+    and a
+    jr nz, .not_zero
+    ld a, [wScriptVar] ; If the species argument was 0, use wScriptVar instead.
+.not_zero
+    ld [wCurPartySpecies], a
+    call GetScriptByte
+    ld [wCurPartyLevel], a
+    call GetScriptByte
+    ld [wCurItem], a
+    call GetScriptByte
+    and a
+    ld b, a
+    jr z, .ok
+    ld hl, wScriptPos
+    ld e, [hl]
+    inc hl
+    ld d, [hl]
+    call GetScriptByte
+    call GetScriptByte
+    call GetScriptByte
+    call GetScriptByte
 .ok
-	farcall GivePoke
-	ld a, b
-	ld [wScriptVar], a
-	ret
+    farcall GivePoke
+    ld a, b
+    ld [wScriptVar], a
+    ret
 
 Script_giveegg:
 ; if no room in the party, return 0 in wScriptVar; else, return 2
