@@ -1,4 +1,12 @@
+CheckForRunning:
+; Check if B button is held down.
+	ld a, [hJoyDown]
+	and B_BUTTON
+	ld [wPlayerIsRunning], a
+	ret
+
 DoPlayerMovement::
+	call CheckForRunning
 	call .GetDPad
 	ld a, movement_step_sleep
 	ld [wMovementAnimation], a
@@ -297,8 +305,15 @@ DoPlayerMovement::
 	scf
 	ret
 
-.walk
+.walk:
+	ld a, [wPlayerIsRunning]
+	and a
+	jr z, .normal_walk ; If B is not held, do a normal walk
+	ld a, STEP_BIKE     ; If B is held, use a fast step (like the bike)
+	jr .do_the_step
+.normal_walk:
 	ld a, STEP_WALK
+.do_the_step:
 	call .DoStep
 	scf
 	ret

@@ -176,6 +176,9 @@ CyndaquilPokeBallScript:
     setevent EVENT_GOT_CYNDAQUIL_FROM_ELM
 	readmem wRandomStarter1
     givepoke 0, 5, BERRY         ; Give Pokémon from wScriptVar, Level 5, with a Berry
+	; Player got starter #1, so rival gets starter #2.
+	readmem wRandomStarter2
+	writemem wRivalStarterSpecies
     sjump ElmDirectionsScript
 
 TotodilePokeBallScript:
@@ -198,6 +201,9 @@ TotodilePokeBallScript:
     setevent EVENT_GOT_TOTODILE_FROM_ELM
 	readmem wRandomStarter2
     givepoke 0, 5, BERRY
+	; Player got starter #2, so rival gets starter #3.
+	readmem wRandomStarter3
+	writemem wRivalStarterSpecies
     sjump ElmDirectionsScript
 
 ChikoritaPokeBallScript:
@@ -205,7 +211,7 @@ ChikoritaPokeBallScript:
     iftrue LookAtElmPokeBallScript
     turnobject ELMSLAB_ELM, DOWN
     reanchormap
-    readmem wRandomStarter2
+    readmem wRandomStarter3
     pokepic 0
     cry 0
     waitbutton
@@ -220,6 +226,9 @@ ChikoritaPokeBallScript:
     setevent EVENT_GOT_CHIKORITA_FROM_ELM
 	readmem wRandomStarter3
     givepoke 0, 5, BERRY
+	; Player got starter #3, so rival gets starter #1.
+	readmem wRandomStarter1
+	writemem wRivalStarterSpecies
     sjump ElmDirectionsScript
 
 DidntChooseStarterScript:
@@ -452,7 +461,7 @@ AideScript_WalkPotion2:
 
 AideScript_GivePotion:
 	opentext
-	writetext AideText_GiveYouPotion
+	;writetext AideText_GiveYouPotion
 	promptbutton
 	verbosegiveitem POTION
 	writetext AideText_AlwaysBusy
@@ -477,12 +486,12 @@ AideScript_WalkBalls2:
 
 AideScript_GiveYouBalls:
 	opentext
-	writetext AideText_GiveYouBalls
+	;writetext AideText_GiveYouBalls
 	promptbutton
 	getitemname STRING_BUFFER_4, POKE_BALL
 	scall AideScript_ReceiveTheBalls
 	giveitem POKE_BALL, 5
-	writetext AideText_ExplainBalls
+	;writetext AideText_ExplainBalls
 	promptbutton
 	itemnotify
 	closetext
@@ -502,7 +511,7 @@ ElmsAideScript:
 	iftrue AideScript_ExplainBalls
 	checkevent EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON
 	iftrue AideScript_TheftTestimony
-	writetext AideText_AlwaysBusy
+	;writetext AideText_AlwaysBusy
 	waitbutton
 	closetext
 	end
@@ -716,8 +725,7 @@ ElmText_Accepted:
 	done
 
 ElmText_Refused:
-	text "But… Please, I"
-	line "need your help!"
+	text "fug yourself"
 	done
 
 ElmText_ResearchAmbitions:
@@ -727,28 +735,18 @@ ElmText_ResearchAmbitions:
 
 ElmText_GotAnEmail:
 	text "Oh, hey! pingas"
-	line "e-mail!"
+	line ""
 	done
 
 ElmText_MissionFromMrPokemon:
-	text "Hey, listen."
-
-	para "It is intriguing,"
-	line "but we're busy"
+	text ""
+	line "busy"
 	done
 
 ElmText_ChooseAPokemon:
-	text "I want you to"
-	line "raise one of the"
-
-	para ""
+	text "touch the"
+	
 	line "BALLS."
-
-	para "You'll be that"
-	line "#MON's first"
-	cont "partner, <PLAY_G>!"
-
-	para "Go on. Pick one!"
 	done
 
 ElmText_LetYourMonBattleIt:
@@ -802,34 +800,13 @@ ReceivedStarterText:
 	done
 
 ElmDirectionsText1:
-	text "MR.#MON lives a"
-	line "little bit beyond"
-
-	para "CHERRYGROVE, the"
-	line "next city over."
-
-	para "It's almost a"
-	line "direct route"
-
-	para "there, so you"
-	line "can't miss it."
-
-	para "But just in case,"
-	line "here's my phone"
-
-	para "number. Call me if"
-	line "anything comes up!"
+	text "MR.#MON lives up"
+	line "north"
 	done
 
 ElmDirectionsText2:
-	text "If your #MON is"
-	line "hurt, you should"
-
-	para "heal it with this"
-	line "machine."
-
-	para "Feel free to use"
-	line "it anytime."
+	text ""
+	line "lean mean bean machine"
 	done
 
 ElmDirectionsText3:
@@ -1128,9 +1105,7 @@ AideText_GiveYouPotion:
 	done
 
 AideText_AlwaysBusy:
-	text "There are only two"
-	line "of us, so we're"
-	cont "always busy."
+	text "now scram"
 	done
 
 AideText_TheftTestimony:
@@ -1166,33 +1141,11 @@ AideText_GiveYouBalls:
 	done
 
 AideText_ExplainBalls:
-	text "To add to your"
-	line "#DEX, you have"
-	cont "to catch #MON."
-
-	para "Throw # BALLS"
-	line "at wild #MON"
-	cont "to get them."
+	text "throw dem balls"
 	done
 
 ElmsLabOfficerText1:
 	text "I heard a #MON"
-	line "was stolen here…"
-
-	para "I was just getting"
-	line "some information"
-	cont "from PROF.ELM."
-
-	para "Apparently, it was"
-	line "a young male with"
-	cont "long, red hair…"
-
-	para "What?"
-
-	para "You battled a"
-	line "trainer like that?"
-
-	para "Did you happen to"
 	line "get his name?"
 	done
 

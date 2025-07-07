@@ -98,6 +98,49 @@ TrainerType1:
 
 	ld [wCurPartyLevel], a
 	ld a, [hli]
+
+; --- Start In-line Swap Logic ---
+	ld c, a ; BACK UP original species FIRST.
+	push hl
+	ld hl, wTrainerClass
+	ld a, [hl]
+	cp RIVAL1
+	jr z, .CheckSpecies_T1
+	cp RIVAL2
+	jr nz, .NotRival_T1
+.CheckSpecies_T1:
+	ld a, c ; Restore species to check
+	cp CHIKORITA
+	jr z, .DoSwap_T1
+	cp BAYLEEF
+	jr z, .DoSwap_T1
+	cp MEGANIUM
+	jr z, .DoSwap_T1
+	cp CYNDAQUIL
+	jr z, .DoSwap_T1
+	cp QUILAVA
+	jr z, .DoSwap_T1
+	cp TYPHLOSION
+	jr z, .DoSwap_T1
+	cp TOTODILE
+	jr z, .DoSwap_T1
+	cp CROCONAW
+	jr z, .DoSwap_T1
+	cp FERALIGATR
+	jr z, .DoSwap_T1
+	jr .NotRival_T1 ; Not a starter, so don't swap
+.DoSwap_T1:
+	ld a, [wRivalStarterSpecies]
+	and a
+	jr z, .NotRival_T1
+	pop hl
+	jr .DoneSwap_T1
+.NotRival_T1:
+	ld a, c
+	pop hl
+.DoneSwap_T1:
+; --- End In-line Swap Logic ---
+
 	ld [wCurPartySpecies], a
 	ld a, OTPARTYMON
 	ld [wMonType], a
@@ -117,6 +160,55 @@ TrainerType2:
 
 	ld [wCurPartyLevel], a
 	ld a, [hli]
+
+; --- Start In-line Swap Logic ---
+	ld c, a ; BACK UP original species FIRST.
+	xor a   ; NOW, clear 'a' for the flag.
+	ld [wDidSwapRivalMon], a
+	push hl
+	ld hl, wTrainerClass
+	ld a, [hl]
+	cp RIVAL1
+	jr z, .CheckSpecies_T2
+	cp RIVAL2
+	jr nz, .NotRival_T2
+.CheckSpecies_T2:
+	ld a, c ; Restore species to check
+	cp CHIKORITA
+	jr z, .DoSwap_T2
+	cp BAYLEEF
+	jr z, .DoSwap_T2
+	cp MEGANIUM
+	jr z, .DoSwap_T2
+	cp CYNDAQUIL
+	jr z, .DoSwap_T2
+	cp QUILAVA
+	jr z, .DoSwap_T2
+	cp TYPHLOSION
+	jr z, .DoSwap_T2
+	cp TOTODILE
+	jr z, .DoSwap_T2
+	cp CROCONAW
+	jr z, .DoSwap_T2
+	cp FERALIGATR
+	jr z, .DoSwap_T2
+	jr .NotRival_T2 ; Not a starter, so don't swap
+.DoSwap_T2:
+	ld a, [wRivalStarterSpecies]
+	and a
+	jr z, .NotRival_T2
+	ld c, a
+	ld a, 1
+	ld [wDidSwapRivalMon], a
+	ld a, c
+	pop hl
+	jr .DoneSwap_T2
+.NotRival_T2:
+	ld a, c
+	pop hl
+.DoneSwap_T2:
+; --- End In-line Swap Logic ---
+
 	ld [wCurPartySpecies], a
 	ld a, OTPARTYMON
 	ld [wMonType], a
@@ -131,6 +223,10 @@ TrainerType2:
 	ld d, h
 	ld e, l
 	pop hl
+
+	ld a, [wDidSwapRivalMon]
+	and a
+	jr nz, .loop
 
 	ld b, NUM_MOVES
 .copy_moves
@@ -180,7 +276,7 @@ TrainerType2:
 .copied_pp
 
 	pop hl
-	jr .loop
+	jp .loop
 
 TrainerType3:
 ; item
@@ -193,6 +289,49 @@ TrainerType3:
 
 	ld [wCurPartyLevel], a
 	ld a, [hli]
+
+; --- Start In-line Swap Logic ---
+	ld c, a ; BACK UP original species FIRST.
+	push hl
+	ld hl, wTrainerClass
+	ld a, [hl]
+	cp RIVAL1
+	jr z, .CheckSpecies_T3
+	cp RIVAL2
+	jr nz, .NotRival_T3
+.CheckSpecies_T3:
+	ld a, c ; Restore species to check
+	cp CHIKORITA
+	jr z, .DoSwap_T3
+	cp BAYLEEF
+	jr z, .DoSwap_T3
+	cp MEGANIUM
+	jr z, .DoSwap_T3
+	cp CYNDAQUIL
+	jr z, .DoSwap_T3
+	cp QUILAVA
+	jr z, .DoSwap_T3
+	cp TYPHLOSION
+	jr z, .DoSwap_T3
+	cp TOTODILE
+	jr z, .DoSwap_T3
+	cp CROCONAW
+	jr z, .DoSwap_T3
+	cp FERALIGATR
+	jr z, .DoSwap_T3
+	jr .NotRival_T3 ; Not a starter, so don't swap
+.DoSwap_T3:
+	ld a, [wRivalStarterSpecies]
+	and a
+	jr z, .NotRival_T3
+	pop hl
+	jr .DoneSwap_T3
+.NotRival_T3:
+	ld a, c
+	pop hl
+.DoneSwap_T3:
+; --- End In-line Swap Logic ---
+
 	ld [wCurPartySpecies], a
 	ld a, OTPARTYMON
 	ld [wMonType], a
@@ -221,6 +360,55 @@ TrainerType4:
 
 	ld [wCurPartyLevel], a
 	ld a, [hli]
+
+; --- Start In-line Swap Logic ---
+	ld c, a ; BACK UP original species FIRST.
+	xor a   ; NOW, clear 'a' for the flag.
+	ld [wDidSwapRivalMon], a
+	push hl
+	ld hl, wTrainerClass
+	ld a, [hl]
+	cp RIVAL1
+	jr z, .CheckSpecies_T4
+	cp RIVAL2
+	jr nz, .NotRival_T4
+.CheckSpecies_T4:
+	ld a, c ; Restore species to check
+	cp CHIKORITA
+	jr z, .DoSwap_T4
+	cp BAYLEEF
+	jr z, .DoSwap_T4
+	cp MEGANIUM
+	jr z, .DoSwap_T4
+	cp CYNDAQUIL
+	jr z, .DoSwap_T4
+	cp QUILAVA
+	jr z, .DoSwap_T4
+	cp TYPHLOSION
+	jr z, .DoSwap_T4
+	cp TOTODILE
+	jr z, .DoSwap_T4
+	cp CROCONAW
+	jr z, .DoSwap_T4
+	cp FERALIGATR
+	jr z, .DoSwap_T4
+	jr .NotRival_T4 ; Not a starter, so don't swap
+.DoSwap_T4:
+	ld a, [wRivalStarterSpecies]
+	and a
+	jr z, .NotRival_T4
+	ld c, a
+	ld a, 1
+	ld [wDidSwapRivalMon], a
+	ld a, c
+	pop hl
+	jr .DoneSwap_T4
+.NotRival_T4:
+	ld a, c
+	pop hl
+.DoneSwap_T4:
+; --- End In-line Swap Logic ---
+
 	ld [wCurPartySpecies], a
 
 	ld a, OTPARTYMON
@@ -249,6 +437,10 @@ TrainerType4:
 	ld d, h
 	ld e, l
 	pop hl
+
+	ld a, [wDidSwapRivalMon]
+	and a
+	jp nz, .loop
 
 	ld b, NUM_MOVES
 .copy_moves
@@ -299,7 +491,7 @@ TrainerType4:
 .copied_pp
 
 	pop hl
-	jr .loop
+	jp .loop
 
 ComputeTrainerReward:
 	ld hl, hProduct

@@ -106,13 +106,36 @@ GetFrontpicPointer:
 	ld a, [wCurPartySpecies]
 	cp UNOWN
 	jr z, .unown
+
+; --- Start of New Code ---
+	; Add a special case for Celebi to bypass FixPicBank
+	cp CELEBI
+	jr z, .celebi
+; --- End of New Code ---
+
 	ld a, [wCurPartySpecies]
 	ld d, BANK(PokemonPicPointers)
 	jr .ok
-.unown
+
+.celebi:
+	; This is the special handler for Celebi.
+	; It manually gets the bank and address from the pointer table,
+	ld a, BANK(CelebiFrontpic)
+	push af ; Save the correct bank for later.
+	ld hl, PokemonPicPointers
+	ld a, CELEBI - 1
+	ld bc, 6 ; Each entry in the pointer table is 6 bytes long
+	call AddNTimes
+	inc hl ; The first byte of the entry is the bank, which we already have. Skip it.
+	ld a, BANK(PokemonPicPointers)
+	call GetFarWord ; Get the address of the picture.
+	pop bc ; Restore the correct bank into 'b'.
+	ret    ; Return to _GetFrontpic.
+
+.unown:
 	ld a, [wUnownLetter]
 	ld d, BANK(UnownPicPointers)
-.ok
+.ok:
 	; These are assumed to be at the same address in their respective banks.
 	assert PokemonPicPointers == UnownPicPointers
 	ld hl, PokemonPicPointers

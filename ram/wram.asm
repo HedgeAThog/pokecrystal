@@ -3023,10 +3023,13 @@ wWhichRegisteredItem:: db
 wRegisteredItem:: db
 
 wPlayerState:: db
+wPlayerIsRunning:: db
 
 wRandomStarter1:: db
 wRandomStarter2:: db
 wRandomStarter3:: db
+wRivalStarterSpecies:: db
+wDidSwapRivalMon:: db
 
 wHallOfFameCount:: db
 	ds 1

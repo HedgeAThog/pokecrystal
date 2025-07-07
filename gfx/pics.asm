@@ -252,7 +252,9 @@ SECTION "Pics 10", ROMX
 MisdreavusFrontpic:  INCBIN "gfx/pokemon/misdreavus/front.animated.2bpp.lz"
 HoundourFrontpic:    INCBIN "gfx/pokemon/houndour/front.animated.2bpp.lz"
 MankeyFrontpic:      INCBIN "gfx/pokemon/mankey/front.animated.2bpp.lz"
-CelebiFrontpic:      INCBIN "gfx/pokemon/celebi/front.animated.2bpp.lz"
+CelebiFrontpic:
+    export CelebiFrontpic
+    INCBIN "gfx/pokemon/celebi/front.animated.2bpp.lz"
 MediumPic:           INCBIN "gfx/trainers/medium.2bpp.lz"
 PinecoFrontpic:      INCBIN "gfx/pokemon/pineco/front.animated.2bpp.lz"
 KrabbyFrontpic:      INCBIN "gfx/pokemon/krabby/front.animated.2bpp.lz"
