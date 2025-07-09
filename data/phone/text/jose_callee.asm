@@ -1,64 +1,64 @@
 JoseAnswerPhoneText:
 	text "Hello, this is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "…"
 
-	para "Oh, <PLAY_G>?"
+	para "Oh, <PLAYER>?"
 	line "Good morning!"
 	done
 
 JoseAnswerPhoneDayText:
 	text "Hello, this is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "…"
 
-	para "Oh, <PLAY_G>? Hi!"
+	para "Oh, <PLAYER>? Hi!"
 	done
 
 JoseAnswerPhoneNiteText:
 	text "Hello, this is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "…"
 
-	para "Oh, <PLAY_G>?"
+	para "Oh, <PLAYER>?"
 	line "Good evening!"
 	done
 
 JoseGreetText:
-	text "Oh, <PLAY_G>?"
+	text "Oh, <PLAYER>?"
 
 	para "Tweet! Yeah, it's"
-	line "me, @"
+	line "me, "
 	text_ram wStringBuffer3
 	text "."
 	done
 
 JoseGreetDayText:
-	text "Oh, <PLAY_G>?"
+	text "Oh, <PLAYER>?"
 
 	para "Tweet! Yeah, it's"
-	line "me, @"
+	line "me, "
 	text_ram wStringBuffer3
 	text "."
 	done
 
 JoseGreetNiteText:
-	text "Oh, <PLAY_G>?"
+	text "Oh, <PLAYER>?"
 
 	para "Tweet! Yeah, it's"
-	line "me, @"
+	line "me, "
 	text_ram wStringBuffer3
 	text "."
 	done
 
 JoseGenericText:
-	text "Are your #MON"
+	text "Are your #mon"
 	line "still cooking?"
 
-	para "My @"
+	para "My "
 	text_ram wStringBuffer4
 	text " has"
 	line "too much energy."

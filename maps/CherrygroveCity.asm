@@ -1,64 +1,64 @@
+CherrygroveCity_MapScriptHeader:
+	def_scene_scripts
+
+	def_callbacks
+	callback MAPCALLBACK_NEWMAP, CherrygroveCityFlyPoint
+
+	def_warp_events
+	warp_event 23,  3, CHERRYGROVE_MART, 2
+	warp_event 29,  3, CHERRYGROVE_POKECENTER_1F, 1
+	warp_event 17,  7, CHERRYGROVE_GYM_SPEECH_HOUSE, 1
+	warp_event 25,  9, GUIDE_GENTS_HOUSE, 1
+	warp_event 31, 11, CHERRYGROVE_EVOLUTION_SPEECH_HOUSE, 1
+
+	def_coord_events
+	coord_event 33,  7, 0, CherrygroveGuideGentTrigger
+	coord_event 33,  6, 1, CherrygroveRivalTriggerNorth
+	coord_event 33,  7, 1, CherrygroveRivalTriggerSouth
+
+	def_bg_events
+	bg_event 30,  8, BGEVENT_JUMPTEXT, CherrygroveCitySignText
+	bg_event 23,  9, BGEVENT_JUMPTEXT, GuideGentsHouseSignText
+	bg_event 13,  5, BGEVENT_JUMPTEXT, CherrygroveCityAdvancedTipsSignText
+	bg_event 35,  2, BGEVENT_ITEM + NUGGET, EVENT_CHERRYGROVE_CITY_HIDDEN_NUGGET
+
+	def_object_events
+	object_event 32,  6, SPRITE_GRAMPS, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, CherrygroveCityGuideGent, EVENT_GUIDE_GENT_IN_HIS_HOUSE
+	object_event 39,  6, SPRITE_RIVAL, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_RIVAL_CHERRYGROVE_CITY
+	object_event 25, 13, SPRITE_POKEFAN_F, SPRITEMOVEDATA_STANDING_DOWN, 0, 1, -1, PAL_NPC_BLUE, OBJECTTYPE_COMMAND, jumptextfaceplayer, CherrygroveTeacherText_HaveMapCard, -1
+	object_event 23,  7, SPRITE_YOUNGSTER, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, CherrygroveYoungsterScript, -1
+	object_event  7, 12, SPRITE_FISHER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, MysticWaterGuy, -1
+	pokemon_event 26, 13, PIDGEY, SPRITEMOVEDATA_POKEMON, -1, PAL_NPC_BROWN, CherrygrovePidgeyText, -1
+
 	object_const_def
 	const CHERRYGROVECITY_GRAMPS
 	const CHERRYGROVECITY_RIVAL
-	const CHERRYGROVECITY_TEACHER
-	const CHERRYGROVECITY_YOUNGSTER
-	const CHERRYGROVECITY_FISHER
 
-CherrygroveCity_MapScripts:
-	def_scene_scripts
-	scene_script CherrygroveCityNoop1Scene, SCENE_CHERRYGROVECITY_NOOP
-	scene_script CherrygroveCityNoop2Scene, SCENE_CHERRYGROVECITY_MEET_RIVAL
-
-	def_callbacks
-	callback MAPCALLBACK_NEWMAP, CherrygroveCityFlypointCallback
-
-CherrygroveCityNoop1Scene:
-	end
-
-CherrygroveCityNoop2Scene:
-	end
-
-CherrygroveCityFlypointCallback:
+CherrygroveCityFlyPoint:
 	setflag ENGINE_FLYPOINT_CHERRYGROVE
 	endcallback
 
+CherrygroveGuideGentTrigger:
+	applymovement PLAYER, GuideGentPlayerMovement
+	setlasttalked CHERRYGROVECITY_GRAMPS
 CherrygroveCityGuideGent:
-	faceplayer
-	opentext
-	writetext GuideGentIntroText
-	yesorno
-	iffalse .No
-	sjump .Yes
-.Yes:
-	writetext GuideGentTourText1
-	waitbutton
-	closetext
+	showtextfaceplayer GuideGentIntroText
 	playmusic MUSIC_SHOW_ME_AROUND
 	follow CHERRYGROVECITY_GRAMPS, PLAYER
 	applymovement CHERRYGROVECITY_GRAMPS, GuideGentMovement1
-	opentext
-	writetext GuideGentPokecenterText
-	waitbutton
-	closetext
+	showtext GuideGentPokeCenterText
 	applymovement CHERRYGROVECITY_GRAMPS, GuideGentMovement2
 	turnobject PLAYER, UP
-	opentext
-	writetext GuideGentMartText
-	waitbutton
-	closetext
+	showtext GuideGentMartText
 	applymovement CHERRYGROVECITY_GRAMPS, GuideGentMovement3
 	turnobject PLAYER, UP
-	opentext
-	writetext GuideGentRoute30Text
-	waitbutton
-	closetext
+	showtext GuideGentRoute30Text
+	applymovement CHERRYGROVECITY_GRAMPS, GuideGentMovement3_5
+	turnobject PLAYER, LEFT
+	showtext GuideGentAdvancedTipsText
 	applymovement CHERRYGROVECITY_GRAMPS, GuideGentMovement4
 	turnobject PLAYER, LEFT
-	opentext
-	writetext GuideGentSeaText
-	waitbutton
-	closetext
+	showtext GuideGentSeaText
 	applymovement CHERRYGROVECITY_GRAMPS, GuideGentMovement5
 	turnobject PLAYER, UP
 	pause 60
@@ -67,8 +67,7 @@ CherrygroveCityGuideGent:
 	opentext
 	writetext GuideGentGiftText
 	promptbutton
-	getstring STRING_BUFFER_4, .mapcardname
-	scall .JumpstdReceiveItem
+	givespecialitem MAP_CARD
 	setflag ENGINE_MAP_CARD
 	writetext GotMapCardText
 	promptbutton
@@ -76,261 +75,199 @@ CherrygroveCityGuideGent:
 	waitbutton
 	closetext
 	stopfollow
-	special RestartMapMusic
+	playmusic MUSIC_CHERRYGROVE_CITY
 	turnobject PLAYER, UP
 	applymovement CHERRYGROVECITY_GRAMPS, GuideGentMovement6
 	playsound SFX_ENTER_DOOR
 	disappear CHERRYGROVECITY_GRAMPS
 	clearevent EVENT_GUIDE_GENT_VISIBLE_IN_CHERRYGROVE
+	setscene $2
 	waitsfx
 	end
 
-.JumpstdReceiveItem:
-	jumpstd ReceiveItemScript
-	end
-
-.mapcardname
-	db "MAP CARD@"
-
-.No:
-	writetext GuideGentNoText
-	waitbutton
-	closetext
-	end
-
-CherrygroveRivalSceneSouth:
+CherrygroveRivalTriggerSouth:
 	moveobject CHERRYGROVECITY_RIVAL, 39, 7
-CherrygroveRivalSceneNorth:
+CherrygroveRivalTriggerNorth:
 	turnobject PLAYER, RIGHT
 	showemote EMOTE_SHOCK, PLAYER, 15
-	special FadeOutMusic
+	special Special_FadeOutMusic
 	pause 15
 	appear CHERRYGROVECITY_RIVAL
 	applymovement CHERRYGROVECITY_RIVAL, CherrygroveCity_RivalWalksToYou
 	turnobject PLAYER, RIGHT
 	playmusic MUSIC_RIVAL_ENCOUNTER
-	opentext
-	writetext CherrygroveRivalText_Seen
-	waitbutton
-	closetext
+	showtext CherrygroveRivalText_Seen
 	checkevent EVENT_GOT_TOTODILE_FROM_ELM
-	iftrue .Totodile
+	iftruefwd .Totodile
 	checkevent EVENT_GOT_CHIKORITA_FROM_ELM
-	iftrue .Chikorita
+	iftruefwd .Chikorita
 	winlosstext RivalCherrygroveWinText, RivalCherrygroveLossText
 	setlasttalked CHERRYGROVECITY_RIVAL
-	loadtrainer RIVAL1, RIVAL1_1_TOTODILE
+	loadtrainer RIVAL0, 3
 	loadvar VAR_BATTLETYPE, BATTLETYPE_CANLOSE
 	startbattle
-	dontrestartmapmusic
+	setevent EVENT_RIVAL_CHERRYGROVE_CITY
 	reloadmap
-	iftrue .AfterVictorious
-	sjump .AfterYourDefeat
+	sjumpfwd .FinishRival
 
 .Totodile:
 	winlosstext RivalCherrygroveWinText, RivalCherrygroveLossText
 	setlasttalked CHERRYGROVECITY_RIVAL
-	loadtrainer RIVAL1, RIVAL1_1_CHIKORITA
+	loadtrainer RIVAL0, 1
 	loadvar VAR_BATTLETYPE, BATTLETYPE_CANLOSE
 	startbattle
 	dontrestartmapmusic
+	setevent EVENT_RIVAL_CHERRYGROVE_CITY
 	reloadmap
-	iftrue .AfterVictorious
-	sjump .AfterYourDefeat
+	sjumpfwd .FinishRival
 
 .Chikorita:
 	winlosstext RivalCherrygroveWinText, RivalCherrygroveLossText
 	setlasttalked CHERRYGROVECITY_RIVAL
-	loadtrainer RIVAL1, RIVAL1_1_CYNDAQUIL
+	loadtrainer RIVAL0, 2
 	loadvar VAR_BATTLETYPE, BATTLETYPE_CANLOSE
 	startbattle
 	dontrestartmapmusic
+	setevent EVENT_RIVAL_CHERRYGROVE_CITY
 	reloadmap
-	iftrue .AfterVictorious
-	sjump .AfterYourDefeat
-
-.AfterVictorious:
-	playmusic MUSIC_RIVAL_AFTER
-	opentext
-	writetext CherrygroveRivalText_YouWon
-	waitbutton
-	closetext
-	sjump .FinishRival
-
-.AfterYourDefeat:
-	playmusic MUSIC_RIVAL_AFTER
-	opentext
-	writetext CherrygroveRivalText_YouLost
-	waitbutton
-	closetext
 .FinishRival:
+	special DeleteSavedMusic
+	playmusic MUSIC_RIVAL_AFTER
+	showtext CherrygroveRivalTextAfter1
 	playsound SFX_TACKLE
 	applymovement PLAYER, CherrygroveCity_RivalPushesYouOutOfTheWay
+	applymovement CHERRYGROVECITY_RIVAL, CherrygroveCity_RivalStartsToLeave
+	showemote EMOTE_SHOCK, CHERRYGROVECITY_RIVAL, 15
+	applymovement CHERRYGROVECITY_RIVAL, CherrygroveCity_RivalComesBack
+	turnobject PLAYER, UP
+	showtext CherrygroveRivalTextAfter2
 	turnobject PLAYER, LEFT
 	applymovement CHERRYGROVECITY_RIVAL, CherrygroveCity_RivalExitsStageLeft
 	disappear CHERRYGROVECITY_RIVAL
-	setscene SCENE_CHERRYGROVECITY_NOOP
 	special HealParty
-	playmapmusic
-	end
-
-CherrygroveTeacherScript:
-	faceplayer
-	opentext
-	checkflag ENGINE_MAP_CARD
-	iftrue .HaveMapCard
-	writetext CherrygroveTeacherText_NoMapCard
-	waitbutton
-	closetext
-	end
-
-.HaveMapCard:
-	writetext CherrygroveTeacherText_HaveMapCard
-	waitbutton
-	closetext
+	setscene $2
+	playmusic MUSIC_CHERRYGROVE_CITY
 	end
 
 CherrygroveYoungsterScript:
-	faceplayer
-	opentext
 	checkflag ENGINE_POKEDEX
-	iftrue .HavePokedex
-	writetext CherrygroveYoungsterText_NoPokedex
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer CherrygroveYoungsterText_HavePokedex
+	jumpthistextfaceplayer
 
-.HavePokedex:
-	writetext CherrygroveYoungsterText_HavePokedex
-	waitbutton
-	closetext
-	end
+	text "Mr.#mon's house"
+	line "is still farther"
+	cont "up ahead."
+	done
 
 MysticWaterGuy:
+	checkevent EVENT_GOT_MYSTIC_WATER_IN_CHERRYGROVE
+	iftrue_jumptextfaceplayer MysticWaterGuyTextAfter
 	faceplayer
 	opentext
-	checkevent EVENT_GOT_MYSTIC_WATER_IN_CHERRYGROVE
-	iftrue .After
 	writetext MysticWaterGuyTextBefore
 	promptbutton
 	verbosegiveitem MYSTIC_WATER
-	iffalse .Exit
+	iffalse_endtext
 	setevent EVENT_GOT_MYSTIC_WATER_IN_CHERRYGROVE
-.After:
-	writetext MysticWaterGuyTextAfter
-	waitbutton
-.Exit:
-	closetext
-	end
+	jumpthisopenedtext
 
-CherrygroveCitySign:
-	jumptext CherrygroveCitySignText
-
-GuideGentsHouseSign:
-	jumptext GuideGentsHouseSignText
-
-CherrygroveCityPokecenterSign:
-	jumpstd PokecenterSignScript
-
-CherrygroveCityMartSign:
-	jumpstd MartSignScript
+MysticWaterGuyTextAfter:
+	text "Back to fishing"
+	line "for me, then."
+	done
 
 GuideGentMovement1:
-	step LEFT
-	step LEFT
-	step UP
-	step LEFT
-	turn_head UP
-	step_end
-
-GuideGentMovement2:
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	turn_head UP
+	step_left
+	step_left
+	step_up
+GuideGentPlayerMovement:
+	step_left
+	turn_head_up
 	step_end
 
 GuideGentMovement3:
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	turn_head UP
+	step_left
+GuideGentMovement2:
+	step_left
+	step_left
+	step_left
+	step_left
+	step_left
+	step_left
+	turn_head_up
+	step_end
+
+GuideGentMovement3_5:
+	step_left
+	step_left
+	step_down
+	step_left
+	turn_head_up
 	step_end
 
 GuideGentMovement4:
-	step LEFT
-	step LEFT
-	step LEFT
-	step DOWN
-	step LEFT
-	step LEFT
-	step LEFT
-	step DOWN
-	turn_head LEFT
+	step_left
+	step_left
+	step_left
+	step_down
+	step_down
+	turn_head_left
 	step_end
 
 GuideGentMovement5:
-	step DOWN
-	step DOWN
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step DOWN
-	step DOWN
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	turn_head UP
+	step_down
+	step_right
+	step_right
+	step_right
+	step_right
+	step_right
+	step_right
+	step_right
+	step_right
+	step_right
+	step_right
+	step_down
+	step_down
+	step_right
+	step_right
+	step_right
+	step_right
+	step_right
+	turn_head_up
 	step_end
 
 GuideGentMovement6:
-	step UP
-	step UP
+	step_up
+	step_up
 	step_end
 
 CherrygroveCity_RivalWalksToYou:
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
+	step_left
+	step_left
+	step_left
+	step_left
+	step_left
 	step_end
 
 CherrygroveCity_RivalPushesYouOutOfTheWay:
-	big_step DOWN
-	turn_head UP
-	step_end
-
-CherrygroveCity_UnusedMovementData: ; unreferenced
-	step LEFT
-	turn_head DOWN
+	run_step_down
+	turn_head_left
 	step_end
 
 CherrygroveCity_RivalExitsStageLeft:
-	big_step LEFT
-	big_step LEFT
-	big_step LEFT
-	big_step LEFT
-	big_step UP
-	big_step UP
-	big_step LEFT
-	big_step LEFT
+	run_step_left
+	run_step_left
+	run_step_left
+	run_step_up
+	run_step_up
+CherrygroveCity_RivalStartsToLeave:
+	run_step_left
+	run_step_left
+	step_end
+
+CherrygroveCity_RivalComesBack:
+	run_step_right
+	turn_head_down
 	step_end
 
 GuideGentIntroText:
@@ -342,21 +279,16 @@ GuideGentIntroText:
 	line "one is a rookie"
 	cont "at some point!"
 
-	para "If you'd like, I"
-	line "can teach you a"
-	cont "few things."
+	para "I can teach you"
+	line "a few things."
+	cont "Follow me!"
 	done
 
-GuideGentTourText1:
-	text "OK, then!"
-	line "Follow me!"
-	done
+GuideGentPokeCenterText:
+	text "This is a #mon"
+	line "Center. They heal"
 
-GuideGentPokecenterText:
-	text "This is a #MON"
-	line "CENTER. They heal"
-
-	para "your #MON in no"
+	para "your #mon in no"
 	line "time at all."
 
 	para "You'll be relying"
@@ -367,34 +299,43 @@ GuideGentPokecenterText:
 	done
 
 GuideGentMartText:
-	text "This is a #MON"
-	line "MART."
+	text "This is a #mon"
+	line "Mart, or just"
+	cont "# Mart."
 
-	para "They sell BALLS"
+	para "They sell Balls"
 	line "for catching wild"
 
-	para "#MON and other"
+	para "#mon and other"
 	line "useful items."
 	done
 
 GuideGentRoute30Text:
-	text "ROUTE 30 is out"
+	text "Route 30 is out"
 	line "this way."
 
 	para "Trainers will be"
 	line "battling their"
 
-	para "prized #MON"
+	para "prized #mon"
 	line "there."
+	done
+
+GuideGentAdvancedTipsText:
+	text "Advanced Tips"
+	line "signs have this"
+	cont "unusual look."
+
+	para "They're full of"
+	line "helpful advice."
 	done
 
 GuideGentSeaText:
 	text "This is the sea,"
 	line "as you can see."
 
-	para "Some #MON are"
-	line "found only in"
-	cont "water."
+	para "Route 32 is just"
+	line "across the bay."
 	done
 
 GuideGentGiftText:
@@ -409,43 +350,35 @@ GuideGentGiftText:
 	done
 
 GotMapCardText:
-	text "<PLAYER>'s #GEAR"
-	line "now has a MAP!"
+	text "<PLAYER>'s #gear"
+	line "now has a Map!"
 	done
 
 GuideGentPokegearText:
-	text "#GEAR becomes"
+	text "#gear becomes"
 	line "more useful as you"
-	cont "add CARDS."
+	cont "add Cards."
 
 	para "I wish you luck on"
 	line "your journey!"
 	done
 
-GuideGentNoText:
-	text "Oh… It's something"
-	line "I enjoy doing…"
-
-	para "Fine. Come see me"
-	line "when you like."
-	done
-
 CherrygroveRivalText_Seen:
-	text "<……> <……> <……>"
+	text "…… …… ……"
 
-	para "You got a #MON"
-	line "at the LAB."
+	para "You got a #mon"
+	line "at the Lab."
 
 	para "What a waste."
 	line "A wimp like you."
 
-	para "<……> <……> <……>"
+	para "…… …… ……"
 
 	para "Don't you get what"
 	line "I'm saying?"
 
 	para "Well, I too, have"
-	line "a good #MON."
+	line "a good #mon."
 
 	para "I'll show you"
 	line "what I mean!"
@@ -456,53 +389,38 @@ RivalCherrygroveWinText:
 	line "happy you won?"
 	done
 
-CherrygroveRivalText_YouLost:
-	text "<……> <……> <……>"
-
-	para "My name's ???."
-
-	para "I'm going to be"
-	line "the world's great-"
-	cont "est #MON"
-	cont "trainer."
-	done
-
 RivalCherrygroveLossText:
 	text "Humph. That was a"
 	line "waste of time."
 	done
 
-CherrygroveRivalText_YouWon:
-	text "<……> <……> <……>"
+CherrygroveRivalTextAfter1:
+	text "…… …… ……"
 
-	para "My name's ???."
+	para "You want to know"
+	line "who I am?"
 
 	para "I'm going to be"
 	line "the world's great-"
-	cont "est #MON"
+	cont "est #mon"
 	cont "trainer."
 	done
 
-CherrygroveTeacherText_NoMapCard:
-	text "Did you talk to"
-	line "the old man by the"
-	cont "#MON CENTER?"
+CherrygroveRivalTextAfter2:
+	text "I dropped my"
+	line "Trainer Card…"
 
-	para "He'll put a MAP of"
-	line "JOHTO on your"
-	cont "#GEAR."
+	para "Hey! Give it"
+	line "back!"
+
+	para "Oh no… You saw"
+	line "my name…"
 	done
 
 CherrygroveTeacherText_HaveMapCard:
 	text "When you're with"
-	line "#MON, going"
+	line "#mon, going"
 	cont "anywhere is fun."
-	done
-
-CherrygroveYoungsterText_NoPokedex:
-	text "MR.#MON's house"
-	line "is still farther"
-	cont "up ahead."
 	done
 
 CherrygroveYoungsterText_HavePokedex:
@@ -510,63 +428,46 @@ CherrygroveYoungsterText_HavePokedex:
 	line "trainers on the"
 	cont "road."
 
-	para "My #MON lost."
+	para "My #mon lost."
 	line "They're a mess! I"
 
 	para "must take them to"
-	line "a #MON CENTER."
+	line "a #mon Center."
 	done
 
 MysticWaterGuyTextBefore:
-	text "A #MON I caught"
+	text "A #mon I caught"
 	line "had an item."
 
 	para "I think it's"
-	line "MYSTIC WATER."
+	line "Mystic Water."
 
 	para "I don't need it,"
 	line "so do you want it?"
 	done
 
-MysticWaterGuyTextAfter:
-	text "Back to fishing"
-	line "for me, then."
+CherrygrovePidgeyText:
+	text "Pidgey: Pijji!"
 	done
 
 CherrygroveCitySignText:
-	text "CHERRYGROVE CITY"
+	text "Cherrygrove City"
 
 	para "The City of Cute,"
 	line "Fragrant Flowers"
 	done
 
 GuideGentsHouseSignText:
-	text "GUIDE GENT'S HOUSE"
+	text "Guide Gent's House"
 	done
 
-CherrygroveCity_MapEvents:
-	db 0, 0 ; filler
+CherrygroveCityAdvancedTipsSignText:
+	text "Advanced Tips!"
 
-	def_warp_events
-	warp_event 23,  3, CHERRYGROVE_MART, 2
-	warp_event 29,  3, CHERRYGROVE_POKECENTER_1F, 1
-	warp_event 17,  7, CHERRYGROVE_GYM_SPEECH_HOUSE, 1
-	warp_event 25,  9, GUIDE_GENTS_HOUSE, 1
-	warp_event 31, 11, CHERRYGROVE_EVOLUTION_SPEECH_HOUSE, 1
+	para "# Marts will"
+	line "give you a free"
 
-	def_coord_events
-	coord_event 33,  6, SCENE_CHERRYGROVECITY_MEET_RIVAL, CherrygroveRivalSceneNorth
-	coord_event 33,  7, SCENE_CHERRYGROVECITY_MEET_RIVAL, CherrygroveRivalSceneSouth
-
-	def_bg_events
-	bg_event 30,  8, BGEVENT_READ, CherrygroveCitySign
-	bg_event 23,  9, BGEVENT_READ, GuideGentsHouseSign
-	bg_event 24,  3, BGEVENT_READ, CherrygroveCityMartSign
-	bg_event 30,  3, BGEVENT_READ, CherrygroveCityPokecenterSign
-
-	def_object_events
-	object_event 32,  6, SPRITE_GRAMPS, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CherrygroveCityGuideGent, EVENT_GUIDE_GENT_IN_HIS_HOUSE
-	object_event 39,  6, SPRITE_RIVAL, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_RIVAL_CHERRYGROVE_CITY
-	object_event 27, 12, SPRITE_TEACHER, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 1, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, CherrygroveTeacherScript, -1
-	object_event 23,  7, SPRITE_YOUNGSTER, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 1, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, CherrygroveYoungsterScript, -1
-	object_event  7, 12, SPRITE_FISHER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, MysticWaterGuy, -1
+	para "Premier Ball with"
+	line "every purchase of"
+	cont "ten # Balls!"
+	done

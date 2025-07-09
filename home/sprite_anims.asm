@@ -1,31 +1,20 @@
 InitSpriteAnimStruct::
-	ld [wSpriteAnimID], a
-	ldh a, [hROMBank]
-	push af
-
-	ld a, BANK(_InitSpriteAnimStruct)
-	rst Bankswitch
-	ld a, [wSpriteAnimID]
-
-	call _InitSpriteAnimStruct
-
-	pop af
-	rst Bankswitch
-
-	ret
+	farjp _InitSpriteAnimStruct
 
 ReinitSpriteAnimFrame::
-	ld [wSpriteAnimID], a
-	ldh a, [hROMBank]
-	push af
+	farjp _ReinitSpriteAnimFrame
 
-	ld a, BANK(_ReinitSpriteAnimFrame)
-	rst Bankswitch
-	ld a, [wSpriteAnimID]
-
-	call _ReinitSpriteAnimFrame
-
-	pop af
-	rst Bankswitch
-
+ClearSpriteAnims::
+	xor a
+	ld hl, wSpriteAnimDict
+	ld bc, wSpriteAnimsEnd - wSpriteAnimDict
+	rst ByteFill
 	ret
+
+ClearSpriteAnims2::
+	push hl
+	push de
+	push bc
+	push af
+	call ClearSpriteAnims
+	jmp PopAFBCDEHL

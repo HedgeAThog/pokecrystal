@@ -11,7 +11,7 @@ Music_BuenasPassword_Ch1:
 	pitch_offset 1
 	note_type 12, 11, 3
 	rest 8
-.mainloop:
+Music_BuenasPassword_branch_17816b:
 	stereo_panning TRUE, TRUE
 	rest 16
 	rest 16
@@ -38,15 +38,15 @@ Music_BuenasPassword_Ch1:
 	note G#, 2
 	rest 12
 	duty_cycle 2
-	sound_call .sub1
+	sound_call Music_BuenasPassword_branch_178204
 	stereo_panning TRUE, TRUE
-	sound_call Music_BuenasPassword_Ch2.sub3
-	sound_call .sub2
-	sound_call .sub1
+	sound_call Music_BuenasPassword_branch_1782df
+	sound_call Music_BuenasPassword_branch_178222
+	sound_call Music_BuenasPassword_branch_178204
 	stereo_panning TRUE, TRUE
-	sound_call Music_BuenasPassword_Ch2.sub3
-	sound_call .sub2
-	sound_call .sub1
+	sound_call Music_BuenasPassword_branch_1782df
+	sound_call Music_BuenasPassword_branch_178222
+	sound_call Music_BuenasPassword_branch_178204
 	duty_cycle 1
 	note C#, 2
 	rest 2
@@ -137,9 +137,9 @@ Music_BuenasPassword_Ch1:
 	rest 1
 	note G_, 1
 	rest 1
-	sound_loop 0, .mainloop
+	sound_jump Music_BuenasPassword_branch_17816b
 
-.sub1:
+Music_BuenasPassword_branch_178204:
 	stereo_panning FALSE, TRUE
 	note_type 6, 8, 4
 	octave 4
@@ -162,7 +162,7 @@ Music_BuenasPassword_Ch1:
 	note_type 12, 8, 4
 	sound_ret
 
-.sub2:
+Music_BuenasPassword_branch_178222:
 	octave 3
 	note D#, 1
 	rest 1
@@ -186,25 +186,25 @@ Music_BuenasPassword_Ch2:
 	rest 7
 	octave 3
 	note F#, 1
-.mainloop:
+Music_BuenasPassword_branch_17823c:
 	stereo_panning TRUE, TRUE
-	sound_call .sub3
-	sound_call .sub1
+	sound_call Music_BuenasPassword_branch_1782df
+	sound_call Music_BuenasPassword_branch_1782a4
 	stereo_panning TRUE, TRUE
-	sound_call .sub2
+	sound_call Music_BuenasPassword_branch_1782cc
 	octave 3
 	note B_, 2
 	note A#, 2
 	note B_, 2
 	note G#, 16
-	sound_call .sub1
+	sound_call Music_BuenasPassword_branch_1782a4
 	stereo_panning TRUE, TRUE
-	sound_call .sub2
+	sound_call Music_BuenasPassword_branch_1782cc
 	note B_, 2
 	note A#, 2
 	note B_, 2
 	note G#, 16
-	sound_call .sub1
+	sound_call Music_BuenasPassword_branch_1782a4
 	note F#, 2
 	rest 2
 	note G#, 2
@@ -270,9 +270,9 @@ Music_BuenasPassword_Ch2:
 	note G_, 1
 	rest 1
 	volume_envelope 10, 5
-	sound_loop 0, .mainloop
+	sound_jump Music_BuenasPassword_branch_17823c
 
-.sub1:
+Music_BuenasPassword_branch_1782a4:
 	octave 3
 	note G#, 1
 	rest 1
@@ -305,7 +305,7 @@ Music_BuenasPassword_Ch2:
 	note_type 12, 10, 5
 	sound_ret
 
-.sub2:
+Music_BuenasPassword_branch_1782cc:
 	octave 4
 	note G#, 2
 	rest 2
@@ -326,7 +326,7 @@ Music_BuenasPassword_Ch2:
 	rest 2
 	sound_ret
 
-.sub3:
+Music_BuenasPassword_branch_1782df:
 	octave 3
 	note G#, 1
 	rest 1
@@ -381,11 +381,10 @@ Music_BuenasPassword_Ch2:
 Music_BuenasPassword_Ch3:
 	note_type 12, 1, 4
 	rest 8
-.mainloop:
-.loop1:
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub1
+Music_BuenasPassword_branch_178315:
+	sound_call Music_BuenasPassword_branch_1783a7
+	sound_call Music_BuenasPassword_branch_1783a7
+	sound_call Music_BuenasPassword_branch_1783a7
 	octave 2
 	note G#, 1
 	rest 1
@@ -402,7 +401,7 @@ Music_BuenasPassword_Ch3:
 	note B_, 1
 	rest 1
 	note G#, 4
-	sound_loop 3, .loop1
+	sound_loop 3, Music_BuenasPassword_branch_178315
 	note F#, 1
 	rest 1
 	note A#, 1
@@ -474,7 +473,7 @@ Music_BuenasPassword_Ch3:
 	note D#, 1
 	rest 1
 	note G_, 2
-	sound_call .sub2
+	sound_call Music_BuenasPassword_branch_1783bc
 	octave 3
 	note C#, 1
 	rest 1
@@ -494,7 +493,7 @@ Music_BuenasPassword_Ch3:
 	rest 1
 	octave 3
 	note C#, 2
-	sound_call .sub2
+	sound_call Music_BuenasPassword_branch_1783bc
 	note G#, 1
 	rest 1
 	note G#, 1
@@ -512,9 +511,9 @@ Music_BuenasPassword_Ch3:
 	rest 1
 	note G_, 1
 	rest 1
-	sound_loop 0, .mainloop
+	sound_jump Music_BuenasPassword_branch_178315
 
-.sub1:
+Music_BuenasPassword_branch_1783a7:
 	octave 2
 	note G#, 1
 	rest 1
@@ -537,7 +536,7 @@ Music_BuenasPassword_Ch3:
 	note C#, 1
 	sound_ret
 
-.sub2:
+Music_BuenasPassword_branch_1783bc:
 	octave 2
 	note G#, 1
 	rest 1
@@ -567,16 +566,15 @@ Music_BuenasPassword_Ch4:
 	drum_note 3, 2
 	drum_note 3, 1
 	drum_note 3, 1
-.mainloop:
-.loop1:
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
-	sound_loop 4, .loop1
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub1
+Music_BuenasPassword_branch_1783d9:
+	sound_call Music_BuenasPassword_branch_17840c
+	sound_call Music_BuenasPassword_branch_17840c
+	sound_call Music_BuenasPassword_branch_17840c
+	sound_call Music_BuenasPassword_branch_178424
+	sound_loop 4, Music_BuenasPassword_branch_1783d9
+	sound_call Music_BuenasPassword_branch_17840c
+	sound_call Music_BuenasPassword_branch_17840c
+	sound_call Music_BuenasPassword_branch_17840c
 	stereo_panning TRUE, TRUE
 	drum_note 4, 2
 	stereo_panning TRUE, FALSE
@@ -593,9 +591,9 @@ Music_BuenasPassword_Ch4:
 	drum_note 3, 2
 	drum_note 3, 1
 	drum_note 3, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_BuenasPassword_branch_1783d9
 
-.sub1:
+Music_BuenasPassword_branch_17840c:
 	stereo_panning TRUE, TRUE
 	drum_note 4, 2
 	stereo_panning TRUE, FALSE
@@ -614,7 +612,7 @@ Music_BuenasPassword_Ch4:
 	drum_note 8, 2
 	sound_ret
 
-.sub2:
+Music_BuenasPassword_branch_178424:
 	stereo_panning TRUE, TRUE
 	drum_note 4, 2
 	stereo_panning TRUE, FALSE

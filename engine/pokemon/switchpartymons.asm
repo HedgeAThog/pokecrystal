@@ -1,91 +1,71 @@
 _SwitchPartyMons:
 	ld a, [wSwitchMon]
 	dec a
-	ld [wSwitchMonFrom], a
+	ld [wBuffer3], a
 	ld b, a
 	ld a, [wMenuCursorY]
 	dec a
-	ld [wSwitchMonTo], a
+	ld [wBuffer2], a
 	cp b
-	jr z, .skip
-	call .SwapMonAndMail
-	ld a, [wSwitchMonFrom]
+	ret z
+	call SwapMonAndMail
+	ld a, [wBuffer3]
 	call .ClearSprite
-	ld a, [wSwitchMonTo]
-	call .ClearSprite
-.skip
-	ret
+	ld a, [wBuffer2]
+	; fallthrough
 
 .ClearSprite:
 	push af
 	hlcoord 0, 1
 	ld bc, 2 * SCREEN_WIDTH
-	call AddNTimes
+	rst AddNTimes
 	ld bc, 2 * SCREEN_WIDTH
 	ld a, " "
-	call ByteFill
+	rst ByteFill
 	pop af
-	ld hl, wShadowOAMSprite00
-	ld bc, 4 * OBJ_SIZE
-	call AddNTimes
-	ld de, OBJ_SIZE
-	ld c, 4
+	ld hl, wShadowOAM
+	ld bc, $10
+	rst AddNTimes
+	ld de, $4
+	ld c, $4
 .gfx_loop
 	ld [hl], OAM_YCOORD_HIDDEN
 	add hl, de
 	dec c
 	jr nz, .gfx_loop
 	ld de, SFX_SWITCH_POKEMON
-	call WaitPlaySFX
-	ret
+	jmp WaitPlaySFX
 
-.SwapMonAndMail:
+SwapMonAndMail:
 	push hl
 	push de
 	push bc
-	ld bc, wPartySpecies
-	ld a, [wSwitchMonTo]
-	ld l, a
-	ld h, 0
-	add hl, bc
-	ld d, h
-	ld e, l
-	ld a, [wSwitchMonFrom]
-	ld l, a
-	ld h, 0
-	add hl, bc
-	ld a, [hl]
-	push af
-	ld a, [de]
-	ld [hl], a
-	pop af
-	ld [de], a
-	ld a, [wSwitchMonTo]
-	ld hl, wPartyMon1Species
+	ld a, [wBuffer2]
+	ld hl, wPartyMons
 	ld bc, PARTYMON_STRUCT_LENGTH
-	call AddNTimes
+	rst AddNTimes
 	push hl
 	ld de, wSwitchMonBuffer
 	ld bc, PARTYMON_STRUCT_LENGTH
-	call CopyBytes
-	ld a, [wSwitchMonFrom]
-	ld hl, wPartyMon1
+	rst CopyBytes
+	ld a, [wBuffer3]
+	ld hl, wPartyMons
 	ld bc, PARTYMON_STRUCT_LENGTH
-	call AddNTimes
+	rst AddNTimes
 	pop de
 	push hl
 	ld bc, PARTYMON_STRUCT_LENGTH
-	call CopyBytes
+	rst CopyBytes
 	pop de
 	ld hl, wSwitchMonBuffer
 	ld bc, PARTYMON_STRUCT_LENGTH
-	call CopyBytes
-	ld a, [wSwitchMonTo]
+	rst CopyBytes
+	ld a, [wBuffer2]
 	ld hl, wPartyMonOTs
 	call SkipNames
 	push hl
-	call .CopyNameToSwitchMonBuffer
-	ld a, [wSwitchMonFrom]
+	call .CopyNameTowSwitchMonBuffer
+	ld a, [wBuffer3]
 	ld hl, wPartyMonOTs
 	call SkipNames
 	pop de
@@ -95,12 +75,12 @@ _SwitchPartyMons:
 	ld hl, wSwitchMonBuffer
 	call .CopyName
 	ld hl, wPartyMonNicknames
-	ld a, [wSwitchMonTo]
+	ld a, [wBuffer2]
 	call SkipNames
 	push hl
-	call .CopyNameToSwitchMonBuffer
+	call .CopyNameTowSwitchMonBuffer
 	ld hl, wPartyMonNicknames
-	ld a, [wSwitchMonFrom]
+	ld a, [wBuffer3]
 	call SkipNames
 	pop de
 	push hl
@@ -109,37 +89,34 @@ _SwitchPartyMons:
 	ld hl, wSwitchMonBuffer
 	call .CopyName
 	ld hl, sPartyMail
-	ld a, [wSwitchMonTo]
+	ld a, [wBuffer2]
 	ld bc, MAIL_STRUCT_LENGTH
-	call AddNTimes
+	rst AddNTimes
 	push hl
 	ld de, wSwitchMonBuffer
 	ld bc, MAIL_STRUCT_LENGTH
 	ld a, BANK(sPartyMail)
-	call OpenSRAM
-	call CopyBytes
+	call GetSRAMBank
+	rst CopyBytes
 	ld hl, sPartyMail
-	ld a, [wSwitchMonFrom]
+	ld a, [wBuffer3]
 	ld bc, MAIL_STRUCT_LENGTH
-	call AddNTimes
+	rst AddNTimes
 	pop de
 	push hl
 	ld bc, MAIL_STRUCT_LENGTH
-	call CopyBytes
+	rst CopyBytes
 	pop de
 	ld hl, wSwitchMonBuffer
 	ld bc, MAIL_STRUCT_LENGTH
-	call CopyBytes
+	rst CopyBytes
 	call CloseSRAM
-	pop bc
-	pop de
-	pop hl
-	ret
+	jmp PopBCDEHL
 
-.CopyNameToSwitchMonBuffer:
+.CopyNameTowSwitchMonBuffer:
 	ld de, wSwitchMonBuffer
 
 .CopyName:
 	ld bc, NAME_LENGTH
-	call CopyBytes
+	rst CopyBytes
 	ret

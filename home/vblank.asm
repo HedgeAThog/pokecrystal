@@ -7,18 +7,67 @@
 ; This prevents the display and audio output from lagging.
 
 VBlank::
-	push af
-	push bc
-	push de
 	push hl
+	push de
+	push bc
+	push af
 
+	ldh a, [hROMBank]
+	ldh [hROMBankBackup], a
+
+	; Skip the .VBlanks table if [hVBlank] is just 7.
+	; _SafeCopyTilemapAtOnce sets it to 1 << 7 | 7 to execute actual VBlank7.
 	ldh a, [hVBlank]
-	maskbits NUM_VBLANK_HANDLERS
+	cp 7
+	jr z, .skipToGameTime
 
+	; Avoid chaining crashes as a rule. This is especially for vblank ones.
+	; Thus, the fact that this doesn't avoid chaining rst0 (error code 0) is ok.
+	ldh a, [hCrashCode]
+	and a
+	jr nz, .skip_crash
+
+	ld hl, sp + 0
+	ld a, h
+	cp HIGH(wStackBottom)
+	ld a, ERR_STACK_OVERFLOW
+	jr c, .crash
+	ld a, ERR_STACK_UNDERFLOW
+	jr nz, .crash
+
+	ld hl, sp + 9
+	ld a, [hl]
+	inc a
+	cp HIGH(STARTOF(VRAM)) + 1
+	ld a, ERR_EXECUTING_RAM
+	jr nc, .crash
+
+	ld a, [RomHeaderChecksum]
+	ld hl, wRomChecksum
+	cp [hl]
+if !DEF(DEBUG)
+	jr nz, .checksum_crash
+else
+	nop ; no-optimize nops
+	nop ; no-optimize nops
+endc
+	ld a, [RomHeaderChecksum + 1]
+	inc hl ; wRomChecksum + 1
+	cp [hl]
+if !DEF(DEBUG)
+	jr nz, .checksum_crash
+else
+	nop ; no-optimize nops
+	nop ; no-optimize nops
+endc
+
+.skip_crash
+	ldh a, [hVBlank]
+	and %1111
+	add a
 	ld e, a
 	ld d, 0
-	ld hl, VBlankHandlers
-	add hl, de
+	ld hl, .VBlanks
 	add hl, de
 	ld a, [hli]
 	ld h, [hl]
@@ -26,28 +75,49 @@ VBlank::
 
 	call _hl_
 
+.doGameTime
 	call GameTimer
 
-	pop hl
-	pop de
-	pop bc
+	ld hl, hVBlankOccurred
+	dec [hl]
+	jr nz, .noVBlankLeak
+	ld a, $ff
+	ldh [hDelayFrameLY], a
+.noVBlankLeak
+	ld [hl], TRUE
+
+	ldh a, [hROMBankBackup]
+	rst Bankswitch
+
 	pop af
+	pop bc
+	pop de
+	pop hl
 	reti
 
-VBlankHandlers:
-; entries correspond to VBLANK_* constants (see constants/ram_constants.asm)
-	table_width 2
-	dw VBlank_Normal
-	dw VBlank_Cutscene
-	dw VBlank_SoundOnly
-	dw VBlank_CutsceneCGB
-	dw VBlank_Serial
-	dw VBlank_Credits
-	dw VBlank_DMATransfer
-	dw VBlank_Normal ; unused
-	assert_table_length NUM_VBLANK_HANDLERS
+.checksum_crash
+	ld a, ERR_CHECKSUM_MISMATCH
+.crash
+	di
+	jmp Crash
 
-VBlank_Normal::
+.skipToGameTime
+	call AnimateTileset
+	call PlaceFootprints
+	jr .doGameTime
+
+.VBlanks:
+	dw VBlank0 ; 0
+	dw VBlank1 ; 1
+	dw VBlank2 ; 2
+	dw VBlank1 ; 3
+	dw VBlank4 ; 4 (pokédex)
+	dw VBlank5 ; 5
+	dw VBlank6 ; 6
+	dw VBlank7 ; 7
+	dw VBlank8 ; 8
+
+VBlank0::
 ; normal operation
 
 ; rng
@@ -60,26 +130,6 @@ VBlank_Normal::
 ; oam
 ; joypad
 ; sound
-
-	; inc frame counter
-	ld hl, hVBlankCounter
-	inc [hl]
-
-	; advance random variables
-	ldh a, [rDIV]
-	ld b, a
-	ldh a, [hRandomAdd]
-	adc b
-	ldh [hRandomAdd], a
-
-	ldh a, [rDIV]
-	ld b, a
-	ldh a, [hRandomSub]
-	sbc b
-	ldh [hRandomSub], a
-
-	ldh a, [hROMBank]
-	ldh [hROMBankBackup], a
 
 	ldh a, [hSCX]
 	ldh [rSCX], a
@@ -95,7 +145,7 @@ VBlank_Normal::
 
 	call UpdateBGMapBuffer
 	jr c, .done
-	call UpdatePalsIfCGB
+	call UpdateCGBPals
 	jr c, .done
 	call DMATransfer
 	jr c, .done
@@ -106,319 +156,285 @@ VBlank_Normal::
 	call Serve2bppRequest
 	call Serve1bppRequest
 	call AnimateTileset
+	call PlaceFootprints
 
 .done
-
-	ldh a, [hOAMUpdate]
-	and a
-	jr nz, .done_oam
-	call hTransferShadowOAM
-.done_oam
-
+	call UpdateCGBPalsLYTimed
+	call PushOAM
 	; vblank-sensitive operations are done
-
-	xor a
-	ld [wVBlankOccurred], a
-
-	ld a, [wOverworldDelay]
-	and a
-	jr z, .ok
-	dec a
-	ld [wOverworldDelay], a
-.ok
-
-	ld a, [wTextDelayFrames]
-	and a
-	jr z, .ok2
-	dec a
-	ld [wTextDelayFrames], a
-.ok2
-
-	call UpdateJoypad
-
-	ld a, BANK(_UpdateSound)
-	rst Bankswitch
-	call _UpdateSound
-	ldh a, [hROMBankBackup]
-	rst Bankswitch
-
-	ldh a, [hSeconds]
-	ldh [hUnusedBackup], a
-
-	ret
-
-VBlank_SoundOnly::
-; sound only
-
-	ldh a, [hROMBank]
-	ldh [hROMBankBackup], a
-
-	ld a, BANK(_UpdateSound)
-	rst Bankswitch
-	call _UpdateSound
-
-	ldh a, [hROMBankBackup]
-	rst Bankswitch
-
-	xor a
-	ld [wVBlankOccurred], a
-	ret
-
-VBlank_Cutscene::
-; scx, scy
-; palettes
-; bg map
-; tiles
-; oam
-; sound / lcd stat
-
-	ldh a, [hROMBank]
-	ldh [hROMBankBackup], a
-
-	ldh a, [hSCX]
-	ldh [rSCX], a
-	ldh a, [hSCY]
-	ldh [rSCY], a
-
-	call UpdatePals
-	jr c, .done
-
-	call UpdateBGMap
-	call Serve2bppRequest_VBlank
-
-	call hTransferShadowOAM
-
-.done
-	xor a
-	ld [wVBlankOccurred], a
-
-	; get requested ints
-	ldh a, [rIF]
-	ld b, a
-	; discard requested ints
-	xor a
-	ldh [rIF], a
-	; enable lcd stat
-	ld a, IE_STAT
-	ldh [rIE], a
-	; rerequest serial int if applicable (still disabled)
-	; request lcd stat
-	ld a, b
-	and IF_SERIAL
-	or IF_STAT
-	ldh [rIF], a
-
-	ei
-	ld a, BANK(_UpdateSound)
-	rst Bankswitch
-	call _UpdateSound
-	ldh a, [hROMBankBackup]
-	rst Bankswitch
-	di
-
-	; get requested ints
-	ldh a, [rIF]
-	ld b, a
-	; discard requested ints
-	xor a
-	ldh [rIF], a
-	; enable ints besides joypad
-	ld a, IE_DEFAULT
-	ldh [rIE], a
-	; rerequest ints
-	ld a, b
-	ldh [rIF], a
-	ret
-
-UpdatePals::
-; update pals for either dmg or cgb
-
-	ldh a, [hCGB]
-	and a
-	jp nz, UpdateCGBPals
-
-	; update gb pals
-	ld a, [wBGP]
-	ldh [rBGP], a
-	ld a, [wOBP0]
-	ldh [rOBP0], a
-	ld a, [wOBP1]
-	ldh [rOBP1], a
-
-	and a
-	ret
-
-VBlank_CutsceneCGB::
-; scx, scy
-; palettes
-; bg map
-; tiles
-; oam
-; sound / lcd stat
-
-	ldh a, [hROMBank]
-	ldh [hROMBankBackup], a
-
-	ldh a, [hSCX]
-	ldh [rSCX], a
-	ldh a, [hSCY]
-	ldh [rSCY], a
-
-	ldh a, [hCGBPalUpdate]
-	and a
-	call nz, ForceUpdateCGBPals
-	jr c, .done
-
-	call UpdateBGMap
-	call Serve2bppRequest_VBlank
-
-	call hTransferShadowOAM
-.done
-
-	xor a
-	ld [wVBlankOccurred], a
-
-	ldh a, [rIF]
-	push af
-	xor a
-	ldh [rIF], a
-	ld a, IE_STAT
-	ldh [rIE], a
-	assert IE_STAT == IF_STAT
-	ldh [rIF], a
-
-	ei
-	ld a, BANK(_UpdateSound)
-	rst Bankswitch
-	call _UpdateSound
-	ldh a, [hROMBankBackup]
-	rst Bankswitch
-	di
-
-	; request lcdstat
-	ldh a, [rIF]
-	ld b, a
-	; and any other ints
-	pop af
-	or b
-	ld b, a
-	; reset ints
-	xor a
-	ldh [rIF], a
-	; enable ints besides joypad
-	ld a, IE_DEFAULT
-	ldh [rIE], a
-	; request ints
-	ld a, b
-	ldh [rIF], a
-	ret
-
-VBlank_Serial::
-; bg map
-; tiles
-; oam
-; joypad
-; serial
-; sound
-
-	ldh a, [hROMBank]
-	ldh [hROMBankBackup], a
-
-	call UpdateBGMap
-	call Serve2bppRequest
-
-	call hTransferShadowOAM
-
-	call UpdateJoypad
-
-	xor a
-	ld [wVBlankOccurred], a
-
-	call AskSerial
-
-	ld a, BANK(_UpdateSound)
-	rst Bankswitch
-	call _UpdateSound
-
-	ldh a, [hROMBankBackup]
-	rst Bankswitch
-	ret
-
-VBlank_Credits::
-; scx
-; palettes
-; bg map
-; tiles
-; joypad
-
-	ldh a, [hROMBank]
-	ldh [hROMBankBackup], a
-
-	ldh a, [hSCX]
-	ldh [rSCX], a
-
-	call UpdatePalsIfCGB
-	jr c, .done
-
-	call UpdateBGMap
-	call Serve2bppRequest
-.done
-
-	xor a
-	ld [wVBlankOccurred], a
-
-	call UpdateJoypad
-
-	xor a
-	ldh [rIF], a
-	ld a, IE_STAT
-	ldh [rIE], a
-	; request lcd stat
-	assert IE_STAT == IF_STAT
-	ldh [rIF], a
-
-	ei
-	ld a, BANK(_UpdateSound)
-	rst Bankswitch
-	call _UpdateSound
-	ldh a, [hROMBankBackup]
-	rst Bankswitch
-	di
-
-	xor a
-	ldh [rIF], a
-	; enable ints besides joypad
-	ld a, IE_DEFAULT
-	ldh [rIE], a
-	ret
-
-VBlank_DMATransfer::
-; palettes
-; tiles
-; dma transfer
-; sound
-
-	ldh a, [hROMBank]
-	ldh [hROMBankBackup], a
 
 	; inc frame counter
 	ld hl, hVBlankCounter
 	inc [hl]
 
+	; Increment time since text printing.
+	ld hl, wTimeSinceText
+	inc [hl]
+	jr nz, .no_overflow
+	dec [hl]
+
+.no_overflow
+	; advance random variables
+	call UpdateDividerCounters
+	call AdvanceRNGState
+
+	ld a, [wTextDelayFrames]
+	and a
+	jr z, .noDelay2
+	dec a
+	ld [wTextDelayFrames], a
+.noDelay2
+	call Joypad
+	; fallthrough
+
+VBlank2::
+VBlankUpdateSound::
+; sound only
+	ei
+	ld a, BANK(_UpdateSound)
+	rst Bankswitch
+	jmp _UpdateSound ; far-ok
+
+VBlank6::
+; palettes
+; tiles
+; dma transfer
+; sound
+	; inc frame counter
+	ld hl, hVBlankCounter
+	inc [hl]
+
 	call UpdateCGBPals
-	jr c, .done
+	jr c, VBlankUpdateSound
 
 	call Serve2bppRequest
 	call Serve1bppRequest
 	call DMATransfer
+
+	jr VBlankUpdateSound
+
+VBlank4::
+; pokédex
+
+; rng
+; scx, scy, wy, wx
+; dma transfer
+; dex map (also updates palettes and oam)
+; tiles
+; joypad
+; sound
+
+	ldh a, [hSCX]
+	ldh [rSCX], a
+	ldh a, [hSCY]
+	ldh [rSCY], a
+	ldh a, [hWY]
+	ldh [rWY], a
+	ldh a, [hWX]
+	ldh [rWX], a
+
+	ld a, BANK(PVB_UpdateDexMap)
+	rst Bankswitch
+	call PVB_UpdateDexMap ; far-ok
+
+	; These have their own timing checks.
+
+	; Ensure we're loading graphics from the correct bank.
+	ldh a, [hROMBankBackup]
+	rst Bankswitch
+
+	call Serve2bppRequest
+	call Serve1bppRequest
+
 .done
+	; vblank-sensitive operations are done
+
+	; inc frame counter
+	ld hl, hVBlankCounter
+	inc [hl]
+
+	; advance random variables
+	call UpdateDividerCounters
+	call AdvanceRNGState
+
+	ld a, [wTextDelayFrames]
+	and a
+	jr z, .noDelay2
+	dec a
+	ld [wTextDelayFrames], a
+.noDelay2
+	call Joypad
+
+	; A variant of code in vblank1 for running the sound engine with LCD int
+	ldh a, [hROMBankBackup]
+	push af
+	ldh a, [rIE]
+	push af
+	ldh a, [rIF]
+	push af
+	xor a
+	ldh [rIF], a
+	ldh a, [rIE]
+	and IE_STAT
+	ldh [rIE], a
+
+	call VBlankUpdateSound
+
+	; Ensure that we don't miss an interrupt in the tiny window between di+reti
+	ldh a, [rIE]
+	and IE_STAT
+	jr z, .di
+	ldh a, [rLYC]
+	ld b, a
+.busyloop
+	ldh a, [rLY]
+	sub b
+	jr z, .busyloop
+	inc a
+	jr z, .busyloop
+.di
+	di
+
+	; get requested ints
+	ldh a, [rIF]
+	ld b, a
+
+	; discard requested ints
+	pop af
+	or b
+	ld b, a
+	xor a
+	ldh [rIF], a
+
+	; enable ints besides joypad
+	pop af
+	ldh [rIE], a
+
+	; rerequest ints
+	ld a, b
+	ldh [rIF], a
+	pop af
+	ldh [hROMBankBackup], a
+	ret
+
+VBlank1::
+; scx, scy
+; palettes
+; bg map
+; tiles
+; oam
+; sound / lcd stat
+	ldh a, [hSCX]
+	ldh [rSCX], a
+	ldh a, [hSCY]
+	ldh [rSCY], a
+
+	call UpdateCGBPals
+	jr c, .done
+
+	call UpdateBGMap
+	call Serve2bppRequest
+	call LYOverrideStackCopy
+
+.done
+	call PushOAM
+
+	; get requested ints
+	ldh a, [rIE]
+	push af
+	ldh a, [rIF]
+	push af
 
 	xor a
-	ld [wVBlankOccurred], a
+	ldh [rIF], a
 
-	ld a, BANK(_UpdateSound)
+	call VBlankUpdateSound
+	di
+
+	; get requested ints
+	ldh a, [rIF]
+	ld b, a
+
+	; discard requested ints
+	pop af
+	or b
+	ld b, a
+	xor a
+	ldh [rIF], a
+
+	; enable ints besides joypad
+	pop af
+	ldh [rIE], a
+
+	; rerequest ints
+	ld a, b
+	ldh [rIF], a
+	ret
+
+VBlank5::
+; scx
+; palettes
+; bg map
+; tiles
+; joypad
+; sound
+	ldh a, [hSCX]
+	ldh [rSCX], a
+
+	call UpdateCGBPals
+	jr c, .done
+
+	call UpdateBGMap
+	call Serve2bppRequest
+
+.done
+	call Joypad
+
+	xor a
+	ldh [rIF], a
+	ldh a, [rIE]
+	push af
+
+	call VBlankUpdateSound
+	di
+
+	xor a
+	ldh [rIF], a
+
+	; enable usual interrupts
+	pop af
+	ldh [rIE], a
+	ret
+
+VBlank7::
+; special vblank routine
+; copies tilemap in one frame without any tearing
+; also updates oam, and pals if specified
+	ld a, BANK(VBlankSafeCopyTilemapAtOnce)
 	rst Bankswitch
-	call _UpdateSound
+	jmp VBlankSafeCopyTilemapAtOnce ; far-ok
+
+VBlank8:
+	; bg map
+	; tiles
+	; oam
+	; joypad
+	; serial
+	; sound
+
+	ldh a, [hROMBank]
+	ldh [hROMBankBackup], a
+
+	call UpdateBGMap
+	call Serve2bppRequest
+
+	call PushOAM
+
+	call Joypad
+
+	farcall AskSerial
+
+	call VBlankUpdateSound
 
 	ldh a, [hROMBankBackup]
 	rst Bankswitch

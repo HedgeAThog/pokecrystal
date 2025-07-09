@@ -4,9 +4,13 @@ BattleIntroSlidingPics:
 	ld a, BANK(wLYOverrides)
 	ldh [rWBK], a
 	call .subfunction1
+	ld hl, rIE
+	set B_IE_STAT, [hl]
 	ld a, LOW(rSCX)
 	ldh [hLCDCPointer], a
 	call .subfunction2
+	ld hl, rIE
+	res B_IE_STAT, [hl]
 	xor a
 	ldh [hLCDCPointer], a
 	pop af
@@ -20,20 +24,17 @@ BattleIntroSlidingPics:
 	ld a, %11100100
 	call DmgToCgbBGPals
 	lb de, %11100100, %11100100
-	call DmgToCgbObjPals
-	ret
+	jmp DmgToCgbObjPals
 
 .subfunction2
-	ld d, $90
-	ld e, $72
-	ld a, $48
-	inc a
+	lb de, $90, $72
+	ld a, $48 + 1
 .loop1
 	push af
 .loop2
 	ldh a, [rLY]
-	cp $60
-	jr c, .loop2
+	cp $5f
+	jr nz, .loop2
 	ld a, d
 	ldh [hSCX], a
 	call .subfunction5
@@ -43,13 +44,8 @@ BattleIntroSlidingPics:
 	dec d
 	pop af
 	push af
-	cp $1
-	jr z, .skip1
-	push de
-	call .subfunction3
-	pop de
-
-.skip1
+	dec a
+	call nz, .subfunction3
 	call DelayFrame
 	pop af
 	dec a
@@ -57,6 +53,7 @@ BattleIntroSlidingPics:
 	ret
 
 .subfunction3
+	push de
 	ld hl, wShadowOAMSprite00XCoord
 	ld c, $12 ; 18
 	ld de, OBJ_SIZE
@@ -66,13 +63,14 @@ BattleIntroSlidingPics:
 	add hl, de
 	dec c
 	jr nz, .loop3
+	pop de
 	ret
 
 .subfunction4
 	ld hl, wLYOverrides
 	ld a, $90
 	ld bc, SCREEN_HEIGHT_PX
-	call ByteFill
+	rst ByteFill
 	ret
 
 .subfunction5
@@ -84,13 +82,13 @@ BattleIntroSlidingPics:
 	dec c
 	jr nz, .loop4
 	ld a, e
-	ld c, $22 ; 34
+	ld c, $21 ; 33
 .loop5
 	ld [hli], a
 	dec c
 	jr nz, .loop5
 	xor a
-	ld c, $30 ; 48
+	ld c, $31 ; 49
 .loop6
 	ld [hli], a
 	dec c

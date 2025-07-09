@@ -1,36 +1,48 @@
-	object_const_def
-	const SILPHCO1F_RECEPTIONIST
-	const SILPHCO1F_OFFICER
-
-SilphCo1F_MapScripts:
+SilphCo1F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
+	callback MAPCALLBACK_OBJECTS, .SilphCo1FMoveOfficerCallback
 
-SilphCoReceptionistScript:
-	jumptextfaceplayer SilphCoReceptionistText
+	def_warp_events
+	warp_event  2,  7, SAFFRON_CITY, 7
+	warp_event  3,  7, SAFFRON_CITY, 7
+	warp_event 13,  0, SILPH_CO_2F, 1
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event 13,  1, SPRITE_OFFICER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, SilphCoOfficerScript, -1
+	object_event  4,  2, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_COMMAND, jumptextfaceplayer, SilphCoReceptionistText, -1
+	object_event 11,  4, SPRITE_GENTLEMAN, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BROWN, OBJECTTYPE_COMMAND, jumptextfaceplayer, SilphCo1FGentlemanText, -1
+	object_event  8,  2, SPRITE_BATTLE_GIRL, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_COMMAND, jumptextfaceplayer, SilphCo1FCooltrainerfText, -1
+
+	object_const_def
+	const SILPHCO1F_OFFICER
+
+.SilphCo1FMoveOfficerCallback:
+	checkevent EVENT_RESTORED_POWER_TO_KANTO
+	iffalsefwd .Nothing
+	moveobject SILPHCO1F_OFFICER, 14, 1
+.Nothing
+	endcallback
 
 SilphCoOfficerScript:
 	faceplayer
 	opentext
-	checkevent EVENT_GOT_UP_GRADE
-	iftrue .GotUpGrade
-	writetext SilphCoOfficerText
-	promptbutton
-	verbosegiveitem UP_GRADE
-	iffalse .NoRoom
-	setevent EVENT_GOT_UP_GRADE
-.GotUpGrade:
-	writetext SilphCoOfficerText_GotUpGrade
-	waitbutton
-.NoRoom:
-	closetext
-	end
+	checkevent EVENT_RESTORED_POWER_TO_KANTO
+	iftruefwd .OfficerScriptAfterPowerRestored
+	jumpopenedtext SilphCoOfficerText
+
+.OfficerScriptAfterPowerRestored
+	jumpopenedtext SilphCoOfficerText_GotUpgrade
 
 SilphCoReceptionistText:
 	text "Welcome. This is"
-	line "SILPH CO.'s HEAD"
-	cont "OFFICE BUILDING."
+	line "Silph Co.'s Head"
+	cont "Office Building."
 	done
 
 SilphCoOfficerText:
@@ -38,32 +50,49 @@ SilphCoOfficerText:
 	line "permitted to go"
 	cont "upstairs."
 
-	para "But since you came"
-	line "such a long way,"
+	para "The main power"
+	line "isn't working,"
 
-	para "have this neat"
-	line "little souvenir."
+	para "and the CEO wants"
+	line "high security in"
+
+	para "case of an"
+	line "emergency."
+
+	para "We learned our"
+	line "lesson about that"
+	cont "three years ago."
 	done
 
-SilphCoOfficerText_GotUpGrade:
-	text "It's SILPH CO.'s"
-	line "latest product."
+SilphCoOfficerText_GotUpgrade:
+	text "You're responsible"
+	line "for restoring the"
+	cont "power supply?"
 
-	para "It's not for sale"
-	line "anywhere yet."
+	para "Thank you! Now"
+	line "R&D can continue."
+
+	para "Feel free to take"
+	line "a tour upstairs."
 	done
 
-SilphCo1F_MapEvents:
-	db 0, 0 ; filler
+SilphCo1FGentlemanText:
+	text "I have an appoint-"
+	line "ment with the"
 
-	def_warp_events
-	warp_event  2,  7, SAFFRON_CITY, 7
-	warp_event  3,  7, SAFFRON_CITY, 7
+	para "chief engineer"
+	line "here at Silph Co."
+	done
 
-	def_coord_events
+SilphCo1FCooltrainerfText:
+	text "I'm trying to"
+	line "pluck up the"
+	cont "courage to ask"
 
-	def_bg_events
+	para "the receptionist"
+	line "out on a date."
 
-	def_object_events
-	object_event  4,  2, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, SilphCoReceptionistScript, -1
-	object_event 13,  1, SPRITE_OFFICER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, SilphCoOfficerScript, -1
+	para "Just as soon as"
+	line "she's done on the"
+	cont "phone…"
+	done

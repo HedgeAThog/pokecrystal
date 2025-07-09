@@ -1,20 +1,42 @@
-RedsHouse2F_MapScripts:
+RedsHouse2F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-RedsHouse2FN64Script:
-	jumptext RedsHouse2FN64Text
+	def_warp_events
+	warp_event  7,  0, REDS_HOUSE_1F, 3
 
-RedsHouse2FPCScript:
-	jumptext RedsHouse2FPCText
+	def_coord_events
 
-RedsHouse2FN64Text:
-	text "<PLAYER> played the"
-	line "N64."
+	def_bg_events
+	bg_event  0,  1, BGEVENT_JUMPTEXT, RedsHouse2FPCText
+	bg_event  3,  5, BGEVENT_JUMPTEXT, RedsHouse2FSNESText
+	bg_event  4,  1, BGEVENT_READ, PokemonJournalProfOakScript
+	bg_event  5,  1, BGEVENT_READ, PokemonJournalProfOakScript
 
-	para "Better get going--"
-	line "no time to lose!"
+	def_object_events
+
+PokemonJournalProfOakScript:
+	setflag ENGINE_READ_PROF_OAK_JOURNAL
+	jumpthistext
+
+	text "#mon Journal"
+
+	para "Special Feature:"
+	line "#mon Prof.Oak!"
+
+	para "Samuel Oak's grand-"
+	line "children, Blue and"
+
+	para "Daisy, live near"
+	line "his lab in Pallet"
+	cont "Town."
+
+	para "His cousin Samson"
+	line "is rumored to live"
+
+	para "in the far-off"
+	line "Alola region."
 	done
 
 RedsHouse2FPCText:
@@ -23,16 +45,10 @@ RedsHouse2FPCText:
 	cont "in a long time…"
 	done
 
-RedsHouse2F_MapEvents:
-	db 0, 0 ; filler
+RedsHouse2FSNESText:
+	text "<PLAYER> played the"
+	line "SNES."
 
-	def_warp_events
-	warp_event  7,  0, REDS_HOUSE_1F, 3
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  3,  5, BGEVENT_READ, RedsHouse2FN64Script
-	bg_event  0,  1, BGEVENT_READ, RedsHouse2FPCScript
-
-	def_object_events
+	para "Better get going--"
+	line "no time to lose!"
+	done

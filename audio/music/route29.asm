@@ -14,7 +14,7 @@ Music_Route29_Ch1:
 	stereo_panning FALSE, TRUE
 	note_type 12, 11, 2
 	rest 2
-.mainloop:
+Music_Route29_branch_f03a5:
 	rest 2
 	octave 4
 	note C_, 2
@@ -167,7 +167,7 @@ Music_Route29_Ch1:
 	note C_, 2
 	note G_, 2
 	note G_, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_Route29_branch_f03a5
 
 Music_Route29_Ch2:
 	duty_cycle 3
@@ -176,8 +176,8 @@ Music_Route29_Ch2:
 	octave 4
 	note C_, 1
 	note D_, 1
-.mainloop:
-	sound_call .sub1
+Music_Route29_branch_f0458:
+	sound_call Music_Route29_branch_f04de
 	note F_, 1
 	note E_, 1
 	note D_, 2
@@ -192,7 +192,7 @@ Music_Route29_Ch2:
 	octave 4
 	note C_, 1
 	note D_, 1
-	sound_call .sub1
+	sound_call Music_Route29_branch_f04de
 	note F_, 1
 	note E_, 1
 	note D_, 2
@@ -299,9 +299,9 @@ Music_Route29_Ch2:
 	octave 4
 	note C_, 1
 	note D_, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_Route29_branch_f0458
 
-.sub1:
+Music_Route29_branch_f04de:
 	note E_, 2
 	note E_, 2
 	note G_, 2
@@ -337,7 +337,7 @@ Music_Route29_Ch3:
 	note_type 12, 2, 5
 	vibrato 9, 2, 7
 	rest 2
-.mainloop:
+Music_Route29_branch_f0504:
 	rest 2
 	octave 3
 	note G_, 1
@@ -499,14 +499,14 @@ Music_Route29_Ch3:
 	rest 1
 	note C_, 1
 	rest 3
-	sound_loop 0, .mainloop
+	sound_jump Music_Route29_branch_f0504
 
 Music_Route29_Ch4:
 	stereo_panning FALSE, TRUE
 	toggle_noise 0
 	drum_speed 12
 	rest 2
-.mainloop:
+Music_Route29_branch_f05b0:
 	rest 2
 	drum_note 6, 2
 	drum_note 6, 6
@@ -518,4 +518,4 @@ Music_Route29_Ch4:
 	drum_note 6, 4
 	drum_note 6, 2
 	drum_note 6, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_Route29_branch_f05b0

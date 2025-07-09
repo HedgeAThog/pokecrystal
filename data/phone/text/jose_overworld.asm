@@ -1,7 +1,6 @@
 JoseAskNumber1Text:
-	text "If my @"
+	text "If my "
 	text_ram wStringBuffer4
-	text_start
 	line "sees anything"
 
 	para "pretty, it goes"
@@ -25,7 +24,7 @@ JoseAskNumber2Text:
 	line "things?"
 
 	para "I could share if"
-	line "FARFETCH'D goes"
+	line "Farfetch'd goes"
 	cont "and gets more."
 
 	para "What's your phone"
@@ -53,7 +52,7 @@ JoseRematchText:
 	text "Tweet! Tweeeet!"
 
 	para "Kept me waiting!"
-	line "Go, FARFETCH'D!"
+	line "Go, Farfetch'd!"
 	done
 
 JoseGiftText:

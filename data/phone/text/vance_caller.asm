@@ -1,5 +1,5 @@
 VanceMonHasBecomeTougherText:
-	text "My @"
+	text "My "
 	text_ram wStringBuffer4
 	text "'s"
 	line "become tougher."
@@ -10,7 +10,7 @@ VanceMonHasBecomeTougherText:
 
 VanceDefeatedMonText:
 	text "We can easily beat"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text "!"
 
@@ -20,19 +20,19 @@ VanceDefeatedMonText:
 
 VanceLostAMonText:
 	text "But get this, a"
-	line "wild @"
+	line "wild "
 	text_ram wStringBuffer4
-	text_start
+
 	para "just barely eluded"
 	line "us."
 
-	para "I wanted to FLY"
+	para "I wanted to Fly"
 	line "after it…"
 	done
 
 VanceBattleRematchText:
 	text "Right now, I'm on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 
@@ -54,11 +54,11 @@ VanceLookingForwardText:
 	done
 
 VanceHurryHurryText:
-	text "Oh, <PLAY_G>!"
+	text "Oh, <PLAYER>!"
 	line "Hurry, hurry!"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text "!"
-	line "FLY over now!"
+	line "Fly over now!"
 	done

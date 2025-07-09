@@ -1,388 +1,278 @@
 Marts:
-; entries correspond to MART_* constants (see constants/mart_constants.asm)
 	table_width 2
-	dw MartCherrygrove
-	dw MartCherrygroveDex
-	dw MartViolet
-	dw MartAzalea
-	dw MartCianwood
-	dw MartGoldenrod2F1
-	dw MartGoldenrod2F2
-	dw MartGoldenrod3F
-	dw MartGoldenrod4F
-	dw MartGoldenrod5F1
-	dw MartGoldenrod5F2
-	dw MartGoldenrod5F3
-	dw MartGoldenrod5F4
-	dw MartOlivine
-	dw MartEcruteak
-	dw MartMahogany1
-	dw MartMahogany2
-	dw MartBlackthorn
-	dw MartViridian
-	dw MartPewter
-	dw MartCerulean
-	dw MartLavender
-	dw MartVermilion
-	dw MartCeladon2F1
-	dw MartCeladon2F2
-	dw MartCeladon3F
-	dw MartCeladon4F
-	dw MartCeladon5F1
-	dw MartCeladon5F2
-	dw MartFuchsia
-	dw MartSaffron
-	dw MartMtMoon
-	dw MartIndigoPlateau
-	dw MartUnderground
+	dw CherrygroveMart
+	dw CherrygroveMartAfterDex
+	dw VioletMart
+	dw AzaleaMart
+	dw Goldenrod2FMart1
+	dw Goldenrod2FMart2
+	dw Goldenrod2FMart2Eevee
+	dw Goldenrod3FMart
+	dw Goldenrod4FMart
+	dw Goldenrod5FTMMart
+	dw GoldenrodHarborMart
+	dw UndergroundMart
+	dw EcruteakMart
+	dw OlivineMart
+	dw CianwoodMart
+	dw YellowForestMart
+	dw MahoganyMart1
+	dw MahoganyMart2
+	dw BlackthornMart
+	dw IndigoPlateauMart
+	dw ViridianMart
+	dw PewterMart
+	dw MtMoonMart
+	dw CeruleanMart
+	dw LavenderMart
+	dw VermilionMart
+	dw Celadon2FMart1
+	dw Celadon2FMart2
+	dw Celadon3FTMMart
+	dw Celadon4FMart
+	dw Celadon5FMart1
+	dw Celadon5FMart2
+	dw SaffronMart
+	dw SilphCoMart
+	dw FuchsiaMart
+	dw ShamoutiMart1
+	dw ShamoutiMart1Souvenir
+	dw ShamoutiMart2
+	dw BattleTowerMart1
+	dw BattleTowerMart2
+	dw BattleTowerMart3
+	dw BattleFactoryMart1
+	dw BattleFactoryMart2
+	dw BattleFactoryMart3
 	assert_table_length NUM_MARTS
 
-MartCherrygrove:
+CherrygroveMart:
 	db 4 ; # items
 	db POTION
 	db ANTIDOTE
-	db PARLYZ_HEAL
+	db PARALYZEHEAL
 	db AWAKENING
-	db -1 ; end
+	db -1
 
-MartCherrygroveDex:
-	db 5 ; # items
+CherrygroveMartAfterDex:
+	db 6 ; # items
 	db POKE_BALL
+	db HEAL_BALL
 	db POTION
 	db ANTIDOTE
-	db PARLYZ_HEAL
+	db PARALYZEHEAL
 	db AWAKENING
-	db -1 ; end
+	db -1
 
-MartViolet:
-	db 10 ; # items
+VioletMart:
+	db 11 ; # items
 	db POKE_BALL
+	db REPEAT_BALL
 	db POTION
 	db ESCAPE_ROPE
 	db ANTIDOTE
-	db PARLYZ_HEAL
+	db PARALYZEHEAL
 	db AWAKENING
-	db X_DEFEND
 	db X_ATTACK
+	db X_DEFEND
 	db X_SPEED
 	db FLOWER_MAIL
-	db -1 ; end
+	db -1
 
-MartAzalea:
-	db 9 ; # items
+AzaleaMart:
+	db 10 ; # items
 	db CHARCOAL
 	db POKE_BALL
+	db NET_BALL
 	db POTION
 	db SUPER_POTION
 	db ESCAPE_ROPE
 	db REPEL
 	db ANTIDOTE
-	db PARLYZ_HEAL
+	db PARALYZEHEAL
 	db FLOWER_MAIL
-	db -1 ; end
+	db -1
 
-MartCianwood:
-	db 5 ; # items
-	db POTION
-	db SUPER_POTION
-	db HYPER_POTION
-	db FULL_HEAL
-	db REVIVE
-	db -1 ; end
-
-MartGoldenrod2F1:
-	db 7 ; # items
+Goldenrod2FMart1:
+	db 9 ; # items
 	db POTION
 	db SUPER_POTION
 	db ANTIDOTE
-	db PARLYZ_HEAL
+	db PARALYZEHEAL
 	db AWAKENING
 	db BURN_HEAL
 	db ICE_HEAL
-	db -1 ; end
+	db FULL_HEAL
+	db REVIVE
+	db -1
 
-MartGoldenrod2F2:
-	db 8 ; # items
+Goldenrod2FMart2:
+	db 10 ; # items
 	db POKE_BALL
 	db GREAT_BALL
+	db LUXURY_BALL
+	db TIMER_BALL
+	db QUICK_BALL
 	db ESCAPE_ROPE
 	db REPEL
-	db REVIVE
-	db FULL_HEAL
 	db POKE_DOLL
-	db FLOWER_MAIL
-	db -1 ; end
+	db BLUESKY_MAIL
+	db MORPH_MAIL
+	db -1
 
-MartGoldenrod3F:
-	db 7 ; # items
-	db X_SPEED
-	db X_SPECIAL
-	db X_DEFEND
+Goldenrod2FMart2Eevee:
+	db 11 ; # items
+	db POKE_BALL
+	db GREAT_BALL
+	db LUXURY_BALL
+	db TIMER_BALL
+	db QUICK_BALL
+	db ESCAPE_ROPE
+	db REPEL
+	db POKE_DOLL
+	db BLUESKY_MAIL
+	db MORPH_MAIL
+	db EON_MAIL
+	db -1
+
+Goldenrod3FMart:
+Celadon5FMart2:
+	db 8 ; # items
 	db X_ATTACK
+	db X_DEFEND
+	db X_SPEED
+	db X_SP_ATK
+	db X_SP_DEF
+	db X_ACCURACY
 	db DIRE_HIT
 	db GUARD_SPEC
-	db X_ACCURACY
-	db -1 ; end
+	db -1
 
-MartGoldenrod4F:
-	db 5 ; # items
+Goldenrod4FMart:
+Celadon5FMart1:
+	db 6 ; # items
 	db PROTEIN
 	db IRON
 	db CARBOS
 	db CALCIUM
+	db ZINC
 	db HP_UP
-	db -1 ; end
+	db -1
 
-MartGoldenrod5F1:
-	db 3 ; # items
-	db TM_THUNDERPUNCH
-	db TM_FIRE_PUNCH
-	db TM_ICE_PUNCH
-	db -1 ; end
+Goldenrod5FTMMart:
+	db 8 ; # items
+	dbw TM_PROTECT,       10000
+	dbw TM_REFLECT,       10000
+	dbw TM_LIGHT_SCREEN,  10000
+	dbw TM_SOLAR_BEAM,    25000
+	dbw TM_THUNDER,       30000
+	dbw TM_FIRE_BLAST,    30000
+	dbw TM_BLIZZARD,      30000
+	dbw TM_HYPER_BEAM,    50000
+	db -1
 
-MartGoldenrod5F2:
-	db 4 ; # items
-	db TM_THUNDERPUNCH
-	db TM_FIRE_PUNCH
-	db TM_ICE_PUNCH
-	db TM_HEADBUTT
-	db -1 ; end
-
-MartGoldenrod5F3:
-	db 4 ; # items
-	db TM_THUNDERPUNCH
-	db TM_FIRE_PUNCH
-	db TM_ICE_PUNCH
-	db TM_ROCK_SMASH
-	db -1 ; end
-
-MartGoldenrod5F4:
+GoldenrodHarborMart:
 	db 5 ; # items
-	db TM_THUNDERPUNCH
-	db TM_FIRE_PUNCH
-	db TM_ICE_PUNCH
-	db TM_HEADBUTT
-	db TM_ROCK_SMASH
-	db -1 ; end
-
-MartOlivine:
-	db 9 ; # items
-	db GREAT_BALL
-	db SUPER_POTION
-	db HYPER_POTION
-	db ANTIDOTE
-	db PARLYZ_HEAL
-	db AWAKENING
-	db ICE_HEAL
-	db SUPER_REPEL
+	db ETHER
+	db ELIXIR
+	db MIRROR_HERB
+	db DESTINY_KNOT
 	db SURF_MAIL
-	db -1 ; end
+	db -1
 
-MartEcruteak:
-	db 10 ; # items
+UndergroundMart:
+	db 4 ; # items
+	db ENERGYPOWDER
+	db ENERGY_ROOT
+	db HEAL_POWDER
+	db REVIVAL_HERB
+	db -1
+
+EcruteakMart:
+	db 11 ; # items
 	db POKE_BALL
 	db GREAT_BALL
+	db NEST_BALL
 	db POTION
 	db SUPER_POTION
 	db ANTIDOTE
-	db PARLYZ_HEAL
+	db PARALYZEHEAL
 	db AWAKENING
 	db BURN_HEAL
 	db ICE_HEAL
 	db REVIVE
-	db -1 ; end
+	db -1
 
-MartMahogany1:
+OlivineMart:
+	db 10 ; # items
+	db GREAT_BALL
+	db DIVE_BALL
+	db SUPER_POTION
+	db HYPER_POTION
+	db ANTIDOTE
+	db PARALYZEHEAL
+	db AWAKENING
+	db ICE_HEAL
+	db SUPER_REPEL
+	db SURF_MAIL
+	db -1
+
+CianwoodMart:
+	db 5 ; # items
+	db POTION
+	db SUPER_POTION
+	db HYPER_POTION
+	db FULL_HEAL
+	db REVIVE
+	db -1
+
+YellowForestMart:
+	db 4 ; # items
+	db POKE_BALL
+	db REPEL
+	db FRESH_WATER
+	db FULL_HEAL
+	db -1
+
+MahoganyMart1:
 	db 4 ; # items
 	db TINYMUSHROOM
 	db SLOWPOKETAIL
-	db POKE_BALL
-	db POTION
-	db -1 ; end
-
-MartMahogany2:
-	db 9 ; # items
-	db RAGECANDYBAR
 	db GREAT_BALL
 	db SUPER_POTION
-	db HYPER_POTION
-	db ANTIDOTE
-	db PARLYZ_HEAL
-	db SUPER_REPEL
-	db REVIVE
-	db FLOWER_MAIL
-	db -1 ; end
+	db -1
 
-MartBlackthorn:
-	db 9 ; # items
-	db GREAT_BALL
-	db ULTRA_BALL
-	db HYPER_POTION
-	db MAX_POTION
-	db FULL_HEAL
-	db REVIVE
-	db MAX_REPEL
-	db X_DEFEND
-	db X_ATTACK
-	db -1 ; end
-
-MartViridian:
-	db 9 ; # items
-	db ULTRA_BALL
-	db HYPER_POTION
-	db FULL_HEAL
-	db REVIVE
-	db ANTIDOTE
-	db PARLYZ_HEAL
-	db AWAKENING
-	db BURN_HEAL
-	db FLOWER_MAIL
-	db -1 ; end
-
-MartPewter:
-	db 7 ; # items
-	db GREAT_BALL
-	db SUPER_POTION
-	db SUPER_REPEL
-	db ANTIDOTE
-	db PARLYZ_HEAL
-	db AWAKENING
-	db BURN_HEAL
-	db -1 ; end
-
-MartCerulean:
-	db 9 ; # items
-	db GREAT_BALL
-	db ULTRA_BALL
-	db SUPER_POTION
-	db SUPER_REPEL
-	db FULL_HEAL
-	db X_DEFEND
-	db X_ATTACK
-	db DIRE_HIT
-	db SURF_MAIL
-	db -1 ; end
-
-MartLavender:
-	db 8 ; # items
-	db GREAT_BALL
-	db POTION
-	db SUPER_POTION
-	db MAX_REPEL
-	db ANTIDOTE
-	db PARLYZ_HEAL
-	db AWAKENING
-	db BURN_HEAL
-	db -1 ; end
-
-MartVermilion:
-	db 8 ; # items
-	db ULTRA_BALL
-	db SUPER_POTION
-	db HYPER_POTION
-	db REVIVE
-	db PARLYZ_HEAL
-	db AWAKENING
-	db BURN_HEAL
-	db LITEBLUEMAIL
-	db -1 ; end
-
-MartCeladon2F1:
-	db 7 ; # items
-	db POTION
-	db SUPER_POTION
-	db HYPER_POTION
-	db MAX_POTION
-	db REVIVE
-	db SUPER_REPEL
-	db MAX_REPEL
-	db -1 ; end
-
-MartCeladon2F2:
+MahoganyMart2:
 	db 10 ; # items
-	db POKE_BALL
+	db RAGECANDYBAR
+	db AIR_BALLOON
+	db QUICK_CLAW
+	db KINGS_ROCK
 	db GREAT_BALL
-	db ULTRA_BALL
-	db ESCAPE_ROPE
-	db FULL_HEAL
-	db ANTIDOTE
-	db BURN_HEAL
-	db ICE_HEAL
-	db AWAKENING
-	db PARLYZ_HEAL
-	db -1 ; end
-
-MartCeladon3F:
-	db 5 ; # items
-	db TM_HIDDEN_POWER
-	db TM_SUNNY_DAY
-	db TM_PROTECT
-	db TM_RAIN_DANCE
-	db TM_SANDSTORM
-	db -1 ; end
-
-MartCeladon4F:
-	db 3 ; # items
-	db POKE_DOLL
-	db LOVELY_MAIL
-	db SURF_MAIL
-	db -1 ; end
-
-MartCeladon5F1:
-	db 5 ; # items
-	db HP_UP
-	db PROTEIN
-	db IRON
-	db CARBOS
-	db CALCIUM
-	db -1 ; end
-
-MartCeladon5F2:
-	db 7 ; # items
-	db X_ACCURACY
-	db GUARD_SPEC
-	db DIRE_HIT
-	db X_ATTACK
-	db X_DEFEND
-	db X_SPEED
-	db X_SPECIAL
-	db -1 ; end
-
-MartFuchsia:
-	db 7 ; # items
-	db GREAT_BALL
-	db ULTRA_BALL
 	db SUPER_POTION
 	db HYPER_POTION
-	db FULL_HEAL
-	db MAX_REPEL
+	db SUPER_REPEL
+	db REVIVE
 	db FLOWER_MAIL
-	db -1 ; end
+	db -1
 
-MartSaffron:
-	db 8 ; # items
+BlackthornMart:
+	db 11 ; # items
 	db GREAT_BALL
 	db ULTRA_BALL
+	db DUSK_BALL
 	db HYPER_POTION
 	db MAX_POTION
 	db FULL_HEAL
-	db X_ATTACK
+	db REVIVE
+	db MAX_REPEL
 	db X_DEFEND
-	db FLOWER_MAIL
-	db -1 ; end
+	db X_ATTACK
+	db MUSIC_MAIL
+	db -1
 
-MartMtMoon:
-	db 6 ; # items
-	db POKE_DOLL
-	db FRESH_WATER
-	db SODA_POP
-	db LEMONADE
-	db REPEL
-	db PORTRAITMAIL
-	db -1 ; end
-
-MartIndigoPlateau:
-	db 7 ; # items
+IndigoPlateauMart:
+	db 8 ; # items
 	db ULTRA_BALL
 	db MAX_REPEL
 	db HYPER_POTION
@@ -390,18 +280,272 @@ MartIndigoPlateau:
 	db FULL_RESTORE
 	db REVIVE
 	db FULL_HEAL
-	db -1 ; end
+	db EXP_SHARE
+	db -1
 
-MartUnderground:
-	db 4 ; # items
-	db ENERGYPOWDER
-	db ENERGY_ROOT
-	db HEAL_POWDER
-	db REVIVAL_HERB
-	db -1 ; end
+ViridianMart:
+	db 11 ; # items
+	db ULTRA_BALL
+	db NET_BALL
+	db HYPER_POTION
+	db ANTIDOTE
+	db PARALYZEHEAL
+	db AWAKENING
+	db BURN_HEAL
+	db FULL_HEAL
+	db MAX_REPEL
+	db REVIVE
+	db FLOWER_MAIL
+	db -1
 
-DefaultMart:
-	db 2 ; # items
-	db POKE_BALL
+PewterMart:
+	db 8 ; # items
+	db GREAT_BALL
+	db DUSK_BALL
+	db SUPER_POTION
+	db SUPER_REPEL
+	db ANTIDOTE
+	db PARALYZEHEAL
+	db AWAKENING
+	db BURN_HEAL
+	db -1
+
+MtMoonMart:
+	db 8 ; # items
+	db POKE_DOLL
+	db FRESH_WATER
+	db SODA_POP
+	db LEMONADE
+	db REPEL
+	db SUPER_REPEL
+	db MIRAGE_MAIL
+	db PORTRAITMAIL
+	db -1
+
+CeruleanMart:
+	db 10 ; # items
+	db GREAT_BALL
+	db ULTRA_BALL
+	db DIVE_BALL
+	db SUPER_POTION
+	db SUPER_REPEL
+	db FULL_HEAL
+	db X_DEFEND
+	db X_ATTACK
+	db DIRE_HIT
+	db SURF_MAIL
+	db -1
+
+LavenderMart:
+	db 9 ; # items
+	db GREAT_BALL
+	db HEAL_BALL
 	db POTION
-	db -1 ; end
+	db SUPER_POTION
+	db MAX_REPEL
+	db ANTIDOTE
+	db PARALYZEHEAL
+	db AWAKENING
+	db BURN_HEAL
+	db -1
+
+VermilionMart:
+	db 9 ; # items
+	db ULTRA_BALL
+	db REPEAT_BALL
+	db SUPER_POTION
+	db HYPER_POTION
+	db REVIVE
+	db PARALYZEHEAL
+	db AWAKENING
+	db BURN_HEAL
+	db LITEBLUEMAIL
+	db -1
+
+Celadon2FMart1:
+	db 12 ; # items
+	db POTION
+	db SUPER_POTION
+	db HYPER_POTION
+	db MAX_POTION
+	db ANTIDOTE
+	db BURN_HEAL
+	db ICE_HEAL
+	db AWAKENING
+	db PARALYZEHEAL
+	db FULL_HEAL
+	db REVIVE
+	db MAX_REVIVE
+	db -1
+
+Celadon2FMart2:
+	db 9 ; # items
+	db POKE_BALL
+	db GREAT_BALL
+	db ULTRA_BALL
+	db QUICK_BALL
+	db TIMER_BALL
+	db ESCAPE_ROPE
+	db REPEL
+	db SUPER_REPEL
+	db MAX_REPEL
+	db -1
+
+Celadon3FTMMart:
+	db 8 ; # items
+	dbw TM_SAFEGUARD,     10000
+	dbw TM_BULK_UP,       20000
+	dbw TM_CALM_MIND,     20000
+	dbw TM_SWORDS_DANCE,  20000
+	dbw TM_SUNNY_DAY,     40000
+	dbw TM_RAIN_DANCE,    40000
+	dbw TM_SANDSTORM,     40000
+	dbw TM_HAIL,          40000
+	db -1
+
+Celadon4FMart:
+	db 10 ; # items
+	db POKE_DOLL
+	db FIRE_STONE
+	db WATER_STONE
+	db THUNDERSTONE
+	db LEAF_STONE
+	db ICE_STONE
+	db LINKING_CORD
+	db EXP_SHARE
+	db LOVELY_MAIL
+	db SURF_MAIL
+	db -1
+
+SaffronMart:
+	db 9 ; # items
+	db GREAT_BALL
+	db ULTRA_BALL
+	db LUXURY_BALL
+	db HYPER_POTION
+	db MAX_POTION
+	db FULL_HEAL
+	db X_ATTACK
+	db X_DEFEND
+	db FLOWER_MAIL
+	db -1
+
+SilphCoMart:
+	db 5 ; # items
+	db MAX_POTION
+	db MAX_REPEL
+	db DREAM_BALL
+	db UPGRADE
+	db DUBIOUS_DISC
+	db -1
+
+FuchsiaMart:
+	db 8 ; # items
+	db GREAT_BALL
+	db ULTRA_BALL
+	db NEST_BALL
+	db SUPER_POTION
+	db HYPER_POTION
+	db FULL_HEAL
+	db MAX_REPEL
+	db FLOWER_MAIL
+	db -1
+
+ShamoutiMart1:
+	db 4 ; # items
+	db MENTAL_HERB
+	db POWER_HERB
+	db WHITE_HERB
+	db BIG_ROOT
+	db -1
+
+ShamoutiMart1Souvenir:
+	db 5 ; # items
+	db ODD_SOUVENIR
+	db MENTAL_HERB
+	db POWER_HERB
+	db WHITE_HERB
+	db BIG_ROOT
+	db -1
+
+ShamoutiMart2:
+	db 6 ; # items
+	db DAMP_ROCK
+	db HEAT_ROCK
+	db SMOOTH_ROCK
+	db ICY_ROCK
+	db LIGHT_CLAY
+	db EVIOLITE
+	db -1
+
+BattleTowerMart1:
+	db 7 ; # items
+	db CHOICE_BAND,  48
+	db CHOICE_SCARF, 48
+	db CHOICE_SPECS, 48
+	db EXPERT_BELT,  32
+	db MUSCLE_BAND,  32
+	db WISE_GLASSES, 32
+	db METRONOME_I,  32
+	db -1
+
+BattleTowerMart2:
+	db 9 ; # items
+	db RARE_CANDY,   16
+	db PP_MAX,       64
+	db ABILITY_CAP,  32
+	db WEAK_POLICY,  48
+	db BLUNDRPOLICY, 48
+	db SCOPE_LENS,   16
+	db WIDE_LENS,    16
+	db ZOOM_LENS,    16
+	db BRIGHTPOWDER, 24
+	db -1
+
+BattleTowerMart3:
+	db 7 ; # items
+	db MACHO_BRACE,  16
+	db POWER_WEIGHT, 24
+	db POWER_BRACER, 24
+	db POWER_BELT,   24
+	db POWER_LENS,   24
+	db POWER_BAND,   24
+	db POWER_ANKLET, 24
+	db -1
+
+BattleFactoryMart1:
+	db 9 ; # items
+	db FOCUS_BAND,   16
+	db FOCUS_SASH,   48
+	db ASSAULT_VEST, 48
+	db PROTECT_PADS, 16
+	db ROCKY_HELMET, 48
+	db SAFE_GOGGLES, 32
+	db HEAVY_BOOTS,  48
+	db PUNCHINGLOVE, 16
+	db COVERT_CLOAK, 16
+	db -1
+
+BattleFactoryMart2:
+	db 8 ; # items
+	db EJECT_BUTTON, 32
+	db EJECT_PACK,   32
+	db RED_CARD,     24
+	db IRON_BALL,    32
+	db LAGGING_TAIL, 24
+	db FLAME_ORB,    32
+	db TOXIC_ORB,    32
+	db BLACK_SLUDGE, 32
+	db -1
+
+BattleFactoryMart3:
+	db 8 ; # items
+	db CLEAR_AMULET, 16
+	db BINDING_BAND, 32
+	db GRIP_CLAW,    32
+	db LOADED_DICE,  16
+	db THROAT_SPRAY, 24
+	db ROOM_SERVICE, 24
+	db LIFE_ORB,     48
+	db MINT_LEAF,    32
+	db -1

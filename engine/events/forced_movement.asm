@@ -1,9 +1,9 @@
 Script_ForcedMovement::
 	readvar VAR_FACING
-	ifequal DOWN, .down
-	ifequal UP, .up
-	ifequal LEFT, .left
-	ifequal RIGHT, .right
+	ifequalfwd DOWN, .down
+	ifequalfwd UP, .up
+	ifequalfwd LEFT, .left
+	ifequalfwd RIGHT, .right
 	end
 
 .up
@@ -24,28 +24,28 @@ Script_ForcedMovement::
 
 .MovementData_up:
 	step_dig 16
-	turn_in DOWN
+	turn_in_down
 	step_dig 16
-	turn_head DOWN
+	turn_head_down
 	step_end
 
 .MovementData_down:
 	step_dig 16
-	turn_in UP
+	turn_in_up
 	step_dig 16
-	turn_head UP
+	turn_head_up
 	step_end
 
 .MovementData_right:
 	step_dig 16
-	turn_in LEFT
+	turn_in_left
 	step_dig 16
-	turn_head LEFT
+	turn_head_left
 	step_end
 
 .MovementData_left:
 	step_dig 16
-	turn_in RIGHT
+	turn_in_right
 	step_dig 16
-	turn_head RIGHT
+	turn_head_right
 	step_end

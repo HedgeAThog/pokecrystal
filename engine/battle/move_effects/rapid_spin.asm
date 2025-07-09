@@ -1,4 +1,4 @@
-BattleCommand_ClearHazards:
+BattleCommand_clearhazards:
 	ld a, BATTLE_VARS_SUBSTATUS4
 	call GetBattleVarAddr
 	bit SUBSTATUS_LEECH_SEED, [hl]
@@ -7,28 +7,39 @@ BattleCommand_ClearHazards:
 	ld hl, ShedLeechSeedText
 	call StdBattleTextbox
 .not_leeched
-
-	ld hl, wPlayerScreens
-	ld de, wPlayerWrapCount
 	ldh a, [hBattleTurn]
 	and a
+	ld hl, wPlayerHazards
+	ld de, wPlayerWrapCount
 	jr z, .got_screens_wrap
-	ld hl, wEnemyScreens
+	ld hl, wEnemyHazards
 	ld de, wEnemyWrapCount
 .got_screens_wrap
-	bit SCREENS_SPIKES, [hl]
-	jr z, .no_spikes
-	res SCREENS_SPIKES, [hl]
-	ld hl, BlewSpikesText
 	push de
+	ld a, [hl]
+	and HAZARDS_SPIKES
+	jr z, .no_spikes
+	cpl
+	and [hl]
+	ld [hl], a
+	push hl
+	ld hl, BlewSpikesText
 	call StdBattleTextbox
-	pop de
+	pop hl
 .no_spikes
-
+	ld a, [hl]
+	and HAZARDS_TOXIC_SPIKES
+	jr z, .no_toxic_spikes
+	xor a
+	ld [hl], a
+	ld hl, BlewToxicSpikesText
+	call StdBattleTextbox
+.no_toxic_spikes
+	pop de
 	ld a, [de]
 	and a
 	ret z
 	xor a
 	ld [de], a
 	ld hl, ReleasedByText
-	jp StdBattleTextbox
+	jmp StdBattleTextbox

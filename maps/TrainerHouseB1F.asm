@@ -1,60 +1,91 @@
-	object_const_def
-	const TRAINERHOUSEB1F_RECEPTIONIST
-	const TRAINERHOUSEB1F_CHRIS
-
-TrainerHouseB1F_MapScripts:
+TrainerHouseB1F_MapScriptHeader:
 	def_scene_scripts
-	scene_script TrainerHouseB1FNoopScene, SCENE_TRAINERHOUSEB1F_ASK_BATTLE
 
 	def_callbacks
+	callback MAPCALLBACK_OBJECTS, TrainerHouseB1FCallback
 
-TrainerHouseB1FNoopScene:
-	end
+	def_warp_events
+	warp_event  9,  4, TRAINER_HOUSE_1F, 3
+
+	def_coord_events
+	coord_event  7,  3, 0, TrainerHouseReceptionistScript
+
+	def_bg_events
+
+	def_object_events
+	object_event  6, 11, SPRITE_MOM, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, ObjectEvent, -1
+	object_event  7,  1, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, ObjectEvent, -1
+
+	object_const_def
+	const TRAINERHOUSEB1F_OPPONENT
+
+TrainerHouseB1FCallback:
+	callasm .PickDailyTrainerHouseOpponent
+	endcallback
+
+.PickDailyTrainerHouseOpponent:
+	ld a, [wDailyTrainerHouseOpponent]
+	cp NUM_TRAINER_HOUSE_OPPONENTS + 1
+	jr nc, .pick_opponent
+	and a
+	jr nz, .got_opponent
+.pick_opponent
+	ld a, NUM_TRAINER_HOUSE_OPPONENTS
+	call RandomRange
+	inc a
+	ld [wDailyTrainerHouseOpponent], a
+.got_opponent
+	call .IsOpponentValid
+	and a
+	jr z, .pick_opponent
+	call GetDailyTrainerHouseOpponent
+	ld a, [hl]
+	farjp LoadTrainerSpriteAsMapObject1
+
+.IsOpponentValid:
+	cp OPP_EN
+	jr nz, .not_en
+	; must have caught all three legendary birds to battle En
+	farjp SpecialBirdsCheck
+.not_en
+	cp OPP_MADOKA
+	jr nz, .not_madoka
+	; must have caught all three legendary beasts to battle Madoka
+	farjp SpecialBeastsCheck
+.not_madoka
+	ld a, TRUE
+	ret
 
 TrainerHouseReceptionistScript:
 	turnobject PLAYER, UP
 	opentext
 	checkflag ENGINE_FOUGHT_IN_TRAINER_HALL_TODAY
-	iftrue .FoughtTooManyTimes
+	iftruefwd .FoughtTooManyTimes
 	writetext TrainerHouseB1FIntroText
 	promptbutton
-	special TrainerHouse
-	iffalse .GetCal3Name
-	gettrainername STRING_BUFFER_3, CAL, CAL2
-	sjump .GotName
-
-.GetCal3Name:
-	gettrainername STRING_BUFFER_3, CAL, CAL3
-.GotName:
+	callasm .GetOpponentName
 	writetext TrainerHouseB1FYourOpponentIsText
 	promptbutton
 	writetext TrainerHouseB1FAskWantToBattleText
 	yesorno
-	iffalse .Declined
+	iffalsefwd .Declined
 	setflag ENGINE_FOUGHT_IN_TRAINER_HALL_TODAY
 	writetext TrainerHouseB1FGoRightInText
 	waitbutton
 	closetext
 	applymovement PLAYER, Movement_EnterTrainerHouseBattleRoom
+	showtext TrainerHouseB1FOpponentBeforeText
+	winlosstext TrainerHouseB1FOpponentBeatenText, 0
+	setlasttalked TRAINERHOUSEB1F_OPPONENT
+	callasm .LoadOpponentTrainer
+	startbattle
+	reloadmapafterbattle
+	givebp 1
 	opentext
-	writetext TrainerHouseB1FCalBeforeText
+	writetext TrainerHouseB1FEarnedBattlePointText
+	specialsound
 	waitbutton
 	closetext
-	special TrainerHouse
-	iffalse .NoSpecialBattle
-	winlosstext TrainerHouseB1FCalBeatenText, 0
-	setlasttalked TRAINERHOUSEB1F_CHRIS
-	loadtrainer CAL, CAL2
-	startbattle
-	reloadmapafterbattle
-	iffalse .End
-.NoSpecialBattle:
-	winlosstext TrainerHouseB1FCalBeatenText, 0
-	setlasttalked TRAINERHOUSEB1F_CHRIS
-	loadtrainer CAL, CAL3
-	startbattle
-	reloadmapafterbattle
-.End:
 	applymovement PLAYER, Movement_ExitTrainerHouseBattleRoom
 	end
 
@@ -72,46 +103,67 @@ TrainerHouseReceptionistScript:
 	applymovement PLAYER, Movement_TrainerHouseTurnBack
 	end
 
+.GetOpponentName:
+	; based on `gettrainername`
+	call GetDailyTrainerHouseOpponent
+	ld a, [hli]
+	ld b, [hl]
+	ld c, a
+	farcall GetTrainerName
+	ld hl, wStringBuffer3
+	jmp CopyName2
+
+.LoadOpponentTrainer:
+	; based on `loadtrainer`
+	ld a, (1 << 7) | 1
+	ld [wBattleScriptFlags], a
+	call GetDailyTrainerHouseOpponent
+	ld a, [hli]
+	ld [wOtherTrainerClass], a
+	ld a, [hl]
+	ld [wOtherTrainerID], a
+	ret
+
 Movement_EnterTrainerHouseBattleRoom:
-	step LEFT
-	step LEFT
-	step LEFT
-	step DOWN
-	step DOWN
-	step DOWN
-	step DOWN
-	step DOWN
-	step DOWN
-	step DOWN
-	step DOWN
-	step LEFT
-	turn_head RIGHT
+	step_left
+	step_left
+	step_left
+	step_down
+	step_down
+	step_down
+	step_down
+	step_down
+	step_down
+	step_down
+	step_down
+	step_left
+	turn_head_right
 	step_end
 
 Movement_ExitTrainerHouseBattleRoom:
-	step UP
-	step UP
-	step UP
-	step RIGHT
-	step UP
-	step UP
-	step UP
-	step UP
-	step UP
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step RIGHT
+	step_up
+	step_up
+	step_up
+	step_right
+	step_up
+	step_up
+	step_up
+	step_up
+	step_up
+	step_right
+	step_right
+	step_right
+	step_right
 	step_end
 
 Movement_TrainerHouseTurnBack:
-	step RIGHT
-	turn_head LEFT
+	step_right
+	turn_head_left
 	step_end
 
 TrainerHouseB1FIntroText:
 	text "Hi. Welcome to our"
-	line "TRAINING HALL."
+	line "Training Hall."
 
 	para "You may battle a"
 	line "trainer once per"
@@ -156,28 +208,28 @@ TrainerHouseB1FSecondChallengeDeniedText:
 	line "a day."
 	done
 
-TrainerHouseB1FCalBeatenText:
+TrainerHouseB1FOpponentBeatenText:
 	text "I lost…"
 	line "Darn…"
 	done
 
-TrainerHouseB1FCalBeforeText:
+TrainerHouseB1FOpponentBeforeText:
 	text "I traveled out"
 	line "here just so I"
 	cont "could battle you."
 	done
 
-TrainerHouseB1F_MapEvents:
-	db 0, 0 ; filler
+TrainerHouseB1FEarnedBattlePointText:
+	text "<PLAYER> earned"
+	line "1 BP!"
+	done
 
-	def_warp_events
-	warp_event  9,  4, TRAINER_HOUSE_1F, 3
+GetDailyTrainerHouseOpponent:
+	ld a, [wDailyTrainerHouseOpponent]
+	dec a
+	ld hl, DailyTrainerHouseOpponents
+	ld bc, TRAINER_HOUSE_OPPONENT_SIZE
+	rst AddNTimes
+	ret
 
-	def_coord_events
-	coord_event  7,  3, SCENE_TRAINERHOUSEB1F_ASK_BATTLE, TrainerHouseReceptionistScript
-
-	def_bg_events
-
-	def_object_events
-	object_event  7,  1, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, ObjectEvent, -1
-	object_event  6, 11, SPRITE_CHRIS, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, ObjectEvent, -1
+INCLUDE "data/events/trainer_house_opponents.asm"

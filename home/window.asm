@@ -1,3 +1,4 @@
+Script_reanchormap::
 ReanchorMap::
 	call ClearWindowData
 	ldh a, [hROMBank]
@@ -5,13 +6,18 @@ ReanchorMap::
 	ld a, BANK(ReanchorBGMap_NoOAMUpdate) ; aka BANK(LoadFonts_NoOAMUpdate)
 	rst Bankswitch
 
-	call ReanchorBGMap_NoOAMUpdate
-	call HDMATransferTilemapAndAttrmap_Menu
-	call LoadFonts_NoOAMUpdate
+	call ReanchorBGMap_NoOAMUpdate ; far-ok
+	call BGMapAnchorTopLeft
+	call LoadFonts_NoOAMUpdate ; far-ok
 
 	pop af
 	rst Bankswitch
 	ret
+
+RefreshScreenFast::
+	; Don't use for bridge updates, just call GenericFinishBridge
+	call GetMovementPermissions
+	farjp ReanchorBGMap_NoOAMUpdate_NoDelay
 
 CloseText::
 	ldh a, [hOAMUpdate]
@@ -25,47 +31,85 @@ CloseText::
 	ldh [hOAMUpdate], a
 	ld hl, wStateFlags
 	res TEXT_STATE_F, [hl]
+	ld hl, wWeatherFlags
+	res OW_WEATHER_DISABLED_F, [hl]
 	ret
 
 .CloseText:
 	call ClearWindowData
 	xor a
 	ldh [hBGMapMode], a
-	call LoadOverworldTilemapAndAttrmapPals
-	call HDMATransferTilemapAndAttrmap_Menu
+	call LoadMapPart
+	call BGMapAnchorTopLeft
 	xor a
 	ldh [hBGMapMode], a
 	call SafeUpdateSprites
+	farcall RefreshSprites
 	ld a, $90
 	ldh [hWY], a
 	call UpdatePlayerSprite
-	farcall InitMapNameSign
-	farcall LoadOverworldFont
-	ret
+	xor a
+	ldh [hBGMapMode], a
 
+	farjp InitMapNameSign
+
+Script_opentext::
 OpenText::
+	ld hl, wWeatherFlags
+	set OW_WEATHER_DISABLED_F, [hl]
 	call ClearWindowData
 	ldh a, [hROMBank]
 	push af
 	ld a, BANK(ReanchorBGMap_NoOAMUpdate) ; aka BANK(LoadFonts_NoOAMUpdate)
 	rst Bankswitch
 
-	call ReanchorBGMap_NoOAMUpdate ; anchor bgmap
+	call ClearSpritesUnderTextbox
+	call ReanchorBGMap_NoOAMUpdate ; far-ok
 	call SpeechTextbox
-	call HDMATransferTilemapAndAttrmap_Menu ; transfer bgmap
-	call LoadFonts_NoOAMUpdate ; load font
+	call BGMapAnchorTopLeft
+	call LoadFonts_NoOAMUpdate ; far-ok
 	pop af
 	rst Bankswitch
 
 	ret
 
-HDMATransferTilemapAndAttrmap_Menu::
+ClearSpritesUnderTextbox::
+	ld de, wShadowOAM
+	ld h, d
+	ld l, e
+	ld c, OAM_COUNT
+.loop
+	; check if YCoord ≥ (TEXTBOX_Y + 1) * TILE_WIDTH
+	ld a, [hl]
+	cp (TEXTBOX_Y + 1) * TILE_WIDTH
+	jr nc, .clear_sprite
+.next
+	ld hl, OBJ_SIZE
+	add hl, de
+	ld e, l
+	dec c
+	jr nz, .loop
+	ldh a, [hOAMUpdate]
+	push af
+	ld a, TRUE
+	ldh [hOAMUpdate], a
+	call DelayFrame
+	pop af
+	ldh [hOAMUpdate], a
+	ret
+
+.clear_sprite
+	ld [hl], OAM_YCOORD_HIDDEN
+	jr .next
+
+BGMapAnchorTopLeft::
 	ldh a, [hOAMUpdate]
 	push af
 	ld a, $1
 	ldh [hOAMUpdate], a
 
-	farcall _HDMATransferTilemapAndAttrmap_Menu
+	ld b, 0
+	call SafeCopyTilemapAtOnce
 
 	pop af
 	ldh [hOAMUpdate], a
@@ -80,9 +124,7 @@ SafeUpdateSprites::
 	ldh [hBGMapMode], a
 	ld a, $1
 	ldh [hOAMUpdate], a
-
 	call UpdateSprites
-
 	xor a
 	ldh [hOAMUpdate], a
 	call DelayFrame
@@ -90,8 +132,4 @@ SafeUpdateSprites::
 	ldh [hBGMapMode], a
 	pop af
 	ldh [hOAMUpdate], a
-	ret
-
-SetCarryFlag:: ; unreferenced
-	scf
 	ret

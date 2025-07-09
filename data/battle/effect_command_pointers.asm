@@ -1,183 +1,180 @@
-; battle commands are defined in engine/battle/effect_commands.asm
+MACRO command
+	const \1_command
+	DEF \1 EQUS "db \1_command"
+	dw BattleCommand_\1
+ENDM
 
-	dw 0 ; padding
+MACRO commandx
+	const \1_command
+	DEF \1 EQUS "db \1_command,"
+	dw BattleCommand_\1
+ENDM
+
+MACRO commandonly
+	const \1_command
+	DEF \1 EQUS "db \1_command"
+ENDM
+
+	const_def 1
 
 BattleCommandPointers:
-; entries correspond to macros/scripts/battle_commands.asm
-	table_width 2
-	dw BattleCommand_CheckTurn
-	dw BattleCommand_CheckObedience
-	dw BattleCommand_UsedMoveText
-	dw BattleCommand_DoTurn
-	dw BattleCommand_Critical
-	dw BattleCommand_DamageStats
-	dw BattleCommand_Stab
-	dw BattleCommand_DamageVariation
-	dw BattleCommand_CheckHit
-	dw BattleCommand_LowerSub
-	dw BattleCommand_MoveAnimNoSub
-	dw BattleCommand_RaiseSub
-	dw BattleCommand_FailureText
-	dw BattleCommand_ApplyDamage
-	dw BattleCommand_CriticalText
-	dw BattleCommand_SuperEffectiveText
-	dw BattleCommand_CheckFaint
-	dw BattleCommand_BuildOpponentRage
-	dw BattleCommand_PoisonTarget
-	dw BattleCommand_SleepTarget
-	dw BattleCommand_DrainTarget
-	dw BattleCommand_EatDream
-	dw BattleCommand_BurnTarget
-	dw BattleCommand_FreezeTarget
-	dw BattleCommand_ParalyzeTarget
-	dw BattleCommand_Selfdestruct
-	dw BattleCommand_MirrorMove
-	dw BattleCommand_StatUp
-	dw BattleCommand_StatDown
-	dw BattleCommand_PayDay
-	dw BattleCommand_Conversion
-	dw BattleCommand_ResetStats
-	dw BattleCommand_StoreEnergy
-	dw BattleCommand_UnleashEnergy
-	dw BattleCommand_ForceSwitch
-	dw BattleCommand_EndLoop
-	dw BattleCommand_FlinchTarget
-	dw BattleCommand_OHKO
-	dw BattleCommand_Recoil
-	dw BattleCommand_Mist
-	dw BattleCommand_FocusEnergy
-	dw BattleCommand_Confuse
-	dw BattleCommand_ConfuseTarget
-	dw BattleCommand_Heal
-	dw BattleCommand_Transform
-	dw BattleCommand_Screen
-	dw BattleCommand_Poison
-	dw BattleCommand_Paralyze
-	dw BattleCommand_Substitute
-	dw BattleCommand_RechargeNextTurn
-	dw BattleCommand_Mimic
-	dw BattleCommand_Metronome
-	dw BattleCommand_LeechSeed
-	dw BattleCommand_Splash
-	dw BattleCommand_Disable
-	dw BattleCommand_ClearText
-	dw BattleCommand_Charge
-	dw BattleCommand_CheckCharge
-	dw BattleCommand_TrapTarget
-	dw BattleCommand_Unused3C
-	dw BattleCommand_Rampage
-	dw BattleCommand_CheckRampage
-	dw BattleCommand_ConstantDamage
-	dw BattleCommand_Counter
-	dw BattleCommand_Encore
-	dw BattleCommand_PainSplit
-	dw BattleCommand_Snore
-	dw BattleCommand_Conversion2
-	dw BattleCommand_LockOn
-	dw BattleCommand_Sketch
-	dw BattleCommand_DefrostOpponent
-	dw BattleCommand_SleepTalk
-	dw BattleCommand_DestinyBond
-	dw BattleCommand_Spite
-	dw BattleCommand_FalseSwipe
-	dw BattleCommand_HealBell
-	dw BattleCommand_HeldFlinch
-	dw BattleCommand_TripleKick
-	dw BattleCommand_KickCounter
-	dw BattleCommand_Thief
-	dw BattleCommand_ArenaTrap
-	dw BattleCommand_Nightmare
-	dw BattleCommand_Defrost
-	dw BattleCommand_Curse
-	dw BattleCommand_Protect
-	dw BattleCommand_Spikes
-	dw BattleCommand_Foresight
-	dw BattleCommand_PerishSong
-	dw BattleCommand_StartSandstorm
-	dw BattleCommand_Endure
-	dw BattleCommand_CheckRollout
-	dw BattleCommand_RolloutPower
-	dw BattleCommand_Unused5D
-	dw BattleCommand_FuryCutter
-	dw BattleCommand_Attract
-	dw BattleCommand_HappinessPower
-	dw BattleCommand_Present
-	dw BattleCommand_DamageCalc
-	dw BattleCommand_FrustrationPower
-	dw BattleCommand_Safeguard
-	dw BattleCommand_CheckSafeguard
-	dw BattleCommand_GetMagnitude
-	dw BattleCommand_BatonPass
-	dw BattleCommand_Pursuit
-	dw BattleCommand_ClearHazards
-	dw BattleCommand_HealMorn
-	dw BattleCommand_HealDay
-	dw BattleCommand_HealNite
-	dw BattleCommand_HiddenPower
-	dw BattleCommand_StartRain
-	dw BattleCommand_StartSun
-	dw BattleCommand_AttackUp
-	dw BattleCommand_DefenseUp
-	dw BattleCommand_SpeedUp
-	dw BattleCommand_SpecialAttackUp
-	dw BattleCommand_SpecialDefenseUp
-	dw BattleCommand_AccuracyUp
-	dw BattleCommand_EvasionUp
-	dw BattleCommand_AttackUp2
-	dw BattleCommand_DefenseUp2
-	dw BattleCommand_SpeedUp2
-	dw BattleCommand_SpecialAttackUp2
-	dw BattleCommand_SpecialDefenseUp2
-	dw BattleCommand_AccuracyUp2
-	dw BattleCommand_EvasionUp2
-	dw BattleCommand_AttackDown
-	dw BattleCommand_DefenseDown
-	dw BattleCommand_SpeedDown
-	dw BattleCommand_SpecialAttackDown
-	dw BattleCommand_SpecialDefenseDown
-	dw BattleCommand_AccuracyDown
-	dw BattleCommand_EvasionDown
-	dw BattleCommand_AttackDown2
-	dw BattleCommand_DefenseDown2
-	dw BattleCommand_SpeedDown2
-	dw BattleCommand_SpecialAttackDown2
-	dw BattleCommand_SpecialDefenseDown2
-	dw BattleCommand_AccuracyDown2
-	dw BattleCommand_EvasionDown2
-	dw BattleCommand_StatUpMessage
-	dw BattleCommand_StatDownMessage
-	dw BattleCommand_StatUpFailText
-	dw BattleCommand_StatDownFailText
-	dw BattleCommand_EffectChance
-	dw BattleCommand_StatDownAnim
-	dw BattleCommand_StatUpAnim
-	dw BattleCommand_SwitchTurn
-	dw BattleCommand_FakeOut
-	dw BattleCommand_BellyDrum
-	dw BattleCommand_PsychUp
-	dw BattleCommand_Rage
-	dw BattleCommand_DoubleFlyingDamage
-	dw BattleCommand_DoubleUndergroundDamage
-	dw BattleCommand_MirrorCoat
-	dw BattleCommand_CheckFutureSight
-	dw BattleCommand_FutureSight
-	dw BattleCommand_DoubleMinimizeDamage
-	dw BattleCommand_SkipSunCharge
-	dw BattleCommand_ThunderAccuracy
-	dw BattleCommand_Teleport
-	dw BattleCommand_BeatUp
-	dw BattleCommand_RageDamage
-	dw BattleCommand_ResetTypeMatchup
-	dw BattleCommand_AllStatsUp
-	dw BattleCommand_BideFailText
-	dw BattleCommand_RaiseSubNoAnim
-	dw BattleCommand_LowerSubNoAnim
-	dw BattleCommand_BeatUpFailText
-	dw BattleCommand_ClearMissDamage
-	dw BattleCommand_MoveDelay
-	dw BattleCommand_MoveAnim
-	dw BattleCommand_TriStatusChance
-	dw BattleCommand_SuperEffectiveLoopText
-	dw BattleCommand_StartLoop
-	dw BattleCommand_Curl
-	assert_table_length NUM_EFFECT_COMMANDS
+	command checkturn
+	command checkobedience
+	command usedmovetext
+	command doturn
+	command critical
+	command damagestats
+	command stab
+	command damagevariation
+	command checkhit
+	command checkpriority
+	command lowersub
+	command moveanimnosub
+	command raisesub
+	command failuretext
+	command applydamage
+	command criticaltext
+	command supereffectivetext
+	command postfainteffects
+	command posthiteffects
+	command poisontarget
+	command sleep
+	command draintarget
+	command eatdream
+	command burntarget
+	command freezetarget
+	command paralyzetarget
+	command selfdestruct
+	command payday
+	command conversion
+	command resetstats
+	command roar
+	command endloop
+	command flinchtarget
+	command recoil
+	command focusenergy
+	command confuse
+	command confusetarget
+	command heal
+	command transform
+	command screen
+	command poison
+	command paralyze
+	command substitute
+	command rechargenextturn
+	command metronome
+	command leechseed
+	command splash
+	command disable
+	command cleartext
+	command charge
+	command traptarget
+	command growth
+	command rampage
+	command constantdamage
+	command counter
+	command encore
+	command painsplit
+	command sketch
+	command sleeptalk
+	command destinybond
+	command falseswipe
+	command healbell
+	command hastarget
+	command triplekick
+	command kickcounter
+	command thief
+	command arenatrap
+	command curse
+	command protect
+	command spikes
+	command foresight
+	command perishsong
+	command startsandstorm
+	command starthail
+	command endure
+	command rolloutpower
+	command conditionalboost
+	command attract
+	command happinesspower
+	command damagecalc
+	command safeguard
+	command checksafeguard
+	command getmagnitude
+	command batonpass
+	command pursuit
+	command clearhazards
+	command healweather
+	command hiddenpower
+	command startrain
+	command startsun
+	command effectchance
+	command selfeffectchance
+	command switchturn
+	command bellydrum
+	command rage
+	command doubleflyingdamage
+	command doubleundergrounddamage
+	command checkfuturesight
+	command futuresight
+	command doubleminimizedamage
+	command thunderaccuracy
+	command teleport
+	command switchout
+	command resettypematchup
+	command raisesubnoanim
+	command lowersubnoanim
+	command clearmissdamage
+	command movedelay
+	command moveanim
+	command tristatuschance
+	command startloop
+	command curl
+	command minimize
+	command burn
+	command bounceback
+	command suckerpunch
+	command toxicspikes
+	command roost
+	command skillswap
+	command trick
+	command toxic
+	command gyroball
+	command checkpowder
+	command lowkick
+	command brickbreak
+	command trickroom
+
+	; The following commands have an argument
+	; Argument: check if possible (false) vs perform the action (true)
+	commandx bugbite
+	commandx knockoff
+
+	; Argument: stat to lower
+	; (raise|lower)stat: can miss, silent
+	; force(raise|lower)stat: (always)
+	; (raise|lower)stathit: can miss, respects secondary, silent
+	; (raise|lower)oppstat: can miss, respects sub+mist+clear body
+	; force(raise|lower)oppstat: respects sub+mist+clear body
+	; (raise|lower)oppstathit: can miss, respects secondary+sub+mist+clear body, silent
+	commandx raisestat
+	commandx lowerstat
+	commandx forceraisestat
+	commandx forcelowerstat
+	commandx raisestathit
+	commandx lowerstathit
+	commandx raiseoppstat
+	commandx loweroppstat
+	commandx forceraiseoppstat
+	commandx forceloweroppstat
+	commandx raiseoppstathit
+	commandx loweroppstathit
+
+DEF NUM_EFFECT_COMMANDS EQU const_value - 1
+
+DEF FIRST_MOVEARG_COMMAND EQU raisestat_command
+DEF LAST_MOVEARG_COMMAND EQU loweroppstathit_command
+
+	const_def $ff, -1
+	commandonly endmove
+	commandonly endturn

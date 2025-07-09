@@ -1,24 +1,23 @@
 ; Functions dealing with palettes.
 
-UpdatePalsIfCGB::
-; update bgp data from wBGPals2
-; update obp data from wOBPals2
-; return carry if successful
-
-; check cgb
-	ldh a, [hCGB]
-	and a
-	ret z
-
+UpdateCGBPalsLYTimed:
+; checks if there is time to run UpdateCGBPals.
+	ldh a, [rLY]
+	cp 150
+	ret nc
+	; fallthrough
 UpdateCGBPals::
-; return carry if successful
 ; any pals to update?
 	ldh a, [hCGBPalUpdate]
 	and a
 	ret z
 	; fallthrough
-
 ForceUpdateCGBPals::
+; update bgp data from wBGPals2
+; update obp data from wOBPals2
+; return carry if successful
+; Completes in 588 cycles
+
 	ldh a, [rWBK]
 	push af
 	ld a, BANK(wBGPals2)
@@ -29,10 +28,9 @@ ForceUpdateCGBPals::
 ; copy 8 pals to bgpd
 	ld a, BGPI_AUTOINC
 	ldh [rBGPI], a
-	ld c, LOW(rBGPD)
-	ld b, 8 / 2
+	lb bc, 4, LOW(rBGPD) ; 4 = NUM_PALS / 2
 .bgp
-rept (1 palettes) * 2
+rept 2 palettes
 	ld a, [hli]
 	ldh [c], a
 endr
@@ -40,15 +38,14 @@ endr
 	dec b
 	jr nz, .bgp
 
-; hl is now wOBPals2
+; hl is now 5:d0c0 wOBPals2
 
 ; copy 8 pals to obpd
-	ld a, OBPI_AUTOINC
+	ld a, %10000000 ; auto increment, index 0
 	ldh [rOBPI], a
-	ld c, LOW(rOBPD)
-	ld b, 8 / 2
+	lb bc, 4, LOW(rOBPD) ; 4 = NUM_PALS / 2
 .obp
-rept (1 palettes) * 2
+rept 2 palettes
 	ld a, [hli]
 	ldh [c], a
 endr
@@ -72,21 +69,16 @@ DmgToCgbBGPals::
 ; input: a -> bgp
 
 	ldh [rBGP], a
-	push af
-
-; Don't need to be here if DMG
-	ldh a, [hCGB]
-	and a
-	jr z, .end
 
 	push hl
 	push de
 	push bc
+	push af
 
 	ldh a, [rWBK]
 	push af
 
-	ld a, BANK(wBGPals2)
+	ld a, 5 ; gfx
 	ldh [rWBK], a
 
 ; copy & reorder bg pal buffer
@@ -99,18 +91,13 @@ DmgToCgbBGPals::
 	ld c, 8
 	call CopyPals
 ; request pal update
-	ld a, TRUE
+	ld a, 1
 	ldh [hCGBPalUpdate], a
 
 	pop af
 	ldh [rWBK], a
 
-	pop bc
-	pop de
-	pop hl
-.end
-	pop af
-	ret
+	jmp PopAFBCDEHL
 
 DmgToCgbObjPals::
 ; exists to forego reinserting cgb-converted image data
@@ -123,18 +110,13 @@ DmgToCgbObjPals::
 	ld a, d
 	ldh [rOBP1], a
 
-	ldh a, [hCGB]
-	and a
-	ret z
-
 	push hl
 	push de
 	push bc
-
 	ldh a, [rWBK]
 	push af
 
-	ld a, BANK(wOBPals2)
+	ld a, BANK(wOBPals1)
 	ldh [rWBK], a
 
 ; copy & reorder obj pal buffer
@@ -147,70 +129,49 @@ DmgToCgbObjPals::
 	ld c, 8
 	call CopyPals
 ; request pal update
-	ld a, TRUE
+	ld a, 1
 	ldh [hCGBPalUpdate], a
 
 	pop af
 	ldh [rWBK], a
-
-	pop bc
-	pop de
-	pop hl
-	ret
+	jmp PopBCDEHL
 
 DmgToCgbObjPal0::
 	ldh [rOBP0], a
-	push af
-
-; Don't need to be here if not CGB
-	ldh a, [hCGB]
-	and a
-	jr z, .dmg
-
 	push hl
 	push de
 	push bc
+	push af
 
 	ldh a, [rWBK]
 	push af
-	ld a, BANK(wOBPals2)
+	ld a, 5 ; gfx
 	ldh [rWBK], a
 
-	ld hl, wOBPals2 palette 0
-	ld de, wOBPals1 palette 0
+	ld hl, wOBPals2
+	ld de, wOBPals1
 	ldh a, [rOBP0]
 	ld b, a
 	ld c, 1
 	call CopyPals
-	ld a, TRUE
+	ld a, 1
 	ldh [hCGBPalUpdate], a
 
 	pop af
 	ldh [rWBK], a
 
-	pop bc
-	pop de
-	pop hl
-
-.dmg
-	pop af
-	ret
+	jmp PopAFBCDEHL
 
 DmgToCgbObjPal1::
 	ldh [rOBP1], a
-	push af
-
-	ldh a, [hCGB]
-	and a
-	jr z, .dmg
-
 	push hl
 	push de
 	push bc
+	push af
 
 	ldh a, [rWBK]
 	push af
-	ld a, BANK(wOBPals2)
+	ld a, 5 ; gfx
 	ldh [rWBK], a
 
 	ld hl, wOBPals2 palette 1
@@ -219,52 +180,43 @@ DmgToCgbObjPal1::
 	ld b, a
 	ld c, 1
 	call CopyPals
-	ld a, TRUE
+	ld a, 1
 	ldh [hCGBPalUpdate], a
 
 	pop af
 	ldh [rWBK], a
 
-	pop bc
-	pop de
-	pop hl
-
-.dmg
-	pop af
-	ret
+	jmp PopAFBCDEHL
 
 CopyPals::
 ; copy c palettes in order b from de to hl
 
 	push bc
-	ld c, PAL_COLORS
+	ld c, 4 ; PAL_COLORS
 .loop
 	push de
 	push hl
 
 ; get pal color
 	ld a, b
-	maskbits 1 << COLOR_SIZE
+	and %11 ; color
 ; 2 bytes per color
 	add a
 	ld l, a
 	ld h, 0
 	add hl, de
-	ld e, [hl]
-	inc hl
+	ld a, [hli]
 	ld d, [hl]
 
 ; dest
 	pop hl
 ; write color
-	ld [hl], e
-	inc hl
-	ld [hl], d
-	inc hl
+	ld [hli], a
+	ld a, d
+	ld [hli], a
 ; next pal color
-rept COLOR_SIZE
 	srl b
-endr
+	srl b
 ; source
 	pop de
 ; done pal?
@@ -272,12 +224,12 @@ endr
 	jr nz, .loop
 
 ; de += 8 (next pal)
-	ld a, PAL_SIZE
+	ld a, 1 palettes ; PAL_COLORS * 2 ; bytes per pal
 	add e
-	jr nc, .ok
-	inc d
-.ok
 	ld e, a
+	adc d
+	sub e
+	ld d, a
 
 ; how many more pals?
 	pop bc
@@ -286,48 +238,44 @@ endr
 	ret
 
 ClearVBank1::
-	ldh a, [hCGB]
-	and a
-	ret z
-
 	ld a, 1
 	ldh [rVBK], a
 
-	ld hl, STARTOF(VRAM)
-	ld bc, SIZEOF(VRAM)
+	ld hl, vTiles0
+	ld bc, STARTOF(VRAM) + SIZEOF(VRAM) - vTiles0
 	xor a
-	call ByteFill
+	rst ByteFill
 
-	ld a, 0
+	xor a
 	ldh [rVBK], a
 	ret
 
-GSReloadPalettes:: ; dummied out
-	ret
-
-ReloadSpritesNoPalettes::
-	ldh a, [hCGB]
-	and a
-	ret z
+Special_ReloadSpritesNoPalettes::
 	ldh a, [rWBK]
 	push af
 	ld a, BANK(wBGPals2)
 	ldh [rWBK], a
 	ld hl, wBGPals2
-	ld bc, (8 palettes) + (2 palettes)
+	ld bc, 8 palettes
 	xor a
-	call ByteFill
+	rst ByteFill
 	pop af
 	ldh [rWBK], a
-	ld a, TRUE
+	ld a, 1
 	ldh [hCGBPalUpdate], a
-	call DelayFrame
-	ret
+	jmp DelayFrame
 
-LoadOverworldAttrmapPals::
-	homecall _LoadOverworldAttrmapPals
-	ret
-
-ScrollBGMapPalettes::
-	homecall _ScrollBGMapPalettes
-	ret
+SetBlackObjectPals::
+	ldh a, [rWBK]
+	push af
+	ld a, BANK(wOBPals2)
+	ldh [rWBK], a
+	ld hl, wOBPals2
+	ld bc, 8 palettes
+	xor a
+	rst ByteFill
+	pop af
+	ldh [rWBK], a
+	ld a, 1
+	ldh [hCGBPalUpdate], a
+	jmp DelayFrame

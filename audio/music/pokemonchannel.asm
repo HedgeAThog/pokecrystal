@@ -204,7 +204,7 @@ Music_PokemonChannel_Ch3:
 Music_PokemonChannel_Ch4:
 	toggle_noise 3
 	drum_speed 12
-.loop1:
+Music_PokemonChannel_branch_ee54d:
 	drum_note 11, 3
 	drum_note 11, 1
 	drum_note 3, 2
@@ -213,7 +213,7 @@ Music_PokemonChannel_Ch4:
 	drum_note 3, 2
 	drum_note 11, 1
 	drum_note 3, 1
-	sound_loop 2, .loop1
+	sound_loop 2, Music_PokemonChannel_branch_ee54d
 	drum_note 9, 2
 	drum_note 11, 2
 	drum_note 9, 1

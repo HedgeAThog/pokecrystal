@@ -1,5 +1,4 @@
 ReanchorBGMap_NoOAMUpdate::
-	call DelayFrame
 	ldh a, [hOAMUpdate]
 	push af
 
@@ -7,54 +6,43 @@ ReanchorBGMap_NoOAMUpdate::
 	ldh [hOAMUpdate], a
 	ldh a, [hBGMapMode]
 	push af
+
+	ld hl, rIE
+	res B_IE_STAT, [hl]
 	xor a
 	ldh [hBGMapMode], a
+	ldh [hLCDCPointer], a
+	ld a, $90
+	ldh [hWY], a
+	call LoadMapPart
 
-	call .ReanchorBGMap
+	ld a, HIGH(vBGMap1)
+	ldh [hBGMapAddress + 1], a
+	xor a
+	ldh [hBGMapAddress], a
+	call BGMapAnchorTopLeft
+	farcall LoadBlindingFlashPalette
+	farcall ApplyPals
+	xor a
+	ldh [hBGMapMode], a
+	ldh [hWY], a
+	ldh [hBGMapAddress], a
+	ld [wBGMapAnchor], a
+	ldh [hSCX], a
+	ldh [hSCY], a
+	inc a
+	ldh [hCGBPalUpdate], a
+	ld a, HIGH(vBGMap0) ; overworld
+	ldh [hBGMapAddress + 1], a
+	ld [wBGMapAnchor + 1], a
+	call ApplyBGMapAnchorToObjects
 
 	pop af
 	ldh [hBGMapMode], a
 	pop af
 	ldh [hOAMUpdate], a
-
 	ld hl, wStateFlags
 	set TEXT_STATE_F, [hl]
-	ret
-
-.ReanchorBGMap:
-	xor a
-	ldh [hLCDCPointer], a
-	ldh [hBGMapMode], a
-	ld a, $90
-	ldh [hWY], a
-	call LoadOverworldTilemapAndAttrmapPals
-	ld a, HIGH(vBGMap1)
-	call .LoadBGMapAddrIntoHRAM
-	call HDMATransferTilemapAndAttrmap_Menu
-	farcall LoadOW_BGPal7
-	farcall ApplyPals
-	ld a, TRUE
-	ldh [hCGBPalUpdate], a
-	xor a
-	ldh [hBGMapMode], a
-	ldh [hWY], a
-	farcall HDMATransfer_FillBGMap0WithBlack ; no need to farcall
-	ld a, HIGH(vBGMap0)
-	call .LoadBGMapAddrIntoHRAM
-	xor a ; LOW(vBGMap0)
-	ld [wBGMapAnchor], a
-	ld a, HIGH(vBGMap0)
-	ld [wBGMapAnchor + 1], a
-	xor a
-	ldh [hSCX], a
-	ldh [hSCY], a
-	call ApplyBGMapAnchorToObjects
-	ret
-
-.LoadBGMapAddrIntoHRAM:
-	ldh [hBGMapAddress + 1], a
-	xor a
-	ldh [hBGMapAddress], a
 	ret
 
 LoadFonts_NoOAMUpdate::
@@ -63,42 +51,55 @@ LoadFonts_NoOAMUpdate::
 	ld a, $1
 	ldh [hOAMUpdate], a
 
-	call .LoadGFX
+	call LoadFrame
+	ld a, $90
+	ldh [hWY], a
+	call SafeUpdateSprites
+	call LoadStandardFont
 
 	pop af
 	ldh [hOAMUpdate], a
 	ret
 
-.LoadGFX:
-	call LoadFontsExtra
+ReanchorBGMap_NoOAMUpdate_NoDelay::
+	ldh a, [hOAMUpdate]
+	push af
+
+	ld a, $1
+	ldh [hOAMUpdate], a
+	ldh a, [hBGMapMode]
+	push af
+
+	ld hl, rIE
+	res B_IE_STAT, [hl]
+	xor a
+	ldh [hBGMapMode], a
+	ldh [hLCDCPointer], a
 	ld a, $90
 	ldh [hWY], a
-	call SafeUpdateSprites
-	call LoadStandardFont
-	ret
+	call LoadMapPart
 
-HDMATransfer_FillBGMap0WithBlack:
-	ldh a, [rWBK]
-	push af
-	ld a, BANK(wDecompressScratch)
-	ldh [rWBK], a
-
-	ld a, "■"
-	ld hl, wDecompressScratch
-	ld bc, wScratchAttrmap - wDecompressScratch
-	call ByteFill
-	ld a, HIGH(wDecompressScratch)
-	ldh [rVDMA_SRC_HIGH], a
-	ld a, LOW(wDecompressScratch)
-	ldh [rVDMA_SRC_LOW], a
-	ld a, HIGH(vBGMap0 - STARTOF(VRAM))
-	ldh [rVDMA_DEST_HIGH], a
-	ld a, LOW(vBGMap0 - STARTOF(VRAM))
-	ldh [rVDMA_DEST_LOW], a
-	ld a, $3f
-	ldh [hDMATransfer], a
-	call DelayFrame
-
+	ld a, HIGH(vBGMap1)
+	ldh [hBGMapAddress + 1], a
+	xor a
+	ldh [hBGMapAddress], a
+	call CopyTilemapAtOnce
+	xor a
+	ldh [hWY], a
+	ldh [hBGMapAddress], a
+	ld [wBGMapAnchor], a
+	ldh [hSCX], a
+	ldh [hSCY], a
+	inc a
+	ldh [hCGBPalUpdate], a
+	ld a, HIGH(vBGMap0) ; overworld
+	ldh [hBGMapAddress + 1], a
+	ld [wBGMapAnchor + 1], a
 	pop af
-	ldh [rWBK], a
-	ret
+	ldh [hBGMapMode], a
+	pop af
+	ldh [hOAMUpdate], a
+	ld hl, wStateFlags
+	set TEXT_STATE_F, [hl]
+	ld b, 0
+	jmp SafeCopyTilemapAtOnce

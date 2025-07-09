@@ -2,12 +2,12 @@ ReenaMonsIsAPerfectMatchText:
 	text "Listen, dear…"
 
 	para "Do you recall my"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text "?"
 
 	para "Yes, exactly. That"
-	line "lovely @"
+	line "lovely "
 	text_ram wStringBuffer4
 	text "."
 
@@ -18,13 +18,13 @@ ReenaMonsIsAPerfectMatchText:
 
 ReenaDefeatedMonText:
 	text "Have I ever faced"
-	line "a wild @"
+	line "a wild "
 	text_ram wStringBuffer4
 	text "?"
 
 	para "You need to ask?"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text " I've"
 	line "beaten on numerous"
@@ -34,14 +34,14 @@ ReenaDefeatedMonText:
 ReenaLostAMonText:
 	text "Have I ever failed"
 	line "to catch a wild"
-	cont "#MON?"
+	cont "#mon?"
 
 	para "You need to ask?"
 
 	para "I would never fail"
 	line "to catch a wild"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text "…"
 	line "Oh! Never mind!"
@@ -52,7 +52,7 @@ ReenaBattleRematchText:
 	line "battle!"
 
 	para "The place shall be"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 
@@ -69,7 +69,7 @@ ReenaForwardText:
 	line "just because you"
 
 	para "happened to beat"
-	line "me… "
+	line "me…"
 
 	para "It was a fluke!"
 	done
@@ -81,7 +81,7 @@ ReenaHurryText:
 	para "I told you that"
 	line "the place was"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text "!"
 	line "Don't try to run!"

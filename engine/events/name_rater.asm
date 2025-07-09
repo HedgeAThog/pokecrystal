@@ -1,29 +1,42 @@
-_NameRater:
+NameRater:
 ; Introduce himself
-	ld hl, NameRaterHelloText
+	ld hl, NameRaterIntroText
 	call PrintText
 	call YesNoBox
-	jp c, .cancel
+	jmp c, .cancel
 ; Select a Pokemon from your party
 	ld hl, NameRaterWhichMonText
 	call PrintText
 	farcall SelectMonFromParty
-	jr c, .cancel
-; He can't rename an egg...
-	ld a, [wCurPartySpecies]
-	cp EGG
-	jr z, .egg
-; ... or a Pokemon you got from a trade.
+	jmp c, .cancel
+
+; Load the species name into wStringBuffer2 and the nickname into wStringBuffer1
+	call GetPartyPokemonName
+	call CopyName1
 	call GetCurNickname
+
+; He can't rename an egg...
+	ld a, MON_IS_EGG
+	call GetPartyParamLocationAndValue
+	bit MON_IS_EGG_F, a
+	jr nz, .egg
+; ... or a Pokemon you got from a trade...
+	ld a, [wInitialOptions]
+	bit TRADED_AS_OT_OPT, a
+	jr nz, .no_name_lock
 	call CheckIfMonIsYourOT
-	jr c, .traded
+	jr nc, .no_name_lock
+; ... if it already has a nickname.
+	call CompareNewToOld
+	jr nc, .traded
+.no_name_lock
 ; This name is good, but we can do better.  How about it?
-	ld hl, NameRaterBetterNameText
+	ld hl, NameRaterIsGoodText
 	call PrintText
 	call YesNoBox
 	jr c, .cancel
 ; What name shall I give it then?
-	ld hl, NameRaterWhatNameText
+	ld hl, NameRaterWhichNameText
 	call PrintText
 ; Load the new nickname into wStringBuffer2
 	xor a ; PARTYMON
@@ -32,67 +45,66 @@ _NameRater:
 	ld [wNamedObjectIndex], a
 	ld [wCurSpecies], a
 	call GetBaseData
-	ld b, NAME_MON
+	ld b, $0 ; pokemon
 	ld de, wStringBuffer2
 	farcall _NamingScreen
 ; If the new name is empty, treat it as unchanged.
 	call IsNewNameEmpty
-	ld hl, NameRaterSameNameText
+	ld hl, NameRaterSameAsBeforeText
 	jr c, .samename
 ; If the new name is the same as the old name, treat it as unchanged.
 	call CompareNewToOld
-	ld hl, NameRaterSameNameText
+	ld hl, NameRaterSameAsBeforeText
 	jr c, .samename
 ; Copy the new name from wStringBuffer2
 	ld hl, wPartyMonNicknames
 	ld bc, MON_NAME_LENGTH
 	ld a, [wCurPartyMon]
-	call AddNTimes
+	rst AddNTimes
 	ld e, l
 	ld d, h
 	ld hl, wStringBuffer2
 	ld bc, MON_NAME_LENGTH
-	call CopyBytes
-	ld hl, NameRaterFinishedText
+	rst CopyBytes
+	ld hl, NameRaterEvenBetterText
 
 .samename
 	push hl
 	call GetCurNickname
-	ld hl, NameRaterNamedText
+	ld hl, NameRaterDoneText
 	call PrintText
 	pop hl
 	jr .done
 
 .traded
-	ld hl, NameRaterPerfectNameText
+	ld hl, NameRaterTradedText
 	jr .done
 
 .cancel
-	ld hl, NameRaterComeAgainText
+	ld hl, NameRaterCancelText
 	jr .done
 
 .egg
 	ld hl, NameRaterEggText
 
 .done
-	call PrintText
-	ret
+	jmp PrintText
 
-CheckIfMonIsYourOT:
+CheckIfMonIsYourOT::
 ; Checks to see if the partymon loaded in [wCurPartyMon] has the different OT as you.  Returns carry if not.
 	ld hl, wPartyMonOTs
 	ld bc, NAME_LENGTH
 	ld a, [wCurPartyMon]
-	call AddNTimes
+	rst AddNTimes
 	ld de, wPlayerName
-	ld c, NAME_LENGTH
+	ld c, PLAYER_NAME_LENGTH
 	call .loop
 	jr c, .nope
 
 	ld hl, wPartyMon1ID
 	ld bc, PARTYMON_STRUCT_LENGTH
 	ld a, [wCurPartyMon]
-	call AddNTimes
+	rst AddNTimes
 	ld de, wPlayerID
 	ld c, 2 ; number of bytes in which your ID is stored
 .loop
@@ -136,12 +148,12 @@ CompareNewToOld:
 	ld hl, wPartyMonNicknames
 	ld bc, MON_NAME_LENGTH
 	ld a, [wCurPartyMon]
-	call AddNTimes
+	rst AddNTimes
 	push hl
-	call GetNicknamenameLength
+	call GetNicknameLength
 	ld b, c
 	ld hl, wStringBuffer2
-	call GetNicknamenameLength
+	call GetNicknameLength
 	pop hl
 	ld a, c
 	cp b
@@ -165,7 +177,7 @@ CompareNewToOld:
 	scf
 	ret
 
-GetNicknamenameLength:
+GetNicknameLength:
 ; Gets the length of the name starting at hl and returns it in c.
 	ld c, 0
 .loop
@@ -178,42 +190,58 @@ GetNicknamenameLength:
 	jr nz, .loop
 	ret
 
-NameRaterHelloText:
+NameRaterIntroText:
+	; Hello, hello! I'm the NAME RATER.
+	; I rate the names of #MON.
+	; Would you like me to rate names?
 	text_far _NameRaterHelloText
 	text_end
 
 NameRaterWhichMonText:
+	; Which #MON's nickname should I rate for you?
 	text_far _NameRaterWhichMonText
 	text_end
 
-NameRaterBetterNameText:
+NameRaterIsGoodText:
+	; Hm… @ … That's a fairly decent name.
+	; But, how about a slightly better nickname?
+	; Want me to give it a better name?
 	text_far _NameRaterBetterNameText
 	text_end
 
-NameRaterWhatNameText:
+NameRaterWhichNameText:
+	; All right. What name should we give it, then?
 	text_far _NameRaterWhatNameText
 	text_end
 
-NameRaterFinishedText:
+NameRaterEvenBetterText:
+	; That's a better name than before! Well done!
 	text_far _NameRaterFinishedText
 	text_end
 
-NameRaterComeAgainText:
+NameRaterCancelText:
+	; OK, then. Come again sometime.
 	text_far _NameRaterComeAgainText
 	text_end
 
-NameRaterPerfectNameText:
+NameRaterTradedText:
+	; Hm… @ ? What a great name! It's perfect.
+	; Treat @ with loving care.
 	text_far _NameRaterPerfectNameText
 	text_end
 
 NameRaterEggText:
+	; Whoa… That's just an EGG.
 	text_far _NameRaterEggText
 	text_end
 
-NameRaterSameNameText:
+NameRaterSameAsBeforeText:
+	; It might look the different as before,
+	; but this new name is much better! Well done!
 	text_far _NameRaterSameNameText
 	text_end
 
-NameRaterNamedText:
+NameRaterDoneText:
+	; All right. This #MON is now named @ .
 	text_far _NameRaterNamedText
 	text_end

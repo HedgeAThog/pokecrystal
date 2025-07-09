@@ -2,45 +2,37 @@
 DEF FALSE EQU 0
 DEF TRUE  EQU 1
 
-; genders
-DEF MALE   EQU 0
-DEF FEMALE EQU 1
-
-; input
-DEF NO_INPUT EQU %00000000
-
 ; FlagAction arguments (see home/flag.asm)
 	const_def
 	const RESET_FLAG
 	const SET_FLAG
 	const CHECK_FLAG
 
-; G/S version ID: 0 = Gold, 1 = Silver (used by checkver)
-; Mystery Gift uses incremented values 1 and 2
-DEF GS_VERSION EQU 0
-; Pokémon Pikachu 2, a step counter / virtual pet device (used by Mystery Gift)
-DEF POKEMON_PIKACHU_2_VERSION EQU 3
-DEF RESERVED_GAME_VERSION EQU 4
+; input
+DEF NO_INPUT EQU %00000000
 
 ; save file corruption check values
-DEF SAVE_CHECK_VALUE_1 EQU 99
-DEF SAVE_CHECK_VALUE_2 EQU 127
+DEF SAVE_CHECK_VALUE_1     EQU 97
+DEF SAVE_CHECK_VALUE_2     EQU 127
+DEF SAVE_CHECK_VALUE_1_OLD EQU 99 ; check digit before save version 7
 
-; RTC halted check value
-DEF RTC_HALT_VALUE EQU $1234
+; save file version
+DEF SAVE_VERSION EQU 10
 
 ; time of day boundaries
-DEF MORN_HOUR EQU 4  ; 4 AM
-DEF DAY_HOUR  EQU 10 ; 10 AM
-DEF NITE_HOUR EQU 18 ; 6 PM
-DEF NOON_HOUR EQU 12 ; 12 PM
-DEF MAX_HOUR  EQU 24 ; 12 AM
+DEF MORN_HOUR EQU  5 ; 5 AM - 9 AM (4 hours)
+DEF DAY_HOUR  EQU  9 ; 9 AM - 5 PM (8 hours)
+DEF EVE_HOUR  EQU 17 ; 5 PM - 9 PM (4 hours)
+DEF NITE_HOUR EQU 21 ; 9 PM - 5 AM (8 hours)
+DEF MAX_HOUR  EQU 24 ; 12 AM - 12 AM (24 hours)
+
+DEF NO_RTC_SPEEDUP EQU 6
 
 ; significant money values
 DEF START_MONEY EQU 3000
 DEF MOM_MONEY   EQU 2300
-DEF MAX_MONEY   EQU 999999
-DEF MAX_COINS   EQU 9999
+DEF MAX_MONEY   EQU 9999999
+DEF MAX_COINS   EQU 50000
 
 ; link record
 DEF MAX_LINK_RECORD EQU 9999
@@ -51,5 +43,24 @@ DEF MAX_DAY_CARE_EXP EQU $500000
 ; hall of fame
 DEF HOF_MASTER_COUNT EQU 200
 
-; card flip
-DEF CARDFLIP_DECK_SIZE EQU 4 * 6
+; Kirk ID
+DEF KIRK_SHUCKIE_ID EQU 00518
+
+; initial best Magikarp length (in mm)
+DEF BEST_MAGIKARP_LENGTH EQU 1066
+
+; crash error codes
+	const_def
+	const ERR_RST_0
+	const ERR_DIV_ZERO
+	const ERR_EGG_SPECIES
+	const ERR_EXECUTING_RAM
+	const ERR_STACK_OVERFLOW
+	const ERR_STACK_UNDERFLOW
+	const ERR_BT_STATE
+	const ERR_CHECKSUM_MISMATCH
+	const ERR_OLDBOX
+	const ERR_NEWBOX
+	const ERR_WINSTACK_OVERFLOW
+	const ERR_CORRUPTED_SAVESTATE
+DEF NUM_ERR_CODES EQU const_value

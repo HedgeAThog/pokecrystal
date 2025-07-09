@@ -1,61 +1,61 @@
-; Pokémon swarms in grass
-
-SwarmGrassWildMons:
+; swarms in grass
 
 ; Dunsparce swarm
-	map_id DARK_CAVE_VIOLET_ENTRANCE
+	def_grass_wildmons DARK_CAVE_VIOLET_ENTRANCE
 	db 4 percent, 4 percent, 4 percent ; encounter rates: morn/day/nite
 	; morn
-	db 3, GEODUDE
-	db 3, DUNSPARCE
-	db 2, ZUBAT
-	db 2, GEODUDE
-	db 2, DUNSPARCE
-	db 4, DUNSPARCE
-	db 4, DUNSPARCE
+	wildmon 3, GEODUDE
+	wildmon 3, DUNSPARCE, DUDUNSPARCE_THREE_SEGMENT_FORM
+	wildmon 2, ZUBAT
+	wildmon 2, GEODUDE
+	wildmon 2, DUNSPARCE, DUDUNSPARCE_TWO_SEGMENT_FORM
+	wildmon 4, DUNSPARCE, DUDUNSPARCE_THREE_SEGMENT_FORM
+	wildmon 4, DUNSPARCE, DUDUNSPARCE_TWO_SEGMENT_FORM
 	; day
-	db 3, GEODUDE
-	db 3, DUNSPARCE
-	db 2, ZUBAT
-	db 2, GEODUDE
-	db 2, DUNSPARCE
-	db 4, DUNSPARCE
-	db 4, DUNSPARCE
+	wildmon 3, GEODUDE
+	wildmon 3, DUNSPARCE, DUDUNSPARCE_THREE_SEGMENT_FORM
+	wildmon 2, ZUBAT
+	wildmon 2, GEODUDE
+	wildmon 2, DUNSPARCE, DUDUNSPARCE_TWO_SEGMENT_FORM
+	wildmon 4, DUNSPARCE, DUDUNSPARCE_THREE_SEGMENT_FORM
+	wildmon 4, DUNSPARCE, DUDUNSPARCE_TWO_SEGMENT_FORM
 	; nite
-	db 3, GEODUDE
-	db 3, DUNSPARCE
-	db 2, ZUBAT
-	db 2, GEODUDE
-	db 2, DUNSPARCE
-	db 4, DUNSPARCE
-	db 4, DUNSPARCE
+	wildmon 3, GEODUDE
+	wildmon 3, DUNSPARCE, DUDUNSPARCE_THREE_SEGMENT_FORM
+	wildmon 2, ZUBAT
+	wildmon 2, GEODUDE
+	wildmon 2, DUNSPARCE, DUDUNSPARCE_TWO_SEGMENT_FORM
+	wildmon 4, DUNSPARCE, DUDUNSPARCE_THREE_SEGMENT_FORM
+	wildmon 4, DUNSPARCE, DUDUNSPARCE_TWO_SEGMENT_FORM
+	end_grass_wildmons
 
 ; Yanma swarm
-	map_id ROUTE_35
+	def_grass_wildmons ROUTE_35
 	db 10 percent, 10 percent, 10 percent ; encounter rates: morn/day/nite
 	; morn
-	db 12, NIDORAN_M
-	db 12, NIDORAN_F
-	db 12, YANMA
-	db 14, YANMA
-	db 14, PIDGEY
-	db 10, DITTO
-	db 10, DITTO
+	wildmon 12, NIDORAN_M
+	wildmon 12, NIDORAN_F
+	wildmon 12, YANMA
+	wildmon 14, YANMA
+	wildmon 14, PIDGEY
+	wildmon 10, DITTO
+	wildmon 10, DITTO
 	; day
-	db 12, NIDORAN_M
-	db 12, NIDORAN_F
-	db 12, YANMA
-	db 14, YANMA
-	db 14, PIDGEY
-	db 10, DITTO
-	db 10, DITTO
+	wildmon 12, NIDORAN_M
+	wildmon 12, NIDORAN_F
+	wildmon 12, YANMA
+	wildmon 14, YANMA
+	wildmon 14, PIDGEY
+	wildmon 10, DITTO
+	wildmon 10, DITTO
 	; nite
-	db 12, NIDORAN_M
-	db 12, NIDORAN_F
-	db 12, YANMA
-	db 14, YANMA
-	db 14, HOOTHOOT
-	db 10, DITTO
-	db 10, DITTO
+	wildmon 12, NIDORAN_M
+	wildmon 12, NIDORAN_F
+	wildmon 12, YANMA
+	wildmon 14, YANMA
+	wildmon 14, HOOTHOOT
+	wildmon 10, DITTO
+	wildmon 10, DITTO
+	end_grass_wildmons
 
 	db -1 ; end

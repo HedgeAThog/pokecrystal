@@ -1,62 +1,62 @@
 ArnieAnswerPhoneText:
 	text "Yeah, hello."
-	line "This is @"
+	line "This is "
 	text_ram wStringBuffer3
 	text "."
 
-	para "…Huh, <PLAY_G>? Yo!"
+	para "…Huh, <PLAYER>? Yo!"
 	done
 
 ArnieAnswerPhoneDayText:
 	text "Yeah, hello, you"
-	line "got @"
+	line "got "
 	text_ram wStringBuffer3
 	text "."
 
-	para "…Huh, <PLAY_G>? Yo!"
+	para "…Huh, <PLAYER>? Yo!"
 	done
 
 ArnieAnswerPhoneNiteText:
 	text "Yeah, hello, you"
-	line "got @"
+	line "got "
 	text_ram wStringBuffer3
 	text "."
 
-	para "…Huh, <PLAY_G>? Yo!"
+	para "…Huh, <PLAYER>? Yo!"
 	done
 
 ArnieGreetText:
 	text "Yeah, hello?"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text " calling."
 
 	para "What are you up"
-	line "to, <PLAY_G>?"
+	line "to, <PLAYER>?"
 	done
 
 ArnieGreetDayText:
 	text "Yeah, hello?"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text " calling."
 
 	para "Where are you now,"
-	line "<PLAY_G>?"
+	line "<PLAYER>?"
 	done
 
 ArnieGreetNiteText:
 	text "Yeah, hello?"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text " calling."
 
 	para "Are you awake now,"
-	line "<PLAY_G>?"
+	line "<PLAYER>?"
 	done
 
 ArnieGenericText:
-	text "I bet your #MON"
+	text "I bet your #mon"
 	line "are a lot stronger"
 	cont "than before."
 	done

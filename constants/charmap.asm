@@ -1,441 +1,339 @@
-; $00-$16 are TX_* constants (see macros/scripts/text.asm)
+MACRO ctxtmap
+	DEF x = \2
+	DEF ___huffman_data_{02X:x} EQU %\3
+	DEF ___huffman_length_{02X:x} EQU STRLEN("\3")
+	DEF ___huffman_char_\3 EQUS "\1"
+	charmap \1, x
+ENDM
 
-; Control characters (see home/text.asm)
+; Huffman text compression (see data/text/compressed_text.asm and home/text.asm)
+; tree starts at parent node $00
+DEF ROOT_NODE_ID               EQU $00
+; characters $7f-$eb correspond to leaf nodes $7f-$eb
+DEF FIRST_LEAF_NODE_ID         EQU $7f
+DEF LAST_LEAF_NODE_ID          EQU $ff
+; characters $4d-$5c correspond to leaf nodes $ec-$fb
+DEF FIRST_SHIFTED_LEAF_CHAR_ID EQU $4d
+DEF LAST_SHIFTED_LEAF_CHAR_ID  EQU $5c
+DEF FIRST_SHIFTED_LEAF_NODE_ID EQU $ec
+DEF LAST_SHIFTED_LEAF_NODE_ID  EQU FIRST_SHIFTED_LEAF_NODE_ID + LAST_SHIFTED_LEAF_CHAR_ID - FIRST_SHIFTED_LEAF_CHAR_ID ; $fb
+assert LAST_SHIFTED_LEAF_NODE_ID <= LAST_LEAF_NODE_ID
+assert FIRST_SHIFTED_LEAF_CHAR_ID < LAST_SHIFTED_LEAF_CHAR_ID && LAST_SHIFTED_LEAF_CHAR_ID < FIRST_LEAF_NODE_ID
 
-	charmap "<NULL>",    $00
-	charmap "<PLAY_G>",  $14 ; "<PLAYER>くん" or "<PLAYER>ちゃん"; same as "<PLAYER>" in English
-	charmap "<MOBILE>",  $15
-	charmap "<CR>",      $16
-	charmap "<BSP>",     $1f ; breakable space (usually " ", or "<LF>" on the Town Map)
-	charmap "<LF>",      $22
-	charmap "<POKE>",    $24 ; "<PO><KE>"
-	charmap "<WBR>",     $25 ; word-break opportunity (usually skipped, or "<LF>" on the Town Map)
-	charmap "<RED>",     $38 ; wRedsName
-	charmap "<GREEN>",   $39 ; wGreensName
-	charmap "<ENEMY>",   $3f
-	charmap "<MOM>",     $49 ; wMomsName
-	charmap "<PKMN>",    $4a ; "<PK><MN>"
-	charmap "<_CONT>",   $4b ; implements "<CONT>"
-	charmap "<SCROLL>",  $4c
-	charmap "<NEXT>",    $4e
-	charmap "<LINE>",    $4f
-	charmap "@",         $50 ; string terminator
-	charmap "<PARA>",    $51
-	charmap "<PLAYER>",  $52 ; wPlayerName
-	charmap "<RIVAL>",   $53 ; wRivalName
-	charmap "#",         $54 ; "POKé"
-	charmap "<CONT>",    $55
-	charmap "<……>",      $56 ; "……"
-	charmap "<DONE>",    $57
-	charmap "<PROMPT>",  $58
-	charmap "<TARGET>",  $59
-	charmap "<USER>",    $5a
-	charmap "<PC>",      $5b ; "PC"
-	charmap "<TM>",      $5c ; "TM"
-	charmap "<TRAINER>", $5d ; "TRAINER"
-	charmap "<ROCKET>",  $5e ; "ROCKET"
-	charmap "<DEXEND>",  $5f
+	newcharmap no_ngrams
 
-; Actual characters (from gfx/font/font_extra.png)
+; Control characters
 
-	charmap "<BOLD_A>",  $60 ; unused
-	charmap "<BOLD_B>",  $61 ; unused
-	charmap "<BOLD_C>",  $62 ; unused
-	charmap "<BOLD_D>",  $63 ; unused
-	charmap "<BOLD_E>",  $64 ; unused
-	charmap "<BOLD_F>",  $65 ; unused
-	charmap "<BOLD_G>",  $66 ; unused
-	charmap "<BOLD_H>",  $67 ; unused
-	charmap "<BOLD_I>",  $68 ; unused
-	charmap "<BOLD_V>",  $69
-	charmap "<BOLD_S>",  $6a
-	charmap "<BOLD_L>",  $6b ; unused
-	charmap "<BOLD_M>",  $6c ; unused
-	charmap "<COLON>",   $6d ; colon with tinier dots than ":"
-	charmap "ぃ",         $6e ; hiragana small i, unused
-	charmap "ぅ",         $6f ; hiragana small u, unused
-	charmap "<PO>",      $70
-	charmap "<KE>",      $71
-	charmap "“",         $72 ; opening quote
-	charmap "”",         $73 ; closing quote
-	charmap "·",         $74 ; middle dot, unused
-	charmap "…",         $75 ; ellipsis
-	charmap "ぁ",         $76 ; hiragana small a, unused
-	charmap "ぇ",         $77 ; hiragana small e, unused
-	charmap "ぉ",         $78 ; hiragana small o, unused
+	charmap "<START>",  $00
+	charmap "<RAM>",    $01
+	charmap "<WAIT>",   $02
+	charmap "<ASM>",    $03
+	charmap "<NUM>",    $04
+	charmap "<PAUSE>",  $05
+	charmap "<SOUND>",  $06
+	charmap "<DAY>",    $07
+	charmap "<FAR>",    $08
+	charmap "<PLURAL>", $09
 
-	charmap "┌",         $79
-	charmap "─",         $7a
-	charmap "┐",         $7b
-	charmap "│",         $7c
-	charmap "└",         $7d
-	charmap "┘",         $7e
-	charmap " ",         $7f
+	; n-grams: $0a - $51 (defined below)
 
-; Actual characters (from gfx/font/font_battle_extra.png)
+DEF SPECIALS_START EQU $52
 
-	charmap "<LV>",      $6e
+	ctxtmap "<DONE>",   $52, 101100
+	ctxtmap "@",        $53, 001011010
+	ctxtmap "<PROMPT>", $54, 1101011001
+	ctxtmap "<LNBRK>",  $55, 100001100111
+	ctxtmap "<NEXT>",   $56, 1101011100
+	ctxtmap "<LINE>",   $57, 01011
+	ctxtmap "<CONT>",   $58, 1011100
+	ctxtmap "<PARA>",   $59, 101111
 
-	charmap "<DO>",      $70 ; hiragana small do, unused
-	charmap "◀",         $71
-	charmap "『",         $72 ; Japanese opening quote, unused
-	charmap "<ID>",      $73
-	charmap "№",         $74
+	ctxtmap "<TARGET>", $5a, 001101000110100
+	ctxtmap "<USER>",   $5b, 001101000011001
+	ctxtmap "<ENEMY>",  $5c, 0011010001101011
 
-; Actual characters (from other graphics files)
+	charmap "<CTXT>",   $5d
 
-	; needed for _LoadFontsExtra1 (see engine/gfx/load_font.asm)
-	charmap "■",         $60 ; gfx/font/black.2bpp
-	charmap "▲",         $61 ; gfx/font/up_arrow.png
-	charmap "☎",         $62 ; gfx/font/phone_icon.2bpp
+	charmap "¯",        $5e
 
-	; needed for MagikarpHouseSign (see engine/events/magikarp.asm)
-	charmap "′",         $6e ; gfx/font/feet_inches.png
-	charmap "″",         $6f ; gfx/font/feet_inches.png
+; Battle characters
 
-	; needed for StatsScreen_PlaceShinyIcon and PrintPartyMonPage1
-	charmap "⁂",         $3f ; gfx/stats/stats_tiles.png, tile 14
+DEF BATTLEEXTRA_GFX_START EQU $5f
 
-; Actual characters (from gfx/font/font.png)
+	charmap "<MALE>",   $5f
+	charmap "<FEMALE>", $60
+	charmap "<STAR>",   $61
+	charmap "<BALL>",   $62
 
-	charmap "A",         $80
-	charmap "B",         $81
-	charmap "C",         $82
-	charmap "D",         $83
-	charmap "E",         $84
-	charmap "F",         $85
-	charmap "G",         $86
-	charmap "H",         $87
-	charmap "I",         $88
-	charmap "J",         $89
-	charmap "K",         $8a
-	charmap "L",         $8b
-	charmap "M",         $8c
-	charmap "N",         $8d
-	charmap "O",         $8e
-	charmap "P",         $8f
-	charmap "Q",         $90
-	charmap "R",         $91
-	charmap "S",         $92
-	charmap "T",         $93
-	charmap "U",         $94
-	charmap "V",         $95
-	charmap "W",         $96
-	charmap "X",         $97
-	charmap "Y",         $98
-	charmap "Z",         $99
+	charmap "<HP1>",    $63
+	charmap "<HP2>",    $64
+	charmap "<NOHP>",   $65
+	; HP: $66 - $6c
+	charmap "<FULLHP>", $6d
+	charmap "<HPEND>",  $6e
 
-	charmap "(",         $9a
-	charmap ")",         $9b
-	charmap ":",         $9c
-	charmap ";",         $9d
-	charmap "[",         $9e
-	charmap "]",         $9f
+	charmap "◢",        $6f
+	charmap "—",        $70
+	charmap "◣",        $71
+	charmap "<NONO>",   $72
 
-	charmap "a",         $a0
-	charmap "b",         $a1
-	charmap "c",         $a2
-	charmap "d",         $a3
-	charmap "e",         $a4
-	charmap "f",         $a5
-	charmap "g",         $a6
-	charmap "h",         $a7
-	charmap "i",         $a8
-	charmap "j",         $a9
-	charmap "k",         $aa
-	charmap "l",         $ab
-	charmap "m",         $ac
-	charmap "n",         $ad
-	charmap "o",         $ae
-	charmap "p",         $af
-	charmap "q",         $b0
-	charmap "r",         $b1
-	charmap "s",         $b2
-	charmap "t",         $b3
-	charmap "u",         $b4
-	charmap "v",         $b5
-	charmap "w",         $b6
-	charmap "x",         $b7
-	charmap "y",         $b8
-	charmap "z",         $b9
+	charmap "<XP1>",    $73
+	charmap "<XP2>",    $74
+	charmap "<NOXP>",   $75
+	; EXP: $76 - $7c
+	charmap "<FULLXP>", $7d
+	charmap "<XPEND>",  $7e
 
-	charmap "Ä",         $c0
-	charmap "Ö",         $c1
-	charmap "Ü",         $c2
-	charmap "ä",         $c3
-	charmap "ö",         $c4
-	charmap "ü",         $c5
+; Actual characters
 
-	charmap "'d",        $d0
-	charmap "'l",        $d1
-	charmap "'m",        $d2
-	charmap "'r",        $d3
-	charmap "'s",        $d4
-	charmap "'t",        $d5
-	charmap "'v",        $d6
+DEF FIRST_REGULAR_TEXT_CHAR EQU $7f
 
-	charmap "←",         $df
-	charmap "'",         $e0
-	charmap "<PK>",      $e1
-	charmap "<MN>",      $e2
-	charmap "-",         $e3
+; map tiles:
 
-	charmap "?",         $e6
-	charmap "!",         $e7
-	charmap ".",         $e8
-	charmap "&",         $e9
+	ctxtmap " ",        $7f, 011
 
-	charmap "é",         $ea
-	charmap "→",         $eb
-	charmap "▷",         $ec
-	charmap "▶",         $ed
-	charmap "▼",         $ee
-	charmap "♂",         $ef
-	charmap "¥",         $f0 ; Poké Dollar sign
-	charmap "×",         $f1
-	charmap "<DOT>",     $f2 ; decimal point; same as "." in English
-	charmap "/",         $f3
-	charmap ",",         $f4
-	charmap "♀",         $f5
+; typeface font:
 
-	charmap "0",         $f6
-	charmap "1",         $f7
-	charmap "2",         $f8
-	charmap "3",         $f9
-	charmap "4",         $fa
-	charmap "5",         $fb
-	charmap "6",         $fc
-	charmap "7",         $fd
-	charmap "8",         $fe
-	charmap "9",         $ff
+	ctxtmap "A",        $80, 00101100
+	ctxtmap "B",        $81, 101110111
+	ctxtmap "C",        $82, 100001111
+	ctxtmap "D",        $83, 1011101100
+	ctxtmap "E",        $84, 0101000111
+	ctxtmap "F",        $85, 1000011000
+	ctxtmap "G",        $86, 1101011110
+	ctxtmap "H",        $87, 010100010
+	ctxtmap "I",        $88, 1100100
+	ctxtmap "J",        $89, 10000110010
+	ctxtmap "K",        $8a, 10111011011
+	ctxtmap "L",        $8b, 1101011101
+	ctxtmap "M",        $8c, 001011011
+	ctxtmap "N",        $8d, 11010100100
+	ctxtmap "O",        $8e, 1101010011
+	ctxtmap "P",        $8f, 001011100
+	ctxtmap "Q",        $90, 110101111100110
+	ctxtmap "R",        $91, 1000011011
+	ctxtmap "S",        $92, 110101101
+	ctxtmap "T",        $93, 00110110
+	ctxtmap "U",        $94, 100001110111
+	ctxtmap "V",        $95, 001101000111
+	ctxtmap "W",        $96, 001101110
+	ctxtmap "X",        $97, 0011010000110111
+	ctxtmap "Y",        $98, 001101001
+	ctxtmap "Z",        $99, 11010111110111
 
-; Japanese control characters (see home/text.asm)
+	ctxtmap "(",        $9a, 001101000000
+	ctxtmap ")",        $9b, 001101000010
+	ctxtmap ".",        $9c, 100000
+	ctxtmap ",",        $9d, 0101001
+	ctxtmap "?",        $9e, 11010101
+	ctxtmap "!",        $9f, 1111011
 
-	charmap "<JP_18>",   $18 ; "ノ゛" (ungrammatical)
-	charmap "<NI>",      $1d ; "に　"
-	charmap "<TTE>",     $1e ; "って"
-	charmap "<WO>",      $1f ; "を　"
-	charmap "<TA!>",     $22 ; "た！"
-	charmap "<KOUGEKI>", $23 ; "こうげき"
-	charmap "<WA>",      $24 ; "は　"
-	charmap "<NO>",      $25 ; "の　"
-	charmap "<ROUTE>",   $35 ; "ばん　どうろ"
-	charmap "<WATASHI>", $36 ; "わたし"
-	charmap "<KOKO_WA>", $37 ; "ここは"
-	charmap "<GA>",      $4a ; "が　"
+	ctxtmap "a",        $a0, 0100
+	ctxtmap "b",        $a1, 1111010
+	ctxtmap "c",        $a2, 101101
+	ctxtmap "d",        $a3, 00100
+	ctxtmap "e",        $a4, 000
+	ctxtmap "f",        $a5, 001100
+	ctxtmap "g",        $a6, 110100
+	ctxtmap "h",        $a7, 11000
+	ctxtmap "i",        $a8, 11101
+	ctxtmap "j",        $a9, 0101000110
+	ctxtmap "k",        $aa, 1100101
+	ctxtmap "l",        $ab, 10001
+	ctxtmap "m",        $ac, 110011
+	ctxtmap "n",        $ad, 11111
+	ctxtmap "o",        $ae, 1001
+	ctxtmap "p",        $af, 001010
+	ctxtmap "q",        $b0, 00110100010
+	ctxtmap "r",        $b1, 11100
+	ctxtmap "s",        $b2, 11011
+	ctxtmap "t",        $b3, 1010
+	ctxtmap "u",        $b4, 00111
+	ctxtmap "v",        $b5, 1000010
+	ctxtmap "w",        $b6, 010101
+	ctxtmap "x",        $b7, 1101011000
+	ctxtmap "y",        $b8, 111100
+	ctxtmap "z",        $b9, 11010100101
 
-; Japanese kana, for those bits of text that were not translated to English
+	ctxtmap "“",        $ba, 11010111110101
+	ctxtmap "”",        $bb, 0011010001100
+	ctxtmap "-",        $bc, 00110101
+	ctxtmap ":",        $bd, 001011101
+	ctxtmap "♂",        $be, 001101000011011000
+	ctxtmap "♀",        $bf, 1000011101101000001
 
-	charmap "ガ", $05
-	charmap "ギ", $06
-	charmap "グ", $07
-	charmap "ゲ", $08
-	charmap "ゴ", $09
-	charmap "ザ", $0a
-	charmap "ジ", $0b
-	charmap "ズ", $0c
-	charmap "ゼ", $0d
-	charmap "ゾ", $0e
-	charmap "ダ", $0f
-	charmap "ヂ", $10
-	charmap "ヅ", $11
-	charmap "デ", $12
-	charmap "ド", $13
+	ctxtmap "'",        $c0, 0011010000111
+	ctxtmap "'d",       $c1, 100001100110
+	ctxtmap "'l",       $c2, 1000011010
+	ctxtmap "'m",       $c3, 1000011100
+	ctxtmap "'r",       $c4, 0011011111
+	ctxtmap "'s",       $c5, 00101111
+	ctxtmap "'t",       $c6, 110101000
+	ctxtmap "'v",       $c7, 10111011010
 
-	charmap "バ", $19
-	charmap "ビ", $1a
-	charmap "ブ", $1b
-	charmap "ボ", $1c
+	ctxtmap "é",        $c8, 001101000110110
+	ctxtmap "É",        $c9, 1000011101101000000
+	ctxtmap "á",        $ca, 00110100001101101
+	ctxtmap "ê",        $cb, 0011010001101010111
+	ctxtmap "í",        $cc, 100001110110100010
+	ctxtmap "ó",        $cd, 110101111100111000
 
-	charmap "が", $26
-	charmap "ぎ", $27
-	charmap "ぐ", $28
-	charmap "げ", $29
-	charmap "ご", $2a
-	charmap "ざ", $2b
-	charmap "じ", $2c
-	charmap "ず", $2d
-	charmap "ぜ", $2e
-	charmap "ぞ", $2f
-	charmap "だ", $30
-	charmap "ぢ", $31
-	charmap "づ", $32
-	charmap "で", $33
-	charmap "ど", $34
+	ctxtmap "¿",        $ce, 100001110110100011
+	ctxtmap "¡",        $cf, 0011010001101010110
 
-	charmap "ば", $3a
-	charmap "び", $3b
-	charmap "ぶ", $3c
-	charmap "べ", $3d
-	charmap "ぼ", $3e
+	ctxtmap "<PO>",     $d0, 0011010001101010101
+	ctxtmap "<KE>",     $d1, 0011010001101010100
+	ctxtmap "<PK>",     $d2, 1000011101101111
+	ctxtmap "<MN>",     $d3, 1000011101101110
 
-	charmap "パ", $40
-	charmap "ピ", $41
-	charmap "プ", $42
-	charmap "ポ", $43
-	charmap "ぱ", $44
-	charmap "ぴ", $45
-	charmap "ぷ", $46
-	charmap "ぺ", $47
-	charmap "ぽ", $48
+	ctxtmap "<ID>",     $d4, 0011010000110110011
+	ctxtmap "№",        $d5, 100001110110100001
+	ctxtmap "<LV>",     $d6, 11010111110011101
+	ctxtmap "<BOLDP>",  $d7, 00110100011010100
 
-	charmap "「", $70
-	charmap "」", $71
-	charmap "』", $73
-	charmap "・", $74
-	charmap "⋯", $75
+	ctxtmap "&",        $d8, 1000011101101010
 
-	charmap "　", $7f
+	ctxtmap "♪",        $d9, 100001110110110
+	ctxtmap "♥",        $da, 1101011111001111
 
-	charmap "ア", $80
-	charmap "イ", $81
-	charmap "ウ", $82
-	charmap "エ", $83
-	charmap "オ", $84
-	charmap "カ", $85
-	charmap "キ", $86
-	charmap "ク", $87
-	charmap "ケ", $88
-	charmap "コ", $89
-	charmap "サ", $8a
-	charmap "シ", $8b
-	charmap "ス", $8c
-	charmap "セ", $8d
-	charmap "ソ", $8e
-	charmap "タ", $8f
-	charmap "チ", $90
-	charmap "ツ", $91
-	charmap "テ", $92
-	charmap "ト", $93
-	charmap "ナ", $94
-	charmap "ニ", $95
-	charmap "ヌ", $96
-	charmap "ネ", $97
-	charmap "ノ", $98
-	charmap "ハ", $99
-	charmap "ヒ", $9a
-	charmap "フ", $9b
-	charmap "ホ", $9c
-	charmap "マ", $9d
-	charmap "ミ", $9e
-	charmap "ム", $9f
-	charmap "メ", $a0
-	charmap "モ", $a1
-	charmap "ヤ", $a2
-	charmap "ユ", $a3
-	charmap "ヨ", $a4
-	charmap "ラ", $a5
-	charmap "ル", $a6
-	charmap "レ", $a7
-	charmap "ロ", $a8
-	charmap "ワ", $a9
-	charmap "ヲ", $aa
-	charmap "ン", $ab
-	charmap "ッ", $ac
-	charmap "ャ", $ad
-	charmap "ュ", $ae
-	charmap "ョ", $af
-	charmap "ィ", $b0
+	ctxtmap "×",        $db, 1000011101101011
+	ctxtmap "/",        $dc, 001101000110111
+	ctxtmap "%",        $dd, 110101111100111001
 
-	charmap "あ", $b1
-	charmap "い", $b2
-	charmap "う", $b3
-	charmap "え", $b4
-	charmap "お", $b5
-	charmap "か", $b6
-	charmap "き", $b7
-	charmap "く", $b8
-	charmap "け", $b9
-	charmap "こ", $ba
-	charmap "さ", $bb
-	charmap "し", $bc
-	charmap "す", $bd
-	charmap "せ", $be
-	charmap "そ", $bf
-	charmap "た", $c0
-	charmap "ち", $c1
-	charmap "つ", $c2
-	charmap "て", $c3
-	charmap "と", $c4
-	charmap "な", $c5
-	charmap "に", $c6
-	charmap "ぬ", $c7
-	charmap "ね", $c8
-	charmap "の", $c9
-	charmap "は", $ca
-	charmap "ひ", $cb
-	charmap "ふ", $cc
-	charmap "へ", $cd
-	charmap "ほ", $ce
-	charmap "ま", $cf
-	charmap "み", $d0
-	charmap "む", $d1
-	charmap "め", $d2
-	charmap "も", $d3
-	charmap "や", $d4
-	charmap "ゆ", $d5
-	charmap "よ", $d6
-	charmap "ら", $d7
-	charmap "り", $d8
-	charmap "る", $d9
-	charmap "れ", $da
-	charmap "ろ", $db
-	charmap "わ", $dc
-	charmap "を", $dd
-	charmap "ん", $de
-	charmap "っ", $df
-	charmap "ゃ", $e0
-	charmap "ゅ", $e1
-	charmap "ょ", $e2
+	ctxtmap "+",        $de, 0011010000110100
+	ctxtmap "<SHARP>",  $df, 0011010000110110010
 
-	charmap "ー", $e3
-	charmap "ﾟ", $e4
-	charmap "ﾞ", $e5
+	ctxtmap "0",        $e0, 110101111110
+	ctxtmap "1",        $e1, 001101000001
+	ctxtmap "2",        $e2, 1101011111111
+	ctxtmap "3",        $e3, 1101011111110
+	ctxtmap "4",        $e4, 1000011101100
+	ctxtmap "5",        $e5, 1101011111000
+	ctxtmap "6",        $e6, 11010111110010
+	ctxtmap "7",        $e7, 110101111101000
+	ctxtmap "8",        $e8, 001101000011000
+	ctxtmap "9",        $e9, 110101111101001
 
-	charmap "？", $e6
-	charmap "！", $e7
-	charmap "。", $e8
+	ctxtmap "¥",        $ea, 11010111110110
 
-	charmap "ァ", $e9
-	charmap "ゥ", $ea
-	charmap "ェ", $eb
+	ctxtmap "…",        $eb, 10111010
 
-	charmap "円", $f0
+	charmap "★",        $ec
 
-	charmap "．", $f2
-	charmap "／", $f3
+	charmap "▼",        $ed
+	charmap "▲",        $ee
+	charmap "◀",        $ef
+	charmap "▶",        $f0
+	charmap "▷",        $f1
 
-	charmap "ォ", $f4
+; common font:
+	charmap "↑",        $f2
+	charmap "↓",        $f3
+	charmap "′",        $f4
+	charmap "″",        $f5
+	charmap "<PHONE>",  $f6
+	charmap "<BLACK>",  $f7
 
-	charmap "０", $f6
-	charmap "１", $f7
-	charmap "２", $f8
-	charmap "３", $f9
-	charmap "４", $fa
-	charmap "５", $fb
-	charmap "６", $fc
-	charmap "７", $fd
-	charmap "８", $fe
-	charmap "９", $ff
+; frame:
+	charmap "┌",        $f8
+	charmap "─",        $f9
+	charmap "┐",        $fa
+	charmap "│",        $fb
+	charmap "┃",        $fc
+	charmap "└",        $fd
+	charmap "━",        $fe
+	charmap "┘",        $ff
 
-; Unown charmap, for Unown words (see gfx/tilesets/ruins_of_alph.png)
-pushc
-	newcharmap unown
-	DEF PRINTABLE_UNOWN EQUS "ABCDEFGHIJKLMNOPQRSTUVWXYZ-"
-	for i, STRLEN(#PRINTABLE_UNOWN)
-		charmap STRSLICE(#PRINTABLE_UNOWN, i, i + 1), $10 * (i / 8) + 2 * i
-	endr
-	charmap "@", $ff ; end
-popc
 
-; ASCII charmap, for mobile functions
-pushc
-	newcharmap ascii
-	DEF PRINTABLE_ASCII EQUS " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz\{|}~"
-	for i, STRLEN(#PRINTABLE_ASCII)
-		charmap STRSLICE(#PRINTABLE_ASCII, i, i + 1), i + $20
-	endr
-	charmap "\t", $09
-	charmap "\n", $0a
-	charmap "\r", $0d
-popc
+DEF NGRAMS_START EQU $0a
+
+	newcharmap compressing, no_ngrams
+
+	ctxtmap "#",        $4d, 10000111010
+	ctxtmap "#mon",     $4e, 01010000
+DEF NGRAMS_VAR_START EQU $4f
+	; these below are implemented as n-grams whose string is stored in WRAM
+	ctxtmap "<PLAYER>", $4f, 0011011110
+	ctxtmap "<RIVAL>",  $50, 1000011101101001
+	ctxtmap "<TRENDY>", $51, 0011010000110101
+
+	newcharmap default, compressing
+
+	charmap "ou",       $0a
+	charmap "th",       $0b
+	charmap "in",       $0c
+	charmap "t ",       $0d
+	charmap "er",       $0e
+	charmap "s ",       $0f
+	charmap "an",       $10
+	charmap "on",       $11
+	charmap "to ",      $12
+	charmap "d ",       $13
+	charmap "ea",       $14
+	charmap "y ",       $15
+	charmap "en",       $16
+	charmap "or",       $17
+	charmap "at",       $18
+	charmap ", ",       $19
+	charmap "ll",       $1a
+	charmap "I ",       $1b
+	charmap "ar",       $1c
+	charmap "it",       $1d
+	charmap "st",       $1e
+	charmap "ow",       $1f
+	charmap "ha",       $20
+	charmap "a ",       $21
+	charmap "om",       $22
+	charmap "le",       $23
+	charmap "of ",      $24
+	charmap "se",       $25
+	charmap "re",       $26
+	charmap "to",       $27
+	charmap "'s ",      $28
+	charmap "Th",       $29
+	charmap "is",       $2a
+	charmap "ra",       $2b
+	charmap "ch",       $2c
+	charmap "I'm ",     $2d
+	charmap "o ",       $2e
+	charmap "gh",       $2f
+	charmap "es",       $30
+	charmap "wa",       $31
+	charmap "e.",       $32
+	charmap "oo",       $33
+	charmap "ck",       $34
+	charmap "r ",       $35
+	charmap "l ",       $36
+	charmap "be",       $37
+	charmap "li",       $38
+	charmap "ed",       $39
+	charmap "us",       $3a
+	charmap "ti",       $3b
+	charmap " you",     $3c
+	charmap "ing ",     $3d
+	charmap "the ",     $3e
+	charmap "you",      $3f
+	charmap "ing",      $40
+	charmap "is ",      $41
+	charmap "the",      $42
+	charmap "You ",     $43
+	charmap "er ",      $44
+	charmap "with",     $45
+	charmap "batt",     $46
+	charmap "for",      $47
+	charmap "ve ",      $48
+	charmap "ed ",      $49
+	charmap "It's ",    $4a
+	charmap "that ",    $4b
+	charmap "e ",       $4c
+
+DEF NGRAMS_END EQU $51
+
+	setcharmap default
+
+
+MACRO rawchar
+	setcharmap no_ngrams
+	db \#
+	setcharmap default
+ENDM

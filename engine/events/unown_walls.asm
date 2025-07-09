@@ -1,23 +1,25 @@
-HoOhChamber:
-	ld hl, wPartySpecies
-	ld a, [hl]
-	cp HO_OH ; is Ho-oh the first Pokémon in the party?
-	jr nz, .done ; if not, we're done
-	call GetMapAttributesPointer ; pointless?
-	ld de, EVENT_WALL_OPENED_IN_HO_OH_CHAMBER
-	ld b, SET_FLAG
-	call EventFlagAction
-.done
+SpecialHoOhChamber:
+	ld a, [wPartyMon1Species]
+	ld [wCurPartySpecies], a
+	ld [wCurSpecies], a
+	ld a, [wPartyMon1Form]
+	and SPECIESFORM_MASK
+	ld [wCurForm], a
+	call GetBaseData
+	ld a, [wBaseType1]
+	cp FAIRY
+	jr z, .open
+	ld a, [wBaseType2]
+	cp FAIRY
+	ret nz
+
+.open
+	eventflagset EVENT_WALL_OPENED_IN_HO_OH_CHAMBER
 	ret
 
-OmanyteChamber:
-	call GetMapAttributesPointer ; pointless?
-	ld de, EVENT_WALL_OPENED_IN_OMANYTE_CHAMBER
-	ld b, CHECK_FLAG
-	call EventFlagAction
-	ld a, c
-	and a
-	jr nz, .nope
+SpecialOmanyteChamber:
+	eventflagcheck EVENT_WALL_OPENED_IN_OMANYTE_CHAMBER
+	ret nz
 
 	ld a, WATER_STONE
 	ld [wCurItem], a
@@ -30,83 +32,57 @@ OmanyteChamber:
 	inc b
 .loop
 	dec b
-	jr z, .nope
+	ret z
 	ld a, b
 	dec a
 	ld [wCurPartyMon], a
 	push bc
 	ld a, MON_ITEM
-	call GetPartyParamLocation
+	call GetPartyParamLocationAndValue
 	pop bc
-	ld a, [hl]
 	cp WATER_STONE
 	jr nz, .loop
 
 .open
-	call GetMapAttributesPointer ; pointless?
-	ld de, EVENT_WALL_OPENED_IN_OMANYTE_CHAMBER
-	ld b, SET_FLAG
-	call EventFlagAction
-
-.nope
+	eventflagset EVENT_WALL_OPENED_IN_OMANYTE_CHAMBER
 	ret
 
 SpecialAerodactylChamber:
-	push de
-	push bc
-
 	call GetMapAttributesPointer
-	ld a, h
+	ld a, b
 	cp HIGH(RuinsOfAlphAerodactylChamber_MapAttributes)
 	jr nz, .nope
-	ld a, l
+	ld a, c
 	cp LOW(RuinsOfAlphAerodactylChamber_MapAttributes)
 	jr nz, .nope
 
-	ld de, EVENT_WALL_OPENED_IN_AERODACTYL_CHAMBER
-	ld b, SET_FLAG
-	call EventFlagAction
-
+	eventflagset EVENT_WALL_OPENED_IN_AERODACTYL_CHAMBER
 	scf
-	jr .done
+	ret
 
 .nope
 	and a
-
-.done
-	pop bc
-	pop de
 	ret
 
 SpecialKabutoChamber:
-	push hl
-	push de
-
 	call GetMapAttributesPointer
-	ld a, h
+	ld a, b
 	cp HIGH(RuinsOfAlphKabutoChamber_MapAttributes)
-	jr nz, .done
-	ld a, l
+	ret nz
+	ld a, c
 	cp LOW(RuinsOfAlphKabutoChamber_MapAttributes)
-	jr nz, .done
+	ret nz
 
-	ld de, EVENT_WALL_OPENED_IN_KABUTO_CHAMBER
-	ld b, SET_FLAG
-	call EventFlagAction
-
-.done
-	pop de
-	pop hl
+	eventflagset EVENT_WALL_OPENED_IN_KABUTO_CHAMBER
 	ret
 
-DisplayUnownWords:
-	ld a, [wScriptVar]
+Special_DisplayUnownWords:
+	ldh a, [hScriptVar]
 	ld hl, MenuHeaders_UnownWalls
 	and a
 	jr z, .load
 
-	ld d, 0
-	ld e, UNOWN_WALL_MENU_HEADER_SIZE
+	lb de, $0, $5
 .loop
 	add hl, de
 	dec a
@@ -121,11 +97,10 @@ DisplayUnownWords:
 	call ApplyTilemap
 	call MenuBoxCoord2Tile
 	inc hl
-	ld d, 0
-	ld e, SCREEN_WIDTH
+	ld de, $14
 	add hl, de
 	add hl, de
-	ld a, [wScriptVar]
+	ldh a, [hScriptVar]
 	ld c, a
 	ld de, UnownWalls
 	and a
@@ -133,58 +108,49 @@ DisplayUnownWords:
 .loop2
 	ld a, [de]
 	inc de
-	cp -1
+	cp $ff
 	jr nz, .loop2
 	dec c
 	jr nz, .loop2
+
 .copy
-	call _DisplayUnownWords_CopyWord
+	call .CopyWord
 	ld bc, wAttrmap - wTilemap
 	add hl, bc
-	call _DisplayUnownWords_FillAttr
-	call WaitBGMap2
+	call .FillAttr
+	call ApplyAttrAndTilemapInVBlank
 	call JoyWaitAorB
 	call PlayClickSFX
-	call CloseWindow
-	ret
+	jmp CloseWindow
 
-pushc unown
-
-INCLUDE "data/events/unown_walls.asm"
-
-_DisplayUnownWords_FillAttr:
+.FillAttr:
 	ld a, [de]
-	cp "@"
+	cp $ff
 	ret z
-	cp "Y"
 	ld a, OAM_BANK1 | PAL_BG_BROWN
-	jr c, .got_pal
-	ld a, PAL_BG_BROWN
-.got_pal
 	call .PlaceSquare
 	inc hl
 	inc hl
 	inc de
-	jr _DisplayUnownWords_FillAttr
+	jr .FillAttr
 
 .PlaceSquare:
 	push hl
 	ld [hli], a
 	ld [hld], a
-	ld b, 0
-	ld c, SCREEN_WIDTH
+	ld bc, SCREEN_WIDTH
 	add hl, bc
 	ld [hli], a
 	ld [hl], a
 	pop hl
 	ret
 
-_DisplayUnownWords_CopyWord:
+.CopyWord:
 	push hl
 	push de
 .word_loop
 	ld a, [de]
-	cp "@"
+	cp $ff
 	jr z, .word_done
 	ld c, a
 	call .ConvertChar
@@ -201,18 +167,11 @@ _DisplayUnownWords_CopyWord:
 .ConvertChar:
 	push hl
 	ld a, c
-	cp "Y"
-	jr z, .YChar
-	cp "Z"
-	jr z, .ZChar
-	cp "-"
-	jr z, .DashChar
 	ld [hli], a
 	inc a
 	ld [hld], a
 	dec a
-	ld b, 0
-	ld c, SCREEN_WIDTH
+	ld bc, SCREEN_WIDTH
 	add hl, bc
 	ld c, $10
 	add c
@@ -222,40 +181,4 @@ _DisplayUnownWords_CopyWord:
 	pop hl
 	ret
 
-.YChar:
-	ld [hl], $5b
-	inc hl
-	ld [hl], $5c
-	ld bc, SCREEN_WIDTH - 1
-	add hl, bc
-	ld [hl], $4d
-	inc hl
-	ld [hl], $5d
-	pop hl
-	ret
-
-.ZChar:
-	ld [hl], $4e
-	inc hl
-	ld [hl], $4f
-	ld bc, SCREEN_WIDTH - 1
-	add hl, bc
-	ld [hl], $5e
-	inc hl
-	ld [hl], $5f
-	pop hl
-	ret
-
-.DashChar:
-	ld [hl], $2
-	inc hl
-	ld [hl], $3
-	ld bc, SCREEN_WIDTH - 1
-	add hl, bc
-	ld [hl], $3
-	inc hl
-	ld [hl], $2
-	pop hl
-	ret
-
-popc
+INCLUDE "data/events/unown_walls.asm"

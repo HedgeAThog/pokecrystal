@@ -1,21 +1,23 @@
-	db DEWGONG ; 087
-
-	db  90,  70,  80,  70,  70,  95
-	;   hp  atk  def  spd  sat  sdf
+if DEF(FAITHFUL)
+	db  90,  70,  80,  70,  70,  95 ; 475 BST
+	;   hp  atk  def  spe  sat  sdf
+else
+	db  90,  70,  80,  70,  80,  95 ; 485 BST
+	;   hp  atk  def  spe  sat  sdf
+endc
 
 	db WATER, ICE ; type
 	db 75 ; catch rate
 	db 176 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_F50 ; gender ratio
-	db 100 ; unknown 1
-	db 20 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/dewgong/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db RAWST_BERRY, NEVERMELTICE ; held items
+	dn GENDER_F50, HATCH_MEDIUM_FAST ; gender ratio, step cycles to hatch
+
+	abilities_for DEWGONG, THICK_FAT, HYDRATION, ICE_BODY
 	db GROWTH_MEDIUM_FAST ; growth rate
 	dn EGG_WATER_1, EGG_GROUND ; egg groups
 
+	ev_yield 2 SDf
+
 	; tm/hm learnset
-	tmhm HEADBUTT, CURSE, TOXIC, HIDDEN_POWER, SNORE, BLIZZARD, HYPER_BEAM, ICY_WIND, PROTECT, RAIN_DANCE, ENDURE, FRUSTRATION, RETURN, DOUBLE_TEAM, SWAGGER, SLEEP_TALK, REST, ATTRACT, SURF, WHIRLPOOL, WATERFALL, ICE_BEAM
+	tmhm CURSE, TOXIC, HAIL, HIDDEN_POWER, ICE_BEAM, BLIZZARD, HYPER_BEAM, PROTECT, RAIN_DANCE, SAFEGUARD, IRON_TAIL, RETURN, DOUBLE_TEAM, SUBSTITUTE, FACADE, REST, ATTRACT, THIEF, WATER_PULSE, AVALANCHE, GIGA_IMPACT, SURF, WHIRLPOOL, WATERFALL, AQUA_TAIL, BODY_SLAM, DOUBLE_EDGE, ENDURE, HEADBUTT, ICY_WIND, PAY_DAY, SLEEP_TALK, SWAGGER
 	; end

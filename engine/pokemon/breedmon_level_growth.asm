@@ -1,9 +1,9 @@
 GetBreedMon1LevelGrowth:
 	ld hl, wBreedMon1
 	ld de, wTempMon
-	ld bc, BOXMON_STRUCT_LENGTH
-	call CopyBytes
-	callfar CalcLevel
+	ld bc, BREEDMON_STRUCT_LENGTH
+	rst CopyBytes
+	farcall CalcLevel
 	ld a, [wBreedMon1Level]
 	ld b, a
 	ld a, d
@@ -15,9 +15,9 @@ GetBreedMon1LevelGrowth:
 GetBreedMon2LevelGrowth:
 	ld hl, wBreedMon2
 	ld de, wTempMon
-	ld bc, BOXMON_STRUCT_LENGTH
-	call CopyBytes
-	callfar CalcLevel
+	ld bc, BREEDMON_STRUCT_LENGTH
+	rst CopyBytes
+	farcall CalcLevel
 	ld a, [wBreedMon2Level]
 	ld b, a
 	ld a, d

@@ -8,25 +8,25 @@ _MemoryGame:
 
 .LoadGFXAndPals:
 	call DisableLCD
-	ld b, SCGB_DIPLOMA
-	call GetSGBLayout
-	callfar ClearSpriteAnims
-	ld hl, MemoryGameLZ
+	ld a, CGB_PLAIN
+	call GetCGBLayout
+	call ClearSpriteAnims
+	ld hl, MemoryGameGFX
 	ld de, vTiles2 tile $00
 	call Decompress
-	ld hl, MemoryGameGFX
+	ld hl, MissingMemoryGameGFX
 	ld de, vTiles0 tile $00
 	ld bc, 4 tiles
-	ld a, BANK(MemoryGameGFX)
+	ld a, BANK(MissingMemoryGameGFX)
 	call FarCopyBytes
-	ld a, SPRITE_ANIM_DICT_ARROW_CURSOR
-	ld hl, wSpriteAnimDict
+	ld a, $8
+	ld hl, wc300
 	ld [hli], a
-	ld [hl], $00
+	ld [hl], $0
 	hlcoord 0, 0
 	ld bc, SCREEN_AREA
 	xor a
-	call ByteFill
+	rst ByteFill
 	xor a
 	ldh [hSCY], a
 	ldh [hSCX], a
@@ -34,20 +34,20 @@ _MemoryGame:
 	ld [wJumptableIndex], a
 	ld a, $1
 	ldh [hBGMapMode], a
-	ld a, LCDC_DEFAULT
+	ld a, rLCDC_DEFAULT
 	ldh [rLCDC], a
 	ld a, $e4
 	call DmgToCgbBGPals
 	ld a, $e0
-	call DmgToCgbObjPal0
-	ret
+	jmp DmgToCgbObjPal0
 
 .JumptableLoop:
 	ld a, [wJumptableIndex]
-	bit JUMPTABLE_EXIT_F, a
+	bit 7, a
 	jr nz, .quit
-	call .ExecuteJumptable
-	callfar PlaySpriteAnimations
+	ld hl, .Jumptable
+	call JumpTable
+	farcall PlaySpriteAnimations
 	call DelayFrame
 	and a
 	ret
@@ -55,9 +55,6 @@ _MemoryGame:
 .quit
 	scf
 	ret
-
-.ExecuteJumptable:
-	jumptable .Jumptable, wJumptableIndex
 
 .Jumptable:
 	dw .RestartGame
@@ -77,10 +74,10 @@ _MemoryGame:
 	ret
 
 .ResetBoard:
-	call UnusedCursor_InterpretJoypad_AnimateCursor
+	call ret_e00ed
 	jr nc, .proceed
 	ld hl, wJumptableIndex
-	set JUMPTABLE_EXIT_F, [hl]
+	set 7, [hl]
 	ret
 
 .proceed
@@ -104,12 +101,11 @@ endr
 	call MemoryGame_Card2Coord
 	xor a
 	ld [wMemoryGameLastCardPicked], a
-	call MemoryGame_PlaceCard
-	ret
+	jmp MemoryGame_PlaceCard
 
 .spawn_object
 	depixel 6, 3, 4, 4
-	ld a, SPRITE_ANIM_OBJ_MEMORY_GAME_CURSOR
+	ld a, SPRITE_ANIM_INDEX_MEMORY_GAME
 	call InitSpriteAnimStruct
 	ld a, 5
 	ld [wMemoryGameNumberTriesRemaining], a
@@ -216,7 +212,7 @@ endr
 	pop af
 	push hl
 	ld e, a
-	ld d, 0
+	ld d, $0
 	ld hl, wMemoryGameCards
 	add hl, de
 	ld a, [hl]
@@ -232,10 +228,10 @@ endr
 	ld hl, wJumptableIndex
 	inc [hl]
 .AskPlayAgain:
-	call UnusedCursor_InterpretJoypad_AnimateCursor
+	call ret_e00ed
 	jr nc, .restart
 	ld hl, wJumptableIndex
-	set JUMPTABLE_EXIT_F, [hl]
+	set 7, [hl]
 	ret
 
 .restart
@@ -259,7 +255,7 @@ MemoryGame_CheckMatch:
 
 	ld a, [wMemoryGameCard1Location]
 	ld e, a
-	ld d, 0
+	ld d, $0
 	ld hl, wMemoryGameCards
 	add hl, de
 	ld [hl], -1
@@ -289,8 +285,7 @@ MemoryGame_CheckMatch:
 	add hl, de
 	call MemoryGame_PlaceCard
 	ld hl, .VictoryText
-	call PrintText
-	ret
+	jmp PrintText
 
 .no_match
 	xor a
@@ -304,27 +299,28 @@ MemoryGame_CheckMatch:
 	call MemoryGame_Card2Coord
 	call MemoryGame_PlaceCard
 
-	ld hl, MemoryGameDarnText
-	call PrintText
-	ret
+	ld hl, MemoryGameText_Darn
+	jmp PrintText
 
 .VictoryText:
 	text_asm
 	push bc
 	hlcoord 2, 13
 	call MemoryGame_PlaceCard
-	ld hl, MemoryGameYeahText
+	ld hl, MemoryGameText_Yeah
 	pop bc
 	inc bc
 	inc bc
 	inc bc
 	ret
 
-MemoryGameYeahText:
+MemoryGameText_Yeah:
+	; , yeah!
 	text_far _MemoryGameYeahText
 	text_end
 
-MemoryGameDarnText:
+MemoryGameText_Darn:
+	; Darn…
 	text_far _MemoryGameDarnText
 	text_end
 
@@ -332,7 +328,7 @@ MemoryGame_InitBoard:
 	ld hl, wMemoryGameCards
 	ld bc, wMemoryGameCardsEnd - wMemoryGameCards
 	xor a
-	call ByteFill
+	rst ByteFill
 	call MemoryGame_GetDistributionOfTiles
 
 	ld c, 2
@@ -417,8 +413,8 @@ MemoryGame_GetDistributionOfTiles:
 
 MemoryGame_PlaceCard:
 	ld a, [wMemoryGameLastCardPicked]
-	sla a
-	sla a
+	add a
+	add a
 	add 4
 	ld [hli], a
 	inc a
@@ -430,8 +426,7 @@ MemoryGame_PlaceCard:
 	inc a
 	ld [hl], a
 	ld c, 3
-	call DelayFrames
-	ret
+	jmp DelayFrames
 
 MemoryGame_DeleteCard:
 	ld a, $1
@@ -442,30 +437,26 @@ MemoryGame_DeleteCard:
 	ld [hli], a
 	ld [hl], a
 	ld c, 3
-	call DelayFrames
-	ret
+	jmp DelayFrames
 
 MemoryGame_InitStrings:
 	hlcoord 0, 0
 	ld bc, SCREEN_AREA
 	ld a, $1
-	call ByteFill
+	rst ByteFill
 	hlcoord 0, 0
 	ld de, .japstr1
-	call PlaceString
+	rst PlaceString
 	hlcoord 15, 0
 	ld de, .japstr2
-	call PlaceString
-	ld hl, .dummy_text
-	call PrintText
-	ret
+	rst PlaceString
+	ld hl, EmptyString
+	jmp PrintText
 
-.dummy_text
-	db "@"
 .japstr1
-	db "とったもの@"
+	db "№.Cards@"
 .japstr2
-	db "あと　かい@"
+	db "№.Turns@"
 
 MemoryGame_Card2Coord:
 	ld d, 0
@@ -586,5 +577,13 @@ MemoryGame_InterpretJoypad_AnimateCursor:
 	ld [hl], a
 	ret
 
-MemoryGameLZ:
+MemoryGameGFX:
 INCBIN "gfx/memory_game/memory_game.2bpp.lz"
+
+MissingMemoryGameGFX:
+; Graphics for an unused Game Corner
+; game were meant to be here.
+
+ret_e00ed:
+; How many coins?
+	ret ; no-optimize stub function

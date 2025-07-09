@@ -317,4 +317,4 @@ Music_Printer_Ch3:
 	rest 1
 	note D#, 1
 	rest 1
-	sound_loop 0, .mainloop
+	sound_jump .mainloop

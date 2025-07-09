@@ -1,6 +1,6 @@
 CheckSave::
-	ld a, BANK(sCheckValue1) ; aka BANK(sCheckValue2)
-	call OpenSRAM
+	ld a, BANK(sCheckValue1)
+	call GetSRAMBank
 	ld a, [sCheckValue1]
 	ld b, a
 	ld a, [sCheckValue2]
@@ -12,9 +12,9 @@ CheckSave::
 	ld a, c
 	cp SAVE_CHECK_VALUE_2
 	jr nz, .ok
-	ld c, $1
+	ld c, TRUE
 	ret
 
 .ok
-	ld c, $0
+	ld c, FALSE
 	ret

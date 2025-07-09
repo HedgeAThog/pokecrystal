@@ -10,7 +10,7 @@ Music_EcruteakCity_Ch1:
 	stereo_panning FALSE, TRUE
 	vibrato 18, 2, 5
 	duty_cycle 2
-.mainloop:
+Music_EcruteakCity_branch_ef2e5:
 	note_type 12, 5, 7
 	rest 10
 	octave 4
@@ -73,7 +73,7 @@ Music_EcruteakCity_Ch1:
 	note G_, 4
 	rest 8
 	volume_envelope 5, 2
-	sound_call .sub1
+	sound_call Music_EcruteakCity_branch_ef37f
 	note D_, 2
 	octave 4
 	note B_, 2
@@ -95,7 +95,7 @@ Music_EcruteakCity_Ch1:
 	note B_, 2
 	note A_, 2
 	note B_, 2
-	sound_call .sub2
+	sound_call Music_EcruteakCity_branch_ef391
 	volume_envelope 5, 2
 	note A#, 2
 	note G_, 2
@@ -116,7 +116,7 @@ Music_EcruteakCity_Ch1:
 	note G_, 2
 	note E_, 2
 	note C#, 2
-	sound_call .sub1
+	sound_call Music_EcruteakCity_branch_ef37f
 	note D_, 2
 	note C_, 2
 	octave 4
@@ -143,10 +143,10 @@ Music_EcruteakCity_Ch1:
 	note G#, 2
 	octave 5
 	note C_, 2
-	sound_call .sub2
-	sound_loop 0, .mainloop
+	sound_call Music_EcruteakCity_branch_ef391
+	sound_jump Music_EcruteakCity_branch_ef2e5
 
-.sub1:
+Music_EcruteakCity_branch_ef37f:
 	octave 5
 	note E_, 2
 	note C_, 2
@@ -160,10 +160,10 @@ Music_EcruteakCity_Ch1:
 	note C_, 2
 	note E_, 2
 	note C_, 2
-	sound_loop 2, .sub1
+	sound_loop 2, Music_EcruteakCity_branch_ef37f
 	sound_ret
 
-.sub2:
+Music_EcruteakCity_branch_ef391:
 	octave 5
 	note D_, 2
 	octave 4
@@ -209,7 +209,7 @@ Music_EcruteakCity_Ch1:
 	note C_, 2
 	octave 3
 	note A_, 2
-.sub2loop1:
+Music_EcruteakCity_branch_ef3be:
 	octave 4
 	note F_, 2
 	note A_, 2
@@ -224,8 +224,8 @@ Music_EcruteakCity_Ch1:
 	octave 5
 	note C_, 2
 	note F_, 2
-	sound_loop 2, .sub2loop1
-.sub2loop2:
+	sound_loop 2, Music_EcruteakCity_branch_ef3be
+Music_EcruteakCity_branch_ef3d0:
 	octave 4
 	note G_, 2
 	note B_, 2
@@ -240,7 +240,7 @@ Music_EcruteakCity_Ch1:
 	octave 5
 	note D_, 2
 	note G_, 2
-	sound_loop 2, .sub2loop2
+	sound_loop 2, Music_EcruteakCity_branch_ef3d0
 	volume_envelope 5, 0
 	duty_cycle 0
 	note E_, 16
@@ -252,7 +252,7 @@ Music_EcruteakCity_Ch2:
 	vibrato 18, 2, 5
 	duty_cycle 3
 	stereo_panning TRUE, FALSE
-.mainloop:
+Music_EcruteakCity_branch_ef3f2:
 	note_type 6, 6, 7
 	rest 16
 	rest 5
@@ -468,11 +468,11 @@ Music_EcruteakCity_Ch2:
 	note C_, 2
 	note D_, 2
 	note E_, 16
-	sound_loop 0, .mainloop
+	sound_jump Music_EcruteakCity_branch_ef3f2
 
 Music_EcruteakCity_Ch3:
 	stereo_panning TRUE, TRUE
-.mainloop:
+Music_EcruteakCity_branch_ef4e3:
 	vibrato 18, 2, 5
 	note_type 12, 2, 5
 	octave 3
@@ -575,7 +575,7 @@ Music_EcruteakCity_Ch3:
 	note B_, 2
 	octave 4
 	note D_, 2
-	sound_call .sub1
+	sound_call Music_EcruteakCity_branch_ef569
 	octave 4
 	note C_, 8
 	note E_, 8
@@ -586,16 +586,16 @@ Music_EcruteakCity_Ch3:
 	note E_, 8
 	note C#, 8
 	note_type 12, 2, 5
-	sound_call .sub1
+	sound_call Music_EcruteakCity_branch_ef569
 	octave 4
 	note C_, 8
 	octave 3
 	note G_, 8
 	note E_, 8
 	note D_, 8
-	sound_loop 0, .mainloop
+	sound_jump Music_EcruteakCity_branch_ef4e3
 
-.sub1:
+Music_EcruteakCity_branch_ef569:
 	octave 3
 	note F_, 4
 	rest 2

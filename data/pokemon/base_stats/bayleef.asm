@@ -1,21 +1,22 @@
-	db BAYLEEF ; 153
-
-	db  60,  62,  80,  60,  63,  80
-	;   hp  atk  def  spd  sat  sdf
+	db  60,  62,  80,  60,  63,  80 ; 405 BST
+	;   hp  atk  def  spe  sat  sdf
 
 	db GRASS, GRASS ; type
 	db 45 ; catch rate
 	db 141 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_F12_5 ; gender ratio
-	db 100 ; unknown 1
-	db 20 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/bayleef/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db NO_ITEM, NO_ITEM ; held items
+	dn GENDER_F12_5, HATCH_MEDIUM_FAST ; gender ratio, step cycles to hatch
+
+if DEF(FAITHFUL)
+	abilities_for BAYLEEF, OVERGROW, OVERGROW, LEAF_GUARD
+else
+	abilities_for BAYLEEF, OVERGROW, NATURAL_CURE, LEAF_GUARD
+endc
 	db GROWTH_MEDIUM_SLOW ; growth rate
 	dn EGG_MONSTER, EGG_PLANT ; egg groups
 
+	ev_yield 1 Def, 1 SDf
+
 	; tm/hm learnset
-	tmhm HEADBUTT, CURSE, TOXIC, ROCK_SMASH, HIDDEN_POWER, SUNNY_DAY, SWEET_SCENT, SNORE, PROTECT, GIGA_DRAIN, ENDURE, FRUSTRATION, SOLARBEAM, IRON_TAIL, RETURN, MUD_SLAP, DOUBLE_TEAM, SWAGGER, SLEEP_TALK, DETECT, REST, ATTRACT, FURY_CUTTER, CUT, STRENGTH, FLASH
+	tmhm CURSE, CALM_MIND, TOXIC, HIDDEN_POWER, SUNNY_DAY, LIGHT_SCREEN, PROTECT, GIGA_DRAIN, SAFEGUARD, SOLAR_BEAM, IRON_TAIL, RETURN, ROCK_SMASH, DOUBLE_TEAM, REFLECT, SUBSTITUTE, FACADE, REST, ATTRACT, ENERGY_BALL, FLASH, SWORDS_DANCE, CUT, STRENGTH, BODY_SLAM, COUNTER, DOUBLE_EDGE, ENDURE, HEADBUTT, SEED_BOMB, SLEEP_TALK, SWAGGER
 	; end

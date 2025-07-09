@@ -1,69 +1,111 @@
-	object_const_def
-	const ROUTE46_POKEFAN_M
-	const ROUTE46_YOUNGSTER
-	const ROUTE46_LASS
-	const ROUTE46_FRUIT_TREE1
-	const ROUTE46_FRUIT_TREE2
-	const ROUTE46_POKE_BALL
-
-Route46_MapScripts:
+Route46_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-TrainerCamperTed:
-	trainer CAMPER, TED, EVENT_BEAT_CAMPER_TED, CamperTedSeenText, CamperTedBeatenText, 0, .Script
+	def_warp_events
+	warp_event  7, 33, ROUTE_29_46_GATE, 1
+	warp_event  8, 33, ROUTE_29_46_GATE, 2
+	warp_event 14,  5, DARK_CAVE_VIOLET_ENTRANCE, 3
+	warp_event  8,  4, HIDDEN_CAVE_GROTTO, 1
 
-.Script:
-	endifjustbattled
+	def_coord_events
+
+	def_bg_events
+	bg_event  9, 27, BGEVENT_JUMPTEXT, Route46SignText
+	bg_event  8,  3, BGEVENT_JUMPSTD, cavegrotto, HIDDENGROTTO_ROUTE_46
+
+	def_object_events
+	object_event 15, 13, SPRITE_HIKER, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, Route46HikerScript, -1
+	object_event 12, 19, SPRITE_HIKER, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 2, GenericTrainerHikerBailey, -1
+	object_event  4, 14, SPRITE_CAMPER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 2, GenericTrainerCamperTed, -1
+	object_event  2, 13, SPRITE_PICNICKER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_TRAINER, 2, TrainerPicnickerErin1, -1
+	object_event  7, 26, SPRITE_CUTE_GIRL, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, PAL_NPC_GREEN, OBJECTTYPE_COMMAND, jumptextfaceplayer, Route46LassText, -1
+	fruittree_event  7,  5, FRUITTREE_ROUTE_46_1, CHERI_BERRY, PAL_NPC_RED
+	fruittree_event  8,  6, FRUITTREE_ROUTE_46_2, CHESTO_BERRY, PAL_NPC_PURPLE
+	itemball_event  1, 15, X_SPEED, 1, EVENT_ROUTE_46_X_SPEED
+
+Route46HikerScript:
+	faceplayer
 	opentext
-	writetext CamperTedAfterBattleText
+	checkevent EVENT_LISTENED_TO_ROLLOUT_INTRO
+	iftruefwd Route46TutorRoute46Script
+	writetext Route46HikerText
 	waitbutton
-	closetext
-	end
+	setevent EVENT_LISTENED_TO_ROLLOUT_INTRO
+Route46TutorRoute46Script:
+	writetext Text_Route46TutorRollout
+	waitbutton
+	checkitem SILVER_LEAF
+	iffalsefwd .NoSilverLeaf
+	writetext Text_Route46TutorQuestion
+	yesorno
+	iffalsefwd .TutorRefused
+	setval ROLLOUT
+	writetext ClearText
+	special Special_MoveTutor
+	ifequalfwd $0, .TeachMove
+.TutorRefused
+	jumpopenedtext Text_Route46TutorRefused
+
+.NoSilverLeaf
+	jumpopenedtext Text_Route46TutorNoSilverLeaf
+
+.TeachMove
+	takeitem SILVER_LEAF
+	jumpopenedtext Text_Route46TutorTaught
+
+GenericTrainerCamperTed:
+	generictrainer CAMPER, TED, EVENT_BEAT_CAMPER_TED, CamperTedSeenText, CamperTedBeatenText
+
+	text "I did my best but"
+	line "came up short."
+
+	para "No excuses--I"
+	line "admit I lost."
+	done
 
 TrainerPicnickerErin1:
-	trainer PICNICKER, ERIN1, EVENT_BEAT_PICNICKER_ERIN, PicnickerErin1SeenText, PicnickerErin1BeatenText, 0, .Script
+	trainer PICNICKER, ERIN1, EVENT_BEAT_PICNICKER_ERIN, PicnickerErin1SeenText, PicnickerErin1BeatenText, 0, PicnickerErin1Script
 
-.Script:
+PicnickerErin1Script:
 	loadvar VAR_CALLERID, PHONE_PICNICKER_ERIN
-	endifjustbattled
 	opentext
 	checkflag ENGINE_ERIN_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	checkcellnum PHONE_PICNICKER_ERIN
-	iftrue Route46NumberAcceptedF
+	iftruefwd Route46NumberAcceptedF
 	checkevent EVENT_ERIN_ASKED_FOR_PHONE_NUMBER
-	iftrue .AskedAlready
+	iftruefwd .AskedAlready
 	writetext PicnickerErinAfterBattleText
 	promptbutton
 	setevent EVENT_ERIN_ASKED_FOR_PHONE_NUMBER
 	scall Route46AskNumber1F
-	sjump .AskForNumber
+	sjumpfwd .AskForNumber
 
 .AskedAlready:
 	scall Route46AskNumber2F
 .AskForNumber:
 	askforphonenumber PHONE_PICNICKER_ERIN
-	ifequal PHONE_CONTACTS_FULL, Route46PhoneFullF
-	ifequal PHONE_CONTACT_REFUSED, Route46NumberDeclinedF
-	gettrainername STRING_BUFFER_3, PICNICKER, ERIN1
+	ifequalfwd $1, Route46PhoneFullF
+	ifequalfwd $2, Route46NumberDeclinedF
+	gettrainername PICNICKER, ERIN1, STRING_BUFFER_3
 	scall Route46RegisteredNumberF
-	sjump Route46NumberAcceptedF
+	sjumpfwd Route46NumberAcceptedF
 
 .WantsBattle:
 	scall Route46RematchF
 	winlosstext PicnickerErin1BeatenText, 0
 	readmem wErinFightCount
-	ifequal 2, .Fight2
-	ifequal 1, .Fight1
-	ifequal 0, .LoadFight0
+	ifequalfwd 2, .Fight2
+	ifequalfwd 1, .Fight1
+	ifequalfwd 0, .LoadFight0
 .Fight2:
 	checkevent EVENT_RESTORED_POWER_TO_KANTO
-	iftrue .LoadFight2
+	iftruefwd .LoadFight2
 .Fight1:
 	checkevent EVENT_BEAT_ELITE_FOUR
-	iftrue .LoadFight1
+	iftruefwd .LoadFight1
 .LoadFight0:
 	loadtrainer PICNICKER, ERIN1
 	startbattle
@@ -86,14 +128,14 @@ TrainerPicnickerErin1:
 	reloadmapafterbattle
 	clearflag ENGINE_ERIN_READY_FOR_REMATCH
 	checkevent EVENT_ERIN_CALCIUM
-	iftrue .HasCalcium
+	iftruefwd .HasCalcium
 	checkevent EVENT_GOT_CALCIUM_FROM_ERIN
-	iftrue .GotCalciumAlready
+	iftruefwd .GotCalciumAlready
 	scall Route46RematchGiftF
 	verbosegiveitem CALCIUM
-	iffalse ErinNoRoomForCalcium
+	iffalsefwd ErinNoRoomForCalcium
 	setevent EVENT_GOT_CALCIUM_FROM_ERIN
-	sjump Route46NumberAcceptedF
+	sjumpfwd Route46NumberAcceptedF
 
 .GotCalciumAlready:
 	end
@@ -103,75 +145,96 @@ TrainerPicnickerErin1:
 	writetext PicnickerErin2BeatenText
 	waitbutton
 	verbosegiveitem CALCIUM
-	iffalse ErinNoRoomForCalcium
+	iffalsefwd ErinNoRoomForCalcium
 	clearevent EVENT_ERIN_CALCIUM
 	setevent EVENT_GOT_CALCIUM_FROM_ERIN
-	sjump Route46NumberAcceptedF
+	sjumpfwd Route46NumberAcceptedF
 
 Route46AskNumber1F:
-	jumpstd AskNumber1FScript
-	end
+	jumpstd asknumber1f
 
 Route46AskNumber2F:
-	jumpstd AskNumber2FScript
-	end
+	jumpstd asknumber2f
 
 Route46RegisteredNumberF:
-	jumpstd RegisteredNumberFScript
-	end
+	jumpstd registerednumberf
 
 Route46NumberAcceptedF:
-	jumpstd NumberAcceptedFScript
-	end
+	jumpstd numberacceptedf
 
 Route46NumberDeclinedF:
-	jumpstd NumberDeclinedFScript
-	end
+	jumpstd numberdeclinedf
 
 Route46PhoneFullF:
-	jumpstd PhoneFullFScript
-	end
+	jumpstd phonefullf
 
 Route46RematchF:
-	jumpstd RematchFScript
-	end
+	jumpstd rematchf
 
 ErinNoRoomForCalcium:
 	setevent EVENT_ERIN_CALCIUM
-	jumpstd PackFullFScript
+	jumpstd packfullf
 	end
 
 Route46RematchGiftF:
-	jumpstd RematchGiftFScript
-	end
+	jumpstd rematchgiftf
 
-TrainerHikerBailey:
-	trainer HIKER, BAILEY, EVENT_BEAT_HIKER_BAILEY, HikerBaileySeenText, HikerBaileyBeatenText, 0, .Script
+GenericTrainerHikerBailey:
+	generictrainer HIKER, BAILEY, EVENT_BEAT_HIKER_BAILEY, HikerBaileySeenText, HikerBaileyBeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext HikerBaileyAfterBattleText
-	waitbutton
-	closetext
-	end
+	text "It's over. I don't"
+	line "mind. We Hikers"
+	cont "are like that."
+	done
 
-Route46Sign:
-	jumptext Route46SignText
+Route46HikerText:
+	text "A Donphan charged"
+	line "at me and I roll-"
 
-Route46XSpeed:
-	itemball X_SPEED
+	para "ed all the way"
+	line "down here!"
 
-Route46FruitTree1:
-	fruittree FRUITTREE_ROUTE_46_1
+	para "Still, it taught"
+	line "me a lesson…"
 
-Route46FruitTree2:
-	fruittree FRUITTREE_ROUTE_46_2
+	para "Be careful around"
+	line "angry #mon!"
+	done
+
+Text_Route46TutorRollout:
+	text "I'll teach your"
+	line "#mon how to"
+
+	para "use Rollout for"
+	line "a Silver Leaf."
+	done
+
+Text_Route46TutorNoSilverLeaf:
+	text "Ah well, you don't"
+	line "have a Silver"
+	cont "Leaf."
+	done
+
+Text_Route46TutorQuestion:
+	text "Should I teach"
+	line "your #mon"
+	cont "Rollout?"
+	done
+
+Text_Route46TutorRefused:
+	text "Suit yourself."
+	done
+
+Text_Route46TutorTaught:
+	text "All done! Your"
+	line "#mon learned"
+	cont "to use Rollout!"
+	done
 
 HikerBaileySeenText:
 	text "Awright! I'll show"
 	line "you the power of"
-	cont "mountain #MON!"
+	cont "mountain #mon!"
 	done
 
 HikerBaileyBeatenText:
@@ -179,34 +242,20 @@ HikerBaileyBeatenText:
 	line "me your power!"
 	done
 
-HikerBaileyAfterBattleText:
-	text "It's over. I don't"
-	line "mind. We HIKERS"
-	cont "are like that."
-	done
-
 CamperTedSeenText:
 	text "I'm raising #-"
-	line "MON too!"
+	line "mon too!"
 
 	para "Will you battle"
 	line "with me?"
 	done
 
-CamperTedBeatenText:
+CamperTedBeatenText: ; text > text
 	text "Wha…?"
 	done
 
-CamperTedAfterBattleText:
-	text "I did my best but"
-	line "came up short."
-
-	para "No excuses--I"
-	line "admit I lost."
-	done
-
 PicnickerErin1SeenText:
-	text "I raise #MON"
+	text "I raise #mon"
 	line "too!"
 
 	para "Will you battle"
@@ -219,9 +268,9 @@ PicnickerErin1BeatenText:
 
 PicnickerErinAfterBattleText:
 	text "I've been to many"
-	line "GYMS, but the GYM"
+	line "Gyms, but the Gym"
 
-	para "in GOLDENROD is my"
+	para "in Goldenrod is my"
 	line "favorite."
 
 	para "It's filled with"
@@ -244,27 +293,16 @@ PicnickerErin2BeatenText:
 	done
 
 Route46SignText:
-	text "ROUTE 46"
-	line "MOUNTAIN RD. AHEAD"
+	text "Route 46"
+	line "Mountain Rd. Ahead"
 	done
 
-Route46_MapEvents:
-	db 0, 0 ; filler
+Route46LassText:
+	text "A dead end…?"
 
-	def_warp_events
-	warp_event  7, 33, ROUTE_29_ROUTE_46_GATE, 1
-	warp_event  8, 33, ROUTE_29_ROUTE_46_GATE, 2
-	warp_event 14,  5, DARK_CAVE_VIOLET_ENTRANCE, 3
+	para "Did I take the"
+	line "wrong path?"
 
-	def_coord_events
-
-	def_bg_events
-	bg_event  9, 27, BGEVENT_READ, Route46Sign
-
-	def_object_events
-	object_event 12, 19, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_TRAINER, 2, TrainerHikerBailey, -1
-	object_event  4, 14, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_TRAINER, 2, TrainerCamperTed, -1
-	object_event  2, 13, SPRITE_LASS, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_TRAINER, 2, TrainerPicnickerErin1, -1
-	object_event  7,  5, SPRITE_FRUIT_TREE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, Route46FruitTree1, -1
-	object_event  8,  6, SPRITE_FRUIT_TREE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, Route46FruitTree2, -1
-	object_event  1, 15, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, Route46XSpeed, EVENT_ROUTE_46_X_SPEED
+	para "I didn't know this"
+	line "was only one way."
+	done

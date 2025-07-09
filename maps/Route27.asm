@@ -1,37 +1,48 @@
-	object_const_def
-	const ROUTE27_COOLTRAINER_M1
-	const ROUTE27_COOLTRAINER_M2
-	const ROUTE27_COOLTRAINER_F1
-	const ROUTE27_COOLTRAINER_F2
-	const ROUTE27_YOUNGSTER1
-	const ROUTE27_YOUNGSTER2
-	const ROUTE27_POKE_BALL1
-	const ROUTE27_POKE_BALL2
-	const ROUTE27_FISHER
-
-Route27_MapScripts:
+Route27_MapScriptHeader:
 	def_scene_scripts
-	scene_script Route27Noop1Scene, SCENE_ROUTE27_FIRST_STEP_INTO_KANTO
-	scene_script Route27Noop2Scene, SCENE_ROUTE27_NOOP
 
 	def_callbacks
 
-Route27Noop1Scene:
-	end
+	def_warp_events
+	warp_event 33,  7, ROUTE_27_REST_HOUSE, 1
+	warp_event 26,  5, TOHJO_FALLS, 1
+	warp_event 36,  5, TOHJO_FALLS, 2
 
-Route27Noop2Scene:
-	end
+	def_coord_events
+	coord_event 18, 10, 0, FirstStepIntoKantoLeftScene
+	coord_event 19, 10, 0, FirstStepIntoKantoRightScene
+
+	def_bg_events
+	bg_event 25,  7, BGEVENT_JUMPTEXT, TohjoFallsSignText
+
+	def_object_events
+	object_event 48, 12, SPRITE_VETERAN_F, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, Route27VeteranfScript, -1
+	object_event 21, 10, SPRITE_FAT_GUY, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, Route27FisherText, -1
+	object_event 48,  7, SPRITE_ACE_TRAINER_M, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerCooltrainermBlake, -1
+	object_event 58,  6, SPRITE_ACE_TRAINER_M, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerAceDuoJakeandbri1, -1
+	object_event 59,  6, SPRITE_ACE_TRAINER_F, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerAceDuoJakeandbri2, -1
+	object_event 72, 10, SPRITE_ACE_TRAINER_F, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_TRAINER, 4, TrainerCooltrainerfReena, -1
+	object_event 37,  6, SPRITE_ACE_TRAINER_F, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 2, GenericTrainerCooltrainerfMegan, -1
+	object_event 65,  7, SPRITE_PSYCHIC, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerPsychicGilbert, -1
+	object_event 58, 13, SPRITE_BIRD_KEEPER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_TRAINER, 3, TrainerBird_keeperJose1, -1
+	itemball_event 53, 12, RARE_CANDY, 1, EVENT_ROUTE_27_RARE_CANDY
+	itemball_event 71,  4, DESTINY_KNOT, 1, EVENT_ROUTE_27_DESTINY_KNOT
+	fruittree_event 60, 12, FRUITTREE_ROUTE_27, LUM_BERRY, PAL_NPC_GREEN
+
+	object_const_def
+	const ROUTE27_VETERAN_F
+	const ROUTE27_FISHER
 
 FirstStepIntoKantoLeftScene:
 	turnobject ROUTE27_FISHER, LEFT
 	showemote EMOTE_SHOCK, ROUTE27_FISHER, 15
 	applymovement ROUTE27_FISHER, Route27FisherStepLeftTwiceMovement
-	sjump FirstStepIntoKantoScene_Continue
+	sjumpfwd FirstStepIntoKantoScene_Continue
 
 FirstStepIntoKantoRightScene:
 	turnobject ROUTE27_FISHER, LEFT
 	showemote EMOTE_SHOCK, ROUTE27_FISHER, 15
-	applymovement ROUTE27_FISHER, Route27FisherStepLeftOnceMovement
+	applyonemovement ROUTE27_FISHER, step_left
 FirstStepIntoKantoScene_Continue:
 	turnobject PLAYER, RIGHT
 	opentext
@@ -40,69 +51,186 @@ FirstStepIntoKantoScene_Continue:
 	writetext Route27FisherText
 	waitbutton
 	closetext
-	setscene SCENE_ROUTE27_NOOP
+	setscene $1
 	end
 
-Route27FisherScript:
-	jumptextfaceplayer Route27FisherText
-
-TrainerPsychicGilbert:
-	trainer PSYCHIC_T, GILBERT, EVENT_BEAT_PSYCHIC_GILBERT, PsychicGilbertSeenText, PsychicGilbertBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
+Route27VeteranfScript:
+	checkevent EVENT_GOT_CHOICE_SPECS_FROM_ROUTE_27_LEADER
+	iftrue_jumptextfaceplayer .AfterText2
+	faceplayer
+	checkevent EVENT_BEAT_VETERANF_LITVYAK
+	iftruefwd .Beaten
+	checkevent EVENT_BEAT_PSYCHIC_GILBERT
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_BIRD_KEEPER_JOSE
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_COOLTRAINERM_BLAKE
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_ACE_DUO_JAKE_AND_BRI
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_COOLTRAINERF_REENA
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_COOLTRAINERF_MEGAN
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_DRAGON_TAMER_KAZU
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_COOLTRAINERM_GAVEN
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_COOLTRAINERF_JOYCE
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_COOLTRAINERF_BETH
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_PSYCHIC_RICHARD
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_BATTLE_GIRL_RONDA
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_FISHER_SCOTT
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_DRAGON_TAMER_ERICK
+	iffalse_jumptext .IntroText
 	opentext
-	writetext PsychicGilbertAfterBattleText
+	writetext .QuestionText
+	yesorno
+	iffalse_jumpopenedtext .RefusedText
+	writetext .SeenText
 	waitbutton
 	closetext
-	end
+	winlosstext .BeatenText, 0
+	setlasttalked ROUTE27_VETERAN_F
+	loadtrainer VETERANF, LITVYAK
+	startbattle
+	reloadmapafterbattle
+	setevent EVENT_BEAT_VETERANF_LITVYAK
+.Beaten:
+	opentext
+	writetext .AfterText1
+	promptbutton
+	verbosegiveitem CHOICE_SPECS
+	iffalse_endtext
+	setevent EVENT_GOT_CHOICE_SPECS_FROM_ROUTE_27_LEADER
+	jumpthisopenedtext
 
-TrainerBirdKeeperJose2:
-	trainer BIRD_KEEPER, JOSE2, EVENT_BEAT_BIRD_KEEPER_JOSE2, BirdKeeperJose2SeenText, BirdKeeperJose2BeatenText, 0, .Script
+.AfterText2:
+	text "Good luck! Say"
+	line "hello to Lance"
+	cont "for me."
+	done
 
-.Script:
+.IntroText:
+	text "Hm! If you're here,"
+	line "then you must be"
+
+	para "heading for the"
+	line "#mon League."
+
+	para "Want to train"
+	line "with me?"
+
+	para "Then beat everyone"
+	line "else on Routes 26"
+	cont "and 27."
+
+	para "I'll wait for you"
+	line "here."
+	done
+
+.QuestionText:
+	text "Hm. You beat the"
+	line "rest faster than"
+	cont "I expected."
+
+	para "Let's train."
+	done
+
+.RefusedText:
+	text "It's OK."
+	line "I can wait."
+	done
+
+.SeenText:
+	text "My #mon are"
+	line "all wearing"
+	cont "Choice Specs."
+
+	para "They may look"
+	line "weird, but they"
+	cont "are powerful."
+	done
+
+.BeatenText:
+	text "You're ready for"
+	line "the #mon"
+	cont "League, I'm sure!"
+	done
+
+.AfterText1:
+	text "Choice Specs will"
+	line "boost a #mon's"
+	cont "Special Attack,"
+
+	para "but it can only"
+	line "use one move."
+
+	para "Take a pair"
+	line "yourself."
+	done
+
+GenericTrainerPsychicGilbert:
+	generictrainer PSYCHIC_T, GILBERT, EVENT_BEAT_PSYCHIC_GILBERT, PsychicGilbertSeenText, PsychicGilbertBeatenText
+
+	text "With your skills,"
+	line "you'll do well at"
+	cont "the League."
+
+	para "That's what my"
+	line "premonition says."
+	done
+
+TrainerBird_keeperJose1:
+	trainer BIRD_KEEPER, JOSE1, EVENT_BEAT_BIRD_KEEPER_JOSE, Bird_keeperJose1SeenText, Bird_keeperJose1BeatenText, 0, Bird_keeperJose1Script
+
+Bird_keeperJose1Script:
 	loadvar VAR_CALLERID, PHONE_BIRDKEEPER_JOSE
-	endifjustbattled
 	opentext
 	checkflag ENGINE_JOSE_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	checkflag ENGINE_JOSE_HAS_STAR_PIECE
-	iftrue .HasStarPiece
+	iftruefwd .HasStarPiece
 	checkcellnum PHONE_BIRDKEEPER_JOSE
-	iftrue .NumberAccepted
+	iftruefwd .NumberAccepted
 	checkevent EVENT_JOSE_ASKED_FOR_PHONE_NUMBER
-	iftrue .AskedAlready
+	iftruefwd .AskedAlready
 	writetext BirdKeeperJose2AfterBattleText
 	promptbutton
 	setevent EVENT_JOSE_ASKED_FOR_PHONE_NUMBER
 	scall .AskNumber1
-	sjump .AskForNumber
+	sjumpfwd .AskForNumber
 
 .AskedAlready:
 	scall .AskNumber2
 .AskForNumber:
 	askforphonenumber PHONE_BIRDKEEPER_JOSE
-	ifequal PHONE_CONTACTS_FULL, .PhoneFull
-	ifequal PHONE_CONTACT_REFUSED, .NumberDeclined
-	gettrainername STRING_BUFFER_3, BIRD_KEEPER, JOSE2
+	ifequalfwd $1, .PhoneFull
+	ifequalfwd $2, .NumberDeclined
+	gettrainername BIRD_KEEPER, JOSE1, STRING_BUFFER_3
 	scall .RegisteredNumber
-	sjump .NumberAccepted
+	sjumpfwd .NumberAccepted
 
 .WantsBattle:
 	scall .Rematch
-	winlosstext BirdKeeperJose2BeatenText, 0
+	winlosstext Bird_keeperJose1BeatenText, 0
 	readmem wJoseFightCount
-	ifequal 2, .Fight2
-	ifequal 1, .Fight1
-	ifequal 0, .LoadFight0
+	ifequalfwd 2, .Fight2
+	ifequalfwd 1, .Fight1
+	ifequalfwd 0, .LoadFight0
 .Fight2:
 	checkevent EVENT_RESTORED_POWER_TO_KANTO
-	iftrue .LoadFight2
+	iftruefwd .LoadFight2
 .Fight1:
 	checkevent EVENT_BEAT_ELITE_FOUR
-	iftrue .LoadFight1
+	iftruefwd .LoadFight1
 .LoadFight0:
-	loadtrainer BIRD_KEEPER, JOSE2
+	loadtrainer BIRD_KEEPER, JOSE1
 	startbattle
 	reloadmapafterbattle
 	loadmem wJoseFightCount, 1
@@ -110,7 +238,7 @@ TrainerBirdKeeperJose2:
 	end
 
 .LoadFight1:
-	loadtrainer BIRD_KEEPER, JOSE1
+	loadtrainer BIRD_KEEPER, JOSE2
 	startbattle
 	reloadmapafterbattle
 	loadmem wJoseFightCount, 2
@@ -127,113 +255,115 @@ TrainerBirdKeeperJose2:
 .HasStarPiece:
 	scall .Gift
 	verbosegiveitem STAR_PIECE
-	iffalse .NoRoom
+	iffalsefwd .NoRoom
 	clearflag ENGINE_JOSE_HAS_STAR_PIECE
-	sjump .NumberAccepted
+	sjumpfwd .NumberAccepted
 
 .NoRoom:
-	sjump .PackFull
+	sjumpfwd .PackFull
 
 .AskNumber1:
-	jumpstd AskNumber1MScript
-	end
+	jumpstd asknumber1m
 
 .AskNumber2:
-	jumpstd AskNumber2MScript
-	end
+	jumpstd asknumber2m
 
 .RegisteredNumber:
-	jumpstd RegisteredNumberMScript
-	end
+	jumpstd registerednumberm
 
 .NumberAccepted:
-	jumpstd NumberAcceptedMScript
-	end
+	jumpstd numberacceptedm
 
 .NumberDeclined:
-	jumpstd NumberDeclinedMScript
-	end
+	jumpstd numberdeclinedm
 
 .PhoneFull:
-	jumpstd PhoneFullMScript
-	end
+	jumpstd phonefullm
 
 .Rematch:
-	jumpstd RematchMScript
-	end
+	jumpstd rematchm
 
 .Gift:
-	jumpstd GiftMScript
-	end
+	jumpstd giftm
 
 .PackFull:
-	jumpstd PackFullMScript
-	end
+	jumpstd packfullm
 
-TrainerCooltrainermBlake:
-	trainer COOLTRAINERM, BLAKE, EVENT_BEAT_COOLTRAINERM_BLAKE, CooltrainermBlakeSeenText, CooltrainermBlakeBeatenText, 0, .Script
+GenericTrainerCooltrainermBlake:
+	generictrainer COOLTRAINERM, BLAKE, EVENT_BEAT_COOLTRAINERM_BLAKE, CooltrainermBlakeSeenText, CooltrainermBlakeBeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext CooltrainermBlakeAfterBattleText
-	waitbutton
-	closetext
-	end
+	text "If you prevail on"
+	line "this harsh trek,"
 
-TrainerCooltrainermBrian:
-	trainer COOLTRAINERM, BRIAN, EVENT_BEAT_COOLTRAINERM_BRIAN, CooltrainermBrianSeenText, CooltrainermBrianBeatenText, 0, .Script
+	para "the truth will be"
+	line "revealed!"
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext CooltrainermBrianAfterBattleText
-	waitbutton
-	closetext
-	end
+	para "Heh, sorry, I just"
+	line "wanted to say"
+	cont "something cool."
+	done
+
+GenericTrainerAceDuoJakeandbri1:
+	generictrainer ACE_DUO, JAKEANDBRI1, EVENT_BEAT_ACE_DUO_JAKE_AND_BRI, AceDuoJakeandbri1SeenText, AceDuoJakeandbri1BeatenText
+
+	text "Jake: A good"
+	line "trainer can recog-"
+
+	para "nize other good"
+	line "trainers."
+	done
+
+GenericTrainerAceDuoJakeandbri2:
+	generictrainer ACE_DUO, JAKEANDBRI2, EVENT_BEAT_ACE_DUO_JAKE_AND_BRI, AceDuoJakeandbri2SeenText, AceDuoJakeandbri2BeatenText
+
+	text "Bri: Good trainers"
+	line "also know how to"
+
+	para "fight alongside"
+	line "each other."
+	done
 
 TrainerCooltrainerfReena:
-	trainer COOLTRAINERF, REENA1, EVENT_BEAT_COOLTRAINERF_REENA, CooltrainerfReenaSeenText, CooltrainerfReenaBeatenText, 0, .Script
+	trainer COOLTRAINERF, REENA1, EVENT_BEAT_COOLTRAINERF_REENA, CooltrainerfReena1SeenText, CooltrainerfReena1BeatenText, 0, CooltrainerfReena1Script
 
-.Script:
+CooltrainerfReena1Script:
 	loadvar VAR_CALLERID, PHONE_COOLTRAINERF_REENA
-	endifjustbattled
 	opentext
 	checkflag ENGINE_REENA_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	checkcellnum PHONE_COOLTRAINERF_REENA
-	iftrue .NumberAccepted
+	iftruefwd .NumberAccepted
 	checkevent EVENT_REENA_ASKED_FOR_PHONE_NUMBER
-	iftrue .AskedAlready
+	iftruefwd .AskedAlready
 	writetext CooltrainerfReenaAfterBattleText
 	promptbutton
 	setevent EVENT_REENA_ASKED_FOR_PHONE_NUMBER
 	scall .AskNumber1
-	sjump .AskForNumber
+	sjumpfwd .AskForNumber
 
 .AskedAlready:
 	scall .AskNumber2
 .AskForNumber:
 	askforphonenumber PHONE_COOLTRAINERF_REENA
-	ifequal PHONE_CONTACTS_FULL, .PhoneFull
-	ifequal PHONE_CONTACT_REFUSED, .NumberDeclined
-	gettrainername STRING_BUFFER_3, COOLTRAINERF, REENA1
+	ifequalfwd $1, .PhoneFull
+	ifequalfwd $2, .NumberDeclined
+	gettrainername COOLTRAINERF, REENA1, STRING_BUFFER_3
 	scall .RegisteredNumber
-	sjump .NumberAccepted
+	sjumpfwd .NumberAccepted
 
 .WantsBattle:
 	scall .Rematch
-	winlosstext CooltrainerfReenaBeatenText, 0
+	winlosstext CooltrainerfReena1BeatenText, 0
 	readmem wReenaFightCount
-	ifequal 2, .Fight2
-	ifequal 1, .Fight1
-	ifequal 0, .LoadFight0
+	ifequalfwd 2, .Fight2
+	ifequalfwd 1, .Fight1
+	ifequalfwd 0, .LoadFight0
 .Fight2:
 	checkevent EVENT_RESTORED_POWER_TO_KANTO
-	iftrue .LoadFight2
+	iftruefwd .LoadFight2
 .Fight1:
 	checkevent EVENT_BEAT_ELITE_FOUR
-	iftrue .LoadFight1
+	iftruefwd .LoadFight1
 .LoadFight0:
 	loadtrainer COOLTRAINERF, REENA1
 	startbattle
@@ -258,60 +388,46 @@ TrainerCooltrainerfReena:
 	end
 
 .AskNumber1:
-	jumpstd AskNumber1FScript
-	end
+	jumpstd asknumber1f
 
 .AskNumber2:
-	jumpstd AskNumber2FScript
-	end
+	jumpstd asknumber2f
 
 .RegisteredNumber:
-	jumpstd RegisteredNumberFScript
-	end
+	jumpstd registerednumberf
 
 .NumberAccepted:
-	jumpstd NumberAcceptedFScript
-	end
+	jumpstd numberacceptedf
 
 .NumberDeclined:
-	jumpstd NumberDeclinedFScript
-	end
+	jumpstd numberdeclinedf
 
 .PhoneFull:
-	jumpstd PhoneFullFScript
-	end
+	jumpstd phonefullf
 
 .Rematch:
-	jumpstd RematchFScript
-	end
+	jumpstd rematchf
 
-TrainerCooltrainerfMegan:
-	trainer COOLTRAINERF, MEGAN, EVENT_BEAT_COOLTRAINERF_MEGAN, CooltrainerfMeganSeenText, CooltrainerfMeganBeatenText, 0, .Script
+GenericTrainerCooltrainerfMegan:
+	generictrainer COOLTRAINERF, MEGAN, EVENT_BEAT_COOLTRAINERF_MEGAN, CooltrainerfMeganSeenText, CooltrainerfMeganBeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext CooltrainerfMeganAfterBattleText
-	waitbutton
-	closetext
-	end
+	text "I'm checking out"
+	line "pre- and post-"
+	cont "evolution #mon."
 
-TohjoFallsSign:
-	jumptext TohjoFallsSignText
+	para "Evolution really"
+	line "does make #mon"
+	cont "stronger."
 
-Route27TMSolarbeam:
-	itemball TM_SOLARBEAM
-
-Route27RareCandy:
-	itemball RARE_CANDY
+	para "But evolved forms"
+	line "also learn moves"
+	cont "later on."
+	done
 
 Route27FisherStepLeftTwiceMovement:
-	step LEFT
-	step LEFT
-	step_end
-
-Route27FisherStepLeftOnceMovement:
-	step LEFT
+	step_left
+	step_left
+	turn_head_left
 	step_end
 
 Route27FisherHeyText:
@@ -324,10 +440,10 @@ Route27FisherText:
 
 	para "You've taken your"
 	line "first step into"
-	cont "KANTO."
+	cont "Kanto."
 
 	para "Check your #-"
-	line "GEAR MAP and see."
+	line "gear Map and see."
 	done
 
 CooltrainermBlakeSeenText:
@@ -336,46 +452,40 @@ CooltrainermBlakeSeenText:
 	cont "Let me battle you!"
 	done
 
-CooltrainermBlakeBeatenText:
+CooltrainermBlakeBeatenText: ; text > text
 	text "Yow!"
 	done
 
-CooltrainermBlakeAfterBattleText:
-	text "If you prevail on"
-	line "this harsh trek,"
-
-	para "the truth will be"
-	line "revealed!"
-
-	para "Heh, sorry, I just"
-	line "wanted to say"
-	cont "something cool."
+AceDuoJakeandbri1SeenText:
+	text "Jake: Hm? You're"
+	line "good, aren't you?"
 	done
 
-CooltrainermBrianSeenText:
-	text "Hm? You're good,"
-	line "aren't you?"
+AceDuoJakeandbri1BeatenText:
+	text "Jake: Just as I"
+	line "thought!"
 	done
 
-CooltrainermBrianBeatenText:
-	text "Just as I thought!"
+AceDuoJakeandbri2SeenText:
+	text "Bri: The two of"
+	line "us together are"
+	cont "unstoppable!"
 	done
 
-CooltrainermBrianAfterBattleText:
-	text "A good trainer can"
-	line "recognize other"
-	cont "good trainers."
+AceDuoJakeandbri2BeatenText:
+	text "Bri: Our teamwork"
+	line "wasn't enough…"
 	done
 
-CooltrainerfReenaSeenText:
+CooltrainerfReena1SeenText:
 	text "You shouldn't"
 	line "underestimate the"
 
-	para "wild #MON in"
+	para "wild #mon in"
 	line "these parts."
 	done
 
-CooltrainerfReenaBeatenText:
+CooltrainerfReena1BeatenText:
 	text "Oh! You're much"
 	line "too strong!"
 	done
@@ -401,20 +511,6 @@ CooltrainerfMeganBeatenText:
 	line "strong!"
 	done
 
-CooltrainerfMeganAfterBattleText:
-	text "I'm checking out"
-	line "pre- and post-"
-	cont "evolution #MON."
-
-	para "Evolution really"
-	line "does make #MON"
-	cont "stronger."
-
-	para "But evolved forms"
-	line "also learn moves"
-	cont "later on."
-	done
-
 PsychicGilbertSeenText:
 	text "Don't say a thing!"
 
@@ -424,69 +520,34 @@ PsychicGilbertSeenText:
 	para "Mmmmmmm…"
 
 	para "I got it! You're"
-	line "on the #MON"
-	cont "LEAGUE challenge!"
+	line "on the #mon"
+	cont "League challenge!"
 	done
 
 PsychicGilbertBeatenText:
 	text "You're too much!"
 	done
 
-PsychicGilbertAfterBattleText:
-	text "With your skills,"
-	line "you'll do well at"
-	cont "the LEAGUE."
-
-	para "That's what my"
-	line "premonition says."
-	done
-
-BirdKeeperJose2SeenText:
+Bird_keeperJose1SeenText:
 	text "Tweet! Tweet!"
 	line "Tetweet!"
 	done
 
-BirdKeeperJose2BeatenText:
+Bird_keeperJose1BeatenText:
 	text "Tweet!"
 	done
 
 BirdKeeperJose2AfterBattleText:
-	text "BIRD KEEPERS like"
+	text "Bird Keepers like"
 	line "me mimic bird"
 
 	para "whistles to com-"
-	line "mand #MON."
+	line "mand #mon."
 	done
 
 TohjoFallsSignText:
-	text "TOHJO FALLS"
+	text "Tohjo Falls"
 
-	para "THE LINK BETWEEN"
-	line "KANTO AND JOHTO"
+	para "The Link Between"
+	line "Kanto and Johto"
 	done
-
-Route27_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event 33,  7, ROUTE_27_SANDSTORM_HOUSE, 1
-	warp_event 26,  5, TOHJO_FALLS, 1
-	warp_event 36,  5, TOHJO_FALLS, 2
-
-	def_coord_events
-	coord_event 18, 10, SCENE_ROUTE27_FIRST_STEP_INTO_KANTO, FirstStepIntoKantoLeftScene
-	coord_event 19, 10, SCENE_ROUTE27_FIRST_STEP_INTO_KANTO, FirstStepIntoKantoRightScene
-
-	def_bg_events
-	bg_event 25,  7, BGEVENT_READ, TohjoFallsSign
-
-	def_object_events
-	object_event 48,  7, SPRITE_COOLTRAINER_M, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 3, TrainerCooltrainermBlake, -1
-	object_event 58,  6, SPRITE_COOLTRAINER_M, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 4, TrainerCooltrainermBrian, -1
-	object_event 72, 10, SPRITE_COOLTRAINER_F, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 4, TrainerCooltrainerfReena, -1
-	object_event 37,  6, SPRITE_COOLTRAINER_F, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 2, TrainerCooltrainerfMegan, -1
-	object_event 65,  7, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 3, TrainerPsychicGilbert, -1
-	object_event 58, 13, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 3, TrainerBirdKeeperJose2, -1
-	object_event 60, 12, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, Route27TMSolarbeam, EVENT_ROUTE_27_TM_SOLARBEAM
-	object_event 53, 12, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, Route27RareCandy, EVENT_ROUTE_27_RARE_CANDY
-	object_event 21, 10, SPRITE_FISHER, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 3, Route27FisherScript, -1

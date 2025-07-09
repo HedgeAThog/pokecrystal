@@ -1,14 +1,14 @@
 WadeAreYourMonGrowingText:
-	text "Are your #MON"
+	text "Are your #mon"
 	line "growing?"
 
-	para "My #MON are"
+	para "My #mon are"
 	line "growing a bit too"
 
 	para "quickly for me."
 	line "It's overwhelming!"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text "'s grow-"
 	line "ing especially"
@@ -19,9 +19,9 @@ WadeAreYourMonGrowingText:
 
 WadeDefeatedMonText:
 	text "Oh yeah, we KO'd a"
-	line "wild @"
+	line "wild "
 	text_ram wStringBuffer4
-	text_start
+
 	para "with one hit a"
 	line "while back."
 
@@ -34,7 +34,7 @@ WadeDefeatedMonText:
 
 WadeLostAMonText:
 	text "Oh yeah, a wild"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text " got"
 
@@ -42,7 +42,7 @@ WadeLostAMonText:
 	line "the last second."
 
 	para "I know it's a"
-	line "common #MON…"
+	line "common #mon…"
 
 	para "But it does annoy"
 	line "me that it got"
@@ -53,12 +53,12 @@ WadeLostAMonText:
 
 WadeBattleRematchText:
 	text "Do you feel like a"
-	line "#MON battle?"
+	line "#mon battle?"
 
 	para "It won't be like"
 	line "last time!"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text "'s"
 	line "where I'll be."
@@ -75,11 +75,11 @@ WadeBugCatchingContestText:
 	text "The Bug-Catching"
 	line "Contest is at the"
 
-	para "NATIONAL PARK"
+	para "National Park"
 	line "today."
 
 	para "Are you going,"
-	line "<PLAY_G>?"
+	line "<PLAYER>?"
 
 	para "I'm trying to make"
 	line "up my mind."
@@ -87,19 +87,19 @@ WadeBugCatchingContestText:
 
 WadeFoundItemText:
 	text "I found all kinds"
-	line "of BERRIES. If you"
+	line "of Berries. If you"
 
 	para "want, I'll share"
 	line "some with you."
 
 	para "I'll be waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 	done
 
 WadeNoBerriesText:
-	text "Huh? BERRIES?"
+	text "Huh? Berries?"
 
 	para "Sorry, I haven't"
 	line "found any yet."
@@ -113,7 +113,7 @@ WadeQuickBattleText:
 	text "Let's battle"
 	line "already!"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text " is"
 	line "where I am."
@@ -126,7 +126,7 @@ WadeComeQuickText:
 	text "How come you're"
 	line "not here yet?"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text " is"
 	line "where I am."

@@ -25,7 +25,7 @@ Music_LookYoungster_Ch1:
 	rest 2
 	note C_, 6
 	volume_envelope 11, 3
-.mainloop:
+Music_LookYoungster_branch_f66ea:
 	rest 2
 	octave 3
 	note G_, 1
@@ -58,9 +58,7 @@ Music_LookYoungster_Ch1:
 	note C_, 1
 	rest 1
 	rest 16
-	sound_loop 0, .mainloop
-
-	sound_ret ; unused
+	sound_jump Music_LookYoungster_branch_f66ea
 
 Music_LookYoungster_Ch2:
 	stereo_panning TRUE, FALSE
@@ -83,7 +81,7 @@ Music_LookYoungster_Ch2:
 	note F_, 4
 	rest 2
 	note F#, 6
-.mainloop:
+Music_LookYoungster_branch_f672f:
 	duty_cycle 3
 	volume_envelope 11, 3
 	rest 2
@@ -156,9 +154,7 @@ Music_LookYoungster_Ch2:
 	octave 4
 	note C_, 1
 	rest 1
-	sound_loop 0, .mainloop
-
-	sound_ret ; unused
+	sound_jump Music_LookYoungster_branch_f672f
 
 Music_LookYoungster_Ch3:
 	stereo_panning TRUE, TRUE
@@ -196,7 +192,7 @@ Music_LookYoungster_Ch3:
 	rest 2
 	note G#, 6
 	volume_envelope 2, 5
-.mainloop:
+Music_LookYoungster_branch_f67ae:
 	octave 2
 	note G_, 1
 	rest 1
@@ -291,6 +287,4 @@ Music_LookYoungster_Ch3:
 	rest 1
 	note G#, 1
 	rest 1
-	sound_loop 0, .mainloop
-
-	sound_ret ; unused
+	sound_jump Music_LookYoungster_branch_f67ae

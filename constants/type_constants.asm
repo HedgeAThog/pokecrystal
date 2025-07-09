@@ -1,39 +1,36 @@
 ; TypeNames indexes (see data/types/names.asm)
 ; also used in:
-; - PokedexTypeSearchConversionTable (see data/types/search_types.asm)
-; - PokedexTypeSearchStrings (see data/types/search_strings.asm)
 ; - TypeMatchups (see data/types/type_matchups.asm)
-; - TypeBoostItems (see data/types/type_boost_items.asm)
+; - InverseTypeMatchups (see data/types/type_matchups.asm)
 	const_def
+	; Type order matters for Hidden Power and non-PSS category
+	const NORMAL    ; 00
+	const FIGHTING  ; 01
+	const FLYING    ; 02
+	const POISON    ; 03
+	const GROUND    ; 04
+	const ROCK      ; 05
+	const BUG       ; 06
+	const GHOST     ; 07
+	const STEEL     ; 08
+DEF SPECIAL_TYPES EQU const_value
+	const FIRE      ; 09
+	const WATER     ; 0a
+	const GRASS     ; 0b
+	const ELECTRIC  ; 0c
+	const PSYCHIC   ; 0d
+	const ICE       ; 0e
+	const DRAGON    ; 0f
+	const DARK      ; 10
+	const FAIRY     ; 11
+	const UNKNOWN_T ; 12
+DEF NUM_TYPES EQU const_value
 
-DEF PHYSICAL EQU const_value
-	const NORMAL
-	const FIGHTING
-	const FLYING
-	const POISON
-	const GROUND
-	const ROCK
-	const BIRD
-	const BUG
-	const GHOST
-	const STEEL
-
-DEF UNUSED_TYPES EQU const_value
-	const_next 19
-	const CURSE_TYPE
-DEF UNUSED_TYPES_END EQU const_value
-
-DEF SPECIAL EQU const_value
-	const FIRE
-	const WATER
-	const GRASS
-	const ELECTRIC
-	const PSYCHIC_TYPE
-	const ICE
-	const DRAGON
-	const DARK
-DEF TYPES_END EQU const_value
-
-DEF NUM_TYPES EQU TYPES_END + UNUSED_TYPES - UNUSED_TYPES_END - 1 ; discount BIRD
+; categories
+	const_def
+	const PHYSICAL
+	const SPECIAL
+	const STATUS
+DEF NUM_CATEGORIES EQU const_value
 
 DEF POKEDEX_TYPE_STRING_LENGTH EQU 9

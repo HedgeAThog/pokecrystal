@@ -1,14 +1,14 @@
 ScrollingMenu::
-	call CopyMenuData
+	call CopyMenuData2
 	ldh a, [hROMBank]
 	push af
 
 	ld a, BANK(_ScrollingMenu) ; aka BANK(_InitScrollingMenu)
 	rst Bankswitch
 
-	call _InitScrollingMenu
+	call _InitScrollingMenu ; far-ok
 	call .UpdatePalettes
-	call _ScrollingMenu
+	call _ScrollingMenu ; far-ok
 
 	pop af
 	rst Bankswitch
@@ -19,8 +19,17 @@ ScrollingMenu::
 .UpdatePalettes:
 	ld hl, wStateFlags
 	bit SPRITE_UPDATES_DISABLED_F, [hl]
-	jp nz, UpdateTimePals
-	jp SetDefaultBGPAndOBP
+	jmp nz, UpdateTimePals
+	; fallthrough
+
+SetDefaultBGPAndOBP::
+	push de
+	ld a, %11100100
+	call DmgToCgbBGPals
+	lb de, %11100100, %11100100
+	call DmgToCgbObjPals
+	pop de
+	ret
 
 InitScrollingMenu::
 	ld a, [wMenuBorderTopCoord]
@@ -38,7 +47,7 @@ InitScrollingMenu::
 	push de
 	call Coord2Tile
 	pop bc
-	jp Textbox
+	jmp Textbox
 
 JoyTextDelay_ForcehJoyDown::
 	call DelayFrame

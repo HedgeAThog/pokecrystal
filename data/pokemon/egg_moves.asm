@@ -1,809 +1,1236 @@
 SECTION "Egg Moves", ROMX
 
-; All instances of Charm, Steel Wing, Sweet Scent, and Lovely Kiss were
-; removed from egg move lists in Crystal.
-; Sweet Scent and Steel Wing were redundant since they're TMs, and
-; Charm and Lovely Kiss were unobtainable.
-
-; Staryu's egg moves were removed in Crystal, because Staryu is genderless
-; and can only breed with Ditto.
-
 INCLUDE "data/pokemon/egg_move_pointers.asm"
 
-BulbasaurEggMoves:
-	db LIGHT_SCREEN
-	db SKULL_BASH
-	db SAFEGUARD
-	db RAZOR_WIND
+EggSpeciesMoves::
+
+BulbasaurEggSpeciesMoves:
+	dp BULBASAUR, PLAIN_FORM
+	db CHARM
 	db PETAL_DANCE
-	db -1 ; end
+	db LIGHT_SCREEN
+	db SAFEGUARD
+	db POWER_WHIP
+	db $ff
 
-CharmanderEggMoves:
-	db BELLY_DRUM
+CharmanderEggSpeciesMoves:
+	dp CHARMANDER, PLAIN_FORM
 	db ANCIENTPOWER
-	db ROCK_SLIDE
+	db BELLY_DRUM
 	db BITE
+	db CRUNCH
+	db DRAGON_DANCE
+	db DRAGONBREATH
+	db FLARE_BLITZ
 	db OUTRAGE
-	db BEAT_UP
-	db -1 ; end
+	db $ff
 
-SquirtleEggMoves:
-	db MIRROR_COAT
-	db HAZE
-	db MIST
+SquirtleEggSpeciesMoves:
+	dp SQUIRTLE, PLAIN_FORM
 	db CONFUSION
+	db CRUNCH
 	db FORESIGHT
-	db FLAIL
-	db -1 ; end
+	db HAZE
+	db MIRROR_COAT
+	db AQUA_JET
+	db $ff
 
-PidgeyEggMoves:
+CaterpieEggSpeciesMoves:
+	dp CATERPIE, PLAIN_FORM
+	db $ff
+
+WeedleEggSpeciesMoves:
+	dp WEEDLE, PLAIN_FORM
+	db $ff
+
+PidgeyEggSpeciesMoves:
+	dp PIDGEY, PLAIN_FORM
+	db PECK
+	db FEINT_ATTACK
+	db FORESIGHT
 	db PURSUIT
-	db FAINT_ATTACK
-	db FORESIGHT
-	db -1 ; end
+	db AIR_SLASH
+	db STEEL_WING
+	db CHARM
+	db EXTREMESPEED
+	db BRAVE_BIRD
+	db $ff
 
-RattataEggMoves:
+RattataPlainEggSpeciesMoves:
+	dp RATTATA, PLAIN_FORM
+	db FURY_STRIKES
+	db REVERSAL
 	db SCREECH
-	db FLAME_WHEEL
-	db FURY_SWIPES
 	db BITE
 	db COUNTER
+	db $ff
+
+RattataAlolanEggSpeciesMoves:
+	dp RATTATA, ALOLAN_FORM
+	db FURY_STRIKES
 	db REVERSAL
-	db -1 ; end
+	db SCREECH
+	db BITE
+	db COUNTER
+	db $ff
 
-SpearowEggMoves:
-	db FAINT_ATTACK
-	db FALSE_SWIPE
-	db SCARY_FACE
+SpearowEggSpeciesMoves:
+	dp SPEAROW, PLAIN_FORM
+	db ASTONISH
+	db FEINT_ATTACK
 	db QUICK_ATTACK
+	db SCARY_FACE
 	db TRI_ATTACK
-	db -1 ; end
+	db $ff
 
-EkansEggMoves:
-	db PURSUIT
-	db SLAM
-	db SPITE
-	db BEAT_UP
+EkansEggSpeciesMoves:
+	dp EKANS, NO_FORM
 	db CRUNCH
-	db -1 ; end
+	db DISABLE
+	db PURSUIT
+	db SCARY_FACE
+	db $ff
 
-SandshrewEggMoves:
-	db FLAIL
+SandshrewPlainEggSpeciesMoves:
+	dp SANDSHREW, PLAIN_FORM
+	db METAL_CLAW
+	db RAPID_SPIN
 	db SAFEGUARD
 	db COUNTER
+	db NIGHT_SLASH
+	db $ff
+
+SandshrewAlolanEggSpeciesMoves:
+	dp SANDSHREW, ALOLAN_FORM
+	db AMNESIA
 	db RAPID_SPIN
-	db METAL_CLAW
-	db -1 ; end
+	db SAFEGUARD
+	db REVERSAL ; Flail → similar move
+	db ICICLE_CRASH
+	db ICICLE_SPEAR
+	db NIGHT_SLASH
+	db $ff
 
-NidoranFEggMoves:
-	db SUPERSONIC
+NidoranFEggSpeciesMoves:
+	dp NIDORAN_F, PLAIN_FORM
+	db CHARM
 	db DISABLE
-	db TAKE_DOWN
 	db FOCUS_ENERGY
-	db CHARM
-	db COUNTER
-	db BEAT_UP
-	db -1 ; end
-
-NidoranMEggMoves:
+	db PURSUIT
 	db SUPERSONIC
-	db DISABLE
 	db TAKE_DOWN
-	db CONFUSION
+	db $ff
+
+NidoranMEggSpeciesMoves:
+	dp NIDORAN_M, PLAIN_FORM
 	db AMNESIA
-	db COUNTER
-	db BEAT_UP
-	db -1 ; end
-
-VulpixEggMoves:
-	db FAINT_ATTACK
-	db HYPNOSIS
-	db FLAIL
-	db SPITE
+	db CONFUSION
 	db DISABLE
-	db -1 ; end
-
-ZubatEggMoves:
-	db QUICK_ATTACK
-	db PURSUIT
-	db FAINT_ATTACK
-	db GUST
-	db WHIRLWIND
-	db -1 ; end
-
-OddishEggMoves:
-	db SWORDS_DANCE
-	db RAZOR_LEAF
-	db FLAIL
-	db SYNTHESIS
-	db -1 ; end
-
-ParasEggMoves:
-	db FALSE_SWIPE
-	db SCREECH
+	db SUPERSONIC
+	db TAKE_DOWN
+	db CALM_MIND
 	db COUNTER
+	db $ff
+
+VulpixPlainEggSpeciesMoves:
+	dp VULPIX, PLAIN_FORM
+	db FLAME_CHARGE
+	db DISABLE
+	db FLARE_BLITZ
+	db HYPNOSIS
+	db FEINT_ATTACK
+	db EXTRASENSORY
+	db CHARM
+	db ENERGY_BALL
+	db ROAR
+	db $ff
+
+VulpixAlolanEggSpeciesMoves:
+	dp VULPIX, ALOLAN_FORM
+	db DISABLE
+	db BLIZZARD
+	db HYPNOSIS
+	db FEINT_ATTACK
+	db EXTRASENSORY
+	db CHARM
+	db ICE_BEAM
+	db ROAR
+	db $ff
+
+ZubatEggSpeciesMoves:
+	dp ZUBAT, PLAIN_FORM
+	db FEINT_ATTACK
+	db GUST
+	db HYPNOSIS
+	db NASTY_PLOT
+	db PURSUIT
+	db QUICK_ATTACK
+	db ZEN_HEADBUTT
+	db BRAVE_BIRD
+	db $ff
+
+OddishEggSpeciesMoves:
+	dp ODDISH, PLAIN_FORM
+	db CHARM
+	db RAZOR_LEAF
+	db HEALINGLIGHT
+	db SWORDS_DANCE
+	db $ff
+
+ParasEggSpeciesMoves:
+	dp PARAS, PLAIN_FORM
+	db AGILITY
+	db LEECH_SEED
+	db METAL_CLAW
 	db PSYBEAM
-	db FLAIL
-	db LIGHT_SCREEN
 	db PURSUIT
-	db -1 ; end
+	db SCREECH
+	db SHADOW_CLAW
+	db $ff
 
-VenonatEggMoves:
+VenonatEggSpeciesMoves:
+	dp VENONAT, PLAIN_FORM
+	db AGILITY
 	db BATON_PASS
+	db HEALINGLIGHT
 	db SCREECH
-	db GIGA_DRAIN
-	db -1 ; end
+	db TOXIC_SPIKES
+	db $ff
 
-DiglettEggMoves:
-	db FAINT_ATTACK
-	db SCREECH
+DiglettPlainEggSpeciesMoves:
+	dp DIGLETT, PLAIN_FORM
 	db ANCIENTPOWER
+	db FEINT_ATTACK
+	db HEADBUTT
 	db PURSUIT
-	db BEAT_UP
-	db -1 ; end
+	db REVERSAL
+	db SCREECH
+	db $ff
 
-MeowthEggMoves:
-	db SPITE
+DiglettAlolanEggSpeciesMoves:
+	dp DIGLETT, ALOLAN_FORM
+	db ANCIENTPOWER
+	db FEINT_ATTACK
+	db HEADBUTT
+	db PURSUIT
+	db REVERSAL
+	db SCREECH
+	db $ff
+
+MeowthPlainEggSpeciesMoves:
+	dp MEOWTH, PLAIN_FORM
 	db CHARM
 	db HYPNOSIS
 	db AMNESIA
-	db -1 ; end
+	db LEER
+	db NIGHT_SLASH
+	db $ff
 
-PsyduckEggMoves:
-	db ICE_BEAM
+MeowthAlolanEggSpeciesMoves:
+	dp MEOWTH, ALOLAN_FORM
+	db CHARM
+	db HYPNOSIS
+	db AMNESIA
+	db LEER
+	db NIGHT_SLASH
+	db $ff
+
+MeowthGalarianEggSpeciesMoves:
+	dp MEOWTH, GALARIAN_FORM
+	db CHARM
+	db HYPNOSIS
+	db AMNESIA
+	db LEER
+	db NIGHT_SLASH
+	db $ff
+
+PsyduckEggSpeciesMoves:
+	dp PSYDUCK, PLAIN_FORM
+	db CONFUSE_RAY
+	db CROSS_CHOP
+	db ENCORE
+	db FORESIGHT
+	db FUTURE_SIGHT
 	db HYPNOSIS
 	db PSYBEAM
-	db FORESIGHT
+	db ICE_BEAM
 	db LIGHT_SCREEN
-	db FUTURE_SIGHT
 	db PSYCHIC_M
-	db CROSS_CHOP
-	db -1 ; end
+	db $ff
 
-MankeyEggMoves:
-	db ROCK_SLIDE
+MankeyEggSpeciesMoves:
+	dp MANKEY, PLAIN_FORM
+	db ENCORE
 	db FORESIGHT
-	db MEDITATE
-	db COUNTER
+	db BULK_UP
 	db REVERSAL
-	db BEAT_UP
-	db -1 ; end
+	db ROCK_SLIDE
+	db COUNTER
+	db GUNK_SHOT
+	db NIGHT_SLASH
+	db CLOSE_COMBAT
+	db $ff
 
-GrowlitheEggMoves:
+GrowlithePlainEggSpeciesMoves:
+	dp GROWLITHE, PLAIN_FORM
+	db DOUBLE_KICK
+	db FIRE_SPIN
+	db HEALINGLIGHT
+	db THRASH
+	db CRUNCH
+	db FLARE_BLITZ
 	db BODY_SLAM
 	db SAFEGUARD
-	db CRUNCH
-	db THRASH
+	db CLOSE_COMBAT
+	db $ff
+
+GrowlitheHisuianEggSpeciesMoves:
+	dp GROWLITHE, HISUIAN_FORM
+	db DOUBLE_KICK
 	db FIRE_SPIN
-	db -1 ; end
+	db HEALINGLIGHT
+	db THRASH
+	db CRUNCH
+	db FLARE_BLITZ
+	db BODY_SLAM
+	db SAFEGUARD
+	db CLOSE_COMBAT
+	db $ff
 
-PoliwagEggMoves:
-	db MIST
-	db SPLASH
-	db BUBBLEBEAM
+PoliwagEggSpeciesMoves:
+	dp POLIWAG, PLAIN_FORM
+	db ENCORE
 	db HAZE
-	db MIND_READER
-	db -1 ; end
+	db SPLASH
+	db BUBBLE_BEAM
+	db WATER_PULSE
+	db $ff
 
-AbraEggMoves:
-	db LIGHT_SCREEN
-	db ENCORE
+AbraEggSpeciesMoves:
+	dp ABRA, PLAIN_FORM
 	db BARRIER
-	db -1 ; end
-
-MachopEggMoves:
+	db ENCORE
 	db LIGHT_SCREEN
-	db MEDITATE
-	db ROLLING_KICK
-	db ENCORE
-	db -1 ; end
+	db KNOCK_OFF
+	db $ff
 
-BellsproutEggMoves:
-	db SWORDS_DANCE
+MachopEggSpeciesMoves:
+	dp MACHOP, PLAIN_FORM
+	db BULLET_PUNCH
 	db ENCORE
-	db REFLECT
-	db SYNTHESIS
+	db BULK_UP
+	db LIGHT_SCREEN
+	db MACH_PUNCH
+	db CLOSE_COMBAT
+	db KNOCK_OFF
+	db $ff
+
+BellsproutEggSpeciesMoves:
+	dp BELLSPROUT, PLAIN_FORM
+	db ENCORE
 	db LEECH_LIFE
-	db -1 ; end
+	db SWORDS_DANCE
+	db REFLECT
+	db HEALINGLIGHT
+	db POWER_WHIP
+	db $ff
 
-TentacoolEggMoves:
+TentacoolEggSpeciesMoves:
+	dp TENTACOOL, PLAIN_FORM
 	db AURORA_BEAM
+	db CONFUSE_RAY
+	db HAZE
 	db MIRROR_COAT
 	db RAPID_SPIN
-	db HAZE
 	db SAFEGUARD
-	db -1 ; end
+	db KNOCK_OFF
+	db $ff
 
-GeodudeEggMoves:
-	db MEGA_PUNCH
+GeodudePlainEggSpeciesMoves:
+	dp GEODUDE, PLAIN_FORM
 	db ROCK_SLIDE
-	db -1 ; end
+	db $ff
 
-PonytaEggMoves:
-	db FLAME_WHEEL
-	db THRASH
+GeodudeAlolanEggSpeciesMoves:
+	dp GEODUDE, ALOLAN_FORM
+	db ROCK_SLIDE
+	db $ff
+
+PonytaPlainEggSpeciesMoves:
+	dp PONYTA, PLAIN_FORM
+	db CHARM
 	db DOUBLE_KICK
 	db HYPNOSIS
-	db CHARM
+	db HEALINGLIGHT
+	db THRASH
 	db QUICK_ATTACK
-	db -1 ; end
+	db EXTREMESPEED
+	db PLAY_ROUGH
+	db $ff
 
-SlowpokeEggMoves:
-	db SAFEGUARD
+PonytaGalarianEggSpeciesMoves:
+	dp PONYTA, GALARIAN_FORM
+	db CHARM
+	db DOUBLE_KICK
+	db HYPNOSIS
+	db HEALINGLIGHT
+	db THRASH
+	db QUICK_ATTACK
+	db PSYBEAM
+	db PSYCHIC_M
+	db EXTREMESPEED
+	db PLAY_ROUGH
+	db $ff
+
+SlowpokePlainEggSpeciesMoves:
+	dp SLOWPOKE, PLAIN_FORM
+	dp SLOWPOKE, GALARIAN_FORM
 	db BELLY_DRUM
 	db FUTURE_SIGHT
 	db STOMP
-	db -1 ; end
+	db SAFEGUARD
+	db ZEN_HEADBUTT
+	db $ff
 
-FarfetchDEggMoves:
+SlowpokeGalarianEggSpeciesMoves:
+	dp SLOWPOKE, GALARIAN_FORM
+	db BELLY_DRUM
+	db FUTURE_SIGHT
+	db STOMP
+	db SAFEGUARD
+	db ZEN_HEADBUTT
+	db $ff
+
+MagnemiteEggSpeciesMoves:
+	dp MAGNEMITE, PLAIN_FORM
+	db $ff
+
+FarfetchDGalarianEggSpeciesMoves:
+	dp FARFETCH_D, GALARIAN_FORM
+	db COUNTER
 	db FORESIGHT
-	db MIRROR_MOVE
 	db GUST
 	db QUICK_ATTACK
-	db FLAIL
-	db -1 ; end
+	db STEEL_WING
+	db NIGHT_SLASH
+	db ROOST
+	db $ff
 
-DoduoEggMoves:
+FarfetchDPlainEggSpeciesMoves:
+	dp FARFETCH_D, PLAIN_FORM
+	db FORESIGHT
+	db GUST
 	db QUICK_ATTACK
+	db STEEL_WING
+	db NIGHT_SLASH
+	db ROOST
+	db $ff
+
+DoduoEggSpeciesMoves:
+	dp DODUO, PLAIN_FORM
+	db FEINT_ATTACK
+	db HAZE
 	db SUPERSONIC
-	db HAZE
-	db FAINT_ATTACK
-	db FLAIL
-	db -1 ; end
+	db QUICK_ATTACK
+	db BRAVE_BIRD
+	db $ff
 
-SeelEggMoves:
-	db LICK
-	db PERISH_SONG
+SeelEggSpeciesMoves:
+	dp SEEL, PLAIN_FORM
 	db DISABLE
-	db PECK
-	db SLAM
-	db ENCORE
-	db -1 ; end
-
-GrimerEggMoves:
-	db HAZE
-	db MEAN_LOOK
 	db LICK
-	db -1 ; end
+	db PECK
+	db PERISH_SONG
+	db ENCORE
+	db WATER_PULSE
+	db ICICLE_SPEAR
+	db $ff
 
-ShellderEggMoves:
-	db BUBBLEBEAM
-	db TAKE_DOWN
+GrimerPlainEggSpeciesMoves:
+	dp GRIMER, PLAIN_FORM
+	db HAZE
+	db LICK
+	db MEAN_LOOK
+	db SCARY_FACE
+	db SHADOW_CLAW
+	db $ff
+
+GrimerAlolanEggSpeciesMoves:
+	dp GRIMER, ALOLAN_FORM
+	db HAZE
+	db LICK
+	db MEAN_LOOK
+	db SCARY_FACE
+	db PURSUIT
+	db $ff
+
+ShellderEggSpeciesMoves:
+	dp SHELLDER, PLAIN_FORM
 	db BARRIER
+	db BUBBLE_BEAM
 	db RAPID_SPIN
 	db SCREECH
-	db -1 ; end
+	db TAKE_DOWN
+	db WATER_PULSE
+	db ICICLE_SPEAR
+	db ROCK_BLAST
+	db $ff
 
-GastlyEggMoves:
-	db PSYWAVE
-	db PERISH_SONG
+GastlyEggSpeciesMoves:
+	dp GASTLY, PLAIN_FORM
+	db ASTONISH
+	db DISABLE
 	db HAZE
-	db -1 ; end
+	db PERISH_SONG
+	db SCARY_FACE
+	db NASTY_PLOT
+	db FEINT_ATTACK
+	db $ff
 
-OnixEggMoves:
+OnixEggSpeciesMoves:
+	dp ONIX, PLAIN_FORM
+	db DEFENSE_CURL
 	db ROCK_SLIDE
-	db FLAIL
-	db -1 ; end
+	db EARTHQUAKE
+	db ROCK_BLAST
+	db $ff
 
-DrowzeeEggMoves:
-	db LIGHT_SCREEN
+DrowzeeEggSpeciesMoves:
+	dp DROWZEE, PLAIN_FORM
 	db BARRIER
-	db -1 ; end
+	db LIGHT_SCREEN
+	db BELLY_DRUM
+	db $ff
 
-KrabbyEggMoves:
-	db DIG
+KrabbyEggSpeciesMoves:
+	dp KRABBY, PLAIN_FORM
+	db AGILITY
 	db HAZE
 	db AMNESIA
-	db FLAIL
-	db SLAM
-	db -1 ; end
+	db DIG
+	db CALM_MIND
+	db KNOCK_OFF
+	db $ff
 
-ExeggcuteEggMoves:
-	db SYNTHESIS
-	db MOONLIGHT
-	db REFLECT
+VoltorbPlainEggSpeciesMoves:
+	dp VOLTORB, PLAIN_FORM
+	db $ff
+
+VoltorbHisuianEggSpeciesMoves:
+	dp VOLTORB, HISUIAN_FORM
+	db $ff
+
+ExeggcuteEggSpeciesMoves:
+	dp EXEGGCUTE, PLAIN_FORM
 	db MEGA_DRAIN
+	db HEALINGLIGHT
 	db ANCIENTPOWER
-	db -1 ; end
+	db REFLECT
+	db $ff
 
-CuboneEggMoves:
-	db ROCK_SLIDE
+CuboneEggSpeciesMoves:
+	dp CUBONE, PLAIN_FORM
 	db ANCIENTPOWER
 	db BELLY_DRUM
-	db SCREECH
-	db SKULL_BASH
+	db DOUBLE_KICK
 	db PERISH_SONG
-	db SWORDS_DANCE
-	db -1 ; end
-
-LickitungEggMoves:
-	db BELLY_DRUM
-	db MAGNITUDE
-	db BODY_SLAM
-	db -1 ; end
-
-KoffingEggMoves:
 	db SCREECH
-	db PSYWAVE
+	db ROCK_SLIDE
+	db SWORDS_DANCE
+	db IRON_HEAD
+	db $ff
+
+LickitungEggSpeciesMoves:
+	dp LICKITUNG, PLAIN_FORM
+	db THRASH
+	db $ff
+
+KoffingEggSpeciesMoves:
+	dp KOFFING, PLAIN_FORM
 	db PSYBEAM
+	db SCREECH
 	db DESTINY_BOND
 	db PAIN_SPLIT
-	db -1 ; end
+	db $ff
 
-RhyhornEggMoves:
+RhyhornEggSpeciesMoves:
+	dp RHYHORN, PLAIN_FORM
 	db CRUNCH
-	db REVERSAL
-	db ROCK_SLIDE
-	db THRASH
-	db PURSUIT
-	db COUNTER
 	db MAGNITUDE
-	db -1 ; end
-
-ChanseyEggMoves:
-	db PRESENT
-	db METRONOME
-	db HEAL_BELL
-	db -1 ; end
-
-TangelaEggMoves:
-	db FLAIL
-	db CONFUSION
-	db MEGA_DRAIN
-	db REFLECT
-	db AMNESIA
-	db -1 ; end
-
-KangaskhanEggMoves:
-	db STOMP
-	db FORESIGHT
-	db FOCUS_ENERGY
-	db SAFEGUARD
-	db DISABLE
-	db -1 ; end
-
-HorseaEggMoves:
-	db FLAIL
-	db AURORA_BEAM
-	db OCTAZOOKA
-	db DISABLE
-	db SPLASH
-	db DRAGON_RAGE
-	db -1 ; end
-
-GoldeenEggMoves:
-	db PSYBEAM
-	db HAZE
-	db HYDRO_PUMP
-	db -1 ; end
-
-MrMimeEggMoves:
-	db FUTURE_SIGHT
-	db HYPNOSIS
-	db MIMIC
-	db -1 ; end
-
-ScytherEggMoves:
-	db COUNTER
-	db SAFEGUARD
-	db BATON_PASS
-	db RAZOR_WIND
-	db REVERSAL
-	db LIGHT_SCREEN
-	db -1 ; end
-
-PinsirEggMoves:
-	db FURY_ATTACK
-	db FLAIL
-	db -1 ; end
-
-LaprasEggMoves:
-	db AURORA_BEAM
-	db FORESIGHT
-	db -1 ; end
-
-EeveeEggMoves:
-	db FLAIL
-	db CHARM
-	db -1 ; end
-
-OmanyteEggMoves:
-	db BUBBLEBEAM
-	db AURORA_BEAM
-	db SLAM
-	db SUPERSONIC
-	db HAZE
-	db -1 ; end
-
-KabutoEggMoves:
-	db BUBBLEBEAM
-	db AURORA_BEAM
-	db RAPID_SPIN
-	db DIG
-	db FLAIL
-	db -1 ; end
-
-AerodactylEggMoves:
-	db WHIRLWIND
 	db PURSUIT
-	db FORESIGHT
-	db -1 ; end
-
-SnorlaxEggMoves:
-	db LICK
-	db -1 ; end
-
-DratiniEggMoves:
-	db LIGHT_SCREEN
-	db MIST
-	db HAZE
-	db SUPERSONIC
-	db -1 ; end
-
-ChikoritaEggMoves:
-	db VINE_WHIP
-	db LEECH_SEED
-	db COUNTER
-	db ANCIENTPOWER
-	db FLAIL
-	db SWORDS_DANCE
-	db -1 ; end
-
-CyndaquilEggMoves:
-	db FURY_SWIPES
-	db QUICK_ATTACK
 	db REVERSAL
 	db THRASH
-	db FORESIGHT
-	db SUBMISSION
-	db -1 ; end
+	db ROCK_SLIDE
+	db COUNTER
+	db $ff
 
-TotodileEggMoves:
+TangelaEggSpeciesMoves:
+	dp TANGELA, PLAIN_FORM
+	db CONFUSION
+	db AMNESIA
+	db LEECH_SEED
+	db $ff
+
+KangaskhanEggSpeciesMoves:
+	dp KANGASKHAN, PLAIN_FORM
+	db DISABLE
+	db FOCUS_ENERGY
+	db FORESIGHT
+	db STOMP
+	db SAFEGUARD
+	db $ff
+
+HorseaEggSpeciesMoves:
+	dp HORSEA, PLAIN_FORM
+	db AURORA_BEAM
+	db DISABLE
+	db DRAGON_RAGE
+	db DRAGONBREATH
+	db OCTAZOOKA
+	db SPLASH
+	db HAZE
+	db WATER_PULSE
+	db $ff
+
+GoldeenEggSpeciesMoves:
+	dp GOLDEEN, PLAIN_FORM
+	db AQUA_TAIL
+	db HYDRO_PUMP
+	db PSYBEAM
+	db QUICK_ATTACK
+	db $ff
+
+StaryuEggSpeciesMoves:
+	dp STARYU, PLAIN_FORM
+	db $ff
+
+ScytherEggSpeciesMoves:
+	dp SCYTHER, PLAIN_FORM
+	db BATON_PASS
+	db BUG_BUZZ
+	db REVERSAL
+	db COUNTER
+	db SAFEGUARD
+	db LIGHT_SCREEN
+	db NIGHT_SLASH
+	db $ff
+
+PinsirEggSpeciesMoves:
+	dp PINSIR, PLAIN_FORM
+	db FEINT_ATTACK
+	db FURY_STRIKES
+	db QUICK_ATTACK
+	db CLOSE_COMBAT
+	db $ff
+
+MagikarpEggSpeciesMoves:
+	dp MAGIKARP, NO_FORM
+	db $ff
+
+LaprasEggSpeciesMoves:
+	dp LAPRAS, PLAIN_FORM
+	db AURORA_BEAM
+	db DRAGON_DANCE
+	db FORESIGHT
+	db FUTURE_SIGHT
+	db HEAL_BELL
+	db $ff
+
+EeveeEggSpeciesMoves:
+	dp EEVEE, PLAIN_FORM
+	db CHARM
+	db $ff
+
+PorygonEggSpeciesMoves:
+	dp PORYGON, PLAIN_FORM
+	db $ff
+
+OmanyteEggSpeciesMoves:
+	dp OMANYTE, PLAIN_FORM
+	db AURORA_BEAM
+	db BUBBLE_BEAM
+	db HAZE
+	db SPIKES
+	db TOXIC_SPIKES
+	db SUPERSONIC
+	db WATER_PULSE
+	db KNOCK_OFF
+	db $ff
+
+KabutoEggSpeciesMoves:
+	dp KABUTO, PLAIN_FORM
+	db AURORA_BEAM
+	db BUBBLE_BEAM
+	db CONFUSE_RAY
+	db FORESIGHT
+	db RAPID_SPIN
+	db SCREECH
+	db TAKE_DOWN
+	db DIG
+	db KNOCK_OFF
+	db $ff
+
+AerodactylEggSpeciesMoves:
+	dp AERODACTYL, PLAIN_FORM
+	db FORESIGHT
+	db PURSUIT
+	db STEEL_WING
+	db ROOST
+	db $ff
+
+DratiniEggSpeciesMoves:
+	dp DRATINI, PLAIN_FORM
+	db EXTREMESPEED ; requires Dragon Shrine Dratini
+	db HAZE
+	db SUPERSONIC
+	db WATER_PULSE
+	db AQUA_JET
+	db $ff
+
+ChikoritaEggSpeciesMoves:
+	dp CHIKORITA, PLAIN_FORM
+	db LEECH_SEED
+	db VINE_WHIP
+	db ANCIENTPOWER
+	db COUNTER
+	db SWORDS_DANCE
+	db CHARM
+	db HEAL_BELL
+	db $ff
+
+CyndaquilEggSpeciesMoves:
+	dp CYNDAQUIL, PLAIN_FORM
+	db DOUBLE_KICK
+	db EXTRASENSORY
+	db FLARE_BLITZ
+	db FORESIGHT
+	db FURY_STRIKES
+	db REVERSAL
+	db CLOSE_COMBAT
+	db THRASH
+	db QUICK_ATTACK
+	db $ff
+
+TotodileEggSpeciesMoves:
+	dp TOTODILE, PLAIN_FORM
+	db DRAGON_DANCE
+	db METAL_CLAW
 	db CRUNCH
 	db THRASH
 	db HYDRO_PUMP
 	db ANCIENTPOWER
-	db RAZOR_WIND
 	db ROCK_SLIDE
-	db -1 ; end
+	db WATER_PULSE
+	db AQUA_JET
+	db $ff
 
-SentretEggMoves:
-	db DOUBLE_EDGE
-	db PURSUIT
-	db SLASH
+SentretEggSpeciesMoves:
+	dp SENTRET, PLAIN_FORM
+	db CHARM
 	db FOCUS_ENERGY
-	db REVERSAL
-	db -1 ; end
-
-HoothootEggMoves:
-	db MIRROR_MOVE
-	db SUPERSONIC
-	db FAINT_ATTACK
-	db WING_ATTACK
-	db WHIRLWIND
-	db SKY_ATTACK
-	db -1 ; end
-
-LedybaEggMoves:
-	db PSYBEAM
-	db BIDE
-	db LIGHT_SCREEN
-	db -1 ; end
-
-SpinarakEggMoves:
-	db PSYBEAM
-	db DISABLE
-	db SONICBOOM
-	db BATON_PASS
 	db PURSUIT
-	db -1 ; end
-
-ChinchouEggMoves:
-	db FLAIL
-	db SUPERSONIC
-	db SCREECH
-	db -1 ; end
-
-PichuEggMoves:
 	db REVERSAL
-	db BIDE
-	db PRESENT
+	db SLASH
+	db DOUBLE_EDGE
+	db TRICK
+	db $ff
+
+HoothootEggSpeciesMoves:
+	dp HOOTHOOT, PLAIN_FORM
+	db AGILITY
+	db FEINT_ATTACK
+	db NIGHT_SHADE
+	db SUPERSONIC
+	db WING_ATTACK
+	db BRAVE_BIRD
+	db HURRICANE
+	db $ff
+
+LedybaEggSpeciesMoves:
+	dp LEDYBA, PLAIN_FORM
+	db DIZZY_PUNCH
 	db ENCORE
-	db DOUBLESLAP
-	db -1 ; end
+	db PSYBEAM
+	db SCREECH
+	db LIGHT_SCREEN
+	db KNOCK_OFF
+	db DRAIN_PUNCH
+	db $ff
 
-CleffaEggMoves:
-	db PRESENT
-	db METRONOME
-	db AMNESIA
+SpinarakEggSpeciesMoves:
+	dp SPINARAK, PLAIN_FORM
+	db BATON_PASS
+	db DISABLE
+	db MEGAHORN
+	db PSYBEAM
+	db PURSUIT
+	db SONIC_BOOM
+	db POISON_JAB
+	db NIGHT_SLASH
+	db TOXIC_SPIKES
+	db $ff
+
+ChinchouEggSpeciesMoves:
+	dp CHINCHOU, PLAIN_FORM
+	db AGILITY
+	db HAZE
+	db PSYBEAM
+	db SCREECH
+	db SUPERSONIC
+	db WATER_PULSE
+	db $ff
+
+PichuEggSpeciesMoves:
+	dp PICHU, PLAIN_FORM
+	db DISARM_VOICE
+	db DOUBLE_SLAP
+	db ENCORE
+	db REVERSAL
+	db $ff
+
+CleffaEggSpeciesMoves:
+	dp CLEFFA, PLAIN_FORM
+	db CALM_MIND
 	db BELLY_DRUM
+	db AMNESIA
 	db SPLASH
-	db MIMIC
-	db -1 ; end
+	db FRESH_SNACK
+	db $ff
 
-IgglybuffEggMoves:
+IgglybuffEggSpeciesMoves:
+	dp IGGLYBUFF, PLAIN_FORM
+	db FEINT_ATTACK
 	db PERISH_SONG
-	db PRESENT
-	db FAINT_ATTACK
-	db -1 ; end
+	db MOONBLAST
+	db $ff
 
-TogepiEggMoves:
-	db PRESENT
-	db MIRROR_MOVE
-	db PECK
+TogepiEggSpeciesMoves:
+	dp TOGEPI, PLAIN_FORM
+	db EXTRASENSORY
 	db FORESIGHT
 	db FUTURE_SIGHT
-	db -1 ; end
+	db HEALINGLIGHT
+	db NASTY_PLOT
+	db PECK
+	db $ff
 
-NatuEggMoves:
-	db HAZE
+NatuEggSpeciesMoves:
+	dp NATU, PLAIN_FORM
 	db DRILL_PECK
+	db FEINT_ATTACK
+	db HAZE
 	db QUICK_ATTACK
-	db FAINT_ATTACK
 	db STEEL_WING
-	db -1 ; end
+	db ZEN_HEADBUTT
+	db ROOST
+	db $ff
 
-MareepEggMoves:
+MareepEggSpeciesMoves:
+	dp MAREEP, PLAIN_FORM
+	db AGILITY
+	db REFLECT
+	db MUD_SLAP
+	db SCREECH
 	db THUNDERBOLT
 	db TAKE_DOWN
 	db BODY_SLAM
 	db SAFEGUARD
-	db SCREECH
-	db REFLECT
-	db -1 ; end
+	db $ff
 
-MarillEggMoves:
-	db LIGHT_SCREEN
-	db PRESENT
-	db AMNESIA
-	db FUTURE_SIGHT
-	db BELLY_DRUM
-	db PERISH_SONG
-	db SUPERSONIC
-	db FORESIGHT
-	db -1 ; end
-
-SudowoodoEggMoves:
-	db SELFDESTRUCT
-	db -1 ; end
-
-HoppipEggMoves:
-	db CONFUSION
-	db GROWL
+HoppipEggSpeciesMoves:
+	dp HOPPIP, PLAIN_FORM
 	db ENCORE
-	db DOUBLE_EDGE
-	db REFLECT
-	db AMNESIA
-	db PAY_DAY
-	db -1 ; end
+	db SEED_BOMB
+	db $ff
 
-AipomEggMoves:
+AipomEggSpeciesMoves:
+	dp AIPOM, PLAIN_FORM
 	db COUNTER
-	db SCREECH
 	db PURSUIT
-	db AGILITY
-	db SPITE
-	db SLAM
-	db DOUBLESLAP
-	db BEAT_UP
-	db -1 ; end
+	db $ff
 
-YanmaEggMoves:
-	db WHIRLWIND
-	db REVERSAL
+SunkernEggSpeciesMoves:
+	dp SUNKERN, PLAIN_FORM
+	db $ff
+
+YanmaEggSpeciesMoves:
+	dp YANMA, PLAIN_FORM
+	db FEINT_ATTACK
 	db LEECH_LIFE
-	db -1 ; end
+	db REVERSAL
+	db $ff
 
-WooperEggMoves:
+WooperPlainEggSpeciesMoves:
+	dp WOOPER, PLAIN_FORM
+	db COUNTER
+	db DOUBLE_KICK
+	db ENCORE
+	db RECOVER
 	db BODY_SLAM
 	db ANCIENTPOWER
 	db SAFEGUARD
-	db -1 ; end
+	db $ff
 
-MurkrowEggMoves:
-	db WHIRLWIND
+WooperPaldeanEggSpeciesMoves:
+	dp WOOPER, PALDEAN_FORM
+	db COUNTER
+	db DOUBLE_KICK
+	db ENCORE
+	db RECOVER
+	db BODY_SLAM
+	db ANCIENTPOWER
+	db SAFEGUARD
+	db $ff
+
+MurkrowEggSpeciesMoves:
+	dp MURKROW, PLAIN_FORM
+	db CONFUSE_RAY
 	db DRILL_PECK
+	db PERISH_SONG
 	db QUICK_ATTACK
-	db MIRROR_MOVE
-	db WING_ATTACK
-	db SKY_ATTACK
-	db -1 ; end
-
-MisdreavusEggMoves:
 	db SCREECH
-	db DESTINY_BOND
-	db -1 ; end
+	db WING_ATTACK
+	db BRAVE_BIRD
+	db ROOST
+	db $ff
 
-GirafarigEggMoves:
-	db TAKE_DOWN
-	db AMNESIA
+MisdreavusEggSpeciesMoves:
+	dp MISDREAVUS, PLAIN_FORM
+	db DESTINY_BOND
+	db NASTY_PLOT
+	db SCREECH
+	db $ff
+
+GirafarigEggSpeciesMoves:
+	dp GIRAFARIG, PLAIN_FORM
+	db DOUBLE_KICK
 	db FORESIGHT
 	db FUTURE_SIGHT
-	db BEAT_UP
-	db -1 ; end
+	db MEAN_LOOK
+	db MIRROR_COAT
+	db TAKE_DOWN
+	db AMNESIA
+	db CALM_MIND
+	db $ff
 
-PinecoEggMoves:
-	db REFLECT
+PinecoEggSpeciesMoves:
+	dp PINECO, PLAIN_FORM
 	db PIN_MISSILE
-	db FLAIL
 	db SWIFT
-	db -1 ; end
+	db REFLECT
+	db TOXIC_SPIKES
+	db $ff
 
-DunsparceEggMoves:
-	db BIDE
-	db ANCIENTPOWER
-	db ROCK_SLIDE
+DunsparceEggSpeciesMoves:
+	dp DUNSPARCE, NO_FORM
+	db AGILITY
+	db ASTONISH
 	db BITE
 	db RAGE
-	db -1 ; end
+	db ANCIENTPOWER
+	db ROCK_SLIDE
+	db HEX
+	db $ff
 
-GligarEggMoves:
+GligarEggSpeciesMoves:
+	dp GLIGAR, PLAIN_FORM
+	db AGILITY
+	db BATON_PASS
 	db METAL_CLAW
 	db WING_ATTACK
-	db RAZOR_WIND
 	db COUNTER
-	db -1 ; end
+	db NIGHT_SLASH
+	db $ff
 
-SnubbullEggMoves:
+SnubbullEggSpeciesMoves:
+	dp SNUBBULL, PLAIN_FORM
+	db FEINT_ATTACK
+	db LEER
 	db METRONOME
-	db FAINT_ATTACK
 	db REFLECT
-	db PRESENT
 	db CRUNCH
 	db HEAL_BELL
 	db LICK
-	db LEER
-	db -1 ; end
+	db CLOSE_COMBAT
+	db $ff
 
-QwilfishEggMoves:
-	db FLAIL
+QwilfishEggSpeciesMoves:
+	dp QWILFISH, PLAIN_FORM
+	db BUBBLE_BEAM
 	db HAZE
-	db BUBBLEBEAM
 	db SUPERSONIC
-	db -1 ; end
+	db POISON_JAB
+	db WATER_PULSE
+	db $ff
 
-ShuckleEggMoves:
-	db SWEET_SCENT
-	db -1 ; end
+QwilfishHisuianEggSpeciesMoves:
+	dp QWILFISH, HISUIAN_FORM
+	db $ff
 
-HeracrossEggMoves:
-	db HARDEN
-	db BIDE
-	db FLAIL
-	db -1 ; end
+ShuckleEggSpeciesMoves:
+	dp SHUCKLE, PLAIN_FORM
+	db ROLLOUT
+	db ACID
+	db KNOCK_OFF
+	db MUD_SLAP
+	db ROCK_BLAST
+	db $ff
 
-SneaselEggMoves:
-	db COUNTER
-	db SPITE
-	db FORESIGHT
-	db REFLECT
+HeracrossEggSpeciesMoves:
+	dp HERACROSS, PLAIN_FORM
+	db ROCK_BLAST
+	db DEFENSE_CURL
+	db PURSUIT
+	db $ff
+
+SneaselEggSpeciesMoves:
+	dp SNEASEL, PLAIN_FORM
 	db BITE
-	db -1 ; end
+	db FORESIGHT
+	db PURSUIT
+	db COUNTER
+	db REFLECT
+	db ICICLE_CRASH
+	db ICE_SHARD
+	db $ff
 
-TeddiursaEggMoves:
+SneaselHisuianEggSpeciesMoves:
+	dp SNEASEL, HISUIAN_FORM
+	db $ff
+
+TeddiursaEggSpeciesMoves:
+	dp TEDDIURSA, PLAIN_FORM
+	db BELLY_DRUM
+	db CROSS_CHOP
 	db CRUNCH
+	db FOCUS_ENERGY
+	db METAL_CLAW
+	db PLAY_ROUGH
 	db TAKE_DOWN
 	db SEISMIC_TOSS
-	db FOCUS_ENERGY
 	db COUNTER
-	db METAL_CLAW
-	db -1 ; end
+	db GUNK_SHOT
+	db NIGHT_SLASH
+	db CLOSE_COMBAT
+	db $ff
 
-SlugmaEggMoves:
-	db ACID_ARMOR
-	db -1 ; end
+SlugmaEggSpeciesMoves:
+	dp SLUGMA, PLAIN_FORM
+	db SMOKESCREEN
+	db CURSE
+	db $ff
 
-SwinubEggMoves:
-	db TAKE_DOWN
+SwinubEggSpeciesMoves:
+	dp SWINUB, PLAIN_FORM
+	db AVALANCHE
 	db BITE
+	db TAKE_DOWN
 	db BODY_SLAM
 	db ROCK_SLIDE
 	db ANCIENTPOWER
-	db -1 ; end
+	db ICICLE_CRASH
+	db ICICLE_SPEAR
+	db $ff
 
-CorsolaEggMoves:
+CorsolaPlainEggSpeciesMoves:
+	dp CORSOLA, PLAIN_FORM
+	db BARRIER
+	db CONFUSE_RAY
+	db HAZE
+	db AMNESIA
+	db SCREECH
 	db ROCK_SLIDE
 	db SAFEGUARD
-	db SCREECH
-	db MIST
+	db CALM_MIND
+	db WATER_PULSE
+	db ICICLE_SPEAR
+	db $ff
+
+CorsolaGalarianEggSpeciesMoves:
+	dp CORSOLA, GALARIAN_FORM
+	db BARRIER
+	db CONFUSE_RAY
+	db HAZE
 	db AMNESIA
-	db -1 ; end
-
-RemoraidEggMoves:
-	db AURORA_BEAM
-	db OCTAZOOKA
-	db SUPERSONIC
-	db HAZE
 	db SCREECH
-	db -1 ; end
+	db ROCK_SLIDE
+	db SAFEGUARD
+	db CALM_MIND
+	db WATER_PULSE
+	db ICICLE_SPEAR
+	db $ff
 
-DelibirdEggMoves:
-	db AURORA_BEAM
-	db QUICK_ATTACK
-	db FUTURE_SIGHT
+RemoraidEggSpeciesMoves:
+	dp REMORAID, PLAIN_FORM
 	db SPLASH
-	db RAPID_SPIN
-	db -1 ; end
-
-MantineEggMoves:
-	db TWISTER
-	db HYDRO_PUMP
 	db HAZE
-	db SLAM
-	db -1 ; end
+	db OCTAZOOKA
+	db ROCK_BLAST
+	db SCREECH
+	db SUPERSONIC
+	db AURORA_BEAM
+	db GUNK_SHOT
+	db WATER_PULSE
+	db $ff
 
-SkarmoryEggMoves:
+DelibirdEggSpeciesMoves:
+	dp DELIBIRD, PLAIN_FORM
+	db AURORA_BEAM
+	db DESTINY_BOND
+	db ICE_PUNCH
+	db ICY_WIND
+	db QUICK_ATTACK
+	db RAPID_SPIN
+	db SPLASH
+	db $ff
+
+SkarmoryEggSpeciesMoves:
+	dp SKARMORY, PLAIN_FORM
 	db DRILL_PECK
 	db PURSUIT
-	db WHIRLWIND
-	db SKY_ATTACK
-	db -1 ; end
+	db BRAVE_BIRD
+	db $ff
 
-HoundourEggMoves:
+HoundourEggSpeciesMoves:
+	dp HOUNDOUR, PLAIN_FORM
+	db DESTINY_BOND
 	db FIRE_SPIN
-	db RAGE
 	db PURSUIT
-	db COUNTER
-	db SPITE
+	db RAGE
 	db REVERSAL
-	db BEAT_UP
-	db -1 ; end
+	db COUNTER
+	db WILL_O_WISP
+	db $ff
 
-PhanpyEggMoves:
+PhanpyEggSpeciesMoves:
+	dp PHANPY, PLAIN_FORM
 	db FOCUS_ENERGY
+	db PLAY_ROUGH
+	db WATER_GUN
 	db BODY_SLAM
 	db ANCIENTPOWER
-	db WATER_GUN
-	db -1 ; end
+	db GUNK_SHOT
+	db ICE_SHARD
+	db ENCORE
+	db $ff
 
-StantlerEggMoves:
-	db REFLECT
-	db SPITE
-	db DISABLE
-	db LIGHT_SCREEN
+StantlerEggSpeciesMoves:
+	dp STANTLER, PLAIN_FORM
 	db BITE
-	db -1 ; end
+	db DOUBLE_KICK
+	db EXTRASENSORY
+	db RAGE
+	db $ff
 
-TyrogueEggMoves:
-	db RAPID_SPIN
+TyrogueEggSpeciesMoves:
+	dp TYROGUE, PLAIN_FORM
+	db BULLET_PUNCH
 	db HI_JUMP_KICK
 	db MACH_PUNCH
-	db MIND_READER
-	db -1 ; end
+	db PURSUIT
+	db RAPID_SPIN
+	db $ff
 
-SmoochumEggMoves:
-	db MEDITATE
-	db -1 ; end
+SmoochumEggSpeciesMoves:
+	dp SMOOCHUM, PLAIN_FORM
+	db BULK_UP
+	db NASTY_PLOT
+	db $ff
 
-ElekidEggMoves:
-	db KARATE_CHOP
+ElekidEggSpeciesMoves:
+	dp ELEKID, PLAIN_FORM
 	db BARRIER
-	db ROLLING_KICK
-	db MEDITATE
 	db CROSS_CHOP
-	db -1 ; end
-
-MagbyEggMoves:
 	db KARATE_CHOP
-	db MEGA_PUNCH
+	db BULK_UP
+	db $ff
+
+MagbyEggSpeciesMoves:
+	dp MAGBY, PLAIN_FORM
 	db BARRIER
+	db BELLY_DRUM
+	db CROSS_CHOP
+	db FLARE_BLITZ
+	db FOCUS_ENERGY
+	db KARATE_CHOP
+	db MACH_PUNCH
 	db SCREECH
-	db CROSS_CHOP
-	db -1 ; end
+	db $ff
 
-MiltankEggMoves:
-	db PRESENT
+MiltankEggSpeciesMoves:
+	dp MILTANK, PLAIN_FORM
+	db DIZZY_PUNCH
 	db REVERSAL
 	db SEISMIC_TOSS
-	db -1 ; end
+	db $ff
 
-LarvitarEggMoves:
+LarvitarEggSpeciesMoves:
+	dp LARVITAR, PLAIN_FORM
+	db DRAGON_DANCE
+	db FOCUS_ENERGY
 	db PURSUIT
 	db STOMP
 	db OUTRAGE
-	db FOCUS_ENERGY
 	db ANCIENTPOWER
-	db -1 ; end
+	db IRON_HEAD
+	db $ff
 
-NoEggMoves:
-	db -1 ; end
+AzurillEggSpeciesMoves:
+	dp AZURILL, PLAIN_FORM
+	db BELLY_DRUM
+	db FORESIGHT
+	db FUTURE_SIGHT
+	db PERISH_SONG
+	db SUPERSONIC
+	db LIGHT_SCREEN
+	db AMNESIA
+	db CALM_MIND
+	db $ff
+
+WynautEggSpeciesMoves:
+	dp WYNAUT, PLAIN_FORM
+	db CHARM
+	db ENCORE
+	db $ff
+
+BonslyEggSpeciesMoves:
+	dp BONSLY, PLAIN_FORM
+	db DEFENSE_CURL
+	db EXPLOSION
+	db $ff
+
+MimeJrEggSpeciesMoves:
+	dp MIME_JR_, PLAIN_FORM
+	db CONFUSE_RAY
+	db FUTURE_SIGHT
+	db HYPNOSIS
+	db NASTY_PLOT
+	db TRICK
+	db $ff
+
+HappinyEggSpeciesMoves:
+	dp HAPPINY, PLAIN_FORM
+	db HEAL_BELL
+	db $ff
+
+MantykeEggSpeciesMoves:
+	dp MANTYKE, PLAIN_FORM
+	db HAZE
+	db MIRROR_COAT
+	db SPLASH
+	db HYDRO_PUMP
+	db GUNK_SHOT
+	db $ff
+
+MunchlaxEggSpeciesMoves:
+	dp MUNCHLAX, PLAIN_FORM
+	db CHARM
+	db COUNTER
+	db CURSE
+	db DOUBLE_EDGE
+	db LICK
+	db GUNK_SHOT
+	db $ff
+
+NoEggSpeciesMoves:
+	db $ff

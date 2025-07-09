@@ -18,7 +18,7 @@ Music_CherrygroveCity_Ch1:
 	note C_, 2
 	note D_, 2
 	note E_, 2
-.mainloop:
+Music_CherrygroveCity_branch_f5b26:
 	note A_, 4
 	note G#, 2
 	note A_, 2
@@ -91,7 +91,7 @@ Music_CherrygroveCity_Ch1:
 	note A_, 4
 	octave 3
 	note C_, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_CherrygroveCity_branch_f5b26
 
 Music_CherrygroveCity_Ch2:
 	duty_cycle 3
@@ -107,7 +107,7 @@ Music_CherrygroveCity_Ch2:
 	note G_, 2
 	note A_, 2
 	note A#, 2
-.mainloop:
+Music_CherrygroveCity_branch_f5b87:
 	volume_envelope 12, 6
 	octave 4
 	note C_, 6
@@ -171,7 +171,7 @@ Music_CherrygroveCity_Ch2:
 	note F_, 8
 	volume_envelope 10, 7
 	note F_, 8
-	sound_loop 0, .mainloop
+	sound_jump Music_CherrygroveCity_branch_f5b87
 
 Music_CherrygroveCity_Ch3:
 	note_type 12, 1, 6
@@ -184,7 +184,7 @@ Music_CherrygroveCity_Ch3:
 	note G_, 2
 	note F_, 2
 	note E_, 2
-.mainloop:
+Music_CherrygroveCity_branch_f5be4:
 	note A_, 2
 	note F_, 2
 	note A_, 2
@@ -281,13 +281,13 @@ Music_CherrygroveCity_Ch3:
 	note A_, 2
 	note F_, 2
 	note A_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_CherrygroveCity_branch_f5be4
 
 Music_CherrygroveCity_Ch4:
 	toggle_noise 3
 	drum_speed 12
 	rest 16
-.mainloop:
+Music_CherrygroveCity_branch_f5c4d:
 	drum_note 2, 2
 	rest 2
 	drum_note 8, 2
@@ -303,4 +303,4 @@ Music_CherrygroveCity_Ch4:
 	drum_note 7, 4
 	drum_note 2, 2
 	drum_note 8, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_CherrygroveCity_branch_f5c4d

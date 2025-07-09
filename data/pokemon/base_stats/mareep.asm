@@ -1,21 +1,22 @@
-	db MAREEP ; 179
-
-	db  55,  40,  40,  35,  65,  45
-	;   hp  atk  def  spd  sat  sdf
+	db  55,  40,  40,  35,  65,  45 ; 280 BST
+	;   hp  atk  def  spe  sat  sdf
 
 	db ELECTRIC, ELECTRIC ; type
 	db 235 ; catch rate
 	db 59 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_F50 ; gender ratio
-	db 100 ; unknown 1
-	db 20 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/mareep/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db NO_ITEM, NO_ITEM ; held items
+	dn GENDER_F50, HATCH_MEDIUM_FAST ; gender ratio, step cycles to hatch
+
+if DEF(FAITHFUL)
+	abilities_for MAREEP, STATIC, STATIC, STATIC
+else
+	abilities_for MAREEP, STATIC, STATIC, MOTOR_DRIVE
+endc
 	db GROWTH_MEDIUM_SLOW ; growth rate
 	dn EGG_MONSTER, EGG_GROUND ; egg groups
 
+	ev_yield 1 SAt
+
 	; tm/hm learnset
-	tmhm HEADBUTT, CURSE, TOXIC, ZAP_CANNON, HIDDEN_POWER, SNORE, PROTECT, RAIN_DANCE, ENDURE, FRUSTRATION, IRON_TAIL, THUNDER, RETURN, DOUBLE_TEAM, SWAGGER, SLEEP_TALK, SWIFT, DEFENSE_CURL, REST, ATTRACT, FLASH, THUNDERBOLT
+	tmhm CURSE, TOXIC, HIDDEN_POWER, LIGHT_SCREEN, PROTECT, RAIN_DANCE, SAFEGUARD, IRON_TAIL, THUNDERBOLT, THUNDER, RETURN, DOUBLE_TEAM, SWIFT, SUBSTITUTE, FACADE, REST, ATTRACT, WILD_CHARGE, FLASH, THUNDER_WAVE, AGILITY, BODY_SLAM, DEFENSE_CURL, DOUBLE_EDGE, ENDURE, HEADBUTT, SLEEP_TALK, SWAGGER, ZAP_CANNON
 	; end

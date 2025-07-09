@@ -1,4 +1,4 @@
-BattleCommand_FocusEnergy:
+BattleCommand_focusenergy:
 	ld a, BATTLE_VARS_SUBSTATUS4
 	call GetBattleVarAddr
 	bit SUBSTATUS_FOCUS_ENERGY, [hl]
@@ -6,8 +6,8 @@ BattleCommand_FocusEnergy:
 	set SUBSTATUS_FOCUS_ENERGY, [hl]
 	call AnimateCurrentMove
 	ld hl, GettingPumpedText
-	jp StdBattleTextbox
+	jmp StdBattleTextbox
 
 .already_pumped
 	call AnimateFailedMove
-	jp PrintButItFailed
+	jmp PrintButItFailed

@@ -1,16 +1,6 @@
-; Coordinate macros
-
-MACRO hlcoord
-	coord hl, \#
-ENDM
-
-MACRO bccoord
-	coord bc, \#
-ENDM
-
-MACRO decoord
-	coord de, \#
-ENDM
+DEF hlcoord EQUS "coord hl,"
+DEF bccoord EQUS "coord bc,"
+DEF decoord EQUS "coord de,"
 
 MACRO coord
 ; register, x, y[, origin]
@@ -21,17 +11,22 @@ MACRO coord
 	endc
 ENDM
 
-MACRO hlbgcoord
-	bgcoord hl, \#
+DEF hldexcoord EQUS "dexcoord hl,"
+DEF bcdexcoord EQUS "dexcoord bc,"
+DEF dedexcoord EQUS "dexcoord de,"
+
+MACRO dexcoord
+; register, x, y[, origin]
+	if _NARG < 4
+		ld \1, (\3) * TILEMAP_WIDTH + (\2) + wDexTilemap
+	else
+		ld \1, (\3) * TILEMAP_WIDTH + (\2) + \4
+	endc
 ENDM
 
-MACRO bcbgcoord
-	bgcoord bc, \#
-ENDM
-
-MACRO debgcoord
-	bgcoord de, \#
-ENDM
+DEF hlbgcoord EQUS "bgcoord hl,"
+DEF bcbgcoord EQUS "bgcoord bc,"
+DEF debgcoord EQUS "bgcoord de,"
 
 MACRO bgcoord
 ; register, x, y[, origin]

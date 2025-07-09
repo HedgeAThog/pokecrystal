@@ -1,91 +1,99 @@
-	object_const_def
-	const ROUTE38_STANDING_YOUNGSTER1
-	const ROUTE38_LASS
-	const ROUTE38_STANDING_YOUNGSTER2
-	const ROUTE38_BEAUTY1
-	const ROUTE38_SAILOR
-	const ROUTE38_FRUIT_TREE
-	const ROUTE38_BEAUTY2
-
-Route38_MapScripts:
+Route38_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-TrainerBirdKeeperToby:
-	trainer BIRD_KEEPER, TOBY, EVENT_BEAT_BIRD_KEEPER_TOBY, BirdKeeperTobySeenText, BirdKeeperTobyBeatenText, 0, .Script
+	def_warp_events
+	warp_event 35,  8, ROUTE_38_ECRUTEAK_GATE, 1
+	warp_event 35,  9, ROUTE_38_ECRUTEAK_GATE, 2
 
-.Script
-	endifjustbattled
-	opentext
-	writetext BirdKeeperTobyAfterBattleText
-	waitbutton
-	closetext
-	end
+	def_coord_events
 
-TrainerSailorHarry:
-	trainer SAILOR, HARRY, EVENT_BEAT_SAILOR_HARRY, SailorHarrySeenText, SailorHarryBeatenText, 0, .Script
+	def_bg_events
+	bg_event 33,  7, BGEVENT_JUMPTEXT, Route38SignText
+	bg_event  5, 13, BGEVENT_JUMPTEXT, Route38TrainerTipsText
+	bg_event 17,  5, BGEVENT_JUMPTEXT, Route38AdvancedTipsText
 
-.Script
-	endifjustbattled
-	opentext
-	writetext SailorHarryAfterBattleText
-	waitbutton
-	closetext
-	end
+	def_object_events
+	object_event  4,  1, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_TRAINER, 1, TrainerSchoolboyChad1, -1
+	object_event 15,  3, SPRITE_LASS, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_TRAINER, 2, TrainerLassDana1, -1
+	object_event 12, 15, SPRITE_BIRD_KEEPER, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerBird_keeperToby, -1
+	object_event 19,  9, SPRITE_BEAUTY, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerBeautyValencia, -1
+	object_event 24,  5, SPRITE_SAILOR, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 2, GenericTrainerSailorHarry, -1
+	fruittree_event 12, 10, FRUITTREE_ROUTE_38, SITRUS_BERRY, PAL_NPC_BROWN
+	object_event  5,  8, SPRITE_BEAUTY, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerBeautyOlivia, -1
+
+GenericTrainerBird_keeperToby:
+	generictrainer BIRD_KEEPER, TOBY, EVENT_BEAT_BIRD_KEEPER_TOBY, Bird_keeperTobySeenText, Bird_keeperTobyBeatenText
+
+	text "I plan to train in"
+	line "the Yellow Forest"
+
+	para "to teach my #-"
+	line "mon how to Fly."
+	done
+
+GenericTrainerSailorHarry:
+	generictrainer SAILOR, HARRY, EVENT_BEAT_SAILOR_HARRY, SailorHarrySeenText, SailorHarryBeatenText
+
+	text "All kinds of peo-"
+	line "ple around the"
+
+	para "world live happily"
+	line "with #mon."
+	done
 
 TrainerLassDana1:
-	trainer LASS, DANA1, EVENT_BEAT_LASS_DANA, LassDana1SeenText, LassDana1BeatenText, 0, .Script
+	trainer LASS, DANA1, EVENT_BEAT_LASS_DANA, LassDana1SeenText, LassDana1BeatenText, 0, .script
 
-.Script
+.script
 	loadvar VAR_CALLERID, PHONE_LASS_DANA
-	endifjustbattled
 	opentext
 	checkflag ENGINE_DANA_READY_FOR_REMATCH
-	iftrue .DanaRematch
+	iftruefwd .DanaRematch
 	checkflag ENGINE_DANA_HAS_THUNDERSTONE
-	iftrue .TryGiveThunderstone
+	iftruefwd .TryGiveThunderstone
 	checkcellnum PHONE_LASS_DANA
-	iftrue .NumberAccepted
+	iftruefwd .NumberAccepted
 	checkevent EVENT_DANA_ASKED_FOR_PHONE_NUMBER
-	iftrue .SecondTimeAsking
+	iftruefwd .SecondTimeAsking
 	writetext LassDanaMoomooMilkText
 	promptbutton
 	setevent EVENT_DANA_ASKED_FOR_PHONE_NUMBER
-	scall .AskNumber1F
-	sjump .AskForPhoneNumber
+	callstd asknumber1f
+	sjumpfwd .AskForPhoneNumber
 
 .SecondTimeAsking:
-	scall .AskNumber2F
+	callstd asknumber2f
 .AskForPhoneNumber:
 	askforphonenumber PHONE_LASS_DANA
-	ifequal PHONE_CONTACTS_FULL, .PhoneFull
-	ifequal PHONE_CONTACT_REFUSED, .DeclinedPhoneNumber
-	gettrainername STRING_BUFFER_3, LASS, DANA1
-	scall .RegisteredPhoneNumber
-	sjump .NumberAccepted
+	ifequalfwd $1, .PhoneFull
+	ifequalfwd $2, .DeclinedPhoneNumber
+	gettrainername LASS, DANA1, STRING_BUFFER_3
+	callstd registerednumberf
+	jumpstd numberacceptedf
 
 .DanaRematch:
-	scall .Rematch
+	callstd rematchf
 	winlosstext LassDana1BeatenText, 0
 	readmem wDanaFightCount
-	ifequal 4, .Fight4
-	ifequal 3, .Fight3
-	ifequal 2, .Fight2
-	ifequal 1, .Fight1
-	ifequal 0, .LoadFight0
+	ifequalfwd 4, .Fight4
+	ifequalfwd 3, .Fight3
+	ifequalfwd 2, .Fight2
+	ifequalfwd 1, .Fight1
+	ifequalfwd 0, .LoadFight0
 .Fight4:
 	checkevent EVENT_RESTORED_POWER_TO_KANTO
-	iftrue .LoadFight4
+	iftruefwd .LoadFight4
 .Fight3:
 	checkevent EVENT_BEAT_ELITE_FOUR
-	iftrue .LoadFight3
+	iftruefwd .LoadFight3
 .Fight2:
 	checkevent EVENT_CLEARED_RADIO_TOWER
-	iftrue .LoadFight2
+	iftruefwd .LoadFight2
 .Fight1:
 	checkflag ENGINE_FLYPOINT_CIANWOOD
-	iftrue .LoadFight1
+	iftruefwd .LoadFight1
 .LoadFight0:
 	loadtrainer LASS, DANA1
 	startbattle
@@ -126,102 +134,74 @@ TrainerLassDana1:
 	end
 
 .TryGiveThunderstone:
-	scall .Gift
+	callstd giftf
 	verbosegiveitem THUNDERSTONE
-	iffalse .NoRoomForThunderstone
+	iffalsefwd .NoRoomForThunderstone
 	clearflag ENGINE_DANA_HAS_THUNDERSTONE
 	setevent EVENT_DANA_GAVE_THUNDERSTONE
-	sjump .NumberAccepted
+	jumpstd numberacceptedf
 
 .NoRoomForThunderstone:
-	sjump .PackFull
-
-.AskNumber1F:
-	jumpstd AskNumber1FScript
-	end
-
-.AskNumber2F:
-	jumpstd AskNumber2FScript
-	end
-
-.RegisteredPhoneNumber:
-	jumpstd RegisteredNumberFScript
-	end
+	jumpstd packfullf
 
 .NumberAccepted:
-	jumpstd NumberAcceptedFScript
-	end
+	jumpstd numberacceptedf
 
 .DeclinedPhoneNumber:
-	jumpstd NumberDeclinedFScript
-	end
+	jumpstd numberdeclinedf
 
 .PhoneFull:
-	jumpstd PhoneFullFScript
-	end
-
-.Rematch:
-	jumpstd RematchFScript
-	end
-
-.Gift:
-	jumpstd GiftFScript
-	end
-
-.PackFull:
-	jumpstd PackFullFScript
-	end
+	jumpstd phonefullf
 
 TrainerSchoolboyChad1:
-	trainer SCHOOLBOY, CHAD1, EVENT_BEAT_SCHOOLBOY_CHAD, SchoolboyChad1SeenText, SchoolboyChad1BeatenText, 0, .Script
+	trainer SCHOOLBOY, CHAD1, EVENT_BEAT_SCHOOLBOY_CHAD, SchoolboyChad1SeenText, SchoolboyChad1BeatenText, 0, .script
 
-.Script
+.script
 	loadvar VAR_CALLERID, PHONE_SCHOOLBOY_CHAD
-	endifjustbattled
 	opentext
 	checkflag ENGINE_CHAD_READY_FOR_REMATCH
-	iftrue .ChadRematch
+	iftruefwd .ChadRematch
 	checkcellnum PHONE_SCHOOLBOY_CHAD
-	iftrue .HaveChadsNumber
+	iftruefwd .HaveChadsNumber
 	checkevent EVENT_CHAD_ASKED_FOR_PHONE_NUMBER
-	iftrue .SecondTimeAsking
+	iftruefwd .SecondTimeAsking
 	writetext SchoolboyChadSoManyTestsText
 	promptbutton
 	setevent EVENT_CHAD_ASKED_FOR_PHONE_NUMBER
-	scall .AskPhoneNumber1
-	sjump .AskToRegisterNumber
+	callstd asknumber1m
+	sjumpfwd .AskToRegisterNumber
 
 .SecondTimeAsking:
-	scall .AskPhoneNumber2
+	callstd asknumber2m
 .AskToRegisterNumber:
 	askforphonenumber PHONE_SCHOOLBOY_CHAD
-	ifequal PHONE_CONTACTS_FULL, .PhoneFull
-	ifequal PHONE_CONTACT_REFUSED, .SaidNo
-	gettrainername STRING_BUFFER_3, SCHOOLBOY, CHAD1
-	scall .RegisteredChad
-	sjump .HaveChadsNumber
+	ifequalfwd $1, .PhoneFull
+	ifequalfwd $2, .SaidNo
+	gettrainername SCHOOLBOY, CHAD1, STRING_BUFFER_3
+	callstd registerednumberm
+	jumpstd numberacceptedm
 
 .ChadRematch:
-	scall .Rematch
+	callstd rematchm
 	winlosstext SchoolboyChad1BeatenText, 0
 	readmem wChadFightCount
-	ifequal 4, .Fight4
-	ifequal 3, .Fight3
-	ifequal 2, .Fight2
-	ifequal 1, .Fight1
-	ifequal 0, .LoadFight0
+	ifequalfwd 4, .Fight4
+	ifequalfwd 3, .Fight3
+	ifequalfwd 2, .Fight2
+	ifequalfwd 1, .Fight1
+	ifequalfwd 0, .LoadFight0
 .Fight4:
 	checkevent EVENT_RESTORED_POWER_TO_KANTO
-	iftrue .LoadFight4
+	iftruefwd .LoadFight4
 .Fight3:
 	checkevent EVENT_BEAT_ELITE_FOUR
-	iftrue .LoadFight3
+	iftruefwd .LoadFight3
 .Fight2:
 	checkevent EVENT_CLEARED_RADIO_TOWER
-	iftrue .LoadFight2
+	iftruefwd .LoadFight2
 .Fight1:
 	checkflag ENGINE_FLYPOINT_MAHOGANY
-	iftrue .LoadFight1
+	iftruefwd .LoadFight1
 .LoadFight0:
 	loadtrainer SCHOOLBOY, CHAD1
 	startbattle
@@ -261,82 +241,44 @@ TrainerSchoolboyChad1:
 	clearflag ENGINE_CHAD_READY_FOR_REMATCH
 	end
 
-.AskPhoneNumber1:
-	jumpstd AskNumber1MScript
-	end
-
-.AskPhoneNumber2:
-	jumpstd AskNumber2MScript
-	end
-
-.RegisteredChad:
-	jumpstd RegisteredNumberMScript
-	end
-
 .HaveChadsNumber:
-	jumpstd NumberAcceptedMScript
-	end
+	jumpstd numberacceptedm
 
 .SaidNo:
-	jumpstd NumberDeclinedMScript
-	end
+	jumpstd numberdeclinedm
 
 .PhoneFull:
-	jumpstd PhoneFullMScript
-	end
+	jumpstd phonefullm
 
-.Rematch:
-	jumpstd RematchMScript
-	end
+GenericTrainerBeautyValencia:
+	generictrainer BEAUTY, VALENCIA, EVENT_BEAT_BEAUTY_VALENCIA, BeautyValenciaSeenText, BeautyValenciaBeatenText
 
-TrainerBeautyValerie:
-	trainer BEAUTY, VALERIE, EVENT_BEAT_BEAUTY_VALERIE, BeautyValerieSeenText, BeautyValerieBeatenText, 0, .Script
+	text "When I see #-"
+	line "mon, it seems to"
+	cont "soothe my nerves."
+	done
 
-.Script
-	endifjustbattled
-	opentext
-	writetext BeautyValerieAfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerBeautyOlivia:
+	generictrainer BEAUTY, OLIVIA, EVENT_BEAT_BEAUTY_OLIVIA, BeautyOliviaSeenText, BeautyOliviaBeatenText
 
-TrainerBeautyOlivia:
-	trainer BEAUTY, OLIVIA, EVENT_BEAT_BEAUTY_OLIVIA, BeautyOliviaSeenText, BeautyOliviaBeatenText, 0, .Script
+	text "Moomoo Milk is"
+	line "good for beauty"
+	cont "and health."
 
-.Script
-	endifjustbattled
-	opentext
-	writetext BeautyOliviaAfterBattleText
-	waitbutton
-	closetext
-	end
+	para "I like to buy a"
+	line "dozen bottles at"
+	cont "a time!"
+	done
 
-Route38Sign:
-	jumptext Route38SignText
-
-Route38TrainerTips:
-	jumptext Route38TrainerTipsText
-
-Route38FruitTree:
-	fruittree FRUITTREE_ROUTE_38
-
-BirdKeeperTobySeenText:
+Bird_keeperTobySeenText:
 	text "Fly high into the"
 	line "sky, my beloved"
-	cont "bird #MON!"
+	cont "bird #mon!"
 	done
 
-BirdKeeperTobyBeatenText:
+Bird_keeperTobyBeatenText:
 	text "I feel like just"
 	line "flying away now."
-	done
-
-BirdKeeperTobyAfterBattleText:
-	text "I plan to train in"
-	line "CIANWOOD CITY to"
-
-	para "teach my #MON"
-	line "how to FLY."
 	done
 
 SchoolboyChad1SeenText:
@@ -355,7 +297,7 @@ SchoolboyChadSoManyTestsText:
 	line "many tests, I"
 
 	para "don't have much"
-	line "time for #MON."
+	line "time for #mon."
 
 	para "So when I do get"
 	line "to play, I really"
@@ -364,7 +306,7 @@ SchoolboyChadSoManyTestsText:
 
 LassDana1SeenText:
 	text "You seem to be"
-	line "good at #MON."
+	line "good at #mon."
 
 	para "If you are, how"
 	line "about giving me"
@@ -380,28 +322,22 @@ LassDanaMoomooMilkText:
 	text "I know something"
 	line "good!"
 
-	para "MOOMOO FARM's milk"
+	para "Moomoo Farm's milk"
 	line "is famous for its"
 	cont "flavor."
 	done
 
-BeautyValerieSeenText:
+BeautyValenciaSeenText:
 	text "Hi! Aren't you a"
 	line "cute trainer!"
 
 	para "May I see your"
-	line "#MON?"
+	line "#mon?"
 	done
 
-BeautyValerieBeatenText:
+BeautyValenciaBeatenText:
 	text "I'm glad I got to"
-	line "see your #MON!"
-	done
-
-BeautyValerieAfterBattleText:
-	text "When I see #-"
-	line "MON, it seems to"
-	cont "soothe my nerves."
+	line "see your #mon!"
 	done
 
 SailorHarrySeenText:
@@ -409,7 +345,7 @@ SailorHarrySeenText:
 	line "seas, so I know"
 
 	para "about all sorts of"
-	line "#MON!"
+	line "#mon!"
 	done
 
 SailorHarryBeatenText:
@@ -417,47 +353,28 @@ SailorHarryBeatenText:
 	line "world class!"
 	done
 
-SailorHarryAfterBattleText:
-	text "All kinds of peo-"
-	line "ple around the"
-
-	para "world live happily"
-	line "with #MON."
-	done
-
 BeautyOliviaSeenText:
 	text "Don't you think my"
-	line "#MON and I are"
+	line "#mon and I are"
 	cont "beautiful?"
 	done
 
 BeautyOliviaBeatenText:
-	text "We drink MOOMOO"
-	line "MILK every day."
-	done
-
-BeautyOliviaAfterBattleText:
-	text "MOOMOO MILK is"
-	line "good for beauty"
-
-	para "and health, but"
-	line "inconveniently,"
-
-	para "they only sell a"
-	line "bottle at a time."
+	text "We drink Moomoo"
+	line "Milk every day."
 	done
 
 Route38SignText:
-	text "ROUTE 38"
+	text "Route 38"
 
-	para "OLIVINE CITY -"
-	line "ECRUTEAK CITY"
+	para "Olivine City -"
+	line "Ecruteak City"
 	done
 
 Route38TrainerTipsText:
-	text "TRAINER TIPS"
+	text "Trainer Tips"
 
-	para "If a #MON is"
+	para "If a #mon is"
 	line "trying to evolve,"
 	cont "you can stop it."
 
@@ -466,28 +383,26 @@ Route38TrainerTipsText:
 	cont "tion."
 
 	para "That startles the"
-	line "#MON and stops"
+	line "#mon and stops"
 	cont "its evolution."
 	done
 
-Route38_MapEvents:
-	db 0, 0 ; filler
+Route38AdvancedTipsText:
+	text "Advanced Tips!"
 
-	def_warp_events
-	warp_event 35,  8, ROUTE_38_ECRUTEAK_GATE, 1
-	warp_event 35,  9, ROUTE_38_ECRUTEAK_GATE, 2
+	para "Press Start in the"
+	line "PC Storage System"
 
-	def_coord_events
+	para "to quickly focus"
+	line "on the Box name!"
 
-	def_bg_events
-	bg_event 33,  7, BGEVENT_READ, Route38Sign
-	bg_event  5, 13, BGEVENT_READ, Route38TrainerTips
+	para "You can change the"
+	line "name and theme of"
+	cont "each Box!"
 
-	def_object_events
-	object_event  4,  1, SPRITE_STANDING_YOUNGSTER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerSchoolboyChad1, -1
-	object_event 15,  3, SPRITE_LASS, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 2, TrainerLassDana1, -1
-	object_event 12, 15, SPRITE_STANDING_YOUNGSTER, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerBirdKeeperToby, -1
-	object_event 19,  9, SPRITE_BEAUTY, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerBeautyValerie, -1
-	object_event 24,  5, SPRITE_SAILOR, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 2, TrainerSailorHarry, -1
-	object_event 12, 10, SPRITE_FRUIT_TREE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, Route38FruitTree, -1
-	object_event  5,  8, SPRITE_BEAUTY, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerBeautyOlivia, -1
+	para "Press Select to"
+	line "change what the"
+
+	para "A button does"
+	line "for #mon!"
+	done

@@ -1,8 +1,8 @@
 DerekCheekPinchingText:
 	text "Listen to this."
-	line "My @"
+	line "My "
 	text_ram wStringBuffer4
-	text_start
+
 	para "grins happily when"
 	line "I pinch its cheek."
 
@@ -14,12 +14,12 @@ DerekCheekPinchingText:
 
 DerekDefeatedMonText:
 	text "Oh, and recently,"
-	line "my PIKACHU beat a"
-	cont "wild @"
+	line "my Pikachu beat a"
+	cont "wild "
 	text_ram wStringBuffer4
 	text "!"
 
-	para "A wild @"
+	para "A wild "
 	text_ram wStringBuffer4
 	text ","
 	line "I tell you!"
@@ -27,16 +27,16 @@ DerekDefeatedMonText:
 	para "Don't you think"
 	line "that's astounding?"
 
-	para "My PIKACHU is"
+	para "My Pikachu is"
 	line "awesome!"
 
-	para "My PIKACHU is the"
+	para "My Pikachu is the"
 	line "greatest!"
 	done
 
 DerekLostAMonText:
 	text "Oh, and I saw a"
-	line "wild @"
+	line "wild "
 	text_ram wStringBuffer4
 	text " a"
 	cont "little while ago."
@@ -45,7 +45,7 @@ DerekLostAMonText:
 	line "cute, so I left"
 
 	para "it…"
-	line "#MON have to be"
+	line "#mon have to be"
 
 	para "cute. They're no"
 	line "good otherwise."
@@ -67,36 +67,36 @@ DerekBugCatchingContestText:
 	para "I think I'll"
 	line "participate with"
 
-	para "PIKACHU to show"
+	para "Pikachu to show"
 	line "off its cuteness."
 	done
 
 DerekFoundItemText:
 	text "I'd like you to"
-	line "have a NUGGET."
+	line "have a Nugget."
 
-	para "My PIKACHU just"
+	para "My Pikachu just"
 	line "loves it."
 
 	para "I'm certain your"
-	line "PIKACHU will love"
+	line "Pikachu will love"
 	cont "it too!"
 	done
 
 DerekLetsGetTogetherText:
 	text "How is your"
-	line "PIKACHU doing?"
+	line "Pikachu doing?"
 
 	para "Let's get together"
 	line "and brag about our"
-	cont "PIKACHU!"
+	cont "Pikachu!"
 	done
 
 DerekComePickUpText:
 	text "What's wrong?"
 
 	para "I'm waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 

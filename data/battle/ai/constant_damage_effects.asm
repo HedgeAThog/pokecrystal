@@ -1,10 +1,9 @@
-; AIDamageCalc uses BattleCommand_ConstantDamage
+; AIDamageCalc uses BattleCommand_constantdamage
 ; to calculate damage for these instead of
-; BattleCommand_DamageCalc and BattleCommand_Stab.
+; BattleCommand_damagecalc and BattleCommand_stab.
 
 ConstantDamageEffects:
 	db EFFECT_SUPER_FANG
 	db EFFECT_STATIC_DAMAGE
 	db EFFECT_LEVEL_DAMAGE
-	db EFFECT_PSYWAVE
 	db -1 ; end

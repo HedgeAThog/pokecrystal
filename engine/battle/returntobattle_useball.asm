@@ -1,19 +1,22 @@
 _ReturnToBattle_UseBall:
 	call ClearBGPalettes
-	call ClearTilemap
+	call ClearTileMap
 	ld a, [wBattleType]
 	cp BATTLETYPE_TUTORIAL
 	jr z, .gettutorialbackpic
-	farcall GetBattleMonBackpic
+	farcall GetMonBackpic
 	jr .continue
 
 .gettutorialbackpic
 	farcall GetTrainerBackpic
 .continue
-	farcall GetEnemyMonFrontpic
+	farcall GetMonFrontpic
 	farcall _LoadBattleFontsHPBar
-	call GetMemSGBLayout
+	call GetMemCGBLayout
 	call CloseWindow
 	call LoadStandardMenuHeader
-	call WaitBGMap
-	jp SetDefaultBGPAndOBP
+	call ApplyTilemapInVBlank
+	call SetDefaultBGPAndOBP
+	farcall LoadPlayerStatusIcon
+	farcall LoadEnemyStatusIcon
+	farjp FinishBattleAnim

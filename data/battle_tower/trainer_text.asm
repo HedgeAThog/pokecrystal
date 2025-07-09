@@ -47,7 +47,7 @@ _BTWinM3Text:
 	done
 
 _BTGreetingM4Text:
-	text "Heh, your #MON"
+	text "Heh, your #mon"
 	line "look pretty cool."
 	done
 
@@ -62,7 +62,7 @@ _BTWinM4Text:
 	done
 
 _BTGreetingM5Text:
-	text "#MON every day!"
+	text "#mon every day!"
 	line "I love battling!"
 	done
 
@@ -155,18 +155,18 @@ _BTWinM10Text:
 	done
 
 _BTGreetingM11Text:
-	text "<……><……><……>"
-	line "<……><……>Battle?"
+	text "………………"
+	line "…………Battle?"
 	done
 
 _BTLossM11Text:
-	text "<……><……><……>"
-	line "<……><……>I won?"
+	text "………………"
+	line "…………I won?"
 	done
 
 _BTWinM11Text:
-	text "<……><……><……>"
-	line "<……><……>I lost?"
+	text "………………"
+	line "…………I lost?"
 	done
 
 _BTGreetingM12Text:
@@ -214,13 +214,13 @@ _BTGreetingM14Text:
 	done
 
 _BTLossM14Text:
-	text "Those #MON"
+	text "Those #mon"
 	line "aren't enough!"
 	done
 
 _BTWinM14Text:
 	text "I want your"
-	line "#MON. Please?"
+	line "#mon. Please?"
 	done
 
 _BTGreetingM15Text:
@@ -254,7 +254,7 @@ _BTWinM16Text:
 	done
 
 _BTGreetingM17Text:
-	text "My #MON skills"
+	text "My #mon skills"
 	line "are phenomenal!"
 	done
 
@@ -323,17 +323,17 @@ _BTGreetingM21Text:
 	text "I'm scared about"
 	line "what might happen."
 
-	para "My #MON are way"
+	para "My #mon are way"
 	line "too strong."
 	done
 
 _BTLossM21Text:
-	text "See? My #MON"
+	text "See? My #mon"
 	line "were too strong."
 	done
 
 _BTWinM21Text:
-	text "Graa! My #MON"
+	text "Graa! My #mon"
 	line "were total wimps!"
 	done
 
@@ -388,7 +388,7 @@ _BTGreetingM25Text:
 	done
 
 _BTLossM25Text:
-	text "Yeah! My #MON"
+	text "Yeah! My #mon"
 	line "rule!"
 	done
 
@@ -413,7 +413,7 @@ _BTWinF1Text:
 	done
 
 _BTGreetingF2Text:
-	text "Look! My #MON"
+	text "Look! My #mon"
 	line "are really cute!"
 	done
 
@@ -459,22 +459,22 @@ _BTWinF4Text:
 
 _BTGreetingF5Text:
 	text "Oh, you have some"
-	line "rare #MON."
+	line "rare #mon."
 	done
 
 _BTLossF5Text:
 	text "May I have one of"
-	line "your #MON?"
+	line "your #mon?"
 	done
 
 _BTWinF5Text:
 	text "…I want one of"
-	line "your #MON."
+	line "your #mon."
 	done
 
 _BTGreetingF6Text:
 	text "Want to hear about"
-	line "my cute #MON?"
+	line "my cute #mon?"
 	done
 
 _BTLossF6Text:
@@ -578,7 +578,7 @@ _BTWinF12Text:
 	done
 
 _BTGreetingF13Text:
-	text "BATTLE TOWER is a"
+	text "Battle Tower is a"
 	line "tough place!"
 	done
 
@@ -620,4 +620,80 @@ _BTLossF15Text:
 _BTWinF15Text:
 	text "No! This did not"
 	line "happen!"
+	done
+
+BattleTowerText_GreetingTycoon:
+	text "Hi! My name's"
+	line "Palmer."
+
+	para "You're <PLAYER>"
+	line "from New Bark"
+	cont "Town, right?"
+
+	para "I've heard a lot"
+	line "about you."
+
+	para "Show me the bond"
+	line "you've built with"
+	cont "your #mon."
+
+	para "Show me what you've"
+	line "learned through"
+
+	para "battles with"
+	line "trainers!"
+	done
+
+BattleTowerText_LossTycoon:
+	text "Ah, wonderful!"
+	line "Do come again!"
+	done
+
+BattleTowerText_WinTycoon:
+	text "I have no problem"
+	line "losing to a spec-"
+
+	para "tacular trainer"
+	line "like you!"
+	done
+
+BattleFactoryText_GreetingHead:
+	text_asm
+	ld a, 90
+	call RandomRange
+	add 10
+	ld [wRandomValue], a
+	ld hl, .Text
+	ret
+
+.Text
+	text "Bzweeeeep!"
+
+	para "Sorry, don't mind"
+	line "me. I'm Thorton."
+
+	para "I'm using my data-"
+	line "analyzing machine"
+	cont "for this match."
+
+	para "I see! It's reading"
+	line ""
+	text_decimal wRandomValue, 1, 2
+	text " percent."
+
+	para "Oh, don't let that"
+	line "concern you!"
+
+	para "All righty, let's"
+	line "get going!"
+	done
+
+BattleFactoryText_LossHead:
+	text "See? Just as"
+	line "analyzed."
+	done
+
+BattleFactoryText_WinHead:
+	text "Whoa! You sure"
+	line "showed me!"
 	done

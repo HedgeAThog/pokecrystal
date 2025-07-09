@@ -1,45 +1,38 @@
-	object_const_def
-	const OLIVINEGOODRODHOUSE_FISHING_GURU
-
-OlivineGoodRodHouse_MapScripts:
+OlivineGoodRodHouse_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
+
+	def_warp_events
+	warp_event  2,  7, OLIVINE_CITY, 5
+	warp_event  3,  7, OLIVINE_CITY, 5
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event  2,  3, SPRITE_FISHING_GURU, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, GoodRodGuru, -1
 
 GoodRodGuru:
 	faceplayer
 	opentext
 	checkevent EVENT_GOT_GOOD_ROD
-	iftrue .AlreadyGotItem
+	iftrue_jumpopenedtext HaveGoodRodText
 	writetext OfferGoodRodText
 	yesorno
-	iffalse .DontWantIt
+	iffalse_jumpopenedtext DontWantGoodRodText
 	writetext GiveGoodRodText
 	promptbutton
-	verbosegiveitem GOOD_ROD
+	verbosegivekeyitem GOOD_ROD
 	writetext GaveGoodRodText
 	waitbutton
 	closetext
 	setevent EVENT_GOT_GOOD_ROD
 	end
 
-.DontWantIt:
-	writetext DontWantGoodRodText
-	waitbutton
-	closetext
-	end
-
-.AlreadyGotItem:
-	writetext HaveGoodRodText
-	waitbutton
-	closetext
-	end
-
-GoodRodHouseBookshelf: ; unreferenced
-	jumpstd PictureBookshelfScript
-
 OfferGoodRodText:
-	text "OLIVINE is on the"
+	text "Olivine is on the"
 	line "sea!"
 
 	para "And if it's on the"
@@ -70,7 +63,7 @@ GaveGoodRodText:
 
 DontWantGoodRodText:
 	text "Whaaat? You don't"
-	line "like to fish!?"
+	line "like to fish?!"
 	cont "Incomprehensible!"
 	done
 
@@ -78,17 +71,3 @@ HaveGoodRodText:
 	text "How are things?"
 	line "Land the big one?"
 	done
-
-OlivineGoodRodHouse_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2,  7, OLIVINE_CITY, 6
-	warp_event  3,  7, OLIVINE_CITY, 6
-
-	def_coord_events
-
-	def_bg_events
-
-	def_object_events
-	object_event  2,  3, SPRITE_FISHING_GURU, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, GoodRodGuru, -1

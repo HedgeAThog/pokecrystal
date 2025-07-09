@@ -1,58 +1,9 @@
-	object_const_def
-	const TRADECENTER_CHRIS1
-	const TRADECENTER_CHRIS2
-
-TradeCenter_MapScripts:
+TradeCenter_MapScriptHeader:
 	def_scene_scripts
-	scene_script TradeCenterInitializeScene, SCENE_TRADECENTER_INITIALIZE
-	scene_script TradeCenterNoopScene,       SCENE_TRADECENTER_NOOP
+	scene_script TradeCenterTrigger0
 
 	def_callbacks
-	callback MAPCALLBACK_OBJECTS, TradeCenterSetWhichChrisCallback
-
-TradeCenterInitializeScene:
-	sdefer TradeCenterInitializeAndPreparePokecenter2FScript
-	end
-
-TradeCenterNoopScene:
-	end
-
-TradeCenterSetWhichChrisCallback:
-	special CableClubCheckWhichChris
-	iffalse .Chris2
-	disappear TRADECENTER_CHRIS2
-	appear TRADECENTER_CHRIS1
-	endcallback
-
-.Chris2:
-	disappear TRADECENTER_CHRIS1
-	appear TRADECENTER_CHRIS2
-	endcallback
-
-TradeCenterInitializeAndPreparePokecenter2FScript:
-	setscene SCENE_TRADECENTER_NOOP
-	setmapscene POKECENTER_2F, SCENE_POKECENTER2F_LEAVE_TRADE_CENTER
-	end
-
-TradeCenterConsoleScript:
-	special TradeCenter
-	newloadmap MAPSETUP_LINKRETURN
-	end
-
-TradeCenterFriendScript: ; unreferenced
-	opentext
-	writetext TradeCenterFriendReadyText
-	waitbutton
-	closetext
-	end
-
-TradeCenterFriendReadyText:
-	text "Your friend is"
-	line "ready."
-	done
-
-TradeCenter_MapEvents:
-	db 0, 0 ; filler
+	callback MAPCALLBACK_OBJECTS, TradeCenter_SetWhichChris
 
 	def_warp_events
 	warp_event  4,  7, POKECENTER_2F, 2
@@ -61,9 +12,39 @@ TradeCenter_MapEvents:
 	def_coord_events
 
 	def_bg_events
-	bg_event  4,  4, BGEVENT_RIGHT, TradeCenterConsoleScript
-	bg_event  5,  4, BGEVENT_LEFT, TradeCenterConsoleScript
+	bg_event  4,  4, BGEVENT_RIGHT, MapTradeCenterSignpost1Script
+	bg_event  5,  4, BGEVENT_LEFT, MapTradeCenterSignpost1Script
 
 	def_object_events
-	object_event  3,  4, SPRITE_CHRIS, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CableClubFriendScript, EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1
-	object_event  6,  4, SPRITE_CHRIS, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CableClubFriendScript, EVENT_TEMPORARY_UNTIL_MAP_RELOAD_2
+	object_event  3,  4, SPRITE_LINK_TRAINER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, CableClubFriendScript, EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1
+	object_event  6,  4, SPRITE_LINK_TRAINER, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, CableClubFriendScript, EVENT_TEMPORARY_UNTIL_MAP_RELOAD_2
+
+	object_const_def
+	const TRADECENTER_LINK_TRAINER1
+	const TRADECENTER_LINK_TRAINER2
+
+TradeCenterTrigger0:
+	sdefer TradeCenter_Initialize
+	end
+
+TradeCenter_SetWhichChris:
+	special Special_CableClubCheckWhichChris
+	iffalsefwd .Chris2
+	disappear TRADECENTER_LINK_TRAINER2
+	appear TRADECENTER_LINK_TRAINER1
+	endcallback
+
+.Chris2:
+	disappear TRADECENTER_LINK_TRAINER1
+	appear TRADECENTER_LINK_TRAINER2
+	endcallback
+
+TradeCenter_Initialize:
+	setscene $1
+	setmapscene POKECENTER_2F, $1
+	end
+
+MapTradeCenterSignpost1Script:
+	special Special_TradeCenter
+	newloadmap MAPSETUP_LINKRETURN
+	end

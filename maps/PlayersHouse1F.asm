@@ -1,238 +1,204 @@
-	object_const_def
-	const PLAYERSHOUSE1F_MOM1
-	const PLAYERSHOUSE1F_MOM2
-	const PLAYERSHOUSE1F_MOM3
-	const PLAYERSHOUSE1F_MOM4
-	const PLAYERSHOUSE1F_POKEFAN_F
-
-PlayersHouse1F_MapScripts:
+PlayersHouse1F_MapScriptHeader:
 	def_scene_scripts
-	scene_script PlayersHouse1FNoop1Scene, SCENE_PLAYERSHOUSE1F_MEET_MOM
-	scene_script PlayersHouse1FNoop2Scene, SCENE_PLAYERSHOUSE1F_NOOP
 
 	def_callbacks
 
-PlayersHouse1FNoop1Scene:
-	end
+	def_warp_events
+	warp_event  8,  7, NEW_BARK_TOWN, 2
+	warp_event  9,  7, NEW_BARK_TOWN, 2
+	warp_event 11,  0, PLAYERS_HOUSE_2F, 1
 
-PlayersHouse1FNoop2Scene:
-	end
+	def_coord_events
+	coord_event 10,  4, 0, MomTrigger1
+	coord_event 11,  4, 0, MomTrigger2
+	coord_event  9,  1, 0, MomTrigger3
+	coord_event  9,  2, 0, MomTrigger4
 
-MeetMomLeftScript:
-	setevent EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1
+	def_bg_events
+	bg_event  1,  1, BGEVENT_JUMPTEXT, PlayersHouse1FFridgeText
+	bg_event  2,  1, BGEVENT_JUMPTEXT, PlayersHouse1FSinkText
+	bg_event  3,  1, BGEVENT_JUMPTEXT, PlayersHouse1FStoveText
+	bg_event  6,  1, BGEVENT_UP, PlayersHouse1FTVScript
 
-MeetMomRightScript:
+	def_object_events
+	object_event  9,  4, SPRITE_MOM, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, MomScript, EVENT_PLAYERS_HOUSE_MOM_1
+	object_event  3,  2, SPRITE_MOM, SPRITEMOVEDATA_STANDING_UP, 0, 0, (1 << MORN), 0, OBJECTTYPE_SCRIPT, 0, MomScript, EVENT_PLAYERS_HOUSE_MOM_2
+	object_event  9,  4, SPRITE_MOM, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, (1 << DAY), 0, OBJECTTYPE_SCRIPT, 0, MomScript, EVENT_PLAYERS_HOUSE_MOM_2
+	object_event  6,  3, SPRITE_MOM, SPRITEMOVEDATA_STANDING_UP, 0, 0, (1 << EVE), 0, OBJECTTYPE_SCRIPT, 0, MomScript, EVENT_PLAYERS_HOUSE_MOM_2
+	object_event  1,  2, SPRITE_MOM, SPRITEMOVEDATA_STANDING_UP, 0, 0, (1 << NITE), 0, OBJECTTYPE_SCRIPT, 0, MomScript, EVENT_PLAYERS_HOUSE_MOM_2
+	object_event  6,  4, SPRITE_MATRON, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, NeighborScript, EVENT_PLAYERS_HOUSE_1F_NEIGHBOR
+
+	object_const_def
+	const PLAYERSHOUSE1F_MOM1
+
+MomTrigger1:
 	playmusic MUSIC_MOM
 	showemote EMOTE_SHOCK, PLAYERSHOUSE1F_MOM1, 15
+	turnobject PLAYERSHOUSE1F_MOM1, RIGHT
 	turnobject PLAYER, LEFT
-	checkevent EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1
-	iffalse .OnRight
-	applymovement PLAYERSHOUSE1F_MOM1, MomTurnsTowardPlayerMovement
-	sjump MeetMomScript
+	sjumpfwd MomEventScript
 
-.OnRight:
-	applymovement PLAYERSHOUSE1F_MOM1, MomWalksToPlayerMovement
-MeetMomScript:
+MomTrigger2:
+	playmusic MUSIC_MOM
+	showemote EMOTE_SHOCK, PLAYERSHOUSE1F_MOM1, 15
+	turnobject PLAYERSHOUSE1F_MOM1, RIGHT
+	applyonemovement PLAYER, slow_step_left
+	sjumpfwd MomEventScript
+
+MomTrigger3:
+	playmusic MUSIC_MOM
+	showemote EMOTE_SHOCK, PLAYERSHOUSE1F_MOM1, 15
+	turnobject PLAYERSHOUSE1F_MOM1, UP
+	applymovement PLAYER, .two_steps_down
+	sjumpfwd MomEventScript
+
+.two_steps_down
+	step_down
+	step_down
+	step_end
+
+MomTrigger4:
+	playmusic MUSIC_MOM
+	showemote EMOTE_SHOCK, PLAYERSHOUSE1F_MOM1, 15
+	turnobject PLAYERSHOUSE1F_MOM1, UP
+	applyonemovement PLAYER, slow_step_down
+MomEventScript:
 	opentext
-	writetext ElmsLookingForYouText
+	writetext MomIntroText
 	promptbutton
-	getstring STRING_BUFFER_4, PokegearName
-	scall PlayersHouse1FReceiveItemStd
+	givespecialitem POKEGEAR
 	setflag ENGINE_POKEGEAR
 	setflag ENGINE_PHONE_CARD
 	addcellnum PHONE_MOM
-	setscene SCENE_PLAYERSHOUSE1F_NOOP
+	setscene $1
 	setevent EVENT_PLAYERS_HOUSE_MOM_1
 	clearevent EVENT_PLAYERS_HOUSE_MOM_2
-	writetext MomGivesPokegearText
+	writetext MomPokegearText
 	promptbutton
-	special SetDayOfWeek
-.SetDayOfWeek:
-	writetext IsItDSTText
+	special Special_SetDayOfWeek
+.InitialSetDSTFlag:
+	writetext MomDSTText
 	yesorno
-	iffalse .WrongDay
-	special InitialSetDSTFlag
+	iffalsefwd .NotDST
+	special Special_InitialSetDSTFlag
 	yesorno
-	iffalse .SetDayOfWeek
-	sjump .DayOfWeekDone
-
-.WrongDay:
-	special InitialClearDSTFlag
+	iffalse .InitialSetDSTFlag
+	sjumpfwd .InitializedDSTFlag
+.NotDST:
+	special Special_InitialClearDSTFlag
 	yesorno
-	iffalse .SetDayOfWeek
-.DayOfWeekDone:
-	writetext ComeHomeForDSTText
+	iffalse .InitialSetDSTFlag
+.InitializedDSTFlag:
+	writetext MomRunningShoesText
 	yesorno
-	iffalse .ExplainPhone
-	sjump .KnowPhone
-
-.KnowPhone:
-	writetext KnowTheInstructionsText
+	iftruefwd .NoInstructions
+	writetext MomInstructionsText
 	promptbutton
-	sjump .FinishPhone
-
-.ExplainPhone:
-	writetext DontKnowTheInstructionsText
-	promptbutton
-	sjump .FinishPhone
-
-.FinishPhone:
-	writetext InstructionsNextText
+.NoInstructions:
+	writetext MomOutroText
 	waitbutton
 	closetext
-	checkevent EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1
-	iftrue .FromRight
-	checkevent EVENT_TEMPORARY_UNTIL_MAP_RELOAD_2
-	iffalse .FromLeft
-	sjump .Finish
-
-.FromRight:
-	applymovement PLAYERSHOUSE1F_MOM1, MomTurnsBackMovement
-	sjump .Finish
-
-.FromLeft:
-	applymovement PLAYERSHOUSE1F_MOM1, MomWalksBackMovement
-	sjump .Finish
-
-.Finish:
-	special RestartMapMusic
 	turnobject PLAYERSHOUSE1F_MOM1, LEFT
+	special RestartMapMusic
 	end
 
-MeetMomTalkedScript:
-	playmusic MUSIC_MOM
-	sjump MeetMomScript
+PlayersHouse1FFridgeText:
+	text "Let's see what's"
+	line "in the fridge…"
 
-PokegearName:
-	db "#GEAR@"
+	para "Fresh Water and"
+	line "tasty Lemonade!"
+	done
 
-PlayersHouse1FReceiveItemStd:
-	jumpstd ReceiveItemScript
-	end
+PlayersHouse1FSinkText:
+	text "The sink is spot-"
+	line "less. Mom likes it"
+	cont "clean."
+	done
+
+PlayersHouse1FStoveText:
+	text "Mom's specialty!"
+
+	para "Cinnabar Volcano"
+	line "Burger!"
+	done
+
+PlayersHouse1FTVScript:
+	jumpthistext
+
+	text "There's a movie on"
+	line "TV: Stars dot the"
+
+	para "sky as two boys"
+	line "ride on a train…"
+
+	para "I'd better get"
+	line "rolling too!"
+	done
 
 MomScript:
 	faceplayer
-	setevent EVENT_TEMPORARY_UNTIL_MAP_RELOAD_2
 	checkscene
-	iffalse MeetMomTalkedScript ; SCENE_PLAYERSHOUSE1F_MEET_MOM
+	iffalsefwd .MomEvent
 	opentext
 	checkevent EVENT_FIRST_TIME_BANKING_WITH_MOM
-	iftrue .FirstTimeBanking
+	iftrue_jumpopenedtext MomDoItText
 	checkevent EVENT_TALKED_TO_MOM_AFTER_MYSTERY_EGG_QUEST
-	iftrue .BankOfMom
+	iftruefwd .BankOfMom
 	checkevent EVENT_GAVE_MYSTERY_EGG_TO_ELM
-	iftrue .GaveMysteryEgg
+	iftruefwd .FirstTimeBanking
 	checkevent EVENT_GOT_A_POKEMON_FROM_ELM
-	iftrue .GotAPokemon
-	writetext HurryUpElmIsWaitingText
-	waitbutton
-	closetext
-	end
+	iftrue_jumpopenedtext MomErrandText
+	jumpthisopenedtext
 
-.GotAPokemon:
-	writetext SoWhatWasProfElmsErrandText
-	waitbutton
-	closetext
-	end
+	text "Prof.Elm is wait-"
+	line "ing for you."
+
+	para "Hurry up, baby!"
+	done
 
 .FirstTimeBanking:
-	writetext ImBehindYouText
-	waitbutton
-	closetext
-	end
-
-.GaveMysteryEgg:
 	setevent EVENT_FIRST_TIME_BANKING_WITH_MOM
 .BankOfMom:
 	setevent EVENT_TALKED_TO_MOM_AFTER_MYSTERY_EGG_QUEST
-	special BankOfMom
-	waitbutton
-	closetext
-	end
+	special Special_BankOfMom
+	waitendtext
 
-NeighborScript:
-	faceplayer
-	opentext
-	checktime MORN
-	iftrue .MornScript
-	checktime DAY
-	iftrue .DayScript
-	checktime NITE
-	iftrue .NiteScript
+.MomEvent:
+	playmusic MUSIC_MOM
+	sjump MomEventScript
 
-.MornScript:
-	writetext NeighborMornIntroText
-	promptbutton
-	sjump .Main
+MomIntroText:
+if DEF(DEBUG)
+	text "Don't forget to use"
+	line "your debug radio!"
+	done
+else
+	text "Oh, <PLAYER>!"
+	line "You're awake."
 
-.DayScript:
-	writetext NeighborDayIntroText
-	promptbutton
-	sjump .Main
+	para "Your friend Lyra"
+	line "was just here."
 
-.NiteScript:
-	writetext NeighborNiteIntroText
-	promptbutton
-	sjump .Main
+	para "She said that our"
+	line "neighbor, Prof."
 
-.Main:
-	writetext NeighborText
-	waitbutton
-	closetext
-	turnobject PLAYERSHOUSE1F_POKEFAN_F, RIGHT
-	end
-
-PlayersHouse1FTVScript:
-	jumptext PlayersHouse1FTVText
-
-PlayersHouse1FStoveScript:
-	jumptext PlayersHouse1FStoveText
-
-PlayersHouse1FSinkScript:
-	jumptext PlayersHouse1FSinkText
-
-PlayersHouse1FFridgeScript:
-	jumptext PlayersHouse1FFridgeText
-
-MomTurnsTowardPlayerMovement:
-	turn_head RIGHT
-	step_end
-
-MomWalksToPlayerMovement:
-	slow_step RIGHT
-	step_end
-
-MomTurnsBackMovement:
-	turn_head LEFT
-	step_end
-
-MomWalksBackMovement:
-	slow_step LEFT
-	step_end
-
-ElmsLookingForYouText:
-	text "Oh, <PLAYER>…! Our"
-	line "neighbor, PROF."
-
-	para "ELM, was looking"
+	para "Elm, was looking"
 	line "for you."
 
-	para "He said he wanted"
-	line "you to do some-"
-	cont "thing for him."
-
 	para "Oh! I almost for-"
-	line "got! Your #MON"
+	line "got! Your #mon"
 
-	para "GEAR is back from"
+	para "Gear is back from"
 	line "the repair shop."
 
 	para "Here you go!"
 	done
+endc
 
-MomGivesPokegearText:
-	text "#MON GEAR, or"
-	line "just #GEAR."
+MomPokegearText:
+	text "#mon Gear, or"
+	line "just #gear."
 
 	para "It's essential if"
 	line "you want to be a"
@@ -245,61 +211,46 @@ MomGivesPokegearText:
 	line "that!"
 	done
 
-IsItDSTText:
+MomDSTText:
 	text "Is it Daylight"
 	line "Saving Time now?"
 	done
 
-ComeHomeForDSTText:
+MomRunningShoesText:
 	text "Come home to"
 	line "adjust your clock"
 
 	para "for Daylight"
 	line "Saving Time."
 
-	para "By the way, do you"
-	line "know how to use"
-	cont "the PHONE?"
+	para "By the way, do"
+	line "you know how to"
+
+	para "use your new"
+	line "Running Shoes?"
 	done
 
-KnowTheInstructionsText:
-	text "Don't you just"
-	line "turn the #GEAR"
-
-	para "on and select the"
-	line "PHONE icon?"
-	done
-
-DontKnowTheInstructionsText:
+MomInstructionsText:
 	text "I'll read the"
 	line "instructions."
 
-	para "Turn the #GEAR"
-	line "on and select the"
-	cont "PHONE icon."
+	para "Just hold down the"
+	line "B Button to run,"
+	cont "indoors or out."
+
+	para "Or use the Option"
+	line "to always run, and"
+	cont "hold B to walk."
 	done
 
-InstructionsNextText:
-	text "Phone numbers are"
-	line "stored in memory."
-
-	para "Just choose a name"
-	line "you want to call."
-
-	para "Gee, isn't that"
+MomOutroText:
+	text "Gee, aren't they"
 	line "convenient?"
 	done
 
-HurryUpElmIsWaitingText:
-	text "PROF.ELM is wait-"
-	line "ing for you."
-
-	para "Hurry up, baby!"
-	done
-
-SoWhatWasProfElmsErrandText:
-	text "So, what was PROF."
-	line "ELM's errand?"
+MomErrandText:
+	text "So, what was Prof."
+	line "Elm's errand?"
 
 	para "…"
 
@@ -311,99 +262,74 @@ SoWhatWasProfElmsErrandText:
 	cont "rely on you."
 	done
 
-ImBehindYouText:
+MomDoItText:
 	text "<PLAYER>, do it!"
 
 	para "I'm behind you all"
 	line "the way!"
 	done
 
-NeighborMornIntroText:
+NeighborScript:
+	faceplayer
+	opentext
+	checktime 1 << MORN
+	iftruefwd .MornScript
+	checktime 1 << DAY
+	iftruefwd .DayScript
+	checktime (1 << EVE) | (1 << NITE)
+	iftruefwd .NiteScript
+
+.MornScript:
+	writetext .MornIntroText
+	promptbutton
+	sjumpfwd .Main
+
+.DayScript:
+	writetext .DayIntroText
+	promptbutton
+	sjumpfwd .Main
+
+.NiteScript:
+	writetext .NiteIntroText
+	promptbutton
+	; fallthrough
+
+.Main:
+	writetext .NeighborText
+	waitbutton
+	closetext
+	turnobject LAST_TALKED, RIGHT
+	end
+
+.MornIntroText:
 	text "Good morning,"
-	line "<PLAY_G>!"
+	line "<PLAYER>!"
 
 	para "I'm visiting!"
 	done
 
-NeighborDayIntroText:
-	text "Hello, <PLAY_G>!"
+.DayIntroText:
+	text "Hello, <PLAYER>!"
 	line "I'm visiting!"
 	done
 
-NeighborNiteIntroText:
+.NiteIntroText:
 	text "Good evening,"
-	line "<PLAY_G>!"
+	line "<PLAYER>!"
 
 	para "I'm visiting!"
 	done
 
-NeighborText:
-	text "<PLAY_G>, have you"
+.NeighborText:
+	text "<PLAYER>, have you"
 	line "heard?"
 
 	para "My daughter is"
 	line "adamant about"
 
-	para "becoming PROF."
-	line "ELM's assistant."
+	para "becoming Prof."
+	line "Elm's assistant."
 
 	para "She really loves"
-	line "#MON!"
+	line "#mon!"
 	done
-
-PlayersHouse1FStoveText:
-	text "Mom's specialty!"
-
-	para "CINNABAR VOLCANO"
-	line "BURGER!"
-	done
-
-PlayersHouse1FSinkText:
-	text "The sink is spot-"
-	line "less. Mom likes it"
-	cont "clean."
-	done
-
-PlayersHouse1FFridgeText:
-	text "Let's see what's"
-	line "in the fridge…"
-
-	para "FRESH WATER and"
-	line "tasty LEMONADE!"
-	done
-
-PlayersHouse1FTVText:
-	text "There's a movie on"
-	line "TV: Stars dot the"
-
-	para "sky as two boys"
-	line "ride on a train…"
-
-	para "I'd better get"
-	line "rolling too!"
-	done
-
-PlayersHouse1F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  6,  7, NEW_BARK_TOWN, 2
-	warp_event  7,  7, NEW_BARK_TOWN, 2
-	warp_event  9,  0, PLAYERS_HOUSE_2F, 1
-
-	def_coord_events
-	coord_event  8,  4, SCENE_PLAYERSHOUSE1F_MEET_MOM, MeetMomLeftScript
-	coord_event  9,  4, SCENE_PLAYERSHOUSE1F_MEET_MOM, MeetMomRightScript
-
-	def_bg_events
-	bg_event  0,  1, BGEVENT_READ, PlayersHouse1FStoveScript
-	bg_event  1,  1, BGEVENT_READ, PlayersHouse1FSinkScript
-	bg_event  2,  1, BGEVENT_READ, PlayersHouse1FFridgeScript
-	bg_event  4,  1, BGEVENT_READ, PlayersHouse1FTVScript
-
-	def_object_events
-	object_event  7,  4, SPRITE_MOM, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, MomScript, EVENT_PLAYERS_HOUSE_MOM_1
-	object_event  2,  2, SPRITE_MOM, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, MORN, 0, OBJECTTYPE_SCRIPT, 0, MomScript, EVENT_PLAYERS_HOUSE_MOM_2
-	object_event  7,  4, SPRITE_MOM, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, DAY, 0, OBJECTTYPE_SCRIPT, 0, MomScript, EVENT_PLAYERS_HOUSE_MOM_2
-	object_event  0,  2, SPRITE_MOM, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, NITE, 0, OBJECTTYPE_SCRIPT, 0, MomScript, EVENT_PLAYERS_HOUSE_MOM_2
-	object_event  4,  4, SPRITE_POKEFAN_F, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, NeighborScript, EVENT_PLAYERS_HOUSE_1F_NEIGHBOR

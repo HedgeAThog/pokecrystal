@@ -1,5 +1,5 @@
 BrentAnswerPhoneText:
-	text "Yes? @"
+	text "Yes? "
 	text_ram wStringBuffer3
 	text " here…"
 
@@ -8,7 +8,7 @@ BrentAnswerPhoneText:
 	done
 
 BrentAnswerPhoneDayText:
-	text "Yes? @"
+	text "Yes? "
 	text_ram wStringBuffer3
 	text " here…"
 
@@ -17,7 +17,7 @@ BrentAnswerPhoneDayText:
 	done
 
 BrentAnswerPhoneNiteText:
-	text "Yes? @"
+	text "Yes? "
 	text_ram wStringBuffer3
 	text " here…"
 
@@ -30,7 +30,7 @@ BrentGreetText:
 	line "are you doing?"
 
 	para "Hey! It's me,"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 	done
@@ -40,7 +40,7 @@ BrentGreetDayText:
 	line "are you doing?"
 
 	para "Hey, it's me,"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 	done
@@ -50,7 +50,7 @@ BrentGreetNiteText:
 	line "are you doing?"
 
 	para "Hey, it's me,"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 	done
@@ -59,21 +59,20 @@ BrentGenericText:
 	text "Oh yeah, I saw you"
 	line "coming out of a"
 
-	para "#MON CENTER the"
+	para "#mon Center the"
 	line "other day."
 
 	para "You heal your"
-	line "#MON regularly,"
+	line "#mon regularly,"
 
 	para "don't you?"
 	line "I'm impressed."
 
-	para "Heh, my @"
+	para "Heh, my "
 	text_ram wStringBuffer4
-	text_start
 	line "is so tough, it"
 
 	para "doesn't need to go"
-	line "to #MON CENTERS"
+	line "to #mon Centers"
 	cont "often. Heheh!"
 	done

@@ -1,21 +1,18 @@
-	db POLIWHIRL ; 061
-
-	db  65,  65,  65,  90,  50,  50
-	;   hp  atk  def  spd  sat  sdf
+	db  65,  65,  65,  90,  50,  50 ; 385 BST
+	;   hp  atk  def  spe  sat  sdf
 
 	db WATER, WATER ; type
 	db 120 ; catch rate
 	db 131 ; base exp
-	db NO_ITEM, KINGS_ROCK ; items
-	db GENDER_F50 ; gender ratio
-	db 100 ; unknown 1
-	db 20 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/poliwhirl/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db NO_ITEM, KINGS_ROCK ; held items
+	dn GENDER_F50, HATCH_MEDIUM_FAST ; gender ratio, step cycles to hatch
+
+	abilities_for POLIWHIRL, WATER_ABSORB, DAMP, SWIFT_SWIM
 	db GROWTH_MEDIUM_SLOW ; growth rate
 	dn EGG_WATER_1, EGG_WATER_1 ; egg groups
 
+	ev_yield 2 Spe
+
 	; tm/hm learnset
-	tmhm HEADBUTT, CURSE, TOXIC, ROCK_SMASH, HIDDEN_POWER, SNORE, BLIZZARD, ICY_WIND, PROTECT, RAIN_DANCE, ENDURE, FRUSTRATION, EARTHQUAKE, RETURN, PSYCHIC_M, MUD_SLAP, DOUBLE_TEAM, ICE_PUNCH, SWAGGER, SLEEP_TALK, DEFENSE_CURL, DETECT, REST, ATTRACT, THIEF, SURF, STRENGTH, WHIRLPOOL, WATERFALL, ICE_BEAM
+	tmhm CURSE, TOXIC, HAIL, HIDDEN_POWER, ICE_BEAM, BLIZZARD, PROTECT, RAIN_DANCE, BULLDOZE, EARTHQUAKE, RETURN, DIG, PSYCHIC, ROCK_SMASH, DOUBLE_TEAM, SUBSTITUTE, FACADE, REST, ATTRACT, THIEF, SCALD, WATER_PULSE, SURF, STRENGTH, WHIRLPOOL, WATERFALL, BODY_SLAM, COUNTER, DEFENSE_CURL, DOUBLE_EDGE, EARTH_POWER, ENDURE, HEADBUTT, ICE_PUNCH, ICY_WIND, SEISMIC_TOSS, SLEEP_TALK, SWAGGER
 	; end

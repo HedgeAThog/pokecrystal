@@ -1,9 +1,9 @@
-UpdateTimeAndPals::
+RTC::
 ; update time and time-sensitive palettes
 
 ; rtc enabled?
 	ld a, [wSpriteUpdatesEnabled]
-	cp FALSE
+	and a
 	ret z
 
 	call UpdateTime
@@ -12,11 +12,10 @@ UpdateTimeAndPals::
 	ld a, [wStateFlags]
 	bit SPRITE_UPDATES_DISABLED_F, a ; obj update
 	ret z
+	; fallthrough
 
 TimeOfDayPals::
-	callfar _TimeOfDayPals
-	ret
+	farjp _TimeOfDayPals
 
 UpdateTimePals::
-	callfar _UpdateTimePals
-	ret
+	farjp _UpdateTimePals

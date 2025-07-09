@@ -1,24 +1,7 @@
-	object_const_def
-	const MOVEDELETERSHOUSE_SUPER_NERD
-
-MoveDeletersHouse_MapScripts:
+MoveDeletersHouse_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
-
-MoveDeleter:
-	faceplayer
-	opentext
-	special MoveDeletion
-	waitbutton
-	closetext
-	end
-
-MoveDeletersHouseBookshelf:
-	jumpstd DifficultBookshelfScript
-
-MoveDeletersHouse_MapEvents:
-	db 0, 0 ; filler
 
 	def_warp_events
 	warp_event  2,  7, BLACKTHORN_CITY, 6
@@ -27,8 +10,13 @@ MoveDeletersHouse_MapEvents:
 	def_coord_events
 
 	def_bg_events
-	bg_event  0,  1, BGEVENT_READ, MoveDeletersHouseBookshelf
-	bg_event  1,  1, BGEVENT_READ, MoveDeletersHouseBookshelf
+	bg_event  7,  1, BGEVENT_JUMPSTD, difficultbookshelf
 
 	def_object_events
-	object_event  2,  3, SPRITE_SUPER_NERD, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, MoveDeleter, -1
+	object_event  2,  3, SPRITE_POKEMANIAC, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, MoveDeleterScript, -1
+
+MoveDeleterScript:
+	faceplayer
+	opentext
+	special MoveDeletion
+	waitendtext

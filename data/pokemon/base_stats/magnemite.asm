@@ -1,21 +1,22 @@
-	db MAGNEMITE ; 081
-
-	db  25,  35,  70,  45,  95,  55
-	;   hp  atk  def  spd  sat  sdf
+	db  25,  35,  70,  45,  95,  55 ; 325 BST
+	;   hp  atk  def  spe  sat  sdf
 
 	db ELECTRIC, STEEL ; type
 	db 190 ; catch rate
 	db 89 ; base exp
-	db NO_ITEM, METAL_COAT ; items
-	db GENDER_UNKNOWN ; gender ratio
-	db 100 ; unknown 1
-	db 20 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/magnemite/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db NO_ITEM, METAL_COAT ; held items
+	dn GENDER_UNKNOWN, HATCH_MEDIUM_FAST ; gender ratio, step cycles to hatch
+
+if DEF(FAITHFUL)
+	abilities_for MAGNEMITE, MAGNET_PULL, STURDY, ANALYTIC
+else
+	abilities_for MAGNEMITE, MAGNET_PULL, LEVITATE, ANALYTIC
+endc
 	db GROWTH_MEDIUM_FAST ; growth rate
 	dn EGG_MINERAL, EGG_MINERAL ; egg groups
 
+	ev_yield 1 SAt
+
 	; tm/hm learnset
-	tmhm CURSE, ROLLOUT, TOXIC, ZAP_CANNON, HIDDEN_POWER, SNORE, PROTECT, RAIN_DANCE, ENDURE, FRUSTRATION, THUNDER, RETURN, DOUBLE_TEAM, SWAGGER, SLEEP_TALK, SWIFT, REST, FLASH, THUNDERBOLT
+	tmhm CURSE, TOXIC, HIDDEN_POWER, SUNNY_DAY, LIGHT_SCREEN, PROTECT, RAIN_DANCE, THUNDERBOLT, THUNDER, RETURN, DOUBLE_TEAM, REFLECT, FLASH_CANNON, SWIFT, SUBSTITUTE, FACADE, REST, WILD_CHARGE, EXPLOSION, FLASH, VOLT_SWITCH, THUNDER_WAVE, GYRO_BALL, AGILITY, DOUBLE_EDGE, ENDURE, ROLLOUT, SLEEP_TALK, SWAGGER, ZAP_CANNON
 	; end

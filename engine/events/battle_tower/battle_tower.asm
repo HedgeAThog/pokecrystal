@@ -1,1592 +1,962 @@
-BattleTowerRoomMenu:
-; special
-	call InitBattleTowerChallengeRAM
-	farcall _BattleTowerRoomMenu
-	ret
-
-Function1700ba:
-; special
-	call InitBattleTowerChallengeRAM
-	farcall Function11811a
-	ret
-
-Function1700c4:
-	ldh a, [rWBK]
-	push af
-	ld a, BANK(w3_d202TrainerData) ; aka BANK(w3_dffc) and BANK(w3_d202Name)
-	ldh [rWBK], a
-
-	call Function17042c
-
-	ld a, BANK(s5_be45) ; aka BANK(s5_be46), BANK(s5_aa41), and BANK(s5_aa5d)
-	call OpenSRAM
-	ld a, 1
-	ld [s5_be45], a
-	xor a
-	ld [s5_be46], a
-	ld hl, w3_dffc
-	ld de, s5_aa41
-	ld bc, 4
-	call CopyBytes
-	ld hl, w3_d202Name
-	ld de, s5_aa8e
-	ld bc, BATTLETOWER_STREAK_LENGTH * $cc ; length of battle tower struct from japanese games?
-	call CopyBytes
-	ld hl, s5_aa5d ; some sort of count
-	ld a, [hl]
-	inc [hl]
-	inc hl
-	sla a
-	sla a
-	ld e, a
-	ld d, 0
-	add hl, de
-	ld e, l
-	ld d, h
-	ld hl, w3_dffc
-	ld bc, 4
-	call CopyBytes
-	call CloseSRAM
-	pop af
-	ldh [rWBK], a
-	ret
-
-Function170114:
-	call InitBattleTowerChallengeRAM
-	call .Function170121
-	farcall Function11805f
-	ret
-
-.Function170121:
-	ld a, BANK(s5_a948)
-	call OpenSRAM
-	ld hl, s5_a948
-	ld de, wc608
-	ld bc, 246
-	call CopyBytes
-	call CloseSRAM
-	call Function170c8b
-	ret
-
-Function170139: ; unreferenced
-; Convert the 4-digit decimal number at s5_aa41 into binary
-	ld a, BANK(s5_aa41)
-	call OpenSRAM
-	ld de, s5_aa41
-	ld h, 0
-	ld l, h
-	ld bc, 1000
-	call .DecToBin
-	ld bc, 100
-	call .DecToBin
-	ld bc, 10
-	call .DecToBin
-	ld a, [de]
-	ld c, a
-	ld b, 0
-	add hl, bc
-	call CloseSRAM
-; Store that number in wc608
-	ld a, h
-	ld [wc608], a
-	ld a, l
-	ld [wc608 + 1], a
-	ld hl, wBT_OTTempMon1DVs
-	ld a, [wPlayerID]
-	ld [hli], a
-	ld a, [wPlayerID + 1]
-	ld [hli], a
-	ld a, [wSecretID]
-	ld [hli], a
-	ld a, [wSecretID + 1]
-	ld [hli], a
-	ld e, l
-	ld d, h
-	ld hl, wPlayerName
-	ld bc, NAME_LENGTH_JAPANESE - 1
-	call CopyBytes
-	ld bc, wPlayerID
-	ld de, wPlayerGender
-	farcall GetMobileOTTrainerClass
-	ld de, wBT_OTTempMon1CaughtGender
-	ld a, c
-	ld [de], a
-	inc de
-	ld a, LOW(wPartyMons)
-	ld [wcd49], a
-	ld a, HIGH(wPartyMons)
-	ld [wcd4a], a
-	ld a, LOW(wPartyMonNicknames)
-	ld [wcd4b], a
-	ld a, HIGH(wPartyMonNicknames)
-	ld [wcd4c], a
-	ld a, 3
-.CopyLoop:
-	push af
-	ld a, [wcd49]
-	ld l, a
-	ld a, [wcd4a]
-	ld h, a
-	ld bc, PARTYMON_STRUCT_LENGTH
-	call CopyBytes
-	ld a, l
-	ld [wcd49], a
-	ld a, h
-	ld [wcd4a], a
-	ld a, [wcd4b]
-	ld l, a
-	ld a, [wcd4c]
-	ld h, a
-	ld bc, 6
-	call CopyBytes
-	ld a, l
-	ld [wcd4b], a
-	ld a, h
-	ld [wcd4c], a
-	pop af
-	dec a
-	jr nz, .CopyLoop
-
-	ld a, BANK(sEZChatBeginBattleMessage)
-	call OpenSRAM
-	ld hl, sEZChatBattleMessages
-	ld bc, EASY_CHAT_MESSAGE_LENGTH * 3
-	call CopyBytes
-	call CloseSRAM
-
-	ld a, BANK(s5_a894) ; aka BANK(s5_a948)
-	call OpenSRAM
-	ld hl, s5_a894
-	ld bc, 6
-	call CopyBytes
-	ld hl, wc608
-	ld de, s5_a948
-	ld bc, 246
-	call CopyBytes
-	call CloseSRAM
-	ret
-
-.DecToBin:
-	ld a, [de]
-	inc de
-	and a
-	ret z
-
-.digit_loop
-	add hl, bc
-	dec a
-	jr nz, .digit_loop
-	ret
-
-BattleTowerBattle:
-	xor a ; FALSE
-	ld [wBattleTowerBattleEnded], a
-	call _BattleTowerBattle
-	ret
-
-UnusedBattleTowerDummySpecial1:
-	ret
-
-InitBattleTowerChallengeRAM:
+Special_BattleTower_Battle:
 	xor a
 	ld [wBattleTowerBattleEnded], a
-	ld [wNrOfBeatenBattleTowerTrainers], a
-	ld [wcf65], a
-	ld [wcf66], a
-	ret
-
-_BattleTowerBattle:
 .loop
-	call .do_dw
+	call RunBattleTowerTrainer
 	call DelayFrame
 	ld a, [wBattleTowerBattleEnded]
-	cp TRUE
-	jr nz, .loop
-	ret
+	and a
+	ret nz
+	jr .loop
 
-.do_dw
-	jumptable .dw, wBattleTowerBattleEnded
-
-.dw
-	dw RunBattleTowerTrainer
-	dw SkipBattleTowerTrainer
+Special_BattleTower_GetBattleResult:
+; Gets the last battle result.
+	ld a, [wOptions2]
+	push af
+	ld a, [wInBattleTowerBattle]
+	push af
+	call BT_GetCurTrainer
+	jr _RunBattleTowerTrainer
 
 RunBattleTowerTrainer:
-	ld a, [wOptions]
+	ld a, [wOptions2]
 	push af
-	ld hl, wOptions
-	set BATTLE_SHIFT, [hl] ; SET MODE
+	; force Set mode
+	ld hl, wOptions2
+	res BATTLE_SWITCH, [hl]
+	res BATTLE_PREDICT, [hl]
 
 	ld a, [wInBattleTowerBattle]
 	push af
-	or 1 << IN_BATTLE_TOWER_BATTLE_F
+	ld a, TRUE
 	ld [wInBattleTowerBattle], a
 
 	xor a
 	ld [wLinkMode], a
-	farcall StubbedTrainerRankings_Healings
 	farcall HealParty
-	call ReadBTTrainerParty
-	call Clears5_a89a
+	farcall PopulateBattleTowerTeam
 
 	predef StartBattle
 
 	farcall LoadPokemonData
 	farcall HealParty
 	ld a, [wBattleResult]
-	ld [wScriptVar], a
-	and a ; WIN?
-	jr nz, .lost
-	ld a, BANK(sNrOfBeatenBattleTowerTrainers)
-	call OpenSRAM
-	ld a, [sNrOfBeatenBattleTowerTrainers]
-	ld [wNrOfBeatenBattleTowerTrainers], a
-	call CloseSRAM
-	ld hl, wStringBuffer3
-	ld a, [wNrOfBeatenBattleTowerTrainers]
-	add "1"
-	ld [hli], a
-	ld a, "@"
-	ld [hl], a
+	and a
+	ld b, BTCHALLENGE_LOST
+	jr nz, _RunBattleTowerTrainer_GotResult
 
-.lost
+	; Display awarded BP for the battle (saved after conclusion)
+	call BT_GetCurTrainer
+	farcall BT_GetPointsForTrainer
+	add "0"
+	ld hl, wStringBuffer1
+	ld [hli], a
+	ld [hl], "@"
+	call BT_IncrementCurTrainer
+	; fallthrough
+_RunBattleTowerTrainer:
+	cp BATTLETOWER_STREAK_LENGTH
+	ld b, BTCHALLENGE_WON
+	jr z, _RunBattleTowerTrainer_GotResult
+
+	; Convert total winstreak to determine next battle number
+	inc a
+	push af
+	call BT_GetCurStreakAddr
+	pop af
+	inc hl
+	add [hl]
+	ld [wStringBuffer3 + 1], a
+	dec hl
+	ld a, [hl]
+	adc 0
+	ld [wStringBuffer3], a
+
+	; Check if we're battling the Tycoon/Head/etc. If so, give a special msg.
+	call BT_GetCurTrainerIndex
+	cp BATTLETOWER_NUM_TRAINERS
+	ld b, BTCHALLENGE_FACILITYBRAIN
+	jr nc, _RunBattleTowerTrainer_GotResult
+	ld b, BTCHALLENGE_NEXT
+
+_RunBattleTowerTrainer_GotResult:
+	ld a, b
+	ldh [hScriptVar], a
 	pop af
 	ld [wInBattleTowerBattle], a
 	pop af
-	ld [wOptions], a
+	ld [wOptions2], a
 	ld a, TRUE
 	ld [wBattleTowerBattleEnded], a
 	ret
 
-ReadBTTrainerParty:
-; Initialise the BattleTower-Trainer and his mon
-	call CopyBTTrainer_FromBT_OT_TowBT_OTTemp
-
-; Check the nicknames for illegal characters, and replace bad nicknames
-; with their species names.
-	ld de, wBT_OTTempMon1Name
-	ld c, MON_NAME_LENGTH
-	farcall CheckStringForErrors
-	jr nc, .skip_mon_1
-
-	ld a, [wBT_OTTempMon1]
-	ld [wNamedObjectIndex], a
-	call GetPokemonName
-	ld l, e
-	ld h, d
-	ld de, wBT_OTTempMon1Name
-	ld bc, MON_NAME_LENGTH
-	call CopyBytes
-
-.skip_mon_1
-	ld de, wBT_OTTempMon2Name
-	ld c, MON_NAME_LENGTH
-	farcall CheckStringForErrors
-	jr nc, .skip_mon_2
-	ld a, [wBT_OTTempMon2]
-	ld [wNamedObjectIndex], a
-	call GetPokemonName
-	ld l, e
-	ld h, d
-	ld de, wBT_OTTempMon2Name
-	ld bc, MON_NAME_LENGTH
-	call CopyBytes
-
-.skip_mon_2
-	ld de, wBT_OTTempMon3Name
-	ld c, MON_NAME_LENGTH
-	farcall CheckStringForErrors
-	jr nc, .skip_mon_3
-	ld a, [wBT_OTTempMon3]
-	ld [wNamedObjectIndex], a
-	call GetPokemonName
-	ld l, e
-	ld h, d
-	ld de, wBT_OTTempMon3Name
-	ld bc, MON_NAME_LENGTH
-	call CopyBytes
-
-.skip_mon_3
-; Add the terminator character to each of these names
-	ld a, "@"
-	ld [wBT_OTTempMon1Name + MON_NAME_LENGTH - 1], a
-	ld [wBT_OTTempMon2Name + MON_NAME_LENGTH - 1], a
-	ld [wBT_OTTempMon3Name + MON_NAME_LENGTH - 1], a
-; Fix errors in the movesets
-	call CheckBTMonMovesForErrors
-; Repair the trainer name if needed, then copy it to wOTPlayerName
-	ld de, wBT_OTTempName
-	ld c, NAME_LENGTH - 1
-	farcall CheckStringForErrors
-	jr nc, .trainer_name_okay
-	ld hl, BT_ChrisName
-	jr .done_trainer_name
-
-.trainer_name_okay
-	ld hl, wBT_OTTempName
-
-.done_trainer_name
-	ld de, wOTPlayerName
-	ld bc, NAME_LENGTH - 1
-	call CopyBytes
-	ld a, "@"
-	ld [de], a
-
-	ld hl, wBT_OTTempTrainerClass
-	ld a, [hli]
-	ld [wOtherTrainerClass], a
-	ld a, LOW(wOTPartyMonNicknames)
-	ld [wBGMapBuffer], a
-	ld a, HIGH(wOTPartyMonNicknames)
-	ld [wBGMapBuffer + 1], a
-
-	; Copy mon into Memory from the address in hl
-	ld de, wOTPartyMon1Species
-	ld bc, wOTPartyCount
-	ld a, BATTLETOWER_PARTY_LENGTH
-	ld [bc], a
-	inc bc
-.otpartymon_loop
+Special_BattleTower_CommitChallengeResult:
+; Commits battle result to game data, giving BP and updating streak data.
+; Does not reset the challenge state, that is done by saving the game.
+; This ensures that resetting the game doesn't annul this action.
+; Returns true script-wise if we beat the Tycoon.
+	; After finishing, we want to clear the facility battle state.
+	call .do_it
 	push af
-	ld a, [hl]
-	ld [bc], a
-	inc bc
-	push bc
-	ld bc, PARTYMON_STRUCT_LENGTH
-	call CopyBytes
-	push de
-	ld a, [wBGMapBuffer]
-	ld e, a
-	ld a, [wBGMapBuffer + 1]
-	ld d, a
-	ld bc, MON_NAME_LENGTH
-	call CopyBytes
-	ld a, e
-	ld [wBGMapBuffer], a
-	ld a, d
-	ld [wBGMapBuffer + 1], a
-	pop de
-	pop bc
-	pop af
-	dec a
-	and a
-	jr nz, .otpartymon_loop
-	ld a, -1
-	ld [bc], a
-	ret
-
-ValidateBTParty: ; unreferenced
-; Check for and fix errors in party data
-	ld hl, wBT_OTTempMon1Species
-	ld d, BATTLETOWER_PARTY_LENGTH
-.pkmn_loop
-	push de
-	push hl
-	ld b, h
-	ld c, l
-	ld a, [hl]
-	and a
-for x, $ff, NUM_POKEMON, -1
-	jr z, .invalid
-	cp x
-endr
-	jr nz, .valid
-
-.invalid
-	ld a, SMEARGLE
-	ld [hl], a
-
-.valid
-	ld [wCurSpecies], a
-	call GetBaseData
-	ld a, BANK(s5_b2fb)
-	call OpenSRAM
-	ld a, [s5_b2fb] ; s5_b2fb ; max level?
-	call CloseSRAM
-	ld e, a
-	ld hl, MON_LEVEL
-	add hl, bc
-	ld a, [hl]
-	cp MIN_LEVEL
-	ld a, MIN_LEVEL
-	jr c, .load
-	ld a, [hl]
-	cp e
-	jr c, .dont_load
-	ld a, e
-
-.load
-	ld [hl], a
-
-.dont_load
-	ld [wCurPartyLevel], a
-	ld hl, MON_MOVES
-	add hl, bc
-	ld d, NUM_MOVES - 1
-	ld a, [hli]
-	and a
-	jr z, .not_move
-	cp NUM_ATTACKS + 1
-	jr nc, .not_move
-	jr .valid_move
-
-.not_move
-	dec hl
-	ld a, POUND
-	ld [hli], a
+	ld a, BANK(sBattleTowerChallengeState)
+	call GetSRAMBank
 	xor a
-	ld [hli], a
-	ld [hli], a
-	ld [hl], a
-	jr .done_moves
-
-.valid_move
-	ld a, [hl]
-	cp NUM_ATTACKS + 1
-	jr c, .next
-	ld [hl], $0
-
-.next
-	inc hl
-	dec d
-	jr nz, .valid_move
-
-.done_moves
-	ld hl, MON_MAXHP
-	add hl, bc
-	ld d, h
-	ld e, l
-	push hl
-	push de
-	ld hl, MON_STAT_EXP - 1
-	add hl, bc
-	ld b, TRUE
-	predef CalcMonStats
-	pop de
-	pop hl
-	dec de
-	dec de
-	ld a, [hli]
-	ld [de], a
-	inc de
-	ld a, [hl]
-	ld [de], a
-	pop hl
-	ld bc, NICKNAMED_MON_STRUCT_LENGTH
-	add hl, bc
-	pop de
-	dec d
-	jp nz, .pkmn_loop
+	ld [sBattleTowerChallengeState], a
+	call CloseSRAM
+	pop af
 	ret
 
-BT_ChrisName:
-	db "CHRIS@"
+.do_it
+	; Reload party data, which might have been replaced with rentals.
+	farcall LoadPokemonData
 
-Function17042c:
-	ld hl, w3_d202TrainerData
-	ld a, BATTLETOWER_STREAK_LENGTH
-.loop
+	; Award BP depending on how many trainers we defeated.
+
+	; First byte is always zero (GiveBP wants a 2-byte parameter as input)
+	xor a
+	ld [wStringBuffer3], a
+
+	call BT_GetCurTrainer
+.bp_loop
+	sub 1 ; no-optimize a++|a-- (dec a can't set carry)
+	jr c, .bp_done
 	push af
-	push hl
-	ld c, BATTLETOWER_TRAINERDATALENGTH / 2
-.loop2
-	; First byte is a comparison value.
-	ld a, [hli]
+	farcall BT_GetPointsForTrainer
+	ld bc, wStringBuffer3 + 1
+	ld [bc], a
+	dec bc
+	farcall GiveBP
+	pop af
+	jr .bp_loop
+
+.bp_done
+	; If we're in rental mode, also possibly update swap count.
+	call BT_InRentalMode
+	jr nz, .check_record
+	call BT_GetCurSwaps
 	ld b, a
-	; Second byte is a lookup index.
-	ld a, [hli]
-	and a
-	jr z, .empty
-	cp (Unknown_170470.end - Unknown_170470) + 1
-	jr nc, .copy_data
+	ld a, [wBattleFactorySwapCount]
+	add b
 
-	push hl
-	ld hl, Unknown_170470
-	dec a
-	ld e, a
-	ld d, 0
-	add hl, de
+	; Cap at 99 (it's not really useful past 56 anyway).
+	cp 100
+	jr c, .got_swaps
+	ld a, 99
+.got_swaps
+	ld [wBattleFactorySwapCount], a
+
+.check_record
+	; Now, handle streak. Append defeated trainers to current winstreak.
+	call BT_GetBothStreakAddr
+	inc hl
+	call BT_GetCurTrainer
+	add [hl]
+	ld [hld], a
 	ld a, [hl]
-	pop hl
+	adc 0
+	ld [hl], a
 
-	; If Unknown_170470[a-1] <= b, overwrite the current trainer's data
-	; with Unknown_17047e, and exit the inner loop.
-	cp b
-	jr c, .copy_data
-	jr z, .copy_data
-	jr .next_iteration
+	; If this is a new record, update it.
+	ld a, [de]
+	cp [hl]
+	ld a, [hli]
+	jr nc, .no_new_hibyte_record
+	ld [de], a
+	inc de
+	ld a, [hl]
+	ld [de], a
 
-.empty
-	; If a == 0 and b >= $fc, overwrite the current trainer's data with
-	; Unknown_17047e, and exit the inner loop.
-	ld a, b
-	cp NUM_POKEMON + 1
-	jr nc, .copy_data
+.no_new_hibyte_record
+	inc de
+	ld a, [de]
+	cp [hl]
+	ld a, [hli]
+	jr nc, .record_done
+	ld [de], a
 
-.next_iteration
-	dec c
-	jr nz, .loop2
-	jr .next_trainer
+.record_done
+	; Reset winstreak if we lost
+	call BT_GetChallengeState
+	cp BATTLETOWER_WON_CHALLENGE
+	jr nz, .reset_streak
 
-.copy_data
-	pop de
+	; Figure out if we beat the Tycoon
+	call BT_GetCurTrainer
+	dec a
+	call BT_GetTrainerIndex
+	cp BATTLETOWER_NUM_TRAINERS
+	; a = carry ? FALSE : TRUE
+	sbc a
+	inc a
+	ldh [hScriptVar], a
+	ret
+
+.reset_streak
+	call BT_GetCurStreakAddr
+	xor a
+	ld [hli], a
+	ld [hl], a
+	ldh [hScriptVar], a
+
+	; Also reset amount of performed Battle Factory swaps if applicable.
+	call BT_InRentalMode
+	ret nz
+	xor a
+	ld [wBattleFactorySwapCount], a
+	ret
+
+Special_BattleTower_GetChallengeState:
+	call BT_GetChallengeState
+	and a
+	ldh [hScriptVar], a
+	ret
+
+BT_GetChallengeState:
+; Returns the current challenge state for Battle Tower, or zero if none.
+	call BT_GetTowerStatus
+	ret c
+	and BATTLETOWER_CHALLENGEMASK
+	ret
+
+BT_InRentalMode:
+; Returns z if we're in rental mode.
 	push de
-	ld hl, Unknown_17047e
-	ld bc, BATTLETOWER_TRAINERDATALENGTH
-	call CopyBytes
-
-.next_trainer
-	pop hl
-	ld de, BATTLE_TOWER_STRUCT_LENGTH
-	add hl, de
-	pop af
-	dec a
-	jr nz, .loop
-	ret
-
-INCLUDE "data/battle_tower/unknown_levels.asm"
-
-CopyBTTrainer_FromBT_OT_TowBT_OTTemp:
-; copy the BattleTower-Trainer data that lies at 'wBT_OTTrainer' to 'wBT_OTTemp'
-	ldh a, [rWBK]
-	push af
-	ld a, BANK(wBT_OTTrainer)
-	ldh [rWBK], a
-
-	ld hl, wBT_OTTrainer
-	ld de, wBT_OTTemp
-	ld bc, BATTLE_TOWER_STRUCT_LENGTH
-	call CopyBytes
-
-	pop af
-	ldh [rWBK], a
-
-	ld a, BANK(sBattleTowerChallengeState)
-	call OpenSRAM
-	ld a, BATTLETOWER_CHALLENGE_IN_PROGRESS
-	ld [sBattleTowerChallengeState], a
-	ld hl, sNrOfBeatenBattleTowerTrainers
-	inc [hl]
-	call CloseSRAM
-SkipBattleTowerTrainer:
-	ret
-
-Function1704ca: ; unreferenced
-	ld a, [s5_be46]
-	cp BATTLETOWER_STREAK_LENGTH
-	jr c, .not_max
-	ld a, BATTLETOWER_STREAK_LENGTH - 1
-
-.not_max
-	ld hl, s5_aa8e + BATTLE_TOWER_STRUCT_LENGTH * (BATTLETOWER_STREAK_LENGTH - 1)
-	ld de, -BATTLE_TOWER_STRUCT_LENGTH
-.loop
-	and a
-	jr z, .done
-	add hl, de
-	dec a
-	jr .loop
-
-.done
-	ret
-
-Function1704e1:
-	call SpeechTextbox
-	call FadeToMenu
-	call InitBattleTowerChallengeRAM
-	call .JumptableLoop
-	call CloseSubmenu
-	ret
-
-.JumptableLoop:
-	call ClearBGPalettes
-	call ClearSprites
-	call ClearScreen
-.loop
-	call JoyTextDelay
-	ld a, [wJumptableIndex]
-	bit JUMPTABLE_EXIT_F, a
-	jr nz, .done
-	call .DoJumptable
-	farcall HDMATransferTilemapAndAttrmap_Overworld
-	jr .loop
-
-.done
-	ret
-
-.DoJumptable:
-	jumptable .dw, wJumptableIndex
-
-.dw
-	dw .Jumptable_0
-	dw .Jumptable_1
-	dw .Jumptable_2
-
-.Jumptable_0:
-	ld a, BANK(s5_a89c)
-	call OpenSRAM
-
-	ld hl, s5_a89c
-	ld de, wStringBuffer3
-	ld bc, 22
-	call CopyBytes
-
-	ld hl, s5_a8b2
-	ld de, wc608
-	ld bc, 150
-	call CopyBytes
-
-	call CloseSRAM
-	hlcoord 1, 1
-	ld de, wStringBuffer3
-	call PlaceString
-	hlcoord 1, 3
-	ld de, .String_Mail
-	call PlaceString
-	hlcoord 4, 3
-	ld de, wStringBuffer4
-	call PlaceString
-	hlcoord 8, 3
-	ld de, .String_PastReaders
-	call PlaceString
-	call .DrawBorder
-	call .PlaceTextItems
-	jr .NextJumptableFunction
-
-.Jumptable_1:
-	call SetDefaultBGPAndOBP
-	call .NextJumptableFunction
-
-.Jumptable_2:
-	ld hl, hJoyPressed
-	ld a, [hl]
-	and PAD_A
-	jr nz, .pressed_a_or_b
-	ld a, [hl]
-	and PAD_B
-	jr nz, .pressed_a_or_b
-	ld a, [hl]
-	and PAD_UP
-	jr nz, .pressed_up
-	ld a, [hl]
-	and PAD_DOWN
-	jr nz, .pressed_down
-	ret
-
-.pressed_up
-	ld a, [wNrOfBeatenBattleTowerTrainers]
-	and a
-	ret z
-	sub 15
-	ld [wNrOfBeatenBattleTowerTrainers], a
-	call .PlaceTextItems
-	ret
-
-.pressed_down
-	ld a, [wNrOfBeatenBattleTowerTrainers]
-	cp 60
-	ret z
-	add 15
-	ld [wNrOfBeatenBattleTowerTrainers], a
-	call .PlaceTextItems
-	ret
-
-.pressed_a_or_b
-	ld hl, wJumptableIndex
-	set JUMPTABLE_EXIT_F, [hl]
-	ret
-
-.NextJumptableFunction:
-	ld hl, wJumptableIndex
-	inc [hl]
-	ret
-
-.DrawBorder:
-	hlcoord 0, 4
-	ld a, "┌"
-	ld [hli], a
-	ld c, SCREEN_WIDTH - 2
-.top_border_loop
-	ld a, "─"
-	ld [hli], a
-	dec c
-	jr nz, .top_border_loop
-	ld a, "┐"
-	ld [hli], a
-	ld de, SCREEN_WIDTH
-	ld c, 12
-.left_border_loop
-	ld a, "│"
-	ld [hl], a
-	add hl, de
-	dec c
-	jr nz, .left_border_loop
-	ld a, "└"
-	ld [hli], a
-	ld c, SCREEN_WIDTH - 2
-.bottom_border_loop
-	ld a, "─"
-	ld [hli], a
-	dec c
-	jr nz, .bottom_border_loop
-	ld a, "┘"
-	ld [hl], a
-	ld de, -SCREEN_WIDTH
-	add hl, de
-	ld c, 12
-.right_border_loop
-	ld a, "│"
-	ld [hl], a
-	add hl, de
-	dec c
-	jr nz, .right_border_loop
-	ret
-
-.PlaceTextItems:
-	call .ClearBox
-	call .PlaceUpDownArrows
-	ld a, $50
-	ld [wcd4e], a
-	ld hl, wc608
-	ld a, [wNrOfBeatenBattleTowerTrainers]
-	ld c, a
-	xor a
-	ld b, a
-	add hl, bc
-	push hl
-	pop bc
-	hlcoord 1, 6
-	ld a, 6
-.loop1
-	push af
-	push hl
-	ld a, 3
-.loop2
-	push af
-	ld de, wcd49
-	ld a, [bc]
-	and a
-	jr z, .fill_with_e3
-; .copy
-	ld a, 5
-.loop3a
-	push af
-	ld a, [bc]
-	ld [de], a
-	inc bc
-	inc de
-	pop af
-	dec a
-	jr nz, .loop3a
-	jr .rejoin
-
-.fill_with_e3
-	ld a, 5
-.loop3b
-	push af
-	ld a, $e3
-	ld [de], a
-	inc de
-	inc bc
-	pop af
-	dec a
-	jr nz, .loop3b
-
-.rejoin
-	ld de, wcd49
 	push bc
-	call PlaceString
-	ld de, NAME_LENGTH_JAPANESE
-	add hl, de
+	call BT_GetBattleMode
 	pop bc
-	pop af
-	dec a
-	jr nz, .loop2
+	pop de
+	jr c, .not_rental_mode
+	cp BATTLETOWER_RENTALMODE
+	ret
+.not_rental_mode
+	or 1
+	ret
+
+BT_GetBattleMode:
+	push hl
+	call BT_GetTowerStatus
 	pop hl
-	ld de, $28
-	add hl, de
-	pop af
-	dec a
-	jr nz, .loop1
-	ret
-
-.ClearBox:
-	hlcoord 1, 5
-	xor a
-	ld b, 12
-.clearbox_row
-	ld c, SCREEN_WIDTH - 2
-.clearbox_column
-	ld [hli], a
-	dec c
-	jr nz, .clearbox_column
-	inc hl
-	inc hl
-	dec b
-	jr nz, .clearbox_row
-	ret
-
-.PlaceUpDownArrows:
-	ld a, [wNrOfBeatenBattleTowerTrainers]
-	and a
-	jr z, .nope
-	hlcoord 18, 5
-	ld a, "▲"
-	ld [hl], a
-
-.nope
-	ld a, [wNrOfBeatenBattleTowerTrainers]
-	cp 60
-	ret z
-	hlcoord 18, 16
-	ld a, "▼"
-	ld [hl], a
-	ret
-
-.String_Mail:
-	db "ルーム@"
-
-.String_PastReaders:
-	db "れきだいりーダーいちらん@"
-
-BattleTowerAction:
-	jumptable .dw, wScriptVar
-
-.dw
-	dw BattleTowerAction_CheckExplanationRead
-	dw BattleTowerAction_SetExplanationRead
-	dw BattleTowerAction_GetChallengeState
-	dw BattleTowerAction_SetByteToQuickSaveChallenge
-	dw BattleTowerAction_SetByteToCancelChallenge
-	dw BattleTowerAction_05
-	dw BattleTowerAction_06
-	dw SaveBattleTowerLevelGroup
-	dw LoadBattleTowerLevelGroup
-	dw BattleTower_CheckSaveFileExistsAndIsYours
-	dw BattleTowerAction_0A
-	dw BattleTowerAction_GSBall
-	dw BattleTowerAction_0C
-	dw BattleTowerAction_0D
-	dw BattleTowerAction_EggTicket
-	dw BattleTowerAction_0F
-	dw BattleTowerAction_10
-	dw BattleTowerAction_11
-	dw BattleTowerAction_12
-	dw BattleTowerAction_13
-	dw BattleTowerAction_14
-	dw BattleTowerAction_15
-	dw BattleTowerAction_16
-	dw BattleTowerAction_17
-	dw BattleTowerAction_LevelCheck
-	dw BattleTowerAction_UbersCheck
-	dw ResetBattleTowerTrainersSRAM
-	dw BattleTower_GiveReward
-	dw BattleTowerAction_1C
-	dw BattleTowerAction_1D
-	dw BattleTower_RandomlyChooseReward
-	dw BattleTower_SaveOptions
-
-; Reset the save memory for BattleTower-Trainers (Counter and all 7 TrainerBytes)
-ResetBattleTowerTrainersSRAM:
-	ld a, BANK(sBTTrainers)
-	call OpenSRAM
-
-	ld a, $ff
-	ld hl, sBTTrainers
-	ld bc, BATTLETOWER_STREAK_LENGTH
-	call ByteFill
-
-	xor a
-	ld [sNrOfBeatenBattleTowerTrainers], a
-
-	call CloseSRAM
-
-	ret
-
-BattleTower_GiveReward:
-	ld a, BANK(sBattleTowerReward)
-	call OpenSRAM
-
-	ld a, [sBattleTowerReward]
-	call CloseSRAM
-	ld [wScriptVar], a
-	ld hl, wNumItems
-	ld a, [hli]
-	cp MAX_ITEMS
 	ret c
-	ld b, MAX_ITEMS
-	ld a, [wScriptVar]
-	ld c, a
-.loop
-	ld a, [hli]
-	cp c
-	jr nz, .next
-	ld a, [hl]
-	cp 95
-	ret c
-.next
-	inc hl
-	dec b
-	jr nz, .loop
-	ld a, POTION
-	ld [wScriptVar], a
+	and BATTLETOWER_MODEMASK
 	ret
 
-BattleTowerAction_1C:
-	ld a, BANK(sBattleTowerChallengeState)
-	call OpenSRAM
-	ld a, BATTLETOWER_WON_CHALLENGE
-	ld [sBattleTowerChallengeState], a
-	call CloseSRAM
-	ret
-
-BattleTowerAction_1D:
-	ld a, BANK(sBattleTowerChallengeState)
-	call OpenSRAM
-	ld a, BATTLETOWER_RECEIVED_REWARD
-	ld [sBattleTowerChallengeState], a
-	call CloseSRAM
-	ret
-
-BattleTower_SaveOptions:
-	farcall SaveOptions
-	ret
-
-BattleTower_RandomlyChooseReward:
-; Generate a random stat boosting item.
-.loop
-	call Random
-	ldh a, [hRandomAdd]
-	and $7
-	cp 6
-	jr c, .okay
-	sub 6
-.okay
-	add HP_UP
-	cp LUCKY_PUNCH
-	jr z, .loop
-	push af
-	ld a, BANK(sBattleTowerReward)
-	call OpenSRAM
-	pop af
-	ld [sBattleTowerReward], a
-	call CloseSRAM
-	ret
-
-BattleTowerAction_CheckExplanationRead:
-	call BattleTower_CheckSaveFileExistsAndIsYours
-	ld a, [wScriptVar]
-	and a
+BT_GetTowerStatus:
+; Check tower status (challenge state + battle mode). Returns:
+; z|c: The save isn't ours (a=0)
+; z|nc: No ongoing challenge (a=0)
+; nz|nc: Challenge ongoing, with status in a (a=1+)
+	call BT_CheckSaveOwnership
+	scf
 	ret z
 
-	ld a, BANK(sBattleTowerSaveFileFlags)
-	call OpenSRAM
-	ld a, [sBattleTowerSaveFileFlags]
-	and 2
-	ld [wScriptVar], a
-	call CloseSRAM
-	ret
-
-BattleTowerAction_GetChallengeState:
 	ld hl, sBattleTowerChallengeState
 	ld a, BANK(sBattleTowerChallengeState)
-	call OpenSRAM
+	call GetSRAMBank
 	ld a, [hl]
-	ld [wScriptVar], a
-	call CloseSRAM
-	ret
+	and a
+	jmp CloseSRAM
 
-BattleTowerAction_SetExplanationRead:
-	ld a, BANK(sBattleTowerSaveFileFlags)
-	call OpenSRAM
-	ld a, [sBattleTowerSaveFileFlags]
-	or 2
-	ld [sBattleTowerSaveFileFlags], a
-	call CloseSRAM
-	ret
+Special_BattleTower_SetChallengeState:
+	; Don't mess with BT state on a previously existing save.
+	; The game should never try this, so crash if it does.
+	call BT_GetTowerStatus
+	ld a, ERR_BT_STATE
+	jmp c, Crash
 
-BattleTowerAction_SetByteToQuickSaveChallenge:
-	ld c, BATTLETOWER_SAVED_AND_LEFT
-	jr SetBattleTowerChallengeState
-
-BattleTowerAction_SetByteToCancelChallenge:
-	ld c, BATTLETOWER_NO_CHALLENGE
-SetBattleTowerChallengeState:
+	; Otherwise, go ahead and write the challenge state
+	ldh a, [hScriptVar]
+	and BATTLETOWER_CHALLENGEMASK
+	ld c, a
+	call BT_GetTowerStatus
+	and ~BATTLETOWER_CHALLENGEMASK
+	or c
+	; fallthrough
+BT_SetTowerStatus:
+	ld c, a
 	ld a, BANK(sBattleTowerChallengeState)
-	call OpenSRAM
+	call GetSRAMBank
 	ld a, c
 	ld [sBattleTowerChallengeState], a
-	call CloseSRAM
-	ret
+	jmp CloseSRAM
 
-BattleTowerAction_05:
-	ld a, BANK(s5_aa8c) ; aka BANK(s5_be46)
-	call OpenSRAM
-	ld a, [s5_aa8c]
-	ld b, a
-	ld a, [s5_be46]
-	ld [wScriptVar], a
-	call CloseSRAM
+Special_BattleTower_SetupRentalMode:
+	call BT_GetTowerStatus
+	assert BATTLETOWER_MODEMASK == BATTLETOWER_RENTALMODE
+	or BATTLETOWER_RENTALMODE
+	jr BT_SetTowerStatus
+
+Special_BattleTower_GenerateNextOpponent:
+; Generates opponent team and, if this is the first battle, rental picks.
+	; If this is the first battle, generate a new rental team.
+	call BT_GetCurTrainer
 	and a
-	ret z
-	ld a, b
-	cp 2
-	jr nc, .asm_1707ef
+	jr nz, .not_first_battle
+	farcall NewRentalTeam
+	jr .got_player_selections
+
+.not_first_battle
+	; Otherwise, copy last trainer into secondary party...
+	ld a, BANK(sBT_OTMonParties)
+	call GetSRAMBank
+
+	ld hl, sBT_OTMonParty3
+	ld de, wBT_SecondaryMonParty
+	ld bc, BATTLETOWER_PARTYDATA_SIZE
 	push bc
-	call UpdateTime
+	rst CopyBytes
+
+	; ...and copy current party stored in sram into player party.
+	ld hl, sBT_MonParty
+	ld de, wBT_MonParty
 	pop bc
-	ld a, BANK(s5_aa8c)
-	call OpenSRAM
-	ld a, [s5_aa8b]
+	rst CopyBytes
 	call CloseSRAM
-	ld c, a
-	ld a, [wCurDay]
-	sub c
-	jr c, .asm_1707e5
-	cp 8
-	jr nc, .asm_1707ef
-	ld a, b
+
+.got_player_selections
+	; Now, generate a new opponent party.
+	farjp GenerateOpponentTrainer
+
+Special_BattleTower_NextRentalBattle:
+	; Initialize (or re-initialize) player and opponent teams.
+	farcall LoadRentalParty
+	farcall LoadOpponentParty
+	ld a, BATTLETOWER_FORCED_LEVEL
+	farcall BT_SetLevel
+
+	; Copy move name of first mon's first move, in case we want to reveal it.
+	ld a, [wOTPartyMon1Moves]
+	ld [wNamedObjectIndex], a
+	call GetMoveName
+
+	; Figure out how many details we want to reveal.
+	ld a, [wBattleFactoryCurStreak]
 	and a
-	jr nz, .asm_1707ef
-	ret
-.asm_1707e5
-	ld hl, wCurDay
-	ld a, $8c
-	sub c
-	add [hl]
-	cp 8
-	ret c
-.asm_1707ef
-	ld a, 8
-	ld [wScriptVar], a
+	jr nz, .most_common_type
+	ld a, [wBattleFactoryCurStreak + 1]
+	ld b, 7
+	sub b
+	ld hl, .ExpectThese3
+	jr c, .print
+	sub b
+	ld hl, .ExpectThese2
+	jr c, .print
+	sub b
+	ld hl, .ExactMonUsingMove
+	jr c, .print
+	sub b
+	ld hl, .SomeMonUsingMove
+	jr c, .print
 
-BattleTowerAction_06:
-	ld a, BANK(s5_be46) ; aka BANK(s5_aa8b) and BANK(s5_aa8c)
-	call OpenSRAM
-	xor a
-	ld [s5_be46], a
-	ld [s5_aa8b], a
-	ld [s5_aa8c], a
-	call CloseSRAM
-	ret
-
-BattleTowerAction_16:
-	call UpdateTime
-	ld a, BANK(s5_b2f9) ; aka BANK(s5_b2fa)
-	call OpenSRAM
-	ld a, [wCurDay]
-	ld [s5_b2f9], a
-	xor a
-	ld [s5_b2fa], a
-	call CloseSRAM
-	ret
-
-BattleTowerAction_17:
-	xor a
-	ld [wScriptVar], a
-	ld a, BANK(s5_b2f9) ; aka BANK(s5_b2fa)
-	call OpenSRAM
-	ld a, [s5_b2f9]
-	ld c, a
-	ld a, [s5_b2fa]
-	ld b, a
-	call CloseSRAM
-	cp 2
-	jr nc, .asm_170853
+.most_common_type
+	; Copy opponent typings into an array. If monotype, set the 2nd type to -1.
+	ld de, wBT_OpponentTypeArray
+	push de
+	ld b, 3
+.gettypes_loop
+	push de
+	ld hl, wOTPartyMon1Species
+	call .GetOTPartyLocation
+	ld a, [hl]
+	ld [wCurSpecies], a
+	ld hl, wOTPartyMon1Form
+	call .GetOTPartyLocation
+	ld [wCurForm], a
 	push bc
-	call UpdateTime
+	call GetBaseData
 	pop bc
-	ld a, [wCurDay]
-	sub c
-	jr c, .asm_170849
-	cp 11
-	jr nc, .asm_170853
-	ld a, b
-	and a
-	jr nz, .asm_170853
-	ret
+	ld hl, wBaseType
+	ld a, [hli]
+	pop de
+	ld [de], a
+	inc de
+	cp [hl]
+	ld a, [hl]
+	jr nz, .got_secondary
+	ld a, -1
+.got_secondary
+	ld [de], a
+	inc de
+	dec b
+	jr nz, .gettypes_loop
 
-.asm_170849
-	ld hl, wCurDay
-	ld a, 140
-	sub c
-	add [hl]
-	cp 11
-	ret c
-.asm_170853
+	; Now we have the type list. Figure out the most common type.
+	pop de
+	lb hl, 0, 0 ; most common typing so far.
+	ld b, BATTLETOWER_PARTY_LENGTH * 2
+.outer_type_loop
+	push hl
+	ld h, d
+	ld l, e
+	ld c, 0
+	push bc
+	ld a, [de]
+.inner_type_loop
+	cp [hl]
+	jr nz, .not_same_type
+	inc c
+.not_same_type
+	inc hl
+	dec b
+	jr nz, .inner_type_loop
+
+	; Got all occurence of type a. Now check if this is more common than the
+	; current tracked most common type.
+	ld l, c
+	pop bc
+	ld c, a
+	ld a, l
+	pop hl
+
+	; Ignore the checked type if it's -1 (sentinel for ignored mono-type2).
+	inc c
+	jr z, .next
+	dec c
+	cp l
+	jr c, .next
+	ld h, c
+	ld l, a
+.next
+	dec b
+	jr nz, .outer_type_loop
+
+	; Now we have the most common type in h. If the "most common" type only
+	; occurs 1 time, the opponent has no preference. Tied types beyond that
+	; will result in the opponent preferring the earlier type in the party.
+	dec l
+	ld a, h
+	ld hl, .NoTypePreference
+	jr z, .print
+	ld [wNamedObjectIndex], a
+	farcall GetTypeName
+	ld hl, .PrefersType
+.print
+	call PrintText
+
+	; Check if we're swapping or giving a new team.
+	call BT_GetCurTrainer
+	and a
+	jr z, .new_team
+	ld hl, .TradeBeforeBattle
+	call PrintText
+	call YesNoBox
+	jr c, .done_trade
+
+	; If the player aborts, repeat the entire dialog.
+	ld a, -1
+	ld [wBT_PartySelectCounter], a
+	farcall BT_SwapRentals
+	jmp c, Special_BattleTower_NextRentalBattle
+
+	call BT_IncrementCurSwaps
+	; fallthrough
+.done_trade
 	ld a, 1
-	ld [wScriptVar], a
-	ld a, BANK(s5_b2f9) ; aka BANK(s5_b2fa)
-	call OpenSRAM
+	ldh [hScriptVar], a
+	ret
+
+.new_team
+	ld hl, .NewRentalsText
+	call PrintText
+	jmp Special_BattleTower_SelectParticipants
+
+.GetOTPartyLocation:
+	push bc
+	ld a, b
+	dec a
+	call GetPartyLocation
+	pop bc
+	ret
+
+.NewRentalsText:
+	text "We'll hold your"
+	line "#mon safe and"
+	cont "offer you 6 rental"
+	cont "#mon."
+
+	para "Choose #mon"
+	line "to enter."
+	prompt
+
+.TradeBeforeBattle:
+	text "Would you like to"
+	line "trade a #mon"
+	cont "before the battle?"
+	done
+
+.ExpectThese3:
+	text "You can expect to"
+	line "see "
+	text_ram wOTPartyMonNicknames
+	text ","
+	cont ""
+	text_ram wOTPartyMonNicknames + MON_NAME_LENGTH
+	text " and"
+	cont ""
+	text_ram wOTPartyMonNicknames + MON_NAME_LENGTH * 2
+	text "."
+	prompt
+
+.ExpectThese2:
+	text "You can expect to"
+	line "see "
+	text_ram wOTPartyMonNicknames
+	text " and"
+	cont ""
+	text_ram wOTPartyMonNicknames + MON_NAME_LENGTH
+	text "."
+	prompt
+
+.ExactMonUsingMove:
+	text "You can expect to"
+	line "see a "
+	text_ram wOTPartyMonNicknames
+	cont "with "
+	text_ram wStringBuffer1
+	text "."
+	prompt
+
+.SomeMonUsingMove:
+	text "You can expect to"
+	line "see a #mon"
+	cont "with "
+	text_ram wStringBuffer1
+	text "."
+	prompt
+
+.NoTypePreference:
+	text "The opponent"
+	line "doesn't have a"
+	cont "type preference."
+	prompt
+
+.PrefersType:
+	text "The opponent"
+	line "favors "
+	text_ram wStringBuffer1
+	text "-"
+	cont "type #mon."
+	prompt
+
+Special_BattleTower_SelectParticipants:
+	; Clear old BT participants selection
 	xor a
-	ld [s5_b2f9], a
-	ld [s5_b2fa], a
-	call CloseSRAM
+	ld [wBT_PartySelectCounter], a
+
+	; Select 3 mons to enter
+	farcall BT_PartySelect
+
+	; Update script var so the scripting engine can make sense of the result
+	ld hl, hScriptVar
+	ld [hl], 0
+	ret c
+	inc [hl]
 	ret
 
-SaveBattleTowerLevelGroup:
-	ld a, BANK(sBTChoiceOfLevelGroup)
-	call OpenSRAM
-	ldh a, [rWBK]
-	push af
-	ld a, BANK(wBTChoiceOfLvlGroup)
-	ldh [rWBK], a
-	ld a, [wBTChoiceOfLvlGroup]
-	ld [sBTChoiceOfLevelGroup], a
-	pop af
-	ldh [rWBK], a
-	call CloseSRAM
-	ret
-
-LoadBattleTowerLevelGroup: ; Load level group choice
-	ld a, BANK(sBTChoiceOfLevelGroup)
-	call OpenSRAM
-	ldh a, [rWBK]
-	push af
-	ld a, BANK(wBTChoiceOfLvlGroup)
-	ldh [rWBK], a
-	ld a, [sBTChoiceOfLevelGroup]
-	ld [wBTChoiceOfLvlGroup], a
-	pop af
-	ldh [rWBK], a
-	call CloseSRAM
-	ret
-
-BattleTower_CheckSaveFileExistsAndIsYours:
+BT_CheckSaveOwnership:
+; Returns z if the save isn't ours.
 	ld a, [wSaveFileExists]
 	and a
-	jr z, .nope
+	ret z
+
 	farcall CompareLoadedAndSavedPlayerID
 	jr z, .yes
-	xor a ; FALSE
-	jr .nope
-
+	xor a
+	ret
 .yes
-	ld a, TRUE
-
-.nope
-	ld [wScriptVar], a
+	or 1
 	ret
 
-BattleTowerAction_0A:
+Special_BattleTower_MaxVolume:
 	xor a
 	ld [wMusicFade], a
-	call MaxVolume
-	ret
+	jmp MaxVolume
 
-BattleTowerAction_GSBall:
-	ld a, BANK(sGSBallFlag)
-	call OpenSRAM
-	ld a, [sGSBallFlag]
-	ld [wScriptVar], a
-	call CloseSRAM
-	ret
-
-BattleTowerAction_0C:
-	call UpdateTime
-	ld a, BANK(s5_aa8b) ; aka BANK(s5_aa8c), BANK(s5_aa5d), BANK(s5_aa48), and BANK(s5_aa47)
-	call OpenSRAM
-	ld a, [wCurDay]
-	ld [s5_aa8b], a
-	xor a
-	ld [s5_aa8c], a
-	ld a, [s5_aa5d]
-	cp 2
-	jr nc, .asm_1708ec
-	ld a, [wCurDay]
-	ld [s5_aa48], a
-	ld a, 1
-	ld [s5_aa47], a
-.asm_1708ec
-	call CloseSRAM
-	ret
-
-BattleTowerAction_0D:
-	xor a ; FALSE
-	ld [wScriptVar], a
-	call UpdateTime
-	ld a, BANK(s5_aa48) ; aka BANK(s5_aa47)
-	call OpenSRAM
-	ld a, [s5_aa48]
-	ld c, a
-	ld a, [s5_aa47]
-	call CloseSRAM
-	and a
-	ret z
-	ld hl, wCurDay
-	ld a, c
-	cp [hl]
-	jr nz, Function170923
-	ld a, BANK(s5_aa5d)
-	call OpenSRAM
-	ld a, [s5_aa5d]
-	call CloseSRAM
-	cp 5
-	ret c
-	ld a, TRUE
-	ld [wScriptVar], a
-	ret
-
-Function170923:
-	ld a, BANK(s5_aa48) ; aka BANK(s5_aa47) and BANK(s5_aa5d)
-	call OpenSRAM
-	xor a
-	ld [s5_aa48], a
-	ld [s5_aa47], a
-	ld hl, s5_aa5d
-	ld bc, MOBILE_LOGIN_PASSWORD_LENGTH
-	call ByteFill
-	call CloseSRAM
-	ret
-
-BattleTowerAction_EggTicket:
-	xor a ; FALSE
-	ld [wScriptVar], a
-	ld a, EGG_TICKET
-	ld [wCurItem], a
-	ld hl, wNumItems
-	call CheckItem
-	ret nc
-	ld a, [wPartyCount]
-	ld b, 0
-	ld c, a
-	ld hl, wPartySpecies
-.loop
-	ld a, [hli]
-	cp EGG
-	jr nz, .not_egg
-	push hl
-	ld hl, wPartyMonOTs
-	ld de, NAME_LENGTH_JAPANESE
-	ld a, b
-	and a
-	jr z, .skip
-.loop2
-	add hl, de
-	dec a
-	jr nz, .loop2
-.skip
-	ld de, String_MysteryJP
-	ld a, NAME_LENGTH_JAPANESE
-.compare_loop
+Special_BattleTower_BeginChallenge:
+; Initializes Battle Tower challenge data.
+; possible future idea: occasional special trainers (leaders/etc) after tycoon?
+	call BT_GetBattleMode
 	push af
-	ld a, [de]
-	inc de
-	cp [hl]
-	inc hl
-	jr nz, .different
+
+	; Commit party selection to SRAM in regular mode. Blank it in rental mode.
+	ld a, BANK(sBT_PartySelections)
+	call GetSRAMBank
 	pop af
-	dec a
-	jr nz, .compare_loop
-rept 4
-	dec hl
-endr
-	ld a, "@"
-	ld [hli], a
-	ld [hli], a
-	pop hl
-	ld a, EGG_TICKET
-	ld [wCurItem], a
-	ld a, 1
-	ld [wItemQuantityChange], a
+	cp BATTLETOWER_RENTALMODE
+	ld hl, wBT_PartySelections
+	ld de, sBT_PartySelections
+	ld bc, PARTY_LENGTH
+	push af
+	call nz, CopyBytes
+	ld bc, BATTLETOWER_PARTYDATA_SIZE
+	ld h, d
+	ld l, e
+	pop af
 	ld a, -1
-	ld [wCurItemQuantity], a
-	ld hl, wNumItems
-	call TossItem
-	ld a, TRUE
-	ld [wScriptVar], a
-	ret
+	call z, ByteFill
 
-.different
-	pop af
-	pop hl
-.not_egg
-	inc b
-	dec c
-	jr nz, .loop
-	ret
-
-String_MysteryJP:
-	db "なぞナゾ@@" ; MYSTERY
-
-BattleTowerAction_0F:
-	ldh a, [rWBK]
-	push af
-	ld a, BANK(w3_d090)
-	ldh [rWBK], a
-	ld a, [w3_d090]
-	ld [wScriptVar], a
-	pop af
-	ldh [rWBK], a
-	ret
-
-BattleTowerAction_10:
-	xor a ; FALSE
-	ld [wScriptVar], a
-	ld a, BANK(s5_a800)
-	call OpenSRAM
-	ld a, [s5_a800]
-	call CloseSRAM
-	cp 6
-	jr nc, .invalid
-	ld e, a
-	ld d, 0
-	ld hl, .Jumptable
-	add hl, de
-	add hl, de
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	jp hl
-
-.invalid
-	ld a, BANK(s5_a800)
-	call OpenSRAM
+	; Reset amount of battled trainers
 	xor a
-	ld [s5_a800], a
-	call CloseSRAM
-	ret
+	ld [sBT_CurTrainerAndSwap], a
 
-.Jumptable:
-	dw .NoAction
-	dw .NoAction
-	dw .DoAction1
-	dw .DoAction1
-	dw .Action4
-	dw .Action5
+	; Blank previously used opponent Pokémon
+	ld a, -1
+	ld hl, sBT_OTMonParties
+	ld bc, BATTLETOWER_PARTYDATA_SIZE * BATTLETOWER_SAVEDPARTIES
+	rst ByteFill
 
-.DoAction1:
-	ld a, BANK(s5_a800)
-	call OpenSRAM
-	ld a, 1
-	ld [s5_a800], a
-	call CloseSRAM
-
-.NoAction:
-	ret
-
-.Action4:
-	ld a, BANK(s5_b023) ; aka BANK(sOfferReqGender) and BANK(sOfferReqSpecies)
-	call OpenSRAM
-	ld hl, s5_b023
-	ld de, wc608
-	ld bc, 105
-	call CopyBytes
-	ld a, [sOfferReqGender]
-	ld [wcd30], a
-	ld a, [sOfferReqSpecies]
-	ld [wcd31], a
-	call CloseSRAM
-	farcall Function11b6b4
-	farcall Function17d0f3
-	ld a, TRUE
-	ld [wScriptVar], a
-	ret
-
-.Action5:
-	ld a, 0 ; ???
-	call OpenSRAM
-	ld hl, wRTC
-	ld de, wc608
-	ld bc, 4
-	call CopyBytes
-	call CloseSRAM
-	ld a, BANK(s5_b08c)
-	call OpenSRAM
-	ld hl, s5_b08c
-	ld de, wc608
-	ld c, 4
-.compare_loop
-	ld a, [de]
-	inc de
-	cp [hl]
-	jr nz, .different
-	inc hl
-	dec c
-	jr nz, .compare_loop
-	call CloseSRAM
-	ld a, [wMapGroup]
-	ld b, a
-	ld a, [wMapNumber]
-	ld c, a
-	call GetMapSceneID
-	ld a, d
-	or e
-	jr z, .no_scene
-	ld a, [de]
-	and a
-	ret nz
-
-.no_scene
-	ld a, TRUE
-	ld [wScriptVar], a
-	ret
-
-.different
-	call CloseSRAM
-	ld a, BANK(s5_a800)
-	call OpenSRAM
-	xor a
-	ld [s5_a800], a
-	call CloseSRAM
-	ld [wScriptVar], a
-	ld a, [wMapGroup]
-	ld b, a
-	ld a, [wMapNumber]
-	ld c, a
-	call GetMapSceneID
-	ld a, d
-	or e
-	jr z, .no_scene_2
-	xor a
+	; Generates a list of Trainers for the player to battle.
+	ld b, 0
+	ld de, sBTTrainers
+.outer_loop
+	; Generate a trainer
+	ld a, BATTLETOWER_NUM_TRAINERS
+	call RandomRange
 	ld [de], a
 
-.no_scene_2
-	ret
-
-BattleTowerAction_11:
-	ld c, FALSE
-	jr Set_s5_aa8d
-
-BattleTowerAction_12:
-	ld c, TRUE
-Set_s5_aa8d:
-	ld a, BANK(s5_aa8d)
-	call OpenSRAM
-	ld a, c
-	ld [s5_aa8d], a
-	call CloseSRAM
-	ret
-
-BattleTowerAction_13:
-	ld a, BANK(s5_aa8d)
-	call OpenSRAM
-	ld a, [s5_aa8d]
-	ld [wScriptVar], a
-	call CloseSRAM
-	ret
-
-BattleTowerAction_14:
-	call BattleTower_CheckSaveFileExistsAndIsYours
-	ld a, [wScriptVar]
-	and a
-	ret z
-
-	ld a, BANK(sBattleTowerSaveFileFlags)
-	call OpenSRAM
-	ld a, [sBattleTowerSaveFileFlags]
-	and 1
-	ld [wScriptVar], a
-	call CloseSRAM
-	ret
-
-BattleTowerAction_15:
-	ld a, BANK(sBattleTowerSaveFileFlags)
-	call OpenSRAM
-	ld a, [sBattleTowerSaveFileFlags]
-	or 1
-	ld [sBattleTowerSaveFileFlags], a
-	call CloseSRAM
-	ret
-
-BattleTowerAction_LevelCheck:
-	ld a, BANK(s5_b2fb)
-	call OpenSRAM
-	ld a, [s5_b2fb]
-	call CloseSRAM
-	ld c, 10
-	call SimpleDivide
+	; Now iterate through what we already have to verify uniqueness.
+	ld hl, sBTTrainers
+	ld c, b
+	inc c
+.inner_loop
+	dec c
+	jr z, .next
+	cp [hl]
+	jr z, .outer_loop
+	inc hl
+	jr .inner_loop
+.next
+	inc de
+	inc b
 	ld a, b
-	ld [wcd4f], a
-	xor a
-	ld [wScriptVar], a
-	farcall BattleTower_LevelCheck
-	ret nc
-	ld a, BANK(s5_b2fb)
-	call OpenSRAM
-	ld a, [s5_b2fb]
-	call CloseSRAM
-	ld [wScriptVar], a
-	ret
+	cp BATTLETOWER_STREAK_LENGTH
+	jr nz, .outer_loop
 
-BattleTowerAction_UbersCheck:
-	ld a, BANK(s5_b2fb)
-	call OpenSRAM
-	ld a, [s5_b2fb]
-	call CloseSRAM
-	ld c, 10
-	call SimpleDivide
-	ld a, b
-	ld [wcd4f], a
-	xor a
-	ld [wScriptVar], a
-	farcall BattleTower_UbersCheck
-	ret nc
-	ld a, BANK(s5_b2fb)
-	call OpenSRAM
-	ld a, [s5_b2fb]
-	call CloseSRAM
-	ld [wScriptVar], a
-	ret
-
-LoadOpponentTrainerAndPokemonWithOTSprite:
-	farcall LoadOpponentTrainerAndPokemon
-	ldh a, [rWBK]
-	push af
-	ld a, BANK(wBT_OTTrainerClass)
-	ldh [rWBK], a
-	ld hl, wBT_OTTrainerClass
+	; Replace the 7th trainer with Tycoon every 3rd run
+	push de
+	call BT_GetCurStreakAddr
+	ld a, [hli]
+	ldh [hDividend], a
 	ld a, [hl]
-	dec a
+	ldh [hDividend + 1], a
+	ld a, BATTLETOWER_STREAK_LENGTH * 3
+	ldh [hDivisor], a
+	ld b, 2
+	farcall Divide
+	ldh a, [hRemainder]
+	cp BATTLETOWER_STREAK_LENGTH * 2
+	pop de
+
+	; GetCurStreakAddr has already closed SRAM.
+	ret nz
+
+	call BT_InRentalMode
+	ld a, BATTLETOWER_FACTORYHEAD
+	jr z, .got_frontier_brain
+	ld a, BATTLETOWER_TOWERTYCOON
+.got_frontier_brain
+	push af
+	ld a, BANK(sBTTrainers)
+	call GetSRAMBank
+	pop af
+	dec de
+	ld [de], a
+	jmp CloseSRAM
+
+BT_GetBothStreakAddr:
+; Sets hl to the streak address for the current battle mode and de to the top.
+; Closes SRAM.
+	call BT_GetCurStreakAddr
+	call BT_InRentalMode
+	ld de, wBattleFactoryTopStreak
+	ret z
+	ld de, wBattleTowerTopStreak
+	ret
+
+BT_GetCurStreakAddr:
+; Sets hl to the streak address for the current battle mode.
+; Closes SRAM.
+	call BT_InRentalMode
+	ld hl, wBattleFactoryCurStreak
+	ret z
+	ld hl, wBattleTowerCurStreak
+	ret
+
+BT_LoadPartySelections:
+; Loads party selections from SRAM
+	; Set amount of mons for battle
+	ld a, 3
+	ld [wBT_PartySelectCounter], a
+	ld a, BANK(sBT_PartySelections)
+	call GetSRAMBank
+	ld hl, sBT_PartySelections
+	ld de, wBT_PartySelections
+	ld bc, PARTY_LENGTH
+	rst CopyBytes
+	jmp CloseSRAM
+
+BT_GetCurSwaps:
+; Returns amount of performed swaps so far.
+	ld a, BANK(sBT_CurTrainerAndSwap)
+	call GetSRAMBank
+	ld a, [sBT_CurTrainerAndSwap]
+	and BATTLETOWER_SWAPMASK
+	rrca
+	rrca
+	rrca
+	jmp CloseSRAM
+
+BT_IncrementCurSwaps:
+; Increments amount of performed swaps so far and returns result in a.
+	ld a, BANK(sBT_CurTrainerAndSwap)
+	call GetSRAMBank
+	ld a, [sBT_CurTrainerAndSwap]
+	add 8
+	ld [sBT_CurTrainerAndSwap], a
+	and BATTLETOWER_SWAPMASK
+	rrca
+	rrca
+	rrca
+	jmp CloseSRAM
+
+BT_GetCurTrainer:
+; Returns beaten trainers so far in a.
+	ld a, BANK(sBT_CurTrainerAndSwap)
+	call GetSRAMBank
+	ld a, [sBT_CurTrainerAndSwap]
+	and BATTLETOWER_TRAINERMASK
+	jmp CloseSRAM
+
+BT_IncrementCurTrainer:
+; Increments amount of beaten trainers so far and returns result in a.
+	ld a, BANK(sBT_CurTrainerAndSwap)
+	call GetSRAMBank
+	ld a, [sBT_CurTrainerAndSwap]
+	inc a
+	ld [sBT_CurTrainerAndSwap], a
+	and BATTLETOWER_TRAINERMASK
+	jmp CloseSRAM
+
+BT_GetCurTrainerIndex:
+; Get trainer index for current trainer
+	call BT_GetCurTrainer
+	; fallthrough
+BT_GetTrainerIndex:
+	ld c, a
+	ld a, BANK(sBTTrainers)
+	call GetSRAMBank
+	ld b, 0
+	ld hl, sBTTrainers
+	add hl, bc
+	ld a, [hl]
+	jmp CloseSRAM
+
+Special_BattleTower_LoadOpponentTrainerAndPokemonsWithOTSprite:
+	; Load sprite of the opponent trainer
+	; because s/he is chosen randomly and appears out of nowhere
+	call BT_GetCurTrainerIndex
 	ld c, a
 	ld b, 0
-	pop af
-	ldh [rWBK], a
+	farcall WriteBattleTowerTrainerName
+LoadTrainerSpriteAsMapObject1::
+	ld c, a
+	ld b, 0
+	dec c
 	ld hl, BTTrainerClassSprites
 	add hl, bc
 	ld a, [hl]
-	ld [wBTTempOTSprite], a
-
-; Load sprite of the opponent trainer
-; because s/he is chosen randomly and appears out of nowhere
-	ld a, [wScriptVar]
-	dec a
-	sla a
-	ld e, a
-	sla a
-	sla a
-	sla a
-	ld c, a
-	ld b, 0
-	ld d, 0
-	ld hl, wMapObjects
-	add hl, bc
-	inc hl
-	ld a, [wBTTempOTSprite]
-	ld [hl], a
-	ld hl, wUsedSprites
-	add hl, de
-	ld [hli], a
+LoadSpriteAsMapObject1::
+	ld [wMap1ObjectSprite], a
 	ldh [hUsedSpriteIndex], a
-	ld a, [hl]
+	ld a, 24
 	ldh [hUsedSpriteTile], a
-	farcall GetUsedSprite
-	ret
+	farjp GetUsedSprite
 
 INCLUDE "data/trainers/sprites.asm"
 
-UnusedBattleTowerDummySpecial2:
+BT_SetPlayerOT:
+; Interprets the selected party mons for entering and populates wOTParty
+; with the chosen Pokémon from the player. Used for 2 things: legality
+; checking and to fix the party order according to player choices.
+	; Number of party mons
+	ld a, [wBT_PartySelectCounter]
+	jr _BT_SetPlayerOT
+
+BT_SetRentalOT:
+	ld a, 3
+	; fallthrough
+_BT_SetPlayerOT:
+	ld [wOTPartyCount], a
+
+	; The rest is iterated
+	ld bc, 0
+	ld d, a
+.loop
+	; Main party struct
+	push de
+	ld hl, wPartyMons
+	ld de, wOTPartyMons
+	ld a, PARTYMON_STRUCT_LENGTH
+	call .CopyPartyData
+
+	; Nickname struct
+	ld hl, wPartyMonNicknames
+	ld de, wOTPartyMonNicknames
+	ld a, MON_NAME_LENGTH
+	call .CopyPartyData
+
+	; OT name struct
+	ld hl, wPartyMonOTs
+	ld de, wOTPartyMonOTs
+	ld a, NAME_LENGTH
+	call .CopyPartyData
+
+	; In rental mode, also copy party selection to SRAM
+	call BT_InRentalMode
+	jr nz, .not_rental
+	ld a, BANK(sBT_MonParty)
+	call GetSRAMBank
+	ld hl, wBT_MonParty
+	ld de, sBT_MonParty
+	ld a, 2
+	call .CopyPartyData
+	call CloseSRAM
+.not_rental
+	pop de
+
+	inc c
+	ld a, c
+	cp d
+	jr nz, .loop
 	ret
 
-CheckForBattleTowerRules:
-	farcall _CheckForBattleTowerRules
-	jr c, .ready
-	xor a ; FALSE
-	jr .end
+.CopyPartyData:
+; Copy a bytes from hl to de, with relative addresses depending on
+; which mon we're currently working on. Preserves bc.
+	; First, correct de to the current mon target index we're adding.
+	; Just add a*bc (struct length * loop iterator)
+	push hl
+	ld h, d
+	ld l, e
+	push af
+	rst AddNTimes
+	pop af
+	ld d, h
+	ld e, l
+	pop hl
 
-.ready
-	ld a, TRUE
+	; Now, correct hl to the current mon source index.
+	; Get the source index from party selection
+	push bc
+	push hl
+	ld hl, wBT_PartySelections
+	add hl, bc
+	ld c, [hl] ; b always remains zero, no need to mess with it
+	pop hl
 
-.end
-	ld [wScriptVar], a
+	; Now bc holds party index, so we can AddNTimes like with de earlier
+	push af
+	rst AddNTimes
+	pop af
+
+	; Now copy the data
+	ld c, a
+	rst CopyBytes
+	pop bc
+	ret
+
+BT_LegalityCheck:
+; Check OT party for violations of Species or Item Clause. Used to verify
+; both the player team when entering after copying to OT data, and the
+; generated AI team. Returns z if the team is legal, otherwise nz and the error
+; in e (1: 2+ share species, 2: 2+ share item)
+; Species Clause: more than 1 Pokémon are the same species
+; Item Clause: more than 1 Pokémon holds the same item
+	ld a, [wOTPartyCount]
+	ld e, a
+
+	; Do nothing if we have no mons at all
+	and a
+	ret z
+
+	; Nor if we have a single mon (since we have nothing to compare with)
+	dec e
+	ret z
+
+	ld hl, wOTPartyMon1
+.outer_loop
+	push de
+	ld c, [hl]
+	ld a, MON_FORM
+	call .GetPartyValue
+	ld b, a
+	ld a, MON_ITEM
+	call .GetPartyValue
+	ld d, a
+	push hl
+	call .NextPartyMon
+.inner_loop
+	; Compare species
+	ld a, [hl]
+	cp c
+	jr nz, .species_not_identical
+
+	; Compare extspecies
+	ld a, MON_FORM
+	call .GetPartyValue
+	xor b
+	and EXTSPECIES_MASK
+	ld a, 1
+	jr z, .identical
+
+.species_not_identical
+	call BT_InRentalMode
+	jr z, .item_not_identical
+
+	ld a, MON_ITEM
+	call .GetPartyValue
+
+	; Allow several mons with no item
+	and a
+	jr z, .item_not_identical
+	cp d
+	ld a, 2
+	jr z, .identical
+
+.item_not_identical
+	call .NextPartyMon
+	dec e
+	jr nz, .inner_loop
+	pop hl
+	call .NextPartyMon
+	pop de
+	dec e
+	jr nz, .outer_loop
+	ret
+
+.identical
+	pop hl
+	pop de
+	ld e, a
+	and a
+	ret
+
+.NextPartyMon:
+; Advance to next party mon.
+	push bc
+	ld bc, PARTYMON_STRUCT_LENGTH
+	add hl, bc
+	pop bc
+	ret
+
+.GetPartyValue:
+; From party field in a, get value for current partymon in hl.
+; Preserves hl.
+	push hl
+	add l
+	ld l, a
+	adc h
+	sub l
+	ld h, a
+	ld a, [hl]
+	pop hl
 	ret

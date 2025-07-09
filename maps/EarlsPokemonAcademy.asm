@@ -1,79 +1,71 @@
-	object_const_def
-	const EARLSPOKEMONACADEMY_EARL
-	const EARLSPOKEMONACADEMY_YOUNGSTER1
-	const EARLSPOKEMONACADEMY_GAMEBOY_KID1
-	const EARLSPOKEMONACADEMY_GAMEBOY_KID2
-	const EARLSPOKEMONACADEMY_YOUNGSTER2
-	const EARLSPOKEMONACADEMY_POKEDEX
-
-EarlsPokemonAcademy_MapScripts:
+EarlsPokemonAcademy_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
+	def_warp_events
+	warp_event  3, 15, VIOLET_CITY, 3
+	warp_event  4, 15, VIOLET_CITY, 3
+
+	def_coord_events
+
+	def_bg_events
+	bg_event  0,  1, BGEVENT_READ, PokemonJournalWalkerScript
+	bg_event  1,  1, BGEVENT_READ, PokemonJournalWalkerScript
+	bg_event  3,  0, BGEVENT_READ, AcademyBlackboard
+	bg_event  4,  0, BGEVENT_READ, AcademyBlackboard
+
+	def_object_events
+	object_event  4,  2, SPRITE_FAT_GUY, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, AcademyEarl, EVENT_EARLS_ACADEMY_EARL
+	object_event  2,  4, SPRITE_BOOK_PAPER_POKEDEX, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, AcademyNotebook, -1
+	object_event  2,  5, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_COMMAND, jumptextfaceplayer, EarlsPokemonAcademyYoungster1Text, -1
+	object_event  4,  7, SPRITE_CHILD, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, PAL_NPC_BROWN, OBJECTTYPE_COMMAND, jumptextfaceplayer, EarlsPokemonAcademyYoungster2Text, -1
+	object_event  3, 11, SPRITE_GAMER_GIRL, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, EarlsPokemonAcademyGameboyKid1Script, -1
+	object_event  4, 11, SPRITE_GAMEBOY_KID, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, EarlsPokemonAcademyGameboyKid2Script, -1
+
+	object_const_def
+	const EARLSPOKEMONACADEMY_EARL
+
 AcademyEarl:
+	givekeyitem TYPE_CHART ; failsafe in case Violet City Earl is gone already in a save
 	applymovement EARLSPOKEMONACADEMY_EARL, AcademyEarlSpinMovement
 	faceplayer
 	opentext
 	writetext AcademyEarlIntroText
 	yesorno
-	iffalse .Part1
+	iffalsefwd .Part1
 	writetext AcademyEarlTeachHowToWinText
 	yesorno
-	iffalse .Done
+	iffalse_jumpopenedtext AcademyEarlNoMoreToTeachText
 .Part1:
 	writetext AcademyEarlTeachMoreText
 	yesorno
-	iffalse .Done
-	writetext AcademyEarlTeachHowToRaiseWellText
-	waitbutton
-	closetext
-	end
-
-.Done:
-	writetext AcademyEarlNoMoreToTeachText
-	waitbutton
-	closetext
-	end
-
-EarlsPokemonAcademyYoungster1Script:
-	jumptextfaceplayer EarlsPokemonAcademyYoungster1Text
+	iffalse_jumpopenedtext AcademyEarlNoMoreToTeachText
+	jumpopenedtext AcademyEarlTeachHowToRaiseWellText
 
 EarlsPokemonAcademyGameboyKid1Script:
-	faceplayer
-	opentext
-	writetext EarlsPokemonAcademyGameboyKid1Text
-	waitbutton
-	closetext
-	turnobject EARLSPOKEMONACADEMY_GAMEBOY_KID1, DOWN
+	showtextfaceplayer EarlsPokemonAcademyGameboyKid1Text
+	turnobject LAST_TALKED, DOWN
 	end
 
 EarlsPokemonAcademyGameboyKid2Script:
-	faceplayer
-	opentext
-	writetext EarlsPokemonAcademyGameboyKid2Text
-	waitbutton
-	closetext
-	turnobject EARLSPOKEMONACADEMY_GAMEBOY_KID2, DOWN
+	showtextfaceplayer EarlsPokemonAcademyGameboyKid2Text
+	turnobject LAST_TALKED, DOWN
 	end
-
-EarlsPokemonAcademyYoungster2Script:
-	jumptextfaceplayer EarlsPokemonAcademyYoungster2Text
 
 AcademyBlackboard:
 	opentext
 	writetext AcademyBlackboardText
 .Loop:
-	loadmenu .BlackboardMenuHeader
+	loadmenu .MenuHeader
 	_2dmenu
 	closewindow
-	ifequal 1, .Poison
-	ifequal 2, .Paralysis
-	ifequal 3, .Sleep
-	ifequal 4, .Burn
-	ifequal 5, .Freeze
-	closetext
-	end
+	ifequalfwd $1, .Poison
+	ifequalfwd $2, .Paralysis
+	ifequalfwd $3, .Sleep
+	ifequalfwd $4, .Burn
+	ifequalfwd $5, .Freeze
+	endtext
 
 .Poison:
 	writetext AcademyPoisonText
@@ -100,71 +92,81 @@ AcademyBlackboard:
 	waitbutton
 	sjump .Loop
 
-.BlackboardMenuHeader:
-	db MENU_BACKUP_TILES ; flags
+.MenuHeader:
+	db MENU_BACKUP_TILES
 	menu_coords 0, 0, 11, 8
-	dw .MenuData
+	dw .Data
 	db 1 ; default option
 
-.MenuData:
-	db STATICMENU_CURSOR ; flags
+.Data:
+	db $80 ; flags
 	dn 3, 2 ; rows, columns
 	db 5 ; spacing
 	dba .Text
-	dbw BANK(@), NULL
+	dbw BANK(AcademyBlackboard), 0
 
 .Text:
-	db "PSN@"
-	db "PAR@"
-	db "SLP@"
-	db "BRN@"
-	db "FRZ@"
-	db "QUIT@"
+	db "Psn@"
+	db "Par@"
+	db "Slp@"
+	db "Brn@"
+	db "Frz@"
+	db "Quit@"
 
 AcademyNotebook:
 	opentext
 	writetext AcademyNotebookText
 	yesorno
-	iffalse .Done
+	iffalsefwd .Done
 	writetext AcademyNotebookText1
 	yesorno
-	iffalse .Done
+	iffalsefwd .Done
 	writetext AcademyNotebookText2
 	yesorno
-	iffalse .Done
+	iffalsefwd .Done
 	writetext AcademyNotebookText3
 	waitbutton
 .Done:
-	closetext
-	end
+	endtext
 
-AcademyStickerMachine: ; unreferenced
-	jumptext AcademyStickerMachineText
+PokemonJournalWalkerScript:
+	setflag ENGINE_READ_WALKER_JOURNAL
+	jumpthistext
 
-AcademyBookshelf:
-	jumpstd DifficultBookshelfScript
+	text "#mon Journal"
+
+	para "Special Feature:"
+	line "Ex-Leader Walker!"
+
+	para "Falkner's father"
+	line "Walker is rumored"
+
+	para "to be wandering"
+	line "around Johto as"
+	cont "a vagabond."
+	done
 
 AcademyEarlSpinMovement:
-	turn_head DOWN
-	turn_head LEFT
-	turn_head UP
-	turn_head RIGHT
-	turn_head DOWN
-	turn_head LEFT
-	turn_head UP
-	turn_head RIGHT
-	turn_head DOWN
-	turn_head LEFT
-	turn_head UP
-	turn_head RIGHT
-	turn_head DOWN
+	turn_head_down
+	turn_head_left
+	turn_head_up
+	turn_head_right
+	turn_head_down
+	turn_head_left
+	turn_head_up
+	turn_head_right
+	turn_head_down
+	turn_head_left
+	turn_head_up
+	turn_head_right
+	turn_head_down
 	step_end
 
 AcademyEarlIntroText:
-	text "EARL, I am!"
+	text "Earl, I am!"
 
 	para "Wonderful are"
-	line "#MON, yes!"
+	line "#mon, yes!"
 
 	para "Teach you I will"
 	line "to be a better"
@@ -179,7 +181,7 @@ AcademyEarlTeachHowToWinText:
 	text "Good! Teach you,"
 	line "I will!"
 
-	para "In battle, #MON"
+	para "In battle, #mon"
 	line "top on list jump"
 	cont "out first!"
 
@@ -194,27 +196,27 @@ AcademyEarlTeachHowToWinText:
 AcademyEarlTeachMoreText:
 	text "So, want to know"
 	line "how to raise"
-	cont "#MON well?"
+	cont "#mon well?"
 	done
 
 AcademyEarlTeachHowToRaiseWellText:
 	text "Fine! Teach you,"
 	line "I will!"
 
-	para "If #MON come"
+	para "If #mon come"
 	line "out in battle even"
 
-	para "briefly, some EXP."
+	para "briefly, some Exp."
 	line "Points it gets."
 
 	para "At top of list put"
-	line "weak #MON."
+	line "weak #mon."
 
 	para "Switch in battle"
 	line "quick!"
 
 	para "This way, weak"
-	line "#MON strong"
+	line "#mon strong"
 	cont "become!"
 	done
 
@@ -223,7 +225,7 @@ AcademyEarlNoMoreToTeachText:
 	line "you are! Nothing"
 	cont "more do I teach!"
 
-	para "Good to #MON"
+	para "Good to #mon"
 	line "you must be!"
 	done
 
@@ -239,24 +241,24 @@ EarlsPokemonAcademyYoungster1Text:
 
 EarlsPokemonAcademyGameboyKid1Text:
 	text "I traded my best"
-	line "#MON to the"
+	line "#mon to the"
 	cont "guy beside me."
 	done
 
 EarlsPokemonAcademyGameboyKid2Text:
-	text "Huh? The #MON I"
+	text "Huh? The #mon I"
 	line "just got is hold-"
 	cont "ing something!"
 	done
 
 EarlsPokemonAcademyYoungster2Text:
-	text "A #MON holding"
-	line "a BERRY will heal"
+	text "A #mon holding"
+	line "a Berry will heal"
 	cont "itself in battle."
 
 	para "Many other items"
 	line "can be held by"
-	cont "#MON…"
+	cont "#mon…"
 
 	para "It sure is tough"
 	line "taking notes…"
@@ -264,19 +266,15 @@ EarlsPokemonAcademyYoungster2Text:
 
 AcademyBlackboardText:
 	text "The blackboard"
-	line "describes #MON"
+	line "describes #mon"
 
 	para "status changes in"
 	line "battle."
 	done
 
-AcademyBlackboardText2: ; unreferenced
-	text "Read which topic?"
-	done
-
 AcademyPoisonText:
 	text "If poisoned, a"
-	line "#MON steadily"
+	line "#mon steadily"
 	cont "loses HP."
 
 	para "Poison lingers"
@@ -286,7 +284,7 @@ AcademyPoisonText:
 	line "you walk."
 
 	para "To cure it, use an"
-	line "ANTIDOTE."
+	line "Antidote."
 	done
 
 AcademyParalysisText:
@@ -296,20 +294,20 @@ AcademyParalysisText:
 
 	para "It remains after"
 	line "battle, so use"
-	cont "a PARLYZ HEAL."
+	cont "a ParalyzeHeal."
 	done
 
 AcademySleepText:
 	text "If asleep, your"
-	line "#MON can't make"
+	line "#mon can't make"
 	cont "a move."
 
-	para "A sleeping #MON"
+	para "A sleeping #mon"
 	line "doesn't wake up"
 	cont "after battle."
 
 	para "Wake it up with"
-	line "an AWAKENING."
+	line "an Awakening."
 	done
 
 AcademyBurnText:
@@ -322,12 +320,12 @@ AcademyBurnText:
 	para "A burn lingers"
 	line "after battle."
 
-	para "Use a BURN HEAL as"
+	para "Use a Burn Heal as"
 	line "the cure."
 	done
 
 AcademyFreezeText:
-	text "If your #MON is"
+	text "If your #mon is"
 	line "frozen, it can't"
 	cont "do a thing."
 
@@ -335,15 +333,15 @@ AcademyFreezeText:
 	line "after battle."
 
 	para "Thaw it out with"
-	line "an ICE HEAL."
+	line "an Ice Heal."
 	done
 
 AcademyNotebookText:
 	text "It's this kid's"
 	line "notebook…"
 
-	para "Catch #MON"
-	line "using # BALLS."
+	para "Catch #mon"
+	line "using # Balls."
 
 	para "Up to six can be"
 	line "in your party."
@@ -353,11 +351,11 @@ AcademyNotebookText:
 
 AcademyNotebookText1:
 	text "Before throwing a"
-	line "# BALL, weaken"
+	line "# Ball, weaken"
 	cont "the target first."
 
 	para "A poisoned or"
-	line "burned #MON is"
+	line "burned #mon is"
 	cont "easier to catch."
 
 	para "Keep reading?"
@@ -368,7 +366,7 @@ AcademyNotebookText2:
 	line "cause confusion."
 
 	para "Confusion may make"
-	line "a #MON attack"
+	line "a #mon attack"
 	cont "itself."
 
 	para "Leaving battle"
@@ -380,15 +378,15 @@ AcademyNotebookText2:
 
 AcademyNotebookText3:
 	text "People who catch"
-	line "and use #MON"
+	line "and use #mon"
 
 	para "in battle are"
-	line "#MON trainers."
+	line "#mon trainers."
 
 	para "They are expected"
-	line "to visit #MON"
+	line "to visit #mon"
 
-	para "GYMS and defeat"
+	para "Gyms and defeat"
 	line "other trainers."
 
 	para "The next page"
@@ -397,35 +395,5 @@ AcademyNotebookText3:
 	para "Boy: E-he-he…"
 
 	para "I haven't written"
-	line "anymore…"
+	line "any more…"
 	done
-
-AcademyStickerMachineText:
-	text "This super machine"
-	line "prints data out as"
-
-	para "stickers!"
-	done
-
-EarlsPokemonAcademy_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  3, 15, VIOLET_CITY, 3
-	warp_event  4, 15, VIOLET_CITY, 3
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  0,  1, BGEVENT_READ, AcademyBookshelf
-	bg_event  1,  1, BGEVENT_READ, AcademyBookshelf
-	bg_event  3,  0, BGEVENT_READ, AcademyBlackboard
-	bg_event  4,  0, BGEVENT_READ, AcademyBlackboard
-
-	def_object_events
-	object_event  4,  2, SPRITE_FISHER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, AcademyEarl, EVENT_EARLS_ACADEMY_EARL
-	object_event  2,  5, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, EarlsPokemonAcademyYoungster1Script, -1
-	object_event  3, 11, SPRITE_GAMEBOY_KID, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, EarlsPokemonAcademyGameboyKid1Script, -1
-	object_event  4, 11, SPRITE_GAMEBOY_KID, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, EarlsPokemonAcademyGameboyKid2Script, -1
-	object_event  4,  7, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, EarlsPokemonAcademyYoungster2Script, -1
-	object_event  2,  4, SPRITE_POKEDEX, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AcademyNotebook, -1

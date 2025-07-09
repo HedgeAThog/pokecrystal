@@ -1,14 +1,7 @@
-CheckForRunning:
-; Check if B button is held down.
-	ld a, [hJoyDown]
-	and B_BUTTON
-	ld [wPlayerIsRunning], a
-	ret
-
 DoPlayerMovement::
-	call CheckForRunning
+
 	call .GetDPad
-	ld a, movement_step_sleep
+	ld a, movement_step_sleep_1
 	ld [wMovementAnimation], a
 	xor a
 	ld [wWalkingIntoEdgeWarp], a
@@ -19,17 +12,22 @@ DoPlayerMovement::
 	ret
 
 .GetDPad:
+
 	ldh a, [hJoyDown]
 	ld [wCurInput], a
 
 ; Standing downhill instead moves down.
 
-	ld hl, wBikeFlags
-	bit BIKEFLAGS_DOWNHILL_F, [hl]
+	ld hl, wOWState
+	bit OWSTATE_BIKING_DOWNHILL, [hl]
 	ret z
 
 	ld c, a
 	and PAD_CTRL_PAD
+	ret nz
+
+	ld a, c
+	and PAD_B ; holding b will brake
 	ret nz
 
 	ld a, c
@@ -39,14 +37,12 @@ DoPlayerMovement::
 
 .TranslateIntoMovement:
 	ld a, [wPlayerState]
-	cp PLAYER_NORMAL
+	and a ; cp PLAYER_NORMAL
 	jr z, .Normal
 	cp PLAYER_SURF
 	jr z, .Surf
 	cp PLAYER_SURF_PIKA
 	jr z, .Surf
-	cp PLAYER_BIKE
-	jr z, .Normal
 	cp PLAYER_SKATE
 	jr z, .Ice
 
@@ -60,6 +56,8 @@ DoPlayerMovement::
 	call .TryStep
 	ret c
 	call .TryJump
+	ret c
+	call .TryStairs
 	ret c
 	call .CheckWarp
 	ret c
@@ -87,13 +85,15 @@ DoPlayerMovement::
 	ret c
 	call .TryJump
 	ret c
+	call .TryStairs
+	ret c
 	call .CheckWarp
 	ret c
+
+; Walking into a wall will bump.
 	ld a, [wWalkingDirection]
 	cp STANDING
-	jr z, .HitWall
-	call .BumpSound
-.HitWall:
+	call nz, .BumpSound
 	call .StandInPlace
 	xor a
 	ret
@@ -106,9 +106,7 @@ DoPlayerMovement::
 ; Walking into an edge warp won't bump.
 	ld a, [wWalkingIntoEdgeWarp]
 	and a
-	jr nz, .CantMove
-	call .BumpSound
-.CantMove:
+	call z, .BumpSound
 	call ._WalkInPlace
 	xor a
 	ret
@@ -124,9 +122,9 @@ DoPlayerMovement::
 
 	ld a, [wPlayerTileCollision]
 	ld c, a
-	call CheckWhirlpoolTile
-	jr c, .not_whirlpool
-	ld a, PLAYERMOVEMENT_FORCE_TURN
+	cp COLL_WHIRLPOOL
+	jr nz, .not_whirlpool
+	ld a, 3
 	scf
 	ret
 
@@ -134,82 +132,33 @@ DoPlayerMovement::
 	and $f0
 	cp HI_NYBBLE_CURRENT
 	jr z, .water
-	cp HI_NYBBLE_WALK
-	jr z, .land1
-	cp HI_NYBBLE_WALK_ALT
-	jr z, .land2
 	cp HI_NYBBLE_WARPS
 	jr z, .warps
 	jr .no_walk
 
 .water
 	ld a, c
-	maskbits NUM_DIRECTIONS
+	and 3
 	ld c, a
 	ld b, 0
 	ld hl, .water_table
 	add hl, bc
 	ld a, [hl]
 	ld [wWalkingDirection], a
-	jr .continue_walk
+	ld a, STEP_RUN
+	jr .finish
 
 .water_table
-	db RIGHT ; COLL_WATERFALL_RIGHT
-	db LEFT  ; COLL_WATERFALL_LEFT
-	db UP    ; COLL_WATERFALL_UP
-	db DOWN  ; COLL_WATERFALL
-
-.land1
-	ld a, c
-	and 7
-	ld c, a
-	ld b, 0
-	ld hl, .land1_table
-	add hl, bc
-	ld a, [hl]
-	cp STANDING
-	jr z, .no_walk
-	ld [wWalkingDirection], a
-	jr .continue_walk
-
-.land1_table
-	db STANDING ; COLL_BRAKE
-	db RIGHT    ; COLL_WALK_RIGHT
-	db LEFT     ; COLL_WALK_LEFT
-	db UP       ; COLL_WALK_UP
-	db DOWN     ; COLL_WALK_DOWN
-	db STANDING ; COLL_BRAKE_45
-	db STANDING ; COLL_BRAKE_46
-	db STANDING ; COLL_BRAKE_47
-
-.land2
-	ld a, c
-	and 7
-	ld c, a
-	ld b, 0
-	ld hl, .land2_table
-	add hl, bc
-	ld a, [hl]
-	cp STANDING
-	jr z, .no_walk
-	ld [wWalkingDirection], a
-	jr .continue_walk
-
-.land2_table
-	db RIGHT    ; COLL_WALK_RIGHT_ALT
-	db LEFT     ; COLL_WALK_LEFT_ALT
-	db UP       ; COLL_WALK_UP_ALT
-	db DOWN     ; COLL_WALK_DOWN_ALT
-	db STANDING ; COLL_BRAKE_ALT
-	db STANDING ; COLL_BRAKE_55
-	db STANDING ; COLL_BRAKE_56
-	db STANDING ; COLL_BRAKE_57
+	db RIGHT
+	db LEFT
+	db UP
+	db DOWN
 
 .warps
 	ld a, c
+	cp COLL_AWNING
+	jr z, .up
 	cp COLL_DOOR
-	jr z, .down
-	cp COLL_DOOR_79
 	jr z, .down
 	cp COLL_STAIRCASE
 	jr z, .down
@@ -217,7 +166,11 @@ DoPlayerMovement::
 	jr nz, .no_walk
 
 .down
-	ld a, DOWN
+	xor a ; DOWN
+	jr .set_direction
+.up
+	ld a, UP
+.set_direction
 	ld [wWalkingDirection], a
 	jr .continue_walk
 
@@ -227,8 +180,9 @@ DoPlayerMovement::
 
 .continue_walk
 	ld a, STEP_WALK
+.finish
 	call .DoStep
-	ld a, PLAYERMOVEMENT_CONTINUE
+	ld a, 5
 	scf
 	ret
 
@@ -237,7 +191,7 @@ DoPlayerMovement::
 ; the player change facing without moving by tapping a direction.
 
 	ld a, [wPlayerTurningDirection]
-	cp 0
+	and a
 	jr nz, .not_turning
 	ld a, [wWalkingDirection]
 	cp STANDING
@@ -247,13 +201,13 @@ DoPlayerMovement::
 	ld a, [wPlayerDirection]
 	rrca
 	rrca
-	maskbits NUM_DIRECTIONS
+	and 3
 	cp e
 	jr z, .not_turning
 
 	ld a, STEP_TURN
 	call .DoStep
-	ld a, PLAYERMOVEMENT_TURN
+	ld a, 2
 	scf
 	ret
 
@@ -262,6 +216,7 @@ DoPlayerMovement::
 	ret
 
 .TryStep:
+
 ; Surfing actually calls .TrySurf directly instead of passing through here.
 	ld a, [wPlayerState]
 	cp PLAYER_SURF
@@ -272,22 +227,33 @@ DoPlayerMovement::
 	call .CheckLandPerms
 	jr c, .bump
 
+	ld a, [wPanningAroundTinyMap]
+	and a
+	jr nz, .walk
+
 	call .CheckNPC
 	and a
 	jr z, .bump
 	cp 2
 	jr z, .bump
 
+	ld a, [wSpinning]
+	and a
+	jr nz, .spin
+
 	ld a, [wPlayerTileCollision]
-	call CheckIceTile
-	jr nc, .ice
+	cp COLL_ICE
+	jr z, .ice
+
+	call .RunCheck
+	jr z, .run
 
 ; Downhill riding is slower when not moving down.
 	call .BikeCheck
 	jr nz, .walk
 
-	ld hl, wBikeFlags
-	bit BIKEFLAGS_DOWNHILL_F, [hl]
+	ld hl, wOWState
+	bit OWSTATE_BIKING_DOWNHILL, [hl]
 	jr z, .fast
 
 	ld a, [wWalkingDirection]
@@ -305,15 +271,8 @@ DoPlayerMovement::
 	scf
 	ret
 
-.walk:
-	ld a, [wPlayerIsRunning]
-	and a
-	jr z, .normal_walk ; If B is not held, do a normal walk
-	ld a, STEP_BIKE     ; If B is held, use a fast step (like the bike)
-	jr .do_the_step
-.normal_walk:
+.walk
 	ld a, STEP_WALK
-.do_the_step:
 	call .DoStep
 	scf
 	ret
@@ -324,31 +283,49 @@ DoPlayerMovement::
 	scf
 	ret
 
-.unused ; unreferenced
-	xor a
+.run
+	ld a, STEP_RUN
+	call .DoStep
+; Trainer faces player if they're running
+	push af
+	ld a, [wWalkingDirection]
+	cp STANDING
+	call nz, CheckTrainerRun
+	pop af
+	scf
+	ret
+
+.spin
+	ld de, SFX_SQUEAK
+	call PlaySFX
+	ld a, STEP_SPIN
+	call .DoStep
+	scf
 	ret
 
 .bump
 	xor a
+	ld [wSpinning], a
 	ret
 
 .TrySurf:
-	call .CheckSurfPerms
-	ld [wWalkingIntoLand], a
-	jr c, .surf_bump
 
 	call .CheckNPC
-	ld [wWalkingIntoNPC], a
 	and a
 	jr z, .surf_bump
 	cp 2
 	jr z, .surf_bump
 
-	ld a, [wWalkingIntoLand]
+	call .CheckSurfPerms
+	jr c, .surf_bump
+
 	and a
 	jr nz, .ExitWater
 
-	ld a, STEP_WALK
+	ld a, [wOWState]
+	set OWSTATE_SURF, a
+	ld [wOWState], a
+	ld a, STEP_FAST
 	call .DoStep
 	scf
 	ret
@@ -358,7 +335,7 @@ DoPlayerMovement::
 	call PlayMapMusic
 	ld a, STEP_WALK
 	call .DoStep
-	ld a, PLAYERMOVEMENT_EXIT_WATER
+	ld a, 6
 	scf
 	ret
 
@@ -380,14 +357,31 @@ DoPlayerMovement::
 	ld hl, .ledge_table
 	add hl, de
 	ld a, [wFacingDirection]
+	ld e, a
 	and [hl]
 	jr z, .DontJump
+
+	ld a, [wPlayerMapX]
+	ld d, a
+	ld a, [wWalkingX]
+	add a
+	add d
+	ld d, a
+	ld a, [wPlayerMapY]
+	ld e, a
+	ld a, [wWalkingY]
+	add a
+	add e
+	ld e, a
+	call GetCoordTileCollision
+	call .CheckWalkable
+	jr c, .DontJump
 
 	ld de, SFX_JUMP_OVER_LEDGE
 	call PlaySFX
 	ld a, STEP_LEDGE
 	call .DoStep
-	ld a, PLAYERMOVEMENT_JUMP
+	ld a, 7
 	scf
 	ret
 
@@ -395,20 +389,61 @@ DoPlayerMovement::
 	xor a
 	ret
 
-.ledge_table
-	db FACE_RIGHT             ; COLL_HOP_RIGHT
-	db FACE_LEFT              ; COLL_HOP_LEFT
-	db FACE_UP                ; COLL_HOP_UP
-	db FACE_DOWN              ; COLL_HOP_DOWN
-	db FACE_RIGHT | FACE_DOWN ; COLL_HOP_DOWN_RIGHT
-	db FACE_DOWN | FACE_LEFT  ; COLL_HOP_DOWN_LEFT
-	db FACE_UP | FACE_RIGHT   ; COLL_HOP_UP_RIGHT
-	db FACE_UP | FACE_LEFT    ; COLL_HOP_UP_LEFT
+.ledge_table:
+	db FACE_RIGHT
+	db FACE_LEFT
+	db FACE_UP
+	db FACE_DOWN
+	db FACE_RIGHT | FACE_DOWN
+	db FACE_DOWN | FACE_LEFT
+	db FACE_UP | FACE_RIGHT
+	db FACE_UP | FACE_LEFT
+
+.TryStairs:
+	ld a, [wPlayerTileCollision]
+	ld e, a
+	and $f0
+	cp HI_NYBBLE_SIDEWAYS_STAIRS
+	jr nz, .DontStairs
+
+	ld a, e
+	and 7
+	ld e, a
+	ld d, 0
+	ld hl, .FacingStairsTable
+	add hl, de
+	ld a, [wFacingDirection]
+	and [hl]
+	jr z, .DontStairs
+
+	ld a, [wPlayerTileCollision]
+	cp COLL_STAIRS_RIGHT_UP
+	; a = carry ? FALSE : TRUE
+	sbc a
+	inc a
+	ld [wPlayerGoingUpStairs], a
+
+	ld a, STEP_STAIRS
+	call .DoStep
+	ld a, 7
+	scf
+	ret
+
+.FacingStairsTable:
+	db FACE_RIGHT
+	db FACE_LEFT
+	db FACE_RIGHT
+	db FACE_LEFT
+
+.DontStairs:
+	xor a
+	ret
 
 .CheckWarp:
-; BUG: No bump noise if standing on tile $3E (see docs/bugs_and_glitches.md)
 
 	ld a, [wWalkingDirection]
+	cp STANDING
+	jr z, .not_warp
 	ld e, a
 	ld d, 0
 	ld hl, .EdgeWarps
@@ -419,15 +454,10 @@ DoPlayerMovement::
 
 	ld a, TRUE
 	ld [wWalkingIntoEdgeWarp], a
-	ld a, [wWalkingDirection]
-	cp STANDING
-	jr z, .not_warp
-
-	ld e, a
 	ld a, [wPlayerDirection]
 	rrca
 	rrca
-	maskbits NUM_DIRECTIONS
+	and 3
 	cp e
 	jr nz, .not_warp
 	call WarpCheck
@@ -435,11 +465,11 @@ DoPlayerMovement::
 
 	call .StandInPlace
 	scf
-	ld a, PLAYERMOVEMENT_WARP
+	ld a, 1
 	ret
 
 .not_warp
-	xor a ; PLAYERMOVEMENT_NORMAL
+	xor a
 	ret
 
 .EdgeWarps:
@@ -461,101 +491,137 @@ DoPlayerMovement::
 	ld a, [wWalkingDirection]
 	ld e, a
 	cp STANDING
-	jp z, .StandInPlace
+	jr z, .StandInPlace
 
 	add hl, de
 	ld a, [hl]
 	ld [wMovementAnimation], a
 
-	ld hl, .FinishFacing
+	ld hl, .InPlace
 	add hl, de
 	ld a, [hl]
 	ld [wPlayerTurningDirection], a
 
-	ld a, PLAYERMOVEMENT_FINISH
+	ld a, [wOverworldWeatherCooldown]
+	and a
+	jr z, .no_cooldown
+	dec a
+	ld [wOverworldWeatherCooldown], a
+.no_cooldown
+
+	ld a, 4
 	ret
 
 .Steps:
 ; entries correspond to STEP_* constants (see constants/map_object_constants.asm)
 	table_width 2
-	dw .SlowStep
-	dw .NormalStep
-	dw .FastStep
+	dw .SlowStep ; x0.5
+	dw .NormalStep ; x1
+	dw .FastStep ; x4
+	dw .Run ; x2, doubles animation speed
 	dw .JumpStep
 	dw .SlideStep
 	dw .TurningStep
 	dw .BackJumpStep
-	dw .FinishFacing
+	dw .InPlace
+	dw .SpinStep
+	dw .Fast ; x2
+	dw .StairsStep
 	assert_table_length NUM_STEPS
 
 .SlowStep:
-	slow_step DOWN
-	slow_step UP
-	slow_step LEFT
-	slow_step RIGHT
+	slow_step_down
+	slow_step_up
+	slow_step_left
+	slow_step_right
 .NormalStep:
-	step DOWN
-	step UP
-	step LEFT
-	step RIGHT
+	step_down
+	step_up
+	step_left
+	step_right
 .FastStep:
-	big_step DOWN
-	big_step UP
-	big_step LEFT
-	big_step RIGHT
+	big_step_down
+	big_step_up
+	big_step_left
+	big_step_right
+.Run
+	run_step_down
+	run_step_up
+	run_step_left
+	run_step_right
 .JumpStep:
-	jump_step DOWN
-	jump_step UP
-	jump_step LEFT
-	jump_step RIGHT
+	jump_step_down
+	jump_step_up
+	jump_step_left
+	jump_step_right
 .SlideStep:
-	fast_slide_step DOWN
-	fast_slide_step UP
-	fast_slide_step LEFT
-	fast_slide_step RIGHT
+	fast_slide_step_down
+	fast_slide_step_up
+	fast_slide_step_left
+	fast_slide_step_right
 .BackJumpStep:
-	jump_step UP
-	jump_step DOWN
-	jump_step RIGHT
-	jump_step LEFT
+	jump_step_up
+	jump_step_down
+	jump_step_right
+	jump_step_left
 .TurningStep:
-	turn_step DOWN
-	turn_step UP
-	turn_step LEFT
-	turn_step RIGHT
-.FinishFacing:
-	db $80 | DOWN
-	db $80 | UP
-	db $80 | LEFT
-	db $80 | RIGHT
+	turn_step_down
+	turn_step_up
+	turn_step_left
+	turn_step_right
+.InPlace:
+	db $80 + movement_turn_head_down
+	db $80 + movement_turn_head_up
+	db $80 + movement_turn_head_left
+	db $80 + movement_turn_head_right
+.SpinStep
+	turn_in_down
+	turn_in_up
+	turn_in_left
+	turn_in_right
+.Fast
+	fast_step_down
+	fast_step_up
+	fast_step_left
+	fast_step_right
+.StairsStep
+	stairs_step_down
+	stairs_step_up
+	stairs_step_left
+	stairs_step_right
 
 .StandInPlace:
-	ld a, 0
-	ld [wPlayerTurningDirection], a
-	ld a, movement_step_sleep
+	ld a, movement_step_sleep_1
 	ld [wMovementAnimation], a
 	xor a
+	ld [wPlayerTurningDirection], a
 	ret
 
 ._WalkInPlace:
-	ld a, 0
-	ld [wPlayerTurningDirection], a
 	ld a, movement_step_bump
 	ld [wMovementAnimation], a
 	xor a
+	ld [wPlayerTurningDirection], a
 	ret
 
 .CheckForced:
 ; When sliding on ice, input is forced to remain in the same direction.
 
+	call CheckSpinning
+	jr z, .not_spinning
+	dec a
+	jr .force
+
+.not_spinning
 	call CheckStandingOnIce
 	ret nc
 
 	ld a, [wPlayerTurningDirection]
-	cp 0
+	and a
 	ret z
 
-	maskbits NUM_DIRECTIONS
+.force
+	and 3
 	ld e, a
 	ld d, 0
 	ld hl, .forced_dpad
@@ -572,8 +638,8 @@ DoPlayerMovement::
 .GetAction:
 ; Poll player input and update movement info.
 
-	ld hl, .action_table
-	ld de, .action_table_1_end - .action_table_1
+	ld hl, .table
+	ld de, .table2 - .table1
 	ld a, [wCurInput]
 	bit B_PAD_DOWN, a
 	jr nz, .d_down
@@ -606,32 +672,49 @@ DoPlayerMovement::
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
+if DEF(DEBUG)
+	ldh a, [hJoyDown]
+	or ~(PAD_A | PAD_B)
+	inc a
 	ld a, [hl]
+	jr nz, .no_wtw
+	cp COLL_VOID
+	jr z, .no_wtw
+	ld a, COLL_LADDER
+.no_wtw
+else
+	ld a, [hl]
+endc
 	ld [wWalkingTileCollision], a
 	ret
 
-MACRO player_action
-; walk direction, facing, x movement, y movement, tile collision pointer
-	db \1, \2, \3, \4
-	dw \5
-ENDM
-
-.action_table:
-.action_table_1
-	player_action STANDING, FACE_CURRENT, 0,  0, wPlayerTileCollision
-.action_table_1_end
-	player_action RIGHT,    FACE_RIGHT,   1,  0, wTileRight
-	player_action LEFT,     FACE_LEFT,   -1,  0, wTileLeft
-	player_action UP,       FACE_UP,      0, -1, wTileUp
-	player_action DOWN,     FACE_DOWN,    0,  1, wTileDown
+.table
+; struct:
+;	walk direction
+;	facing
+;	x movement
+;	y movement
+;	tile collision pointer
+.table1
+	db STANDING, FACE_CURRENT, 0, 0
+	dw wPlayerTileCollision
+.table2
+	db RIGHT, FACE_RIGHT,  1,  0
+	dw wTileRight
+	db LEFT,  FACE_LEFT,  -1,  0
+	dw wTileLeft
+	db UP,    FACE_UP,     0, -1
+	dw wTileUp
+	db DOWN,  FACE_DOWN,   0,  1
+	dw wTileDown
 
 .CheckNPC:
 ; Returns 0 if there is an NPC in front that you can't move
 ; Returns 1 if there is no NPC in front
 ; Returns 2 if there is a movable NPC in front. The game actually treats
 ; this the same as an NPC in front (bump).
-	ld a, 0
-	ldh [hMapObjectIndex], a
+	xor a
+	ldh [hMapObjectIndexBuffer], a
 ; Load the next X coordinate into d
 	ld a, [wPlayerMapX]
 	ld d, a
@@ -645,7 +728,6 @@ ENDM
 	add e
 	ld e, a
 ; Find an object struct with coordinates equal to d,e
-	ld bc, wObjectStructs ; redundant
 	farcall IsNPCAtCoord
 	jr nc, .no_npc
 	call .CheckStrengthBoulder
@@ -663,8 +745,9 @@ ENDM
 	ret
 
 .CheckStrengthBoulder:
-	ld hl, wBikeFlags
-	bit BIKEFLAGS_STRENGTH_ACTIVE_F, [hl]
+
+	ld hl, wOWState
+	bit OWSTATE_STRENGTH, [hl]
 	jr z, .not_boulder
 
 	ld hl, OBJECT_WALKING
@@ -675,19 +758,19 @@ ENDM
 
 	ld hl, OBJECT_PALETTE
 	add hl, bc
-	bit STRENGTH_BOULDER_F, [hl]
+	bit 6, [hl]
 	jr z, .not_boulder
 
 	ld hl, OBJECT_FLAGS2
 	add hl, bc
-	set BOULDER_MOVING_F, [hl]
+	set 2, [hl]
 
 	ld a, [wWalkingDirection]
 	ld d, a
 	ld hl, OBJECT_RANGE
 	add hl, bc
 	ld a, [hl]
-	and %11111100
+	and $fc
 	or d
 	ld [hl], a
 
@@ -747,11 +830,34 @@ ENDM
 	cp PLAYER_SKATE
 	ret
 
+.RunCheck:
+	; Check if we have regular movement active
+	ld a, [wPlayerState]
+	and a ; cp PLAYER_NORMAL
+	ret nz
+
+	; If RUNNING_SHOES is active, invert B button effect.
+	push hl
+	ld hl, wOptions2
+	ldh a, [hJoypadDown]
+	and PAD_B
+
+	; We want to return z on success, not nz.
+	cpl
+
+	; PAD_B is bit 1, RUNNING_SHOES is bit 3
+	add a
+	add a
+	xor [hl]
+	pop hl
+	and 1 << RUNNING_SHOES
+	ret
+
 .CheckWalkable:
 ; Return 0 if tile a is land. Otherwise, return carry.
 
 	call GetTilePermission
-	and a ; LAND_TILE
+	and a ; cp LAND_TILE
 	ret z
 	scf
 	ret
@@ -761,14 +867,11 @@ ENDM
 ; Otherwise, return carry.
 
 	call GetTilePermission
-	cp WATER_TILE
-	jr z, .Water
-
 ; Can walk back onto land from water.
-	and a ; LAND_TILE
+	and a ; cp LAND_TILE
 	jr z, .Land
-
-	jr .Neither
+	dec a ; cp WATER_TILE
+	jr nz, .Neither
 
 .Water:
 	xor a
@@ -784,11 +887,14 @@ ENDM
 	ret
 
 .BumpSound:
+	ld a, [wPanningAroundTinyMap]
+	and a
+	ret nz
+
 	call CheckSFX
-	ret c
+	ret nz
 	ld de, SFX_BUMP
-	call PlaySFX
-	ret
+	jmp PlaySFX
 
 .GetOutOfWater:
 	push bc
@@ -800,18 +906,18 @@ ENDM
 
 CheckStandingOnIce::
 	ld a, [wPlayerTurningDirection]
-	cp 0
+	and a
 	jr z, .not_ice
 	cp $f0
 	jr z, .not_ice
 	ld a, [wPlayerTileCollision]
-	call CheckIceTile
-	jr nc, .yep
+	cp COLL_ICE
+	jr z, .ice
 	ld a, [wPlayerState]
 	cp PLAYER_SKATE
 	jr nz, .not_ice
 
-.yep
+.ice
 	scf
 	ret
 
@@ -819,13 +925,208 @@ CheckStandingOnIce::
 	and a
 	ret
 
+CheckTrainerRun:
+; Check if any trainer on the map sees the player.
+
+; Skip the player object.
+	ld a, 1
+	ld de, wMap1Object
+
+.loop
+
+; Have them face the player if the object:
+
+	push af
+	push de
+
+; Is a trainer
+	ld hl, MAPOBJECT_TYPE
+	add hl, de
+	ld a, [hl]
+	cp OBJECTTYPE_TRAINER
+	jr z, .trainer
+	cp OBJECTTYPE_GENERICTRAINER
+	jr nz, .next
+.trainer
+
+; Spins around
+	ld hl, MAPOBJECT_MOVEMENT
+	add hl, de
+	ld a, [hl]
+	cp SPRITEMOVEDATA_SPINRANDOM_SLOW
+	jr z, .spinner
+	cp SPRITEMOVEDATA_SPINRANDOM_FAST
+	jr z, .spinner
+	cp SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE
+	jr z, .spinner
+	cp SPRITEMOVEDATA_SPINCLOCKWISE
+	jr nz, .next
+.spinner
+
+; Has a sprite
+	ld hl, MAPOBJECT_SPRITE
+	add hl, de
+	ld a, [hl]
+	and a
+	jr z, .next
+
+; Is visible on the map
+	ld hl, MAPOBJECT_OBJECT_STRUCT_ID
+	add hl, de
+	ld a, [hl]
+	inc a
+	assert UNASSOCIATED_MAPOBJECT == -1
+	jr z, .next
+
+; You're within their sight range
+	ld hl, MAPOBJECT_OBJECT_STRUCT_ID
+	add hl, de
+	ld a, [hl]
+	call GetObjectStruct
+	push de
+	call AnyFacingPlayerDistance
+	pop de
+	ld hl, MAPOBJECT_SIGHT_RANGE
+	add hl, de
+	ld a, [hl]
+	cp c
+	jr c, .next
+
+; Get them to face you
+	ld a, b
+	push af
+	ld hl, MAPOBJECT_OBJECT_STRUCT_ID
+	add hl, de
+	ld a, [hl]
+	call GetObjectStruct
+	pop af
+	call SetSpriteDirection
+	ld hl, OBJECT_STEP_DURATION
+	add hl, bc
+	ld a, [hl]
+	cp $40
+	jr nc, .next
+	ld [hl], $40
+
+.next
+	pop de
+	ld hl, MAPOBJECT_LENGTH
+	add hl, de
+	ld d, h
+	ld e, l
+
+	pop af
+	inc a
+	cp NUM_OBJECTS
+	jr nz, .loop
+	xor a
+	ret
+
+AnyFacingPlayerDistance:
+; Returns distance in c and direction in b.
+	ld hl, OBJECT_MAP_X
+	add hl, bc
+	ld d, [hl]
+
+	ld hl, OBJECT_MAP_Y
+	add hl, bc
+	ld e, [hl]
+
+	ldh a, [hJoypadDown]
+	ld bc, 0
+	bit B_PAD_DOWN, a
+	jr nz, .down
+	bit B_PAD_UP, a
+	jr nz, .up
+	bit B_PAD_LEFT, a
+	jr nz, .left
+	bit B_PAD_RIGHT, a
+	jr nz, .right
+.down
+	inc b
+	jr .got_vector
+.up
+	dec b
+	jr .got_vector
+.left
+	dec c
+	jr .got_vector
+.right
+	inc c
+.got_vector
+
+	ld a, [wPlayerMapX]
+	add c
+	sub d
+	ld l, OW_RIGHT
+	jr nc, .check_y
+	cpl
+	inc a
+	ld l, OW_LEFT
+.check_y
+	ld d, a
+	ld a, [wPlayerMapY]
+	add b
+	sub e
+	ld h, OW_DOWN
+	jr nc, .compare
+	cpl
+	inc a
+	ld h, OW_UP
+.compare
+	cp d
+	ld c, a
+	ld b, h
+	ret nc
+	ld c, d
+	ld b, l
+	ret
+
+CheckSpinning::
+	ld a, [wPlayerTileCollision]
+	cp COLL_STOP_SPIN
+	jr z, .stop_spin
+	call CheckSpinTile
+	jr z, .start_spin
+	ld a, [wSpinning]
+	and a
+	ret
+
+.start_spin
+	ld a, c
+	inc a
+	ld [wSpinning], a
+	and a
+	ret
+
+.stop_spin
+	xor a
+	ld [wSpinning], a
+	ret
+
+CheckSpinTile:
+	cp COLL_SPIN_UP
+	ld c, UP
+	ret z
+	cp COLL_SPIN_DOWN
+	ld c, DOWN
+	ret z
+	cp COLL_SPIN_LEFT
+	ld c, LEFT
+	ret z
+	cp COLL_SPIN_RIGHT
+	ld c, RIGHT
+	ret z
+	ld c, STANDING
+	ret
+
 StopPlayerForEvent::
 	ld hl, wPlayerNextMovement
-	ld a, movement_step_sleep
+	ld a, movement_step_sleep_1
 	cp [hl]
 	ret z
 
 	ld [hl], a
-	ld a, 0
+	xor a
 	ld [wPlayerTurningDirection], a
 	ret

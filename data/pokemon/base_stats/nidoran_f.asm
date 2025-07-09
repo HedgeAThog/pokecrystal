@@ -1,21 +1,18 @@
-	db NIDORAN_F ; 029
-
-	db  55,  47,  52,  41,  40,  40
-	;   hp  atk  def  spd  sat  sdf
+	db  55,  47,  52,  41,  40,  40 ; 275 BST
+	;   hp  atk  def  spe  sat  sdf
 
 	db POISON, POISON ; type
 	db 235 ; catch rate
 	db 59 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_F100 ; gender ratio
-	db 100 ; unknown 1
-	db 20 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/nidoran_f/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db NO_ITEM, NO_ITEM ; held items
+	dn GENDER_F100, HATCH_MEDIUM_FAST ; gender ratio, step cycles to hatch
+
+	abilities_for NIDORAN_F, POISON_POINT, RIVALRY, HUSTLE
 	db GROWTH_MEDIUM_SLOW ; growth rate
 	dn EGG_MONSTER, EGG_GROUND ; egg groups
 
+	ev_yield 1 HP
+
 	; tm/hm learnset
-	tmhm HEADBUTT, CURSE, TOXIC, HIDDEN_POWER, SUNNY_DAY, SNORE, BLIZZARD, PROTECT, RAIN_DANCE, ENDURE, FRUSTRATION, IRON_TAIL, THUNDER, RETURN, MUD_SLAP, DOUBLE_TEAM, SWAGGER, SLEEP_TALK, DEFENSE_CURL, DETECT, REST, ATTRACT, THIEF, THUNDERBOLT
+	tmhm CURSE, TOXIC, VENOSHOCK, HIDDEN_POWER, SUNNY_DAY, HONE_CLAWS, ICE_BEAM, BLIZZARD, PROTECT, RAIN_DANCE, IRON_TAIL, THUNDERBOLT, THUNDER, RETURN, DIG, ROCK_SMASH, DOUBLE_TEAM, SLUDGE_BOMB, AERIAL_ACE, SUBSTITUTE, FACADE, REST, ATTRACT, THIEF, WATER_PULSE, SHADOW_CLAW, POISON_JAB, CUT, STRENGTH, BODY_SLAM, CHARM, COUNTER, DEFENSE_CURL, DOUBLE_EDGE, ENDURE, HEADBUTT, SLEEP_TALK, SUCKER_PUNCH, SWAGGER
 	; end

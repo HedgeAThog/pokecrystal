@@ -27,7 +27,7 @@ Music_Route26_Ch1:
 	octave 3
 	note G#, 2
 	note F#, 2
-.mainloop:
+Music_Route26_branch_eefe0:
 	duty_cycle 0
 	note_type 12, 10, 7
 	octave 3
@@ -193,7 +193,7 @@ Music_Route26_Ch1:
 	octave 2
 	note B_, 4
 	rest 4
-	sound_loop 0, .mainloop
+	sound_jump Music_Route26_branch_eefe0
 
 Music_Route26_Ch2:
 	stereo_panning TRUE, FALSE
@@ -233,7 +233,7 @@ Music_Route26_Ch2:
 	octave 2
 	note C_, 2
 	note D#, 2
-.mainloop:
+Music_Route26_branch_ef0ce:
 	duty_cycle 2
 	note_type 12, 12, 2
 	octave 2
@@ -254,7 +254,7 @@ Music_Route26_Ch2:
 	note B_, 2
 	note B_, 2
 	note B_, 2
-	sound_call .sub1
+	sound_call Music_Route26_branch_ef14e
 	note A_, 6
 	note A_, 1
 	octave 2
@@ -269,7 +269,7 @@ Music_Route26_Ch2:
 	note B_, 2
 	note B_, 2
 	note_type 12, 12, 2
-	sound_call .sub1
+	sound_call Music_Route26_branch_ef14e
 	volume_envelope 12, 7
 	octave 2
 	note F#, 4
@@ -282,14 +282,14 @@ Music_Route26_Ch2:
 	note D#, 4
 	note D#, 4
 	note_type 8, 12, 2
-.loop1:
+Music_Route26_branch_ef10e:
 	octave 2
 	note G#, 2
 	note G#, 2
 	note G#, 2
 	octave 1
 	note G#, 6
-	sound_loop 3, .loop1
+	sound_loop 3, Music_Route26_branch_ef10e
 	octave 2
 	note G#, 2
 	note G#, 2
@@ -337,9 +337,9 @@ Music_Route26_Ch2:
 	note C#, 1
 	note C_, 1
 	note D#, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_Route26_branch_ef0ce
 
-.sub1:
+Music_Route26_branch_ef14e:
 	note A#, 6
 	note A#, 1
 	octave 2
@@ -389,7 +389,7 @@ Music_Route26_Ch3:
 	note F#, 2
 	note F_, 2
 	note D#, 2
-.mainloop:
+Music_Route26_branch_ef18a:
 	vibrato 24, 2, 3
 	note_type 12, 1, 4
 	octave 5
@@ -397,7 +397,7 @@ Music_Route26_Ch3:
 	rest 2
 	octave 4
 	note G#, 1
-	sound_call .sub1
+	sound_call Music_Route26_branch_ef22f
 	vibrato 37, 1, 3
 	note C#, 1
 	rest 1
@@ -405,7 +405,7 @@ Music_Route26_Ch3:
 	note G#, 1
 	octave 5
 	note C#, 1
-	sound_call .sub1
+	sound_call Music_Route26_branch_ef22f
 	note F_, 1
 	rest 1
 	note C#, 1
@@ -534,9 +534,9 @@ Music_Route26_Ch3:
 	note G#, 1
 	octave 3
 	note C_, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_Route26_branch_ef18a
 
-.sub1:
+Music_Route26_branch_ef22f:
 	octave 5
 	note F_, 8
 	note C#, 2
@@ -550,17 +550,17 @@ Music_Route26_Ch3:
 Music_Route26_Ch4:
 	toggle_noise 4
 	drum_speed 12
-.loop1:
+Music_Route26_branch_ef23c:
 	drum_note 12, 6
 	drum_note 3, 1
 	drum_note 3, 1
-	sound_loop 3, .loop1
-	sound_call .sub3
-.mainloop:
+	sound_loop 3, Music_Route26_branch_ef23c
+	sound_call Music_Route26_branch_ef2b0
+Music_Route26_branch_ef246:
 	drum_speed 6
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
+	sound_call Music_Route26_branch_ef29a
+	sound_call Music_Route26_branch_ef29a
+	sound_call Music_Route26_branch_ef2a8
 	drum_note 3, 12
 	drum_note 3, 2
 	drum_note 3, 2
@@ -572,21 +572,21 @@ Music_Route26_Ch4:
 	drum_note 3, 2
 	drum_note 5, 2
 	drum_speed 6
-	sound_call .sub1
-	sound_call .sub1
+	sound_call Music_Route26_branch_ef29a
+	sound_call Music_Route26_branch_ef29a
 	drum_speed 8
-.loop2:
+Music_Route26_branch_ef266:
 	drum_note 3, 2
 	drum_note 3, 2
 	drum_note 3, 2
 	drum_note 12, 6
-	sound_loop 4, .loop2
+	sound_loop 4, Music_Route26_branch_ef266
 	drum_speed 6
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub1
-	sound_call .sub2
-.loop3:
+	sound_call Music_Route26_branch_ef2a8
+	sound_call Music_Route26_branch_ef2a8
+	sound_call Music_Route26_branch_ef29a
+	sound_call Music_Route26_branch_ef2a8
+Music_Route26_branch_ef27c:
 	drum_speed 6
 	drum_note 3, 1
 	drum_note 3, 1
@@ -601,13 +601,13 @@ Music_Route26_Ch4:
 	drum_note 3, 2
 	drum_note 3, 2
 	drum_note 12, 12
-	sound_loop 2, .loop3
+	sound_loop 2, Music_Route26_branch_ef27c
 	drum_speed 12
 	drum_note 12, 16
-	sound_call .sub3
-	sound_loop 0, .mainloop
+	sound_call Music_Route26_branch_ef2b0
+	sound_jump Music_Route26_branch_ef246
 
-.sub1:
+Music_Route26_branch_ef29a:
 	drum_note 5, 12
 	drum_note 3, 2
 	drum_note 3, 2
@@ -623,7 +623,7 @@ Music_Route26_Ch4:
 	drum_note 2, 1
 	sound_ret
 
-.sub2:
+Music_Route26_branch_ef2a8:
 	drum_note 5, 12
 	drum_note 3, 2
 	drum_note 3, 2
@@ -633,7 +633,7 @@ Music_Route26_Ch4:
 	drum_note 3, 4
 	sound_ret
 
-.sub3:
+Music_Route26_branch_ef2b0:
 	drum_speed 6
 	drum_note 2, 1
 	drum_note 2, 1

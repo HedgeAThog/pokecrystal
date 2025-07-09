@@ -16,25 +16,26 @@ Music_LookRocket_Ch1:
 	octave 4
 	note C_, 1
 	note D_, 1
-	sound_call .sub1
+	sound_call Music_LookRocket_branch_f74e6
 	duty_cycle 1
-.mainloop:
+Music_LookRocket_branch_f74c7:
 	volume_envelope 10, 8
-	sound_call .sub2
-	sound_call Music_LookRocket_Ch2.sub5
+	sound_call Music_LookRocket_branch_f74f7
+	sound_call Music_LookRocket_branch_f758a
 	octave 4
 	note F#, 1
 	rest 1
 	volume_envelope 5, 3
-	sound_call .sub3
+	sound_call Music_LookRocket_branch_f750c
 	volume_envelope 12, 3
-	sound_call .sub3
+	sound_call Music_LookRocket_branch_f750c
 	volume_envelope 14, 3
-	sound_call .sub3
+	sound_call Music_LookRocket_branch_f750c
 	rest 16
-	sound_loop 0, .mainloop
+	sound_jump Music_LookRocket_branch_f74c7
 
-.sub1:
+Music_LookRocket_branch_f74e6:
+Music_RocketTheme_branch_f74e6:
 	note D#, 1
 	rest 1
 	note D_, 1
@@ -53,7 +54,8 @@ Music_LookRocket_Ch1:
 	note G#, 1
 	sound_ret
 
-.sub2:
+Music_LookRocket_branch_f74f7:
+Music_RocketTheme_branch_f74f7:
 	rest 2
 	octave 3
 	note D#, 1
@@ -76,7 +78,8 @@ Music_LookRocket_Ch1:
 	rest 1
 	sound_ret
 
-.sub3:
+Music_LookRocket_branch_f750c:
+Music_RocketTheme_branch_f750c:
 	rest 2
 	octave 2
 	note B_, 1
@@ -95,24 +98,25 @@ Music_LookRocket_Ch2:
 	octave 5
 	note C_, 1
 	note D_, 1
-	sound_call .sub1
-.mainloop:
+	sound_call Music_LookRocket_branch_f7547
+Music_LookRocket_branch_f7526:
 	volume_envelope 11, 7
-	sound_call .sub5
+	sound_call Music_LookRocket_branch_f758a
 	octave 5
 	note C_, 1
 	rest 1
-	sound_call .sub2
+	sound_call Music_LookRocket_branch_f7554
 	volume_envelope 5, 3
-	sound_call .sub3
+	sound_call Music_LookRocket_branch_f7568
 	volume_envelope 12, 3
-	sound_call .sub3
+	sound_call Music_LookRocket_branch_f7568
 	volume_envelope 14, 3
-	sound_call .sub3
-	sound_call .sub4
-	sound_loop 0, .mainloop
+	sound_call Music_LookRocket_branch_f7568
+	sound_call Music_LookRocket_branch_f756f
+	sound_jump Music_LookRocket_branch_f7526
 
-.sub1:
+Music_LookRocket_branch_f7547:
+Music_RocketTheme_branch_f7547:
 	note D#, 1
 	rest 1
 	note D_, 1
@@ -126,7 +130,8 @@ Music_LookRocket_Ch2:
 	duty_cycle 0
 	sound_ret
 
-.sub2:
+Music_LookRocket_branch_f7554:
+Music_RocketTheme_branch_f7554:
 	rest 2
 	octave 4
 	note D#, 1
@@ -148,7 +153,8 @@ Music_LookRocket_Ch2:
 	rest 1
 	sound_ret
 
-.sub3:
+Music_LookRocket_branch_f7568:
+Music_RocketTheme_branch_f7568:
 	rest 2
 	octave 3
 	note F_, 1
@@ -157,7 +163,8 @@ Music_LookRocket_Ch2:
 	rest 5
 	sound_ret
 
-.sub4:
+Music_LookRocket_branch_f756f:
+Music_RocketTheme_branch_f756f:
 	volume_envelope 6, 3
 	note G#, 1
 	note F_, 1
@@ -182,7 +189,8 @@ Music_LookRocket_Ch2:
 	note D_, 1
 	sound_ret
 
-.sub5:
+Music_LookRocket_branch_f758a:
+Music_RocketTheme_branch_f758a:
 	octave 3
 	rest 2
 	note G_, 1
@@ -203,19 +211,20 @@ Music_LookRocket_Ch3:
 	note_type 12, 1, 4
 	stereo_panning TRUE, FALSE
 	rest 2
-	sound_call .sub1
-.mainloop:
-	sound_call .sub4
-	sound_call .sub4
+	sound_call Music_LookRocket_branch_f75bf
+Music_LookRocket_branch_f75a5:
+	sound_call Music_LookRocket_branch_f75fe
+	sound_call Music_LookRocket_branch_f75fe
 	volume_envelope 2, 4
-	sound_call .sub5
+	sound_call Music_LookRocket_branch_f7623
 	volume_envelope 1, 4
-	sound_call .sub2
-	sound_call .sub5
-	sound_call .sub3
-	sound_loop 0, .mainloop
+	sound_call Music_LookRocket_branch_f75cc
+	sound_call Music_LookRocket_branch_f7623
+	sound_call Music_LookRocket_branch_f75e1
+	sound_jump Music_LookRocket_branch_f75a5
 
-.sub1:
+Music_LookRocket_branch_f75bf:
+Music_RocketTheme_branch_f75bf:
 	octave 3
 	note F_, 1
 	rest 1
@@ -230,7 +239,8 @@ Music_LookRocket_Ch3:
 	note D_, 6
 	sound_ret
 
-.sub2:
+Music_LookRocket_branch_f75cc:
+Music_RocketTheme_branch_f75cc:
 	octave 2
 	note G#, 1
 	rest 1
@@ -253,7 +263,8 @@ Music_LookRocket_Ch3:
 	rest 1
 	sound_ret
 
-.sub3:
+Music_LookRocket_branch_f75e1:
+Music_RocketTheme_branch_f75e1:
 	volume_envelope 2, 4
 	octave 2
 	note G#, 1
@@ -282,7 +293,8 @@ Music_LookRocket_Ch3:
 	rest 1
 	sound_ret
 
-.sub4:
+Music_LookRocket_branch_f75fe:
+Music_RocketTheme_branch_f75fe:
 	note C_, 1
 	rest 1
 	octave 4
@@ -321,7 +333,8 @@ Music_LookRocket_Ch3:
 	rest 1
 	sound_ret
 
-.sub5:
+Music_LookRocket_branch_f7623:
+Music_RocketTheme_branch_f7623:
 	octave 2
 	note G#, 1
 	rest 1
@@ -348,19 +361,20 @@ Music_LookRocket_Ch4:
 	toggle_noise 3
 	drum_speed 12
 	rest 2
-	sound_call .sub1
-.mainloop:
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub1
-	sound_loop 0, .mainloop
+	sound_call Music_LookRocket_branch_f765c
+Music_LookRocket_branch_f7640:
+	sound_call Music_LookRocket_branch_f7664
+	sound_call Music_LookRocket_branch_f7664
+	sound_call Music_LookRocket_branch_f7664
+	sound_call Music_LookRocket_branch_f7664
+	sound_call Music_LookRocket_branch_f7664
+	sound_call Music_LookRocket_branch_f7664
+	sound_call Music_LookRocket_branch_f7664
+	sound_call Music_LookRocket_branch_f765c
+	sound_jump Music_LookRocket_branch_f7640
 
-.sub1:
+Music_LookRocket_branch_f765c:
+Music_RocketTheme_branch_f765c:
 	drum_note 1, 8
 	drum_note 3, 2
 	drum_note 4, 2
@@ -370,7 +384,8 @@ Music_LookRocket_Ch4:
 	drum_note 3, 1
 	sound_ret
 
-.sub2:
+Music_LookRocket_branch_f7664:
+Music_RocketTheme_branch_f7664:
 	drum_note 4, 2
 	drum_note 7, 2
 	drum_note 3, 2

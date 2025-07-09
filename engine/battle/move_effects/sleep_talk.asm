@@ -1,141 +1,94 @@
-BattleCommand_SleepTalk:
+BattleCommand_sleeptalk:
 	call ClearLastMove
-	ld a, [wAttackMissed]
-	and a
-	jr nz, .fail
-	ldh a, [hBattleTurn]
-	and a
-	ld hl, wBattleMonMoves + 1
-	ld a, [wDisabledMove]
-	ld d, a
-	jr z, .got_moves
-	ld hl, wEnemyMonMoves + 1
-	ld a, [wEnemyDisabledMove]
-	ld d, a
-.got_moves
 	ld a, BATTLE_VARS_STATUS
 	call GetBattleVar
 	and SLP_MASK
 	jr z, .fail
-	ld a, [hl]
+
+	ld a, [wAttackMissed]
+	and a
+	jr nz, .fail
+
+	ldh a, [hBattleTurn]
+	and a
+	ld hl, wBattleMonMoves
+	jr z,  .got_moves
+	ld hl, wEnemyMonMoves
+.got_moves
+	farcall GetDisableEncoreMoves
+	lb bc, NUM_MOVES, 0
+	ld e, c
+	push hl
+
+.usable_move_loop
+; b: loop counter
+; c: number of eligible moves
+; d: disabled move ID
+; e: eligible move flags (%0000eeee)
+	ld a, [hli]
+	and a
+	jr z, .end_loop
+	sla e
+	cp d
+	jr z, .next_move
+
+	push hl
+	push de
+	push bc
+	farcall GetMoveEffect
+	ld hl, SleepTalkExcepts
+	call IsInByteArray
+	pop bc
+	pop de
+	pop hl
+	jr c, .next_move
+	inc e
+	inc c
+
+.next_move
+	dec b
+	jr nz, .usable_move_loop
+
+.end_loop
+	pop hl
+	ld a, c
 	and a
 	jr z, .fail
-	call .safely_check_has_usable_move
-	jr c, .fail
-	dec hl
-.sample_move
-	push hl
-	call BattleRandom
-	maskbits NUM_MOVES
-	ld c, a
-	ld b, 0
+	call RandomRange
+	inc a
+	ld b, a
+	ld c, NUM_MOVES
+
+.get_move_loop
+	dec c
+	srl e
+	jr nc, .get_move_loop
+	dec b
+	jr nz, .get_move_loop
+
 	add hl, bc
-	ld a, [hl]
-	pop hl
-	and a
-	jr z, .sample_move
-	ld e, a
-	ld a, BATTLE_VARS_MOVE_ANIM
-	call GetBattleVar
-	cp e
-	jr z, .sample_move
-	ld a, e
-	cp d
-	jr z, .sample_move
-	call .check_two_turn_move
-	jr z, .sample_move
+	ld e, [hl]
 	ld a, BATTLE_VARS_MOVE
 	call GetBattleVarAddr
-	ld a, e
-	ld [hl], a
+	ld [hl], e
 	call CheckUserIsCharging
 	jr nz, .charging
 	ld a, [wBattleAnimParam]
 	push af
-	call BattleCommand_LowerSub
+	call BattleCommand_lowersub
 	pop af
 	ld [wBattleAnimParam], a
 .charging
 	call LoadMoveAnim
+	ld a, [wCurMoveNum] ; preserve cursor position
+	push af
 	call UpdateMoveData
-	jp ResetTurn
+	pop af
+	ld [wCurMoveNum], a
+	jmp ResetTurn
 
 .fail
 	call AnimateFailedMove
-	jp TryPrintButItFailed
+	jmp TryPrintButItFailed
 
-.safely_check_has_usable_move
-	push hl
-	push de
-	push bc
-	call .check_has_usable_move
-	pop bc
-	pop de
-	pop hl
-	ret
-
-.check_has_usable_move
-	ldh a, [hBattleTurn]
-	and a
-	ld a, [wDisabledMove]
-	jr z, .got_move_2
-
-	ld a, [wEnemyDisabledMove]
-.got_move_2
-	ld b, a
-	ld a, BATTLE_VARS_MOVE
-	call GetBattleVar
-	ld c, a
-	dec hl
-	ld d, NUM_MOVES
-.loop2
-	ld a, [hl]
-	and a
-	jr z, .carry
-
-	cp c
-	jr z, .nope
-	cp b
-	jr z, .nope
-
-	call .check_two_turn_move
-	jr nz, .no_carry
-
-.nope
-	inc hl
-	dec d
-	jr nz, .loop2
-
-.carry
-	scf
-	ret
-
-.no_carry
-	and a
-	ret
-
-.check_two_turn_move
-	push hl
-	push de
-	push bc
-
-	ld b, a
-	callfar GetMoveEffect
-	ld a, b
-
-	pop bc
-	pop de
-	pop hl
-
-	cp EFFECT_SKULL_BASH
-	ret z
-	cp EFFECT_RAZOR_WIND
-	ret z
-	cp EFFECT_SKY_ATTACK
-	ret z
-	cp EFFECT_SOLARBEAM
-	ret z
-	cp EFFECT_FLY
-	ret z
-	cp EFFECT_BIDE
-	ret
+INCLUDE "data/moves/sleep_talk_exception_move_effects.asm"

@@ -34,7 +34,7 @@ Music_ElmsLab_Ch1:
 	note A_, 4
 	note A_, 4
 	note A_, 2
-.mainloop:
+Music_ElmsLab_branch_ea075:
 	rest 2
 	note A_, 2
 	note G#, 2
@@ -181,7 +181,7 @@ Music_ElmsLab_Ch1:
 	volume_envelope 11, 2
 	note F_, 2
 	note F_, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_ElmsLab_branch_ea075
 
 Music_ElmsLab_Ch2:
 	duty_cycle 3
@@ -213,7 +213,7 @@ Music_ElmsLab_Ch2:
 	note C_, 4
 	note C_, 2
 	stereo_panning TRUE, TRUE
-.mainloop:
+Music_ElmsLab_branch_ea14f:
 	volume_envelope 12, 6
 	octave 4
 	note F_, 6
@@ -348,7 +348,7 @@ Music_ElmsLab_Ch2:
 	volume_envelope 12, 4
 	octave 3
 	note E_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_ElmsLab_branch_ea14f
 
 Music_ElmsLab_Ch3:
 	stereo_panning FALSE, TRUE
@@ -373,7 +373,7 @@ Music_ElmsLab_Ch3:
 	note C_, 2
 	note D_, 2
 	note E_, 2
-.mainloop:
+Music_ElmsLab_branch_ea216:
 	note F_, 2
 	note A_, 2
 	note C_, 2
@@ -525,7 +525,7 @@ Music_ElmsLab_Ch3:
 	note C_, 2
 	note F_, 2
 	note A_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_ElmsLab_branch_ea216
 
 Music_ElmsLab_Ch4:
 	stereo_panning TRUE, FALSE
@@ -533,6 +533,6 @@ Music_ElmsLab_Ch4:
 	drum_speed 12
 	rest 16
 	rest 2
-.mainloop:
+Music_ElmsLab_branch_ea2b9:
 	drum_note 8, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_ElmsLab_branch_ea2b9

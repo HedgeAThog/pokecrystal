@@ -1,4 +1,4 @@
-_CheckPokerus:
+CheckPokerus:
 ; Return carry if a monster in your party has Pokerus
 
 ; Get number of monsters to iterate over
@@ -11,7 +11,7 @@ _CheckPokerus:
 	ld de, PARTYMON_STRUCT_LENGTH
 .Check:
 	ld a, [hl]
-	and $0f ; only the bottom nybble is used
+	and POKERUS_MASK ; only the bottom nybble is used
 	jr nz, .HasPokerus
 ; Next PartyMon
 	add hl, de

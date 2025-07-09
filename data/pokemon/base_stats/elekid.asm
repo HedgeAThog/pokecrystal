@@ -1,21 +1,23 @@
-	db ELEKID ; 239
-
-	db  45,  63,  37,  95,  65,  55
-	;   hp  atk  def  spd  sat  sdf
+if DEF(FAITHFUL)
+	db  45,  63,  37,  95,  65,  55 ; 360 BST
+	;   hp  atk  def  spe  sat  sdf
+else
+	db  50,  63,  37, 100,  65,  55 ; 370 BST
+	;   hp  atk  def  spe  sat  sdf
+endc
 
 	db ELECTRIC, ELECTRIC ; type
 	db 45 ; catch rate
 	db 106 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_F25 ; gender ratio
-	db 100 ; unknown 1
-	db 25 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/elekid/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db PERSIM_BERRY, ELECTIRIZER ; held items
+	dn GENDER_F25, HATCH_MEDIUM_SLOW ; gender ratio, step cycles to hatch
+
+	abilities_for ELEKID, STATIC, STATIC, VITAL_SPIRIT
 	db GROWTH_MEDIUM_FAST ; growth rate
 	dn EGG_NONE, EGG_NONE ; egg groups
 
+	ev_yield 1 Spe
+
 	; tm/hm learnset
-	tmhm DYNAMICPUNCH, HEADBUTT, CURSE, TOXIC, ZAP_CANNON, HIDDEN_POWER, SNORE, PROTECT, RAIN_DANCE, ENDURE, FRUSTRATION, THUNDER, RETURN, PSYCHIC_M, MUD_SLAP, DOUBLE_TEAM, ICE_PUNCH, SWAGGER, SLEEP_TALK, SWIFT, THUNDERPUNCH, DETECT, REST, ATTRACT, THIEF, FIRE_PUNCH, FLASH, THUNDERBOLT
+	tmhm DYNAMICPUNCH, CURSE, TOXIC, BULK_UP, HIDDEN_POWER, LIGHT_SCREEN, PROTECT, RAIN_DANCE, THUNDERBOLT, THUNDER, RETURN, PSYCHIC, ROCK_SMASH, DOUBLE_TEAM, SWIFT, SUBSTITUTE, FACADE, REST, ATTRACT, THIEF, WILD_CHARGE, FLASH, VOLT_SWITCH, THUNDER_WAVE, BODY_SLAM, COUNTER, DOUBLE_EDGE, ENDURE, FIRE_PUNCH, HEADBUTT, ICE_PUNCH, SEISMIC_TOSS, SLEEP_TALK, SWAGGER, THUNDERPUNCH, ZAP_CANNON
 	; end

@@ -1,56 +1,56 @@
-GinaPhoneCalleeScript:
-	gettrainername STRING_BUFFER_3, PICNICKER, GINA1
+GinaPhoneScript1:
+	gettrainername PICNICKER, GINA1, STRING_BUFFER_3
 	checkflag ENGINE_GINA_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	farscall PhoneScript_AnswerPhone_Female
 	checkflag ENGINE_GINA_SUNDAY_AFTERNOON
-	iftrue .NotSunday
+	iftruefwd .NotSunday
 	checkflag ENGINE_GINA_HAS_LEAF_STONE
-	iftrue .HasLeafStone
+	iftruefwd .HasLeafStone
 	readvar VAR_WEEKDAY
 	ifnotequal SUNDAY, .NotSunday
-	checktime DAY
-	iftrue GinaSundayDay
+	checktime 1 << DAY
+	iftruefwd GinaSundayDay
 
 .NotSunday:
 	checkflag ENGINE_ROCKETS_IN_RADIO_TOWER
-	iftrue .Rockets
+	iftruefwd .Rockets
 	farsjump GinaHangUpScript
 
 .Rockets:
 	farsjump GinaRocketRumorScript
 
 .WantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_34
+	getlandmarkname ROUTE_34, STRING_BUFFER_5
 	farsjump GinaReminderScript
 
 .HasLeafStone:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_34
+	getlandmarkname ROUTE_34, STRING_BUFFER_5
 	farsjump GinaComePickUpScript
 
-GinaPhoneCallerScript:
-	gettrainername STRING_BUFFER_3, PICNICKER, GINA1
+GinaPhoneScript2:
+	gettrainername PICNICKER, GINA1, STRING_BUFFER_3
 	farscall PhoneScript_GreetPhone_Female
 	checkflag ENGINE_ROCKETS_IN_RADIO_TOWER
-	iftrue GinaRockets
+	iftruefwd GinaRockets
 	checkflag ENGINE_GINA_READY_FOR_REMATCH
-	iftrue .Generic
+	iftruefwd .Generic
 	checkflag ENGINE_GINA_SUNDAY_AFTERNOON
-	iftrue .Generic
+	iftruefwd .Generic
 	checkflag ENGINE_GINA_HAS_LEAF_STONE
-	iftrue .Generic
+	iftruefwd .Generic
 	checkevent EVENT_GINA_GAVE_LEAF_STONE
-	iftrue .GaveLeafStone
+	iftruefwd .GaveLeafStone
 	farscall PhoneScript_Random2
-	ifequal 0, GinaHasLeafStone
+	ifequalfwd $0, GinaHasLeafStone
 
 .GaveLeafStone:
 	farscall PhoneScript_Random11
-	ifequal 0, GinaHasLeafStone
+	ifequalfwd $0, GinaHasLeafStone
 	checkflag ENGINE_FLYPOINT_GOLDENROD
-	iffalse .Generic
+	iffalsefwd .Generic
 	farscall PhoneScript_Random3
-	ifequal 0, GinaWantsBattle
+	ifequalfwd $0, GinaWantsBattle
 
 .Generic:
 	farsjump Phone_GenericCall_Female
@@ -59,7 +59,7 @@ GinaSundayDay:
 	setflag ENGINE_GINA_SUNDAY_AFTERNOON
 
 GinaWantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_34
+	getlandmarkname ROUTE_34, STRING_BUFFER_5
 	setflag ENGINE_GINA_READY_FOR_REMATCH
 	farsjump PhoneScript_WantsToBattle_Female
 
@@ -68,5 +68,5 @@ GinaRockets:
 
 GinaHasLeafStone:
 	setflag ENGINE_GINA_HAS_LEAF_STONE
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_34
+	getlandmarkname ROUTE_34, STRING_BUFFER_5
 	farsjump PhoneScript_FoundItem_Female

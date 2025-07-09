@@ -1,6 +1,6 @@
 JoseMonsStickHasADeliciousAromaText:
 	text "Hey listen, my"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text "'s stick"
 
@@ -13,13 +13,13 @@ JoseMonsStickHasADeliciousAromaText:
 
 JoseDefeatedMonText:
 	text "A while ago, my"
-	line "FARFETCH'D KO'd"
-	cont "this @"
+	line "Farfetch'd KO'd"
+	cont "this "
 	text_ram wStringBuffer4
 	text "."
 
 	para "You should have"
-	line "seen FARFETCH'D"
+	line "seen Farfetch'd"
 
 	para "wield that stick."
 	line "Amazing stuff!"
@@ -27,7 +27,7 @@ JoseDefeatedMonText:
 
 JoseLostAMonText:
 	text "I ran into a wild"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text "…"
 
@@ -46,12 +46,12 @@ JoseBattleRematchText:
 	line "again?"
 
 	para "For some reason,"
-	line "my FARFETCH'D is"
+	line "my Farfetch'd is"
 
 	para "all worked up and"
 	line "raring to go."
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text "'s"
 	line "where I'm at."
@@ -65,7 +65,7 @@ JoseHangUpText:
 	done
 
 JoseFoundItemText:
-	text "My FARFETCH'D had"
+	text "My Farfetch'd had"
 	line "something pretty"
 	cont "in its beak."
 
@@ -73,7 +73,7 @@ JoseFoundItemText:
 	line "you can have it."
 
 	para "Catch up to me on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text ","
 
@@ -94,10 +94,10 @@ JoseHaventGottenItemYetText:
 	done
 
 JoseReminderText:
-	text "<PLAY_G>, could you"
+	text "<PLAYER>, could you"
 	line "hurry over?"
 
-	para "FARFETCH'D is"
+	para "Farfetch'd is"
 	line "agitated."
 
 	para "If you don't come"
@@ -106,25 +106,10 @@ JoseReminderText:
 	para "smack me with its"
 	line "stick!"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text "!"
 
 	para "Please come as"
 	line "soon as you can!"
-	done
-
-JoseComePickUpText:
-	text "What's wrong?"
-
-	para "Don't you want"
-	line "this gift?"
-
-	para "Catch up to me on"
-	line "@"
-	text_ram wStringBuffer5
-	text ","
-
-	para "and I'll let you"
-	line "have it."
 	done

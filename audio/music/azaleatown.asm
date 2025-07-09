@@ -12,7 +12,7 @@ Music_AzaleaTown_Ch1:
 	stereo_panning FALSE, TRUE
 	note_type 12, 10, 1
 	rest 2
-.introloop:
+Music_AzaleaTown_branch_f5801:
 	volume_envelope 10, 1
 	octave 3
 	note F_, 2
@@ -26,9 +26,9 @@ Music_AzaleaTown_Ch1:
 	note F_, 2
 	note F_, 2
 	note F_, 2
-	sound_loop 2, .introloop
-.mainloop:
-	sound_call .sub1
+	sound_loop 2, Music_AzaleaTown_branch_f5801
+Music_AzaleaTown_branch_f5816:
+	sound_call Music_AzaleaTown_branch_f588c
 	stereo_panning TRUE, FALSE
 	volume_envelope 10, 4
 	note G#, 2
@@ -43,7 +43,7 @@ Music_AzaleaTown_Ch1:
 	note D#, 2
 	rest 2
 	stereo_panning FALSE, TRUE
-	sound_call .sub1
+	sound_call Music_AzaleaTown_branch_f588c
 	stereo_panning TRUE, FALSE
 	note_type 6, 10, 4
 	note D#, 4
@@ -56,7 +56,7 @@ Music_AzaleaTown_Ch1:
 	note A#, 4
 	note F#, 4
 	stereo_panning FALSE, TRUE
-	sound_call .sub2
+	sound_call Music_AzaleaTown_branch_f5912
 	volume_envelope 10, 3
 	note A#, 4
 	octave 4
@@ -69,7 +69,7 @@ Music_AzaleaTown_Ch1:
 	note C#, 4
 	note A_, 2
 	rest 14
-	sound_call .sub2
+	sound_call Music_AzaleaTown_branch_f5912
 	volume_envelope 10, 3
 	octave 4
 	note C_, 1
@@ -118,9 +118,9 @@ Music_AzaleaTown_Ch1:
 	octave 3
 	note G#, 14
 	rest 2
-	sound_loop 0, .mainloop
+	sound_jump Music_AzaleaTown_branch_f5816
 
-.sub1:
+Music_AzaleaTown_branch_f588c:
 	note_type 12, 10, 1
 	octave 4
 	note F_, 2
@@ -219,7 +219,7 @@ Music_AzaleaTown_Ch1:
 	note C#, 2
 	sound_ret
 
-.sub2:
+Music_AzaleaTown_branch_f5912:
 	volume_envelope 6, 1
 	note G#, 8
 	note G#, 8
@@ -265,8 +265,8 @@ Music_AzaleaTown_Ch2:
 	duty_cycle 1
 	octave 5
 	note C_, 1
-.mainloop:
-	sound_call .sub1
+Music_AzaleaTown_branch_f5952:
+	sound_call Music_AzaleaTown_branch_f59c7
 	note C#, 4
 	note C_, 2
 	note C#, 1
@@ -277,7 +277,7 @@ Music_AzaleaTown_Ch2:
 	duty_cycle 1
 	octave 5
 	note C_, 1
-	sound_call .sub1
+	sound_call Music_AzaleaTown_branch_f59c7
 	rest 2
 	note C#, 2
 	note C_, 2
@@ -362,9 +362,9 @@ Music_AzaleaTown_Ch2:
 	note G#, 2
 	octave 5
 	note C_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_AzaleaTown_branch_f5952
 
-.sub1:
+Music_AzaleaTown_branch_f59c7:
 	note C#, 4
 	octave 4
 	note G#, 2
@@ -441,15 +441,15 @@ Music_AzaleaTown_Ch3:
 	note C#, 1
 	rest 1
 	note G#, 4
-.mainloop:
-	sound_call .sub1
+Music_AzaleaTown_branch_f5a24:
+	sound_call Music_AzaleaTown_branch_f5a86
 	note G#, 4
 	note D#, 2
-	sound_call .sub1
+	sound_call Music_AzaleaTown_branch_f5a86
 	note G#, 2
 	rest 2
 	note F#, 2
-	sound_call .sub2
+	sound_call Music_AzaleaTown_branch_f5acf
 	note A#, 1
 	rest 1
 	octave 4
@@ -463,7 +463,7 @@ Music_AzaleaTown_Ch3:
 	rest 3
 	note F_, 1
 	rest 1
-	sound_call .sub2
+	sound_call Music_AzaleaTown_branch_f5acf
 	octave 2
 	note A#, 2
 	octave 3
@@ -528,9 +528,9 @@ Music_AzaleaTown_Ch3:
 	note B_, 1
 	octave 3
 	note C_, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_AzaleaTown_branch_f5a24
 
-.sub1:
+Music_AzaleaTown_branch_f5a86:
 	note C#, 1
 	rest 5
 	note C#, 1
@@ -603,7 +603,7 @@ Music_AzaleaTown_Ch3:
 	rest 1
 	sound_ret
 
-.sub2:
+Music_AzaleaTown_branch_f5acf:
 	volume_envelope 3, 5
 	octave 3
 	note F_, 1
@@ -629,7 +629,7 @@ Music_AzaleaTown_Ch4:
 	toggle_noise 3
 	drum_speed 12
 	drum_note 6, 2
-.mainloop:
+Music_AzaleaTown_branch_f5aea:
 	drum_note 4, 2
 	drum_note 7, 2
 	drum_note 3, 2
@@ -651,4 +651,4 @@ Music_AzaleaTown_Ch4:
 	drum_note 4, 2
 	drum_note 3, 2
 	drum_note 7, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_AzaleaTown_branch_f5aea

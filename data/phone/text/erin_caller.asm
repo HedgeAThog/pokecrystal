@@ -1,8 +1,7 @@
 ErinMonIsMuchStrongerText:
 	text_ram wStringBuffer3
-	text "'s @"
+	text "'s "
 	text_ram wStringBuffer4
-	text_start
 	line "is much stronger"
 	cont "than before!"
 	done
@@ -10,20 +9,19 @@ ErinMonIsMuchStrongerText:
 ErinDefeatedMonText:
 	text "And, and…"
 	line "I just battled and"
-	cont "beat @"
+	cont "beat "
 	text_ram wStringBuffer4
 	text "!"
 
 	para "I've raised my"
-	line "#MON properly!"
+	line "#mon properly!"
 	done
 
 ErinLostAMonText:
 	text "But, but…"
 
-	para "A wild @"
+	para "A wild "
 	text_ram wStringBuffer4
-	text_start
 	line "got away from me"
 
 	para "again. It's just"
@@ -31,14 +29,14 @@ ErinLostAMonText:
 	done
 
 ErinBattleRematchText:
-	text "I'm ERIN. Want to"
+	text "I'm Erin. Want to"
 	line "battle me again?"
 
 	para "I won't lose this"
 	line "time!"
 
 	para "I'll be waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done
@@ -50,18 +48,18 @@ ErinHangUpText:
 ErinWorkingHardText:
 	text "I'm working hard"
 	line "to raise my"
-	cont "#MON!"
+	cont "#mon!"
 
 	para "Come back for"
 	line "another battle!"
 	done
 
 ErinComeBattleText:
-	text "Oh, <PLAY_G>!"
-	line "Come battle ERIN!"
+	text "Oh, <PLAYER>!"
+	line "Come battle Erin!"
 
 	para "I'll be waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done

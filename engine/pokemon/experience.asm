@@ -1,12 +1,15 @@
 CalcLevel:
 	ld a, [wTempMonSpecies]
 	ld [wCurSpecies], a
+	ld a, [wTempMonForm]
+	and SPECIESFORM_MASK
+	ld [wCurForm], a
 	call GetBaseData
 	ld d, 1
 .next_level
 	inc d
 	ld a, d
-	cp LOW(MAX_LEVEL + 1)
+	cp MAX_LEVEL + 1
 	jr z, .got_level
 	call CalcExpAtLevel
 	push hl
@@ -32,7 +35,18 @@ CalcLevel:
 
 CalcExpAtLevel:
 ; (a/b)*n**3 + c*n**2 + d*n - e
-; BUG: Experience underflow for level 1 Pokémon with Medium-Slow growth rate (see docs/bugs_and_glitches.md)
+	ld a, d
+	dec a
+	jr nz, .UseExpFormula
+; Pokémon have 0 experience at level 1
+	ld hl, hProduct
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hl], a
+	ret
+
+.UseExpFormula
 	ld a, [wBaseGrowthRate]
 	add a
 	add a
@@ -44,33 +58,33 @@ CalcExpAtLevel:
 	call .LevelSquared
 	ld a, d
 	ldh [hMultiplier], a
-	call Multiply
+	farcall Multiply
 
 ; Multiply by a
 	ld a, [hl]
 	and $f0
 	swap a
 	ldh [hMultiplier], a
-	call Multiply
+	farcall Multiply
 ; Divide by b
 	ld a, [hli]
 	and $f
 	ldh [hDivisor], a
 	ld b, 4
-	call Divide
+	farcall Divide
 ; Push the cubic term to the stack
+	ldh a, [hQuotient + 0]
+	push af
 	ldh a, [hQuotient + 1]
 	push af
 	ldh a, [hQuotient + 2]
-	push af
-	ldh a, [hQuotient + 3]
 	push af
 ; Square the level and multiply by the lower 7 bits of c
 	call .LevelSquared
 	ld a, [hl]
 	and $7f
 	ldh [hMultiplier], a
-	call Multiply
+	farcall Multiply
 ; Push the absolute value of the quadratic term to the stack
 	ldh a, [hProduct + 1]
 	push af
@@ -88,13 +102,13 @@ CalcExpAtLevel:
 	ldh [hMultiplicand + 2], a
 	ld a, [hli]
 	ldh [hMultiplier], a
-	call Multiply
+	farcall Multiply
 ; Subtract e
 	ld b, [hl]
 	ldh a, [hProduct + 3]
 	sub b
 	ldh [hMultiplicand + 2], a
-	ld b, 0
+	ld b, $0
 	ldh a, [hProduct + 2]
 	sbc b
 	ldh [hMultiplicand + 1], a
@@ -136,7 +150,7 @@ CalcExpAtLevel:
 	ldh [hMultiplicand], a
 
 .done_quadratic
-; Add (a/b)*n**3 to (d*n - e +/- c*n**2)
+; Add (a/b)*n**3 to (d*n - e ± c*n**2)
 	pop bc
 	ldh a, [hProduct + 3]
 	add b
@@ -158,6 +172,6 @@ CalcExpAtLevel:
 	ld a, d
 	ldh [hMultiplicand + 2], a
 	ldh [hMultiplier], a
-	jp Multiply
+	farjp Multiply
 
 INCLUDE "data/growth_rates.asm"

@@ -27,7 +27,7 @@ Music_Route30_Ch1:
 	note D_, 2
 	volume_envelope 4, -6
 	note C_, 4
-.mainloop:
+Music_Route30_branch_efc2e:
 	volume_envelope 11, 6
 	note D_, 6
 	volume_envelope 11, 4
@@ -182,7 +182,7 @@ Music_Route30_Ch1:
 	note B_, 2
 	octave 4
 	note D_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_Route30_branch_efc2e
 
 Music_Route30_Ch2:
 	duty_cycle 3
@@ -206,7 +206,7 @@ Music_Route30_Ch2:
 	note E_, 1
 	note F_, 1
 	note F#, 1
-.mainloop:
+Music_Route30_branch_efcf6:
 	volume_envelope 12, 7
 	note G_, 10
 	octave 4
@@ -293,7 +293,7 @@ Music_Route30_Ch2:
 	volume_envelope 10, 7
 	octave 3
 	note F#, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_Route30_branch_efcf6
 
 Music_Route30_Ch3:
 	note_type 12, 2, 7
@@ -320,7 +320,7 @@ Music_Route30_Ch3:
 	rest 1
 	note G_, 1
 	rest 1
-.mainloop:
+Music_Route30_branch_efd79:
 	note G_, 1
 	rest 1
 	note B_, 2
@@ -574,33 +574,33 @@ Music_Route30_Ch3:
 	rest 1
 	note G_, 1
 	rest 1
-	sound_loop 0, .mainloop
+	sound_jump Music_Route30_branch_efd79
 
 Music_Route30_Ch4:
 	toggle_noise 3
 	drum_speed 12
-	sound_call .sub1
-	sound_call .sub2
-.mainloop:
-	sound_call .sub3
-	sound_call .sub4
-	sound_call .sub4
-	sound_call .sub5
-	sound_call .sub4
-	sound_call .sub3
-	sound_call .sub4
-	sound_call .sub5
-	sound_call .sub4
-	sound_call .sub4
-	sound_call .sub3
-	sound_call .sub4
-	sound_call .sub4
-	sound_call .sub4
-	sound_call .sub3
-	sound_call .sub5
-	sound_loop 0, .mainloop
+	sound_call Music_Route30_branch_efeb8
+	sound_call Music_Route30_branch_efec1
+Music_Route30_branch_efe84:
+	sound_call Music_Route30_branch_efecd
+	sound_call Music_Route30_branch_efed7
+	sound_call Music_Route30_branch_efed7
+	sound_call Music_Route30_branch_efee1
+	sound_call Music_Route30_branch_efed7
+	sound_call Music_Route30_branch_efecd
+	sound_call Music_Route30_branch_efed7
+	sound_call Music_Route30_branch_efee1
+	sound_call Music_Route30_branch_efed7
+	sound_call Music_Route30_branch_efed7
+	sound_call Music_Route30_branch_efecd
+	sound_call Music_Route30_branch_efed7
+	sound_call Music_Route30_branch_efed7
+	sound_call Music_Route30_branch_efed7
+	sound_call Music_Route30_branch_efecd
+	sound_call Music_Route30_branch_efee1
+	sound_jump Music_Route30_branch_efe84
 
-.sub1:
+Music_Route30_branch_efeb8:
 	drum_note 3, 2
 	drum_note 7, 2
 	drum_note 7, 2
@@ -611,7 +611,7 @@ Music_Route30_Ch4:
 	drum_note 3, 4
 	sound_ret
 
-.sub2:
+Music_Route30_branch_efec1:
 	drum_note 3, 2
 	drum_note 7, 2
 	drum_note 7, 2
@@ -625,7 +625,7 @@ Music_Route30_Ch4:
 	drum_note 3, 1
 	sound_ret
 
-.sub3:
+Music_Route30_branch_efecd:
 	drum_note 3, 2
 	drum_note 7, 2
 	drum_note 7, 2
@@ -637,7 +637,7 @@ Music_Route30_Ch4:
 	drum_note 3, 2
 	sound_ret
 
-.sub4:
+Music_Route30_branch_efed7:
 	drum_note 3, 2
 	drum_note 7, 2
 	drum_note 7, 2
@@ -649,7 +649,7 @@ Music_Route30_Ch4:
 	drum_note 3, 2
 	sound_ret
 
-.sub5:
+Music_Route30_branch_efee1:
 	drum_note 3, 2
 	drum_note 7, 2
 	drum_note 7, 2

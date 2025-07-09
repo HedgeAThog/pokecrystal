@@ -1,31 +1,20 @@
-HiddenItemScript::
+HiddenItemScript:
 	opentext
 	readmem wHiddenItemID
-	getitemname STRING_BUFFER_3, USE_SCRIPT_VAR
-	writetext .PlayerFoundItemText
+	getitemname USE_SCRIPT_VAR, STRING_BUFFER_3
+	farwritetext _FoundItemText
 	giveitem ITEM_FROM_MEM
-	iffalse .bag_full
+	iffalsefwd .bag_full
 	callasm SetMemEvent
+	special ShowItemIcon
 	specialsound
 	itemnotify
-	sjump .finish
+	endtext
 
 .bag_full
 	promptbutton
-	writetext .ButNoSpaceText
-	waitbutton
-
-.finish
-	closetext
-	end
-
-.PlayerFoundItemText:
-	text_far _PlayerFoundItemText
-	text_end
-
-.ButNoSpaceText:
-	text_far _ButNoSpaceText
-	text_end
+	pocketisfull
+	endtext
 
 SetMemEvent:
 	ld hl, wHiddenItemEvent
@@ -33,5 +22,4 @@ SetMemEvent:
 	ld d, [hl]
 	ld e, a
 	ld b, SET_FLAG
-	call EventFlagAction
-	ret
+	jmp EventFlagAction

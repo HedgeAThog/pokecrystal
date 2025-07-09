@@ -1,86 +1,85 @@
-	object_const_def
-	const BRUNOSROOM_BRUNO
-
-BrunosRoom_MapScripts:
+BrunosRoom_MapScriptHeader:
 	def_scene_scripts
-	scene_script BrunosRoomLockDoorScene, SCENE_BRUNOSROOM_LOCK_DOOR
-	scene_script BrunosRoomNoopScene,     SCENE_BRUNOSROOM_NOOP
+	scene_script BrunosRoomEntranceTrigger
 
 	def_callbacks
-	callback MAPCALLBACK_TILES, BrunosRoomDoorsCallback
+	callback MAPCALLBACK_TILES, BrunosRoomDoorCallback
 
-BrunosRoomLockDoorScene:
-	sdefer BrunosRoomDoorLocksBehindYouScript
+	def_warp_events
+	warp_event  4, 17, KOGAS_ROOM, 3
+	warp_event  5, 17, KOGAS_ROOM, 4
+	warp_event  4,  2, KARENS_ROOM, 1
+	warp_event  5,  2, KARENS_ROOM, 2
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event  5,  7, SPRITE_BRUNO, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, BrunoScript, -1
+
+BrunosRoomEntranceTrigger:
+	sdefer .Script
 	end
 
-BrunosRoomNoopScene:
-	end
-
-BrunosRoomDoorsCallback:
-	checkevent EVENT_BRUNOS_ROOM_ENTRANCE_CLOSED
-	iffalse .KeepEntranceOpen
-	changeblock 4, 14, $2a ; wall
-.KeepEntranceOpen:
-	checkevent EVENT_BRUNOS_ROOM_EXIT_OPEN
-	iffalse .KeepExitClosed
-	changeblock 4, 2, $16 ; open door
-.KeepExitClosed:
-	endcallback
-
-BrunosRoomDoorLocksBehindYouScript:
-	applymovement PLAYER, BrunosRoom_EnterMovement
-	reanchormap $86
+.Script:
+	applymovement PLAYER, WalkIntoEliteFourRoomMovement
+	reanchormap
 	playsound SFX_STRENGTH
 	earthquake 80
-	changeblock 4, 14, $2a ; wall
+	changeblock 4, 14, $2a
 	refreshmap
 	closetext
-	setscene SCENE_BRUNOSROOM_NOOP
+	setscene $1
 	setevent EVENT_BRUNOS_ROOM_ENTRANCE_CLOSED
 	waitsfx
 	end
 
-BrunoScript_Battle:
-	faceplayer
-	opentext
+BrunosRoomDoorCallback:
+	checkevent EVENT_BRUNOS_ROOM_ENTRANCE_CLOSED
+	iffalsefwd .KeepDoorClosed
+	changeblock 4, 14, $2a
+.KeepDoorClosed:
+	checkevent EVENT_BRUNOS_ROOM_EXIT_OPEN
+	iffalsefwd .OpenDoor
+	changeblock 4, 2, $16
+.OpenDoor:
+	endcallback
+
+BrunoScript:
+	readvar VAR_BADGES
+	ifequalfwd 16, .Rematch
 	checkevent EVENT_BEAT_ELITE_4_BRUNO
-	iftrue BrunoScript_AfterBattle
-	writetext BrunoScript_BrunoBeforeText
-	waitbutton
-	closetext
-	winlosstext BrunoScript_BrunoBeatenText, 0
-	loadtrainer BRUNO, BRUNO1
+	iftrue_jumptextfaceplayer .AfterText
+	showtextfaceplayer .SeenText
+	winlosstext .BeatenText, 0
+	loadtrainer BRUNO, 1
 	startbattle
 	reloadmapafterbattle
-	setevent EVENT_BEAT_ELITE_4_BRUNO
-	opentext
-	writetext BrunoScript_BrunoDefeatText
-	waitbutton
-	closetext
+	showtext .AfterText
+	sjumpfwd .EndBattle
+
+.Rematch:
+	checkevent EVENT_BEAT_ELITE_4_BRUNO
+	iftrue_jumptextfaceplayer .AfterRematchText
+	showtextfaceplayer .SeenRematchText
+	winlosstext .BeatenText, 0
+	loadtrainer BRUNO, 2
+	startbattle
+	reloadmapafterbattle
+	showtext .AfterRematchText
+.EndBattle:
 	playsound SFX_ENTER_DOOR
-	changeblock 4, 2, $16 ; open door
+	changeblock 4, 2, $16
 	refreshmap
-	closetext
 	setevent EVENT_BRUNOS_ROOM_EXIT_OPEN
+	setevent EVENT_BEAT_ELITE_4_BRUNO
 	waitsfx
 	end
 
-BrunoScript_AfterBattle:
-	writetext BrunoScript_BrunoDefeatText
-	waitbutton
-	closetext
-	end
-
-BrunosRoom_EnterMovement:
-	step UP
-	step UP
-	step UP
-	step UP
-	step_end
-
-BrunoScript_BrunoBeforeText:
-	text "I am BRUNO of the"
-	line "ELITE FOUR."
+.SeenText:
+	text "I am Bruno of the"
+	line "Elite Four."
 
 	para "I always train to"
 	line "the extreme be-"
@@ -108,12 +107,12 @@ BrunoScript_BrunoBeforeText:
 	para "Hoo hah!"
 	done
 
-BrunoScript_BrunoBeatenText:
+.BeatenText:
 	text "Why? How could we"
 	line "lose?"
 	done
 
-BrunoScript_BrunoDefeatText:
+.AfterText:
 	text "Having lost, I"
 	line "have no right to"
 	cont "say anything…"
@@ -122,18 +121,24 @@ BrunoScript_BrunoDefeatText:
 	line "challenge!"
 	done
 
-BrunosRoom_MapEvents:
-	db 0, 0 ; filler
+.SeenRematchText:
+	text "Hello again."
 
-	def_warp_events
-	warp_event  4, 17, KOGAS_ROOM, 3
-	warp_event  5, 17, KOGAS_ROOM, 4
-	warp_event  4,  2, KARENS_ROOM, 1
-	warp_event  5,  2, KARENS_ROOM, 2
+	para "As one of the"
+	line "Elite Four, I will"
+	cont "stand up to your"
+	cont "challenge!"
 
-	def_coord_events
+	para "It would disturb"
+	line "me for you to"
+	cont "underestimate my"
+	cont "fighting #mon."
 
-	def_bg_events
+	para "Get ready!"
+	done
 
-	def_object_events
-	object_event  5,  7, SPRITE_BRUNO, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, BrunoScript_Battle, -1
+.AfterRematchText:
+	text "We tried hard."
+
+	para "Continue on!"
+	done

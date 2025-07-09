@@ -1,53 +1,25 @@
-; GetOptionPointer.Pointers indexes
-	const_def
-	const OPT_TEXT_SPEED    ; 0
-	const OPT_BATTLE_SCENE  ; 1
-	const OPT_BATTLE_STYLE  ; 2
-	const OPT_SOUND         ; 3
-	const OPT_PRINT         ; 4
-	const OPT_MENU_ACCOUNT  ; 5
-	const OPT_FRAME         ; 6
-	const OPT_CANCEL        ; 7
-DEF NUM_OPTIONS EQU const_value ; 8
+DEF NUM_OPTIONS EQU 7
 
-_Option:
-; BUG: Options menu fails to clear joypad state on initialization (see docs/bugs_and_glitches.md)
+OptionsMenu:
 	ld hl, hInMenu
 	ld a, [hl]
 	push af
-	ld [hl], TRUE
+	ld [hl], $1
 	call ClearBGPalettes
 	hlcoord 0, 0
-	ld b, SCREEN_HEIGHT - 2
-	ld c, SCREEN_WIDTH - 2
+	lb bc, SCREEN_HEIGHT - 2, SCREEN_WIDTH - 2
 	call Textbox
 	hlcoord 2, 2
-	ld de, StringOptions
-	call PlaceString
+	ld de, StringOptions1
+	rst PlaceString
 	xor a
-	ld [wJumptableIndex], a
-
-; display the settings of each option when the menu is opened
-	ld c, NUM_OPTIONS - 2 ; omit frame type, the last option
-.print_text_loop
-	push bc
-	xor a
-	ldh [hJoyLast], a
-	call GetOptionPointer
-	pop bc
-	ld hl, wJumptableIndex
-	inc [hl]
-	dec c
-	jr nz, .print_text_loop
-	call UpdateFrame ; display the frame type
+	ld [wCurOptionsPage], a
+	call OptionsMenu_LoadOptions
 
 	xor a
 	ld [wJumptableIndex], a
-	inc a
-	ldh [hBGMapMode], a
-	call WaitBGMap
-	ld b, SCGB_DIPLOMA
-	call GetSGBLayout
+	ld a, CGB_PLAIN
+	call GetCGBLayout
 	call SetDefaultBGPAndOBP
 
 .joypad_loop
@@ -74,384 +46,246 @@ _Option:
 	ldh [hInMenu], a
 	ret
 
-StringOptions:
-	db "TEXT SPEED<LF>"
-	db "        :<LF>"
-	db "BATTLE SCENE<LF>"
-	db "        :<LF>"
-	db "BATTLE STYLE<LF>"
-	db "        :<LF>"
-	db "SOUND<LF>"
-	db "        :<LF>"
-	db "PRINT<LF>"
-	db "        :<LF>"
-	db "MENU ACCOUNT<LF>"
-	db "        :<LF>"
-	db "FRAME<LF>"
-	db "        :TYPE<LF>"
-	db "CANCEL@"
+OptionsMenu_LoadOptions:
+	xor a
+	ld [wJumptableIndex], a
+	ldh [hJoyPressed], a
+	ld c, NUM_OPTIONS - 1
+.print_text_loop ; this next will display the settings of each option when the menu is opened
+	push bc
+	xor a
+	ldh [hJoyLast], a
+	call GetOptionPointer
+	pop bc
+	ld hl, wJumptableIndex
+	inc [hl]
+	dec c
+	jr nz, .print_text_loop
+	ld a, [wCurOptionsPage]
+	and a
+	call z, UpdateFrame
+	ld a, 1
+	ldh [hBGMapMode], a
+	jmp ApplyTilemapInVBlank
+
+StringOptions1:
+	text  "Text Speed"
+	next1 "        :"
+	next1 "Text Autoscroll"
+	next1 "        :"
+	next1 "Frame"
+	next1 "        :Type"
+	next1 "Typeface"
+	next1 "        :"
+	next1 "Keyboard"
+	next1 "        :"
+	next1 "Sound"
+	next1 "        :"
+	next1 "Next"
+	next1 "        " ; no-optimize trailing string space
+	next1 "Done"
+	done
+
+StringOptions2:
+	text  "Battle Effects"
+	next1 "        :"
+	next1 "Battle Style"
+	next1 "        :"
+	next1 "Running Shoes"
+	next1 "        :"
+	next1 "Turning Speed"
+	next1 "        :"
+	next1 "Clock Format"
+	next1 "        :"
+	next1 "#dex Units"
+	next1 "        :"
+	next1 "Previous"
+	next1 "        " ; no-optimize trailing string space
+	next1 "Done"
+	done
 
 GetOptionPointer:
-	jumptable .Pointers, wJumptableIndex
+	ld a, [wCurOptionsPage]
+	and a
+	ld a, [wJumptableIndex]
+	jr z, .page1
+	add NUM_OPTIONS + 1
+.page1
+	call StackJumpTable
 
 .Pointers:
-; entries correspond to OPT_* constants
 	dw Options_TextSpeed
-	dw Options_BattleScene
-	dw Options_BattleStyle
-	dw Options_Sound
-	dw Options_Print
-	dw Options_MenuAccount
+	dw Options_TextAutoscroll
 	dw Options_Frame
-	dw Options_Cancel
+	dw Options_Typeface
+	dw Options_Keyboard
+	dw Options_Sound
+	dw Options_Next
+	dw Options_Done
 
-	const_def
-	const OPT_TEXT_SPEED_FAST ; 0
-	const OPT_TEXT_SPEED_MED  ; 1
-	const OPT_TEXT_SPEED_SLOW ; 2
+	dw Options_BattleEffects
+	dw Options_BattleStyle
+	dw Options_RunningShoes
+	dw Options_TurningSpeed
+	dw Options_RandomStarters
+	dw Options_ClockFormat
+	dw Options_PokedexUnits
+	dw Options_Previous
+	dw Options_Done
 
 Options_TextSpeed:
-	call GetTextSpeed
+	ld a, [wOptions1]
+	and TEXT_DELAY_MASK
+	ld c, a
 	ldh a, [hJoyPressed]
+	dec c
 	bit B_PAD_LEFT, a
-	jr nz, .LeftPressed
+	jr nz, .ok
+	inc c
 	bit B_PAD_RIGHT, a
 	jr z, .NonePressed
-	ld a, c ; right pressed
-	cp OPT_TEXT_SPEED_SLOW
-	jr c, .Increase
-	ld c, OPT_TEXT_SPEED_FAST - 1
-
-.Increase:
 	inc c
-	ld a, e
-	jr .Save
-
-.LeftPressed:
+.ok
 	ld a, c
-	and a
-	jr nz, .Decrease
-	ld c, OPT_TEXT_SPEED_SLOW + 1
-
-.Decrease:
-	dec c
-	ld a, d
-
-.Save:
-	ld b, a
-	ld a, [wOptions]
-	and $f0
-	or b
-	ld [wOptions], a
+	and TEXT_DELAY_MASK
+	ld c, a
+	ld a, [wOptions1]
+	and ~TEXT_DELAY_MASK
+	or c
+	ld [wOptions1], a
 
 .NonePressed:
 	ld b, 0
 	ld hl, .Strings
 	add hl, bc
 	add hl, bc
-	ld e, [hl]
-	inc hl
+	ld a, [hli]
 	ld d, [hl]
+	ld e, a
 	hlcoord 11, 3
-	call PlaceString
+	rst PlaceString
 	and a
 	ret
 
 .Strings:
-; entries correspond to OPT_TEXT_SPEED_* constants
-	dw .Fast
-	dw .Mid
 	dw .Slow
+	dw .Medium
+	dw .Fast
+	dw .Instant
 
-.Fast: db "FAST@"
-.Mid:  db "MID @"
-.Slow: db "SLOW@"
+.Slow:
+	db "Slow   @"
+.Medium:
+	db "Medium @"
+.Fast:
+	db "Fast   @"
+.Instant:
+	db "Instant@"
 
-GetTextSpeed:
-; converts TEXT_DELAY_* value in a to OPT_TEXT_SPEED_* value in c,
-; with previous/next TEXT_DELAY_* values in d/e
-	ld a, [wOptions]
-	and TEXT_DELAY_MASK
-	cp TEXT_DELAY_SLOW
-	jr z, .slow
-	cp TEXT_DELAY_FAST
-	jr z, .fast
-	; none of the above
-	ld c, OPT_TEXT_SPEED_MED
-	lb de, TEXT_DELAY_FAST, TEXT_DELAY_SLOW
-	ret
-
-.slow
-	ld c, OPT_TEXT_SPEED_SLOW
-	lb de, TEXT_DELAY_MED, TEXT_DELAY_FAST
-	ret
-
-.fast
-	ld c, OPT_TEXT_SPEED_FAST
-	lb de, TEXT_DELAY_SLOW, TEXT_DELAY_MED
-	ret
-
-Options_BattleScene:
-	ld hl, wOptions
+Options_BattleEffects:
+	ld hl, wOptions1
 	ldh a, [hJoyPressed]
-	bit B_PAD_LEFT, a
-	jr nz, .LeftPressed
-	bit B_PAD_RIGHT, a
-	jr z, .NonePressed
-	bit BATTLE_SCENE, [hl]
-	jr nz, .ToggleOn
-	jr .ToggleOff
-
-.LeftPressed:
-	bit BATTLE_SCENE, [hl]
-	jr z, .ToggleOff
-	jr .ToggleOn
-
-.NonePressed:
-	bit BATTLE_SCENE, [hl]
-	jr z, .ToggleOn
-	jr .ToggleOff
-
-.ToggleOn:
-	res BATTLE_SCENE, [hl]
-	ld de, .On
+	and PAD_LEFT | PAD_RIGHT
+	jr nz, .Toggle
+	bit BATTLE_EFFECTS, [hl]
+	jr z, .SetOff
+	jr .SetOn
+.Toggle
+	bit BATTLE_EFFECTS, [hl]
+	jr z, .SetOn
+.SetOff:
+	res BATTLE_EFFECTS, [hl]
+	ld de, OffString
 	jr .Display
-
-.ToggleOff:
-	set BATTLE_SCENE, [hl]
-	ld de, .Off
-
+.SetOn:
+	set BATTLE_EFFECTS, [hl]
+	ld de, OnString
 .Display:
-	hlcoord 11, 5
-	call PlaceString
+	hlcoord 11, 3
+	rst PlaceString
 	and a
 	ret
-
-.On:  db "ON @"
-.Off: db "OFF@"
 
 Options_BattleStyle:
-	ld hl, wOptions
-	ldh a, [hJoyPressed]
-	bit B_PAD_LEFT, a
-	jr nz, .LeftPressed
-	bit B_PAD_RIGHT, a
-	jr z, .NonePressed
-	bit BATTLE_SHIFT, [hl]
-	jr nz, .ToggleShift
-	jr .ToggleSet
-
-.LeftPressed:
-	bit BATTLE_SHIFT, [hl]
-	jr z, .ToggleSet
-	jr .ToggleShift
-
-.NonePressed:
-	bit BATTLE_SHIFT, [hl]
-	jr nz, .ToggleSet
-
-.ToggleShift:
-	res BATTLE_SHIFT, [hl]
-	ld de, .Shift
-	jr .Display
-
-.ToggleSet:
-	set BATTLE_SHIFT, [hl]
-	ld de, .Set
-
-.Display:
-	hlcoord 11, 7
-	call PlaceString
-	and a
-	ret
-
-.Shift: db "SHIFT@"
-.Set:   db "SET  @"
-
-Options_Sound:
-	ld hl, wOptions
-	ldh a, [hJoyPressed]
-	bit B_PAD_LEFT, a
-	jr nz, .LeftPressed
-	bit B_PAD_RIGHT, a
-	jr z, .NonePressed
-	bit STEREO, [hl]
-	jr nz, .SetMono
-	jr .SetStereo
-
-.LeftPressed:
-	bit STEREO, [hl]
-	jr z, .SetStereo
-	jr .SetMono
-
-.NonePressed:
-	bit STEREO, [hl]
-	jr nz, .ToggleStereo
-	jr .ToggleMono
-
-.SetMono:
-	res STEREO, [hl]
-	call RestartMapMusic
-
-.ToggleMono:
-	ld de, .Mono
-	jr .Display
-
-.SetStereo:
-	set STEREO, [hl]
-	call RestartMapMusic
-
-.ToggleStereo:
-	ld de, .Stereo
-
-.Display:
-	hlcoord 11, 9
-	call PlaceString
-	and a
-	ret
-
-.Mono:   db "MONO  @"
-.Stereo: db "STEREO@"
-
-	const_def
-	const OPT_PRINT_LIGHTEST ; 0
-	const OPT_PRINT_LIGHTER  ; 1
-	const OPT_PRINT_NORMAL   ; 2
-	const OPT_PRINT_DARKER   ; 3
-	const OPT_PRINT_DARKEST  ; 4
-
-Options_Print:
-	call GetPrinterSetting
-	ldh a, [hJoyPressed]
-	bit B_PAD_LEFT, a
-	jr nz, .LeftPressed
-	bit B_PAD_RIGHT, a
-	jr z, .NonePressed
-	ld a, c
-	cp OPT_PRINT_DARKEST
-	jr c, .Increase
-	ld c, OPT_PRINT_LIGHTEST - 1
-
-.Increase:
-	inc c
-	ld a, e
-	jr .Save
-
-.LeftPressed:
-	ld a, c
-	and a
-	jr nz, .Decrease
-	ld c, OPT_PRINT_DARKEST + 1
-
-.Decrease:
-	dec c
-	ld a, d
-
-.Save:
-	ld b, a
-	ld [wGBPrinterBrightness], a
-
-.NonePressed:
-	ld b, 0
-	ld hl, .Strings
-	add hl, bc
-	add hl, bc
-	ld e, [hl]
-	inc hl
-	ld d, [hl]
-	hlcoord 11, 11
-	call PlaceString
-	and a
-	ret
-
-.Strings:
-; entries correspond to OPT_PRINT_* constants
-	dw .Lightest
-	dw .Lighter
-	dw .Normal
-	dw .Darker
-	dw .Darkest
-
-.Lightest: db "LIGHTEST@"
-.Lighter:  db "LIGHTER @"
-.Normal:   db "NORMAL  @"
-.Darker:   db "DARKER  @"
-.Darkest:  db "DARKEST @"
-
-GetPrinterSetting:
-; converts GBPRINTER_* value in a to OPT_PRINT_* value in c,
-; with previous/next GBPRINTER_* values in d/e
-	ld a, [wGBPrinterBrightness]
-	and a
-	jr z, .IsLightest
-	cp GBPRINTER_LIGHTER
-	jr z, .IsLight
-	cp GBPRINTER_DARKER
-	jr z, .IsDark
-	cp GBPRINTER_DARKEST
-	jr z, .IsDarkest
-	; none of the above
-	ld c, OPT_PRINT_NORMAL
-	lb de, GBPRINTER_LIGHTER, GBPRINTER_DARKER
-	ret
-
-.IsLightest:
-	ld c, OPT_PRINT_LIGHTEST
-	lb de, GBPRINTER_DARKEST, GBPRINTER_LIGHTER
-	ret
-
-.IsLight:
-	ld c, OPT_PRINT_LIGHTER
-	lb de, GBPRINTER_LIGHTEST, GBPRINTER_NORMAL
-	ret
-
-.IsDark:
-	ld c, OPT_PRINT_DARKER
-	lb de, GBPRINTER_NORMAL, GBPRINTER_DARKEST
-	ret
-
-.IsDarkest:
-	ld c, OPT_PRINT_DARKEST
-	lb de, GBPRINTER_DARKER, GBPRINTER_LIGHTEST
-	ret
-
-Options_MenuAccount:
 	ld hl, wOptions2
 	ldh a, [hJoyPressed]
 	bit B_PAD_LEFT, a
 	jr nz, .LeftPressed
 	bit B_PAD_RIGHT, a
-	jr z, .NonePressed
-	bit MENU_ACCOUNT, [hl]
-	jr nz, .ToggleOff
-	jr .ToggleOn
-
-.LeftPressed:
-	bit MENU_ACCOUNT, [hl]
-	jr z, .ToggleOn
-	jr .ToggleOff
-
-.NonePressed:
-	bit MENU_ACCOUNT, [hl]
-	jr nz, .ToggleOn
-
-.ToggleOff:
-	res MENU_ACCOUNT, [hl]
-	ld de, .Off
+	jr nz, .RightPressed
+	bit BATTLE_SWITCH, [hl]
+	jr nz, .SetSwitch
+	bit BATTLE_PREDICT, [hl]
+	jr nz, .SetPredict
+.SetSet:
+	res BATTLE_SWITCH, [hl]
+	res BATTLE_PREDICT, [hl]
+	ld de, .Set
 	jr .Display
 
-.ToggleOn:
-	set MENU_ACCOUNT, [hl]
-	ld de, .On
+.LeftPressed:
+	bit BATTLE_SWITCH, [hl]
+	jr nz, .SetSet
+	bit BATTLE_PREDICT, [hl]
+	jr nz, .SetSwitch
+	jr .SetPredict
 
+.RightPressed:
+	bit BATTLE_SWITCH, [hl]
+	jr nz, .SetPredict
+	bit BATTLE_PREDICT, [hl]
+	jr nz, .SetSet
+.SetSwitch:
+	set BATTLE_SWITCH, [hl]
+	res BATTLE_PREDICT, [hl]
+	ld de, .Switch
+	jr .Display
+
+.SetPredict:
+	res BATTLE_SWITCH, [hl]
+	set BATTLE_PREDICT, [hl]
+	ld de, .Predict
 .Display:
-	hlcoord 11, 13
-	call PlaceString
+	hlcoord 11, 5
+	rst PlaceString
 	and a
 	ret
 
-.Off: db "OFF@"
-.On:  db "ON @"
+.Set:
+	db "Set    @"
+.Switch:
+	db "Switch @"
+.Predict:
+	db "Predict@"
+
+Options_RunningShoes:
+	ld hl, wOptions2
+	ldh a, [hJoyPressed]
+	and PAD_LEFT | PAD_RIGHT
+	jr nz, .Toggle
+	bit RUNNING_SHOES, [hl]
+	jr z, .SetOff
+	jr .SetOn
+.Toggle
+	bit RUNNING_SHOES, [hl]
+	jr z, .SetOn
+.SetOff:
+	res RUNNING_SHOES, [hl]
+	ld de, OffString
+	jr .Display
+.SetOn:
+	set RUNNING_SHOES, [hl]
+	ld de, OnString
+.Display:
+	hlcoord 11, 7
+	rst PlaceString
+	and a
+	ret
+
+OffString:
+	db "Off@"
+OnString:
+	db "On @"
 
 Options_Frame:
 	ld hl, wTextboxFrame
@@ -466,25 +300,372 @@ Options_Frame:
 .RightPressed:
 	ld a, [hl]
 	inc a
+	cp NUM_FRAMES
+	jr nz, .Save
+	xor a
 	jr .Save
 
 .LeftPressed:
 	ld a, [hl]
 	dec a
+	cp -1
+	jr nz, .Save
+	ld a, NUM_FRAMES - 1
 
 .Save:
-	maskbits NUM_FRAMES
 	ld [hl], a
 UpdateFrame:
 	ld a, [wTextboxFrame]
-	hlcoord 16, 15 ; where on the screen the number is drawn
-	add "1"
-	ld [hl], a
-	call LoadFontsExtra
+	inc a
+	ld e, a
+	ld d, 0
+	hlcoord 17, 7
+	ld a, " "
+	ld [hld], a
+	lb bc, PRINTNUM_LEFTALIGN, 2
+	call PrintNumFromReg
+	call LoadFrame
 	and a
 	ret
 
-Options_Cancel:
+Options_Sound:
+	ld hl, wOptions1
+	ldh a, [hJoyPressed]
+	and PAD_LEFT | PAD_RIGHT
+	jr nz, .Toggle
+	bit STEREO, [hl]
+	jr z, .SetMono
+	jr .SetStereo
+.Toggle
+	bit STEREO, [hl]
+	jr z, .SetStereo
+.SetMono:
+	res STEREO, [hl]
+	ld de, .Mono
+	jr .Display
+.SetStereo:
+	set STEREO, [hl]
+	ld de, .Stereo
+.Display:
+	hlcoord 11, 13
+	rst PlaceString
+	and a
+	ret
+
+.Mono:
+	db "Mono  @"
+.Stereo:
+	db "Stereo@"
+
+Options_ClockFormat:
+	ld hl, wOptions2
+	ldh a, [hJoyPressed]
+	and PAD_LEFT | PAD_RIGHT
+	jr nz, .Toggle
+	bit CLOCK_FORMAT, [hl]
+	jr z, .Set12Hour
+	jr .Set24Hour
+.Toggle
+	bit CLOCK_FORMAT, [hl]
+	jr z, .Set24Hour
+.Set12Hour:
+	res CLOCK_FORMAT, [hl]
+	ld de, .Twelve
+	jr .Display
+.Set24Hour:
+	set CLOCK_FORMAT, [hl]
+	ld de, .TwentyFour
+.Display:
+	hlcoord 11, 11
+	rst PlaceString
+	and a
+	ret
+
+.Twelve:
+	db "12-hour@"
+.TwentyFour:
+	db "24-hour@"
+
+Options_PokedexUnits:
+	ld hl, wOptions2
+	ldh a, [hJoyPressed]
+	and PAD_LEFT | PAD_RIGHT
+	jr nz, .Toggle
+	bit POKEDEX_UNITS, [hl]
+	jr z, .SetImperial
+	jr .SetMetric
+.Toggle
+	bit POKEDEX_UNITS, [hl]
+	jr z, .SetMetric
+.SetImperial:
+	res POKEDEX_UNITS, [hl]
+	ld de, .Imperial
+	jr .Display
+.SetMetric:
+	set POKEDEX_UNITS, [hl]
+	ld de, .Metric
+.Display:
+	hlcoord 11, 13
+	rst PlaceString
+	and a
+	ret
+
+.Imperial:
+	db "Imperial@"
+.Metric:
+	db "Metric  @"
+
+Options_TextAutoscroll:
+	ldh a, [hJoyPressed]
+	ld b, a
+	ld a, [wOptions1]
+	and AUTOSCROLL_MASK
+	sub 4
+	bit B_PAD_LEFT, b
+	jr nz, .ok
+	add 4
+	bit B_PAD_RIGHT, b
+	jr z, .not_changing
+	add 4
+.ok
+	and AUTOSCROLL_MASK
+	ld c, a
+	ld a, [wOptions1]
+	and ~AUTOSCROLL_MASK
+	or c
+	ld [wOptions1], a
+	ld a, c
+
+.not_changing
+	rrca
+	ld b, 0
+	ld c, a
+	ld hl, .Strings
+	add hl, bc
+	ld a, [hli]
+	ld d, [hl]
+	ld e, a
+	hlcoord 11, 5
+	rst PlaceString
+	and a
+	ret
+
+.Strings:
+	dw .None
+	dw .Start
+	dw .B
+	dw .AorB
+
+.None:
+	db "None  @"
+.Start:
+	db "Start @"
+.B:
+	db "B     @"
+.AorB:
+	db "A or B@"
+
+Options_TurningSpeed:
+	ldh a, [hJoyPressed]
+	and PAD_LEFT | PAD_RIGHT
+	ld a, [wOptions1]
+	jr z, .not_changing
+	xor TURNING_SPEED_MASK
+	ld [wOptions1], a
+
+.not_changing
+	and TURNING_SPEED_MASK
+	rrca
+	rrca
+	rrca
+	ld b, 0
+	ld c, a
+	ld hl, .Strings
+	add hl, bc
+	ld a, [hli]
+	ld d, [hl]
+	ld e, a
+	hlcoord 11, 9
+	rst PlaceString
+	and a
+	ret
+
+.Strings:
+	dw .Slow
+	dw .Fast
+
+.Slow:
+	db "Slow@"
+.Fast:
+	db "Fast@"
+
+Options_RandomStarters:
+	ld hl, wOptions3
+	ldh a, [hJoyPressed]
+	and PAD_LEFT | PAD_RIGHT
+	jr nz, .Toggle
+	bit RANDOMIZE_STARTERS_F, [hl]
+	jr z, .SetOff
+.SetOn:
+	set RANDOMIZE_STARTERS_F, [hl]
+	ld de, OnString
+	jr .Display
+.Toggle:
+	xor [hl]
+.SetOff:
+	res RANDOMIZE_STARTERS_F, [hl]
+	ld de, OffString
+.Display:
+	hlcoord 11, 11 ; Position for the text (Row 11)
+	rst PlaceString
+	and a
+	ret
+
+
+Options_Typeface:
+	ld hl, wOptions2
+	ld a, [hl]
+	and FONT_MASK
+	ld c, a
+	ld b, 0
+	ldh a, [hJoyPressed]
+	bit B_PAD_LEFT, a
+	jr nz, .LeftPressed
+	bit B_PAD_RIGHT, a
+	jr z, .NonePressed
+	ld a, c ; right pressed
+	cp UNOWN_FONT
+	jr c, .Increase
+	ld c, NORMAL_FONT - 1
+
+.Increase:
+	inc c
+	jr .Save
+
+.LeftPressed:
+	ld a, c
+	and a
+	jr nz, .Decrease
+	ld c, UNOWN_FONT + 1
+
+.Decrease:
+	dec c
+
+.Save:
+	push hl
+	push bc
+	call .NonePressed
+	pop bc
+	pop hl
+	ld a, [hl]
+	and ~FONT_MASK
+	or c
+	ld [hl], a
+	call .NonePressed
+	call ApplyTilemapInVBlank
+	jmp LoadStandardFont
+
+.NonePressed:
+	ld b, 0
+	ld hl, .Strings
+	add hl, bc
+	add hl, bc
+	ld a, [hli]
+	ld d, [hl]
+	ld e, a
+	hlcoord 11, 9
+	rst PlaceString
+	and a
+	ret
+
+.Strings:
+	dw .Normal
+	dw .Narrow
+	dw .Bold
+	dw .Italic
+	dw .Serif
+	dw .Chicago
+	dw .MICR
+	dw .Unown
+
+.Normal:
+	db "Normal @"
+.Narrow:
+	db "Narrow @"
+.Bold:
+	db "Bold   @"
+.Italic:
+	db "Italic @"
+.Serif:
+	db "Serif  @"
+.Chicago:
+	db "Chicago@"
+.MICR:
+	db "MICR   @"
+.Unown:
+	db "Unown  @"
+
+Options_Keyboard:
+	ld hl, wOptions3
+	ldh a, [hJoyPressed]
+	and PAD_LEFT | PAD_RIGHT
+	jr nz, .Toggle
+	bit QWERTY_KEYBOARD_F, [hl]
+	jr z, .SetABC
+	jr .SetQWERTY
+.Toggle
+	bit QWERTY_KEYBOARD_F, [hl]
+	jr z, .SetQWERTY
+.SetABC:
+	res QWERTY_KEYBOARD_F, [hl]
+	ld de, .ABC
+	jr .Display
+.SetQWERTY:
+	set QWERTY_KEYBOARD_F, [hl]
+	ld de, .QWERTY
+.Display:
+	hlcoord 11, 11
+	rst PlaceString
+	and a
+	ret
+
+.ABC:
+	db "ABCDEF@"
+.QWERTY:
+	db "QWERTY@"
+
+Options_Next:
+	ldh a, [hJoyPressed]
+	and PAD_A | PAD_LEFT | PAD_RIGHT
+	jr z, _SwitchOptionsPage.NonePressed
+	ld hl, wCurOptionsPage
+	inc [hl]
+	ld de, StringOptions2
+	jr _SwitchOptionsPage
+
+Options_Previous:
+	ldh a, [hJoyPressed]
+	and PAD_A | PAD_LEFT | PAD_RIGHT
+	jr z, _SwitchOptionsPage.NonePressed
+	ld hl, wCurOptionsPage
+	dec [hl]
+	ld de, StringOptions1
+_SwitchOptionsPage:
+	push de
+	hlcoord 0, 0
+	lb bc, 16, 18
+	call Textbox
+	pop de
+	hlcoord 2, 2
+	rst PlaceString
+	call OptionsMenu_LoadOptions
+	ld a, NUM_OPTIONS - 1
+	ld [wJumptableIndex], a
+.NonePressed:
+	and a
+	ret
+
+Options_Done:
 	ldh a, [hJoyPressed]
 	and PAD_A
 	jr nz, .Exit
@@ -506,18 +687,10 @@ OptionsControl:
 	ret
 
 .DownPressed:
-	ld a, [hl]
-	cp OPT_CANCEL ; maximum option index
-	jr nz, .CheckMenuAccount
-	ld [hl], OPT_TEXT_SPEED ; first option
-	scf
-	ret
-
-.CheckMenuAccount: ; I have no idea why this exists...
-	cp OPT_MENU_ACCOUNT
+	ld a, [hl] ; load the cursor position to a
+	cp NUM_OPTIONS
 	jr nz, .Increase
-	ld [hl], OPT_MENU_ACCOUNT
-
+	ld [hl], -1
 .Increase:
 	inc [hl]
 	scf
@@ -525,19 +698,9 @@ OptionsControl:
 
 .UpPressed:
 	ld a, [hl]
-
-; Another thing where I'm not sure why it exists
-	cp OPT_FRAME
-	jr nz, .NotFrame
-	ld [hl], OPT_MENU_ACCOUNT
-	scf
-	ret
-
-.NotFrame:
-	and a ; OPT_TEXT_SPEED, minimum option index
+	and a
 	jr nz, .Decrease
-	ld [hl], NUM_OPTIONS ; decrements to OPT_CANCEL, maximum option index
-
+	ld [hl], NUM_OPTIONS + 1
 .Decrease:
 	dec [hl]
 	scf
@@ -555,6 +718,6 @@ Options_UpdateCursorPosition:
 	hlcoord 1, 2
 	ld bc, 2 * SCREEN_WIDTH
 	ld a, [wJumptableIndex]
-	call AddNTimes
+	rst AddNTimes
 	ld [hl], "▶"
 	ret

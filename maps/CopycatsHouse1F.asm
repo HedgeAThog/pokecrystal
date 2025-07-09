@@ -1,39 +1,21 @@
-	object_const_def
-	const COPYCATSHOUSE1F_POKEFAN_M
-	const COPYCATSHOUSE1F_POKEFAN_F
-	const COPYCATSHOUSE1F_CLEFAIRY
-
-CopycatsHouse1F_MapScripts:
+CopycatsHouse1F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-CopycatsHouse1FPokefanMScript:
-	jumptextfaceplayer CopycatsHouse1FPokefanMText
+	def_warp_events
+	warp_event  2,  7, SAFFRON_CITY, 8
+	warp_event  3,  7, SAFFRON_CITY, 8
+	warp_event  3,  0, COPYCATS_HOUSE_2F, 1
 
-CopycatsHouse1FPokefanFScript:
-	faceplayer
-	opentext
-	checkevent EVENT_RETURNED_MACHINE_PART
-	iftrue .ReturnedMachinePart
-	writetext CopycatsHouse1FPokefanFText
-	waitbutton
-	closetext
-	end
+	def_coord_events
 
-.ReturnedMachinePart:
-	writetext CopycatsHouse1FPokefanFText_ReturnedMachinePart
-	waitbutton
-	closetext
-	end
+	def_bg_events
 
-CopycatsHouse1FBlisseyScript:
-	opentext
-	writetext CopycatsHouse1FBlisseyText
-	cry BLISSEY
-	waitbutton
-	closetext
-	end
+	def_object_events
+	object_event  2,  3, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BROWN, OBJECTTYPE_COMMAND, jumptextfaceplayer, CopycatsHouse1FPokefanMText, -1
+	object_event  5,  4, SPRITE_MATRON, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, CopycatsHouse1FPokefanFScript, -1
+	pokemon_event  4,  5, BLISSEY, SPRITEMOVEDATA_POKEMON, -1, PAL_NPC_PINK, CopycatsHouse1FBlisseyText, -1
 
 CopycatsHouse1FPokefanMText:
 	text "My daughter likes"
@@ -42,11 +24,15 @@ CopycatsHouse1FPokefanMText:
 	para "Her mimicry has"
 	line "earned her the"
 
-	para "nickname COPYCAT"
+	para "nickname Copycat"
 	line "around here."
 	done
 
-CopycatsHouse1FPokefanFText:
+CopycatsHouse1FPokefanFScript:
+	checkevent EVENT_RESTORED_POWER_TO_KANTO
+	iftrue_jumptextfaceplayer .Text2
+	jumpthistextfaceplayer
+
 	text "My daughter is so"
 	line "self-centered…"
 
@@ -54,9 +40,9 @@ CopycatsHouse1FPokefanFText:
 	line "friends."
 	done
 
-CopycatsHouse1FPokefanFText_ReturnedMachinePart:
+.Text2:
 	text "She recently lost"
-	line "the # DOLL that"
+	line "the # Doll that"
 
 	para "a boy gave her"
 	line "three years ago."
@@ -67,22 +53,5 @@ CopycatsHouse1FPokefanFText_ReturnedMachinePart:
 	done
 
 CopycatsHouse1FBlisseyText:
-	text "BLISSEY: Bliisii!"
+	text "Blissey: Bliisii!"
 	done
-
-CopycatsHouse1F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2,  7, SAFFRON_CITY, 8
-	warp_event  3,  7, SAFFRON_CITY, 8
-	warp_event  2,  0, COPYCATS_HOUSE_2F, 1
-
-	def_coord_events
-
-	def_bg_events
-
-	def_object_events
-	object_event  2,  3, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CopycatsHouse1FPokefanMScript, -1
-	object_event  5,  4, SPRITE_POKEFAN_F, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, CopycatsHouse1FPokefanFScript, -1
-	object_event  6,  6, SPRITE_CLEFAIRY, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CopycatsHouse1FBlisseyScript, -1

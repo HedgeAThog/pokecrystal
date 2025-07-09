@@ -1,35 +1,25 @@
-; HealMachineAnim.Jumptable indexes
-	const_def
-	const HEALMACHINESTATE_LOADGFX
-	const HEALMACHINESTATE_PCLOADBALLS
-	const HEALMACHINESTATE_HOFLOADBALLS
-	const HEALMACHINESTATE_PLAYMUSIC
-	const HEALMACHINESTATE_HOFPLAYSFX
-	const HEALMACHINESTATE_FINISH
-
 HealMachineAnim:
 	; If you have no Pokemon, don't change the buffer.  This can lead to some glitchy effects if you have no Pokemon.
 	ld a, [wPartyCount]
 	and a
 	ret z
-	; The location of the healing machine relative to the player is stored in wScriptVar.
+	; The location of the healing machine relative to the player is stored in hScriptVar.
 	; 0: Up and left (Pokemon Center)
 	; 1: Left (Elm's Lab)
 	; 2: Up (Hall of Fame)
-	ld a, [wScriptVar]
-	ld [wHealMachineAnimType], a
+	ldh a, [hScriptVar]
+	ld [wBuffer1], a
 	ldh a, [rOBP1]
-	ld [wHealMachineTempOBP1], a
+	ld [wBuffer2], a
 	call .DoJumptableFunctions
-	ld a, [wHealMachineTempOBP1]
-	call DmgToCgbObjPal1
-	ret
+	ld a, [wBuffer2]
+	jmp DmgToCgbObjPal1
 
 .DoJumptableFunctions:
 	xor a
-	ld [wHealMachineAnimState], a
+	ld [wBuffer3], a
 .jumptable_loop
-	ld a, [wHealMachineAnimType]
+	ld a, [wBuffer1]
 	ld e, a
 	ld d, 0
 	ld hl, .Pointers
@@ -38,67 +28,46 @@ HealMachineAnim:
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	ld a, [wHealMachineAnimState]
+	ld a, [wBuffer3]
 	ld e, a
 	inc a
-	ld [wHealMachineAnimState], a
+	ld [wBuffer3], a
 	add hl, de
 	ld a, [hl]
-	cp HEALMACHINESTATE_FINISH
-	jr z, .finish
+	cp 5
+	ret z
 	ld hl, .Jumptable
-	rst JumpTable
+	call JumpTable
 	jr .jumptable_loop
 
-.finish
-	ret
-
 .Pointers:
-; entries correspond to HEALMACHINE_* constants
 	dw .Pokecenter
-	dw .ElmsLab
+	dw .ElmLab
 	dw .HallOfFame
 
-MACRO healmachineanimseq
-	rept _NARG
-		db HEALMACHINESTATE_\1
-		shift
-	endr
-ENDM
-
 .Pokecenter:
-	healmachineanimseq LOADGFX, PCLOADBALLS, PLAYMUSIC, FINISH
-.ElmsLab:
-	healmachineanimseq LOADGFX, PCLOADBALLS, PLAYMUSIC, FINISH
+	db 0, 1, 3, 5
+.ElmLab:
+	db 0, 1, 3, 5
 .HallOfFame:
-	healmachineanimseq LOADGFX, HOFLOADBALLS, HOFPLAYSFX, FINISH
+	db 0, 2, 4, 5
 
 .Jumptable:
-; entries correspond to HEALMACHINESTATE_* constants
-	dw .LoadGFX
+	dw .LoadPalettes
 	dw .PC_LoadBallsOntoMachine
 	dw .HOF_LoadBallsOntoMachine
 	dw .PlayHealMusic
 	dw .HOF_PlaySFX
-	dw .dummy_5 ; never encountered
-
-.LoadGFX:
-	call .LoadPalettes
-	ld de, .HealMachineGFX
-	ld hl, vTiles0 tile $7c
-	lb bc, BANK(.HealMachineGFX), 2
-	call Request2bpp
-	ret
 
 .PC_LoadBallsOntoMachine:
-	ld hl, wShadowOAMSprite32
+	ld hl, wShadowOAM
 	ld de, .PC_ElmsLab_OAM
 	call .PlaceHealingMachineTile
 	call .PlaceHealingMachineTile
 	jr .LoadBallsOntoMachine
 
 .HOF_LoadBallsOntoMachine:
-	ld hl, wShadowOAMSprite32
+	ld hl, wShadowOAM
 	ld de, .HOF_OAM
 
 .LoadBallsOntoMachine:
@@ -117,9 +86,9 @@ ENDM
 	ret
 
 .PlayHealMusic:
-	ld de, MUSIC_HEAL
+	ld e, MUSIC_HEAL
 	call PlayMusic
-	jp .FlashPalettes8Times
+	jr .FlashPalettes8Times
 
 .HOF_PlaySFX:
 	ld de, SFX_GAME_FREAK_LOGO_GS
@@ -127,55 +96,19 @@ ENDM
 	call .FlashPalettes8Times
 	call WaitSFX
 	ld de, SFX_BOOT_PC
-	call PlaySFX
-	ret
-
-.dummy_5
-	ret
-
-.PC_ElmsLab_OAM:
-	dbsprite   4,   4, 2, 0, $7c, PAL_OW_TREE | OAM_PAL1
-	dbsprite   4,   4, 6, 0, $7c, PAL_OW_TREE | OAM_PAL1
-	dbsprite   4,   4, 0, 6, $7d, PAL_OW_TREE | OAM_PAL1
-	dbsprite   5,   4, 0, 6, $7d, PAL_OW_TREE | OAM_PAL1 | OAM_XFLIP
-	dbsprite   4,   5, 0, 3, $7d, PAL_OW_TREE | OAM_PAL1
-	dbsprite   5,   5, 0, 3, $7d, PAL_OW_TREE | OAM_PAL1 | OAM_XFLIP
-	dbsprite   4,   6, 0, 0, $7d, PAL_OW_TREE | OAM_PAL1
-	dbsprite   5,   6, 0, 0, $7d, PAL_OW_TREE | OAM_PAL1 | OAM_XFLIP
-
-.HealMachineGFX:
-INCBIN "gfx/overworld/heal_machine.2bpp"
-
-.HOF_OAM:
-	dbsprite  10,   7, 1, 4, $7d, PAL_OW_TREE | OAM_PAL1
-	dbsprite  10,   7, 6, 4, $7d, PAL_OW_TREE | OAM_PAL1
-	dbsprite   9,   7, 5, 3, $7d, PAL_OW_TREE | OAM_PAL1
-	dbsprite  11,   7, 2, 3, $7d, PAL_OW_TREE | OAM_PAL1
-	dbsprite   9,   7, 1, 1, $7d, PAL_OW_TREE | OAM_PAL1
-	dbsprite  11,   7, 5, 1, $7d, PAL_OW_TREE | OAM_PAL1
+	jmp PlaySFX
 
 .LoadPalettes:
-	call IsCGB
-	jr nz, .cgb
-	ld a, %11100000
-	ldh [rOBP1], a
-	ret
-
-.cgb
 	ld hl, .palettes
-	ld de, wOBPals2 palette PAL_OW_TREE
+	ld de, wOBPals2 palette 7
 	ld bc, 1 palettes
-	ld a, BANK(wOBPals2)
-	call FarCopyWRAM
-	ld a, TRUE
+	call FarCopyColorWRAM
+	ld a, $1
 	ldh [hCGBPalUpdate], a
 	ret
 
-.palettes
-INCLUDE "gfx/overworld/heal_machine.pal"
-
 .FlashPalettes8Times:
-	ld c, 8
+	ld c, $8
 .palette_loop
 	push bc
 	call .FlashPalettes
@@ -187,20 +120,12 @@ INCLUDE "gfx/overworld/heal_machine.pal"
 	ret
 
 .FlashPalettes:
-	call IsCGB
-	jr nz, .go
-	ldh a, [rOBP1]
-	xor %00101000
-	ldh [rOBP1], a
-	ret
-
-.go
 	ldh a, [rWBK]
 	push af
-	ld a, BANK(wOBPals2)
+	ld a, $5
 	ldh [rWBK], a
 
-	ld hl, wOBPals2 palette PAL_OW_TREE
+	ld hl, wOBPals2 palette 7
 	ld a, [hli]
 	ld e, a
 	ld a, [hli]
@@ -231,15 +156,15 @@ INCLUDE "gfx/overworld/heal_machine.pal"
 
 	pop af
 	ldh [rWBK], a
-	ld a, TRUE
+	ld a, $1
 	ldh [hCGBPalUpdate], a
 	ret
 
 .PlaceHealingMachineTile:
 	push bc
-	ld a, [wHealMachineAnimType]
+	ld a, [wBuffer1]
 	bcpixel 2, 4
-	cp HEALMACHINE_ELMS_LAB
+	dec a ; ElmsLab = 1
 	jr z, .okay
 	bcpixel 0, 0
 
@@ -247,16 +172,37 @@ INCLUDE "gfx/overworld/heal_machine.pal"
 	ld a, [de]
 	add c
 	inc de
-	ld [hli], a ; y
+	ld [hli], a
 	ld a, [de]
 	add b
 	inc de
-	ld [hli], a ; x
+	ld [hli], a
 	ld a, [de]
 	inc de
-	ld [hli], a ; tile id
+	ld [hli], a
 	ld a, [de]
 	inc de
-	ld [hli], a ; attributes
+	ld [hli], a
 	pop bc
 	ret
+
+.PC_ElmsLab_OAM:
+	dsprite   4, 0,   4, 2, $78, 7
+	dsprite   4, 0,   4, 6, $78, 7
+	dsprite   4, 6,   4, 0, $79, 7
+	dsprite   4, 6,   5, 0, $79, 7 | OAM_XFLIP
+	dsprite   5, 3,   4, 0, $79, 7
+	dsprite   5, 3,   5, 0, $79, 7 | OAM_XFLIP
+	dsprite   6, 0,   4, 0, $79, 7
+	dsprite   6, 0,   5, 0, $79, 7 | OAM_XFLIP
+
+.HOF_OAM:
+	dsprite   7, 4,  10, 1, $79, 7
+	dsprite   7, 4,  10, 6, $79, 7
+	dsprite   7, 3,   9, 5, $79, 7
+	dsprite   7, 3,  11, 2, $79, 7
+	dsprite   7, 1,   9, 1, $79, 7
+	dsprite   7, 1,  11, 5, $79, 7
+
+.palettes
+INCLUDE "gfx/overworld/heal_machine.pal"

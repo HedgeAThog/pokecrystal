@@ -1,92 +1,108 @@
-	object_const_def
-	const FUCHSIACITY_YOUNGSTER
-	const FUCHSIACITY_POKEFAN_M
-	const FUCHSIACITY_TEACHER
-	const FUCHSIACITY_FRUIT_TREE
-
-FuchsiaCity_MapScripts:
+FuchsiaCity_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
-	callback MAPCALLBACK_NEWMAP, FuchsiaCityFlypointCallback
+	callback MAPCALLBACK_NEWMAP, FuchsiaCityFlyPoint
 
-FuchsiaCityFlypointCallback:
+	def_warp_events
+	warp_event  5, 13, FUCHSIA_MART, 2
+	warp_event  8, 27, FUCHSIA_GYM, 1
+	warp_event 11, 27, FUCHSIA_BILL_SPEECH_HOUSE, 1
+	warp_event 19, 27, FUCHSIA_POKECENTER_1F, 1
+	warp_event 27, 27, SAFARI_ZONE_WARDENS_HOME, 1
+	warp_event 18,  3, SAFARI_ZONE_FUCHSIA_GATE, 3
+	warp_event 37, 22, ROUTE_15_FUCHSIA_GATE, 1
+	warp_event 37, 23, ROUTE_15_FUCHSIA_GATE, 2
+	warp_event  7, 33, ROUTE_19_FUCHSIA_GATE, 1
+	warp_event  8, 33, ROUTE_19_FUCHSIA_GATE, 2
+	warp_event 15, 27, FUCHSIA_SAFARI_BALL_HOUSE, 1
+
+	def_coord_events
+
+	def_bg_events
+	bg_event 21, 15, BGEVENT_JUMPTEXT, FuchsiaCitySignText
+	bg_event  5, 29, BGEVENT_JUMPTEXT, FuchsiaGymSignText
+	bg_event 25, 15, BGEVENT_JUMPTEXT, SafariZoneOfficeSignText
+	bg_event 27, 29, BGEVENT_JUMPTEXT, WardensHomeSignText
+	bg_event 17,  5, BGEVENT_JUMPTEXT, SafariZoneClosedSignText
+	bg_event 13, 19, BGEVENT_JUMPTEXT, NoLitteringSignText
+	bg_event  7,  7, BGEVENT_JUMPTEXT, SafariZoneExhibitSignText
+	bg_event 13,  7, BGEVENT_JUMPTEXT, SafariZoneExhibitSignText
+	bg_event 27,  7, BGEVENT_JUMPTEXT, SafariZoneExhibitSignText
+	bg_event 33,  7, BGEVENT_JUMPTEXT, SafariZoneExhibitSignText
+	bg_event 31, 13, BGEVENT_JUMPTEXT, SafariZoneExhibitSignText
+	bg_event 11, 35, BGEVENT_JUMPTEXT, FuchsiaCityCarefulSwimmingSignText
+
+	def_object_events
+	object_event 23, 18, SPRITE_CAMPER, SPRITEMOVEDATA_WANDER, 1, 1, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, FuchsiaCityYoungsterText, -1
+	object_event 10,  8, SPRITE_POKEFAN_M, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 1, 1, -1, PAL_NPC_BROWN, OBJECTTYPE_COMMAND, jumptextfaceplayer, FuchsiaCityPokefanMText, -1
+	object_event 16, 13, SPRITE_TEACHER, SPRITEMOVEDATA_WANDER, 1, 1, -1, PAL_NPC_RED, OBJECTTYPE_COMMAND, jumptextfaceplayer, FuchsiaCityTeacherText, -1
+	object_event 28,  8, SPRITE_POKEFAN_F, SPRITEMOVEDATA_WANDER, 2, 2, -1, PAL_NPC_BLUE, OBJECTTYPE_COMMAND, jumptextfaceplayer, FuchsiaCityPokefanFText, -1
+	object_event 22, 13, SPRITE_RATTATA_BACK, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptext, SafariZoneOfficeClosedSignText, -1
+	object_event 31, 27, SPRITE_RATTATA_BACK, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptext, HouseForSaleSignText, -1
+	cuttree_event 16, 19, EVENT_FUCHSIA_CITY_CUT_TREE
+	fruittree_event 14, 17, FRUITTREE_FUCHSIA_CITY, LIECHI_BERRY, PAL_NPC_RED
+
+FuchsiaCityFlyPoint:
 	setflag ENGINE_FLYPOINT_FUCHSIA
 	endcallback
 
-FuchsiaCityYoungster:
-	jumptextfaceplayer FuchsiaCityYoungsterText
-
-FuchsiaCityPokefanM:
-	jumptextfaceplayer FuchsiaCityPokefanMText
-
-FuchsiaCityTeacher:
-	jumptextfaceplayer FuchsiaCityTeacherText
-
-FuchsiaCitySign:
-	jumptext FuchsiaCitySignText
-
-FuchsiaGymSign:
-	jumptext FuchsiaGymSignText
-
-SafariZoneOfficeSign:
-	jumptext SafariZoneOfficeSignText
-
-WardensHomeSign:
-	jumptext WardensHomeSignText
-
-SafariZoneClosedSign:
-	jumptext SafariZoneClosedSignText
-
-NoLitteringSign:
-	jumptext NoLitteringSignText
-
-FuchsiaCityPokecenterSign:
-	jumpstd PokecenterSignScript
-
-FuchsiaCityMartSign:
-	jumpstd MartSignScript
-
-FuchsiaCityFruitTree:
-	fruittree FRUITTREE_FUCHSIA_CITY
-
 FuchsiaCityYoungsterText:
-	text "One of the ELITE"
-	line "FOUR used to be"
+	text "One of the Elite"
+	line "Four used to be"
 
-	para "the LEADER of"
-	line "FUCHSIA's GYM."
+	para "the Leader of"
+	line "Fuchsia's Gym."
 	done
 
 FuchsiaCityPokefanMText:
-	text "KOGA's daughter"
+	text "Koga's daughter"
 	line "succeeded him as"
 
-	para "the GYM LEADER"
+	para "the Gym Leader"
 	line "after he joined"
-	cont "the ELITE FOUR."
+	cont "the Elite Four."
 	done
 
 FuchsiaCityTeacherText:
-	text "The SAFARI ZONE is"
-	line "closed… It's sad,"
+	text "The Safari Game is"
+	line "canceled…"
 
-	para "considering it's"
-	line "FUCHSIA's main"
-	cont "attraction."
+	para "At least the"
+	line "Safari Zone is"
+	cont "still open."
+
+	para "You'll need a"
+	line "strong #mon"
+
+	para "to explore it,"
+	line "though."
+	done
+
+FuchsiaCityPokefanFText:
+	text "When the Safari"
+	line "Zone Warden left,"
+
+	para "there was nobody"
+	line "to maintain the"
+	cont "town zoo."
+
+	para "So the #mon"
+	line "were released back"
+	cont "into the wild."
 	done
 
 FuchsiaCitySignText:
-	text "FUCHSIA CITY"
+	text "Fuchsia City"
 
 	para "Behold! It's"
 	line "Passion Pink!"
 	done
 
 FuchsiaGymSignText:
-	text "FUCHSIA CITY"
-	line "#MON GYM"
-	cont "LEADER: JANINE"
+	text "Fuchsia City"
+	line "#mon Gym"
+	cont "Leader: Janine"
 
 	para "The Poisonous"
 	line "Ninja Master"
@@ -96,23 +112,27 @@ SafariZoneOfficeSignText:
 	text "There's a notice"
 	line "here…"
 
-	para "SAFARI ZONE OFFICE"
+	para "Safari Zone Office"
 	line "is closed until"
 	cont "further notice."
 	done
 
+SafariZoneOfficeClosedSignText:
+	text "It's locked…"
+	done
+
 WardensHomeSignText:
-	text "SAFARI ZONE"
-	line "WARDEN'S HOME"
+	text "Safari Zone"
+	line "Warden's Home"
 	done
 
 SafariZoneClosedSignText:
-	text "The WARDEN is"
+	text "The Warden is"
 	line "traveling abroad."
 
 	para "Therefore, the"
-	line "SAFARI ZONE is"
-	cont "closed."
+	line "Safari Game is"
+	cont "canceled."
 	done
 
 NoLitteringSignText:
@@ -122,36 +142,23 @@ NoLitteringSignText:
 	line "waste with you."
 	done
 
-FuchsiaCity_MapEvents:
-	db 0, 0 ; filler
+SafariZoneExhibitSignText:
+	text "The sign has been"
+	line "torn away…"
+	done
 
-	def_warp_events
-	warp_event  5, 13, FUCHSIA_MART, 2
-	warp_event 22, 13, SAFARI_ZONE_MAIN_OFFICE, 1
-	warp_event  8, 27, FUCHSIA_GYM, 1
-	warp_event 11, 27, BILLS_OLDER_SISTERS_HOUSE, 1
-	warp_event 19, 27, FUCHSIA_POKECENTER_1F, 1
-	warp_event 27, 27, SAFARI_ZONE_WARDENS_HOME, 1
-	warp_event 18,  3, SAFARI_ZONE_FUCHSIA_GATE_BETA, 3 ; inaccessible
-	warp_event 37, 22, ROUTE_15_FUCHSIA_GATE, 1
-	warp_event 37, 23, ROUTE_15_FUCHSIA_GATE, 2
-	warp_event  7, 35, ROUTE_19_FUCHSIA_GATE, 1
-	warp_event  8, 35, ROUTE_19_FUCHSIA_GATE, 2
+HouseForSaleSignText:
+	text "What's this?"
 
-	def_coord_events
+	para "House for Sale…"
+	line "Nobody lives here."
+	done
 
-	def_bg_events
-	bg_event 21, 15, BGEVENT_READ, FuchsiaCitySign
-	bg_event  5, 29, BGEVENT_READ, FuchsiaGymSign
-	bg_event 25, 15, BGEVENT_READ, SafariZoneOfficeSign
-	bg_event 27, 29, BGEVENT_READ, WardensHomeSign
-	bg_event 17,  5, BGEVENT_READ, SafariZoneClosedSign
-	bg_event 13, 15, BGEVENT_READ, NoLitteringSign
-	bg_event 20, 27, BGEVENT_READ, FuchsiaCityPokecenterSign
-	bg_event  6, 13, BGEVENT_READ, FuchsiaCityMartSign
+FuchsiaCityCarefulSwimmingSignText:
+	text "Please be careful"
+	line "if you are swim-"
+	cont "ming to Seafoam"
+	cont "Islands."
 
-	def_object_events
-	object_event 23, 18, SPRITE_YOUNGSTER, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, FuchsiaCityYoungster, -1
-	object_event 13,  8, SPRITE_POKEFAN_M, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, FuchsiaCityPokefanM, -1
-	object_event 16, 14, SPRITE_TEACHER, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, FuchsiaCityTeacher, -1
-	object_event  8,  1, SPRITE_FRUIT_TREE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, FuchsiaCityFruitTree, -1
+	para "Fuchsia Police"
+	done

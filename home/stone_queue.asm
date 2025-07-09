@@ -1,4 +1,4 @@
-HandleStoneQueue::
+HandleStoneTableAction::
 	ldh a, [hROMBank]
 	push af
 
@@ -14,12 +14,14 @@ HandleStoneQueue::
 	ld hl, OBJECT_MAP_OBJECT_INDEX
 	add hl, de
 	ld a, [hl]
-	cp $ff
+	cp UNASSOCIATED_OBJECT
+	jr z, .nope
+	cp TEMP_OBJECT
 	jr z, .nope
 
 	ld l, a
 	push hl
-	call .IsObjectOnWarp
+	call .IsPersonOnWarp
 	pop hl
 	jr nc, .nope
 	ld d, a
@@ -35,7 +37,7 @@ HandleStoneQueue::
 	and a
 	ret
 
-.IsObjectOnWarp:
+.IsPersonOnWarp:
 	push de
 
 	ld hl, OBJECT_MAP_X
@@ -73,15 +75,22 @@ HandleStoneQueue::
 	ld a, [hld]
 	cp d
 	jr nz, .not_on_warp
-	jr .found_warp
+	pop af
+	ld d, a
+	ld a, [wCurMapWarpEventCount]
+	sub d
+	inc a
+	scf
+	ret
 
 .not_on_warp
-	ld a, WARP_EVENT_SIZE
+	ld a, 5
+	; hl += a
 	add l
 	ld l, a
-	jr nc, .no_carry
-	inc h
-.no_carry
+	adc h
+	sub l
+	ld h, a
 
 	pop af
 	dec a
@@ -91,25 +100,12 @@ HandleStoneQueue::
 	and a
 	ret
 
-.found_warp
-	pop af
-	ld d, a
-	ld a, [wCurMapWarpEventCount]
-	sub d
-	inc a
-	scf
-	ret
-
 .IsObjectInStoneTable:
-	inc e
-	ld hl, CMDQUEUE_ADDR
-	add hl, bc
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
+	ld h, b
+	ld l, c
 .loop2
 	ld a, [hli]
-	cp $ff
+	cp -1 ; end?
 	jr z, .nope3
 	cp d
 	jr nz, .next_inc3

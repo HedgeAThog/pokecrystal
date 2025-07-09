@@ -1,45 +1,44 @@
 DEF ROUTE43GATE_TOLL EQU 1000
 
+Route43Gate_MapScriptHeader:
+	def_scene_scripts
+	scene_script Route43GateTrigger0
+
+	def_callbacks
+
+	def_warp_events
+	warp_event  4,  0, ROUTE_43, 4
+	warp_event  5,  0, ROUTE_43, 5
+	warp_event  4,  7, ROUTE_43, 3
+	warp_event  5,  7, ROUTE_43, 3
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event  2,  4, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, RocketText_MakingABundle, EVENT_ROUTE_43_GATE_ROCKETS
+	object_event  7,  4, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, RocketText_MakingABundle, EVENT_ROUTE_43_GATE_ROCKETS
+	object_event  0,  4, SPRITE_OFFICER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, OfficerScript_GuardWithSludgeBomb, EVENT_LAKE_OF_RAGE_CIVILIANS
+
 	object_const_def
-	const ROUTE43GATE_OFFICER
 	const ROUTE43GATE_ROCKET1
 	const ROUTE43GATE_ROCKET2
 
-Route43Gate_MapScripts:
-	def_scene_scripts
-	scene_script Route43GateRocketShakedownScene, SCENE_ROUTE43GATE_ROCKET_SHAKEDOWN
-	scene_script Route43GateNoopScene,            SCENE_ROUTE43GATE_NOOP
-
-	def_callbacks
-	callback MAPCALLBACK_NEWMAP, Route43GateCheckIfRocketsCallback
-
-Route43GateRocketShakedownScene:
-	sdefer Route43GateRocketTakeoverScript
+Route43GateTrigger0:
+	sdefer .RocketTakeover
 	end
 
-Route43GateNoopScene:
-	end
-
-Route43GateCheckIfRocketsCallback:
-	checkevent EVENT_CLEARED_ROCKET_HIDEOUT
-	iftrue .NoRockets
-	setmapscene ROUTE_43, 0 ; Route 43 does not have a scene variable
-	endcallback
-
-.NoRockets:
-	setmapscene ROUTE_43, 1 ; Route 43 does not have a scene variable
-	endcallback
-
-Route43GateRocketTakeoverScript:
+.RocketTakeover:
 	playmusic MUSIC_ROCKET_ENCOUNTER
 	readvar VAR_FACING
-	ifequal DOWN, RocketScript_Southbound
-	ifequal UP, RocketScript_Northbound
-	setscene SCENE_ROUTE43GATE_NOOP
+	ifequalfwd DOWN, RocketScript_Southbound
+	ifequalfwd UP, RocketScript_Northbound
+	setscene $1
 	end
 
 RocketScript_Southbound:
-	applymovement PLAYER, PlayerStepsIn
+	applyonemovement PLAYER, step_down
 	showemote EMOTE_SHOCK, ROUTE43GATE_ROCKET2, 15
 	applymovement ROUTE43GATE_ROCKET2, Rocket2Script_BlocksYouSouth
 	turnobject ROUTE43GATE_ROCKET1, UP
@@ -49,25 +48,25 @@ RocketScript_Southbound:
 	writetext RocketText_TollFee
 	promptbutton
 	checkmoney YOUR_MONEY, ROUTE43GATE_TOLL - 1
-	ifequal HAVE_MORE, RocketScript_TollSouth
-	sjump RocketScript_YoureBrokeSouth
+	ifequalfwd HAVE_MORE, RocketScript_TollSouth
+	sjumpfwd RocketScript_YoureBrokeSouth
 
 RocketScript_TollSouth:
-	takemoney YOUR_MONEY, ROUTE43GATE_TOLL
+	scall RocketScript_TakeToll
 	writetext RocketText_ThankYou
-	sjump RocketScript_ShakeDownSouth
+	sjumpfwd RocketScript_ShakeDownSouth
 
 RocketScript_YoureBrokeSouth:
-	takemoney YOUR_MONEY, ROUTE43GATE_TOLL
+	scall RocketScript_TakeToll
 	writetext RocketText_AllYouGot
-	sjump RocketScript_ShakeDownSouth
+	; fallthrough
 
 RocketScript_ShakeDownSouth:
 	promptbutton
 	closetext
 	applymovement ROUTE43GATE_ROCKET1, Rocket1Script_LetsYouPassSouth
 	applymovement ROUTE43GATE_ROCKET2, Rocket2Script_LetsYouPassSouth
-	setscene SCENE_ROUTE43GATE_NOOP
+	setscene $1
 	special RestartMapMusic
 	end
 
@@ -81,115 +80,105 @@ RocketScript_Northbound:
 	writetext RocketText_TollFee
 	promptbutton
 	checkmoney YOUR_MONEY, ROUTE43GATE_TOLL - 1
-	ifequal HAVE_MORE, RocketScript_TollNorth
-	sjump RocketScript_YoureBrokeNorth
+	ifequalfwd HAVE_MORE, RocketScript_TollNorth
+	sjumpfwd RocketScript_YoureBrokeNorth
 
 RocketScript_TollNorth:
-	takemoney YOUR_MONEY, ROUTE43GATE_TOLL
+	scall RocketScript_TakeToll
 	writetext RocketText_ThankYou
-	sjump RocketScript_ShakeDownNorth
+	sjumpfwd RocketScript_ShakeDownNorth
 
 RocketScript_YoureBrokeNorth:
-	takemoney YOUR_MONEY, ROUTE43GATE_TOLL
+	scall RocketScript_TakeToll
 	writetext RocketText_AllYouGot
-	sjump RocketScript_ShakeDownNorth
+	; fallthrough
 
 RocketScript_ShakeDownNorth:
 	promptbutton
 	closetext
 	applymovement ROUTE43GATE_ROCKET2, Rocket2Script_LetsYouPassNorth
 	applymovement ROUTE43GATE_ROCKET1, Rocket1Script_LetsYouPassNorth
-	setscene SCENE_ROUTE43GATE_NOOP
+	setscene $1
 	special RestartMapMusic
 	end
 
-RocketScript_MakingABundle:
-	jumptextfaceplayer RocketText_MakingABundle
+RocketScript_TakeToll:
+	takemoney YOUR_MONEY, ROUTE43GATE_TOLL
+	waitsfx
+	playsound SFX_TRANSACTION
+	end
 
 OfficerScript_GuardWithSludgeBomb:
+	checkevent EVENT_GOT_TM36_SLUDGE_BOMB
+	iftrue_jumptextfaceplayer OfficerText_AvoidGrass
 	faceplayer
 	opentext
-	checkevent EVENT_GOT_TM36_SLUDGE_BOMB
-	iftrue .GotSludgeBomb
 	writetext OfficerText_FoundTM
 	promptbutton
-	verbosegiveitem TM_SLUDGE_BOMB
-	iffalse .NoRoomForSludgeBomb
+	verbosegivetmhm TM_SLUDGE_BOMB
 	setevent EVENT_GOT_TM36_SLUDGE_BOMB
-	closetext
-	end
-
-.GotSludgeBomb:
-	writetext OfficerText_AvoidGrass
-	waitbutton
-.NoRoomForSludgeBomb:
-	closetext
-	end
-
-PlayerStepsIn:
-	step DOWN
-	step_end
+	endtext
 
 Rocket1Script_BlocksYouSouth:
-	big_step UP
-	big_step UP
-	big_step RIGHT
-	big_step RIGHT
-	turn_head UP
+	run_step_up
+	run_step_up
+	run_step_right
+	run_step_right
+	turn_head_up
 	step_end
 
 Rocket1Script_LetsYouPassSouth:
-	big_step LEFT
-	big_step LEFT
-	big_step DOWN
-	big_step DOWN
+	run_step_left
+	run_step_left
+	run_step_down
+	run_step_down
 	step_end
 
 Rocket1Script_BlocksYouNorth:
-	big_step DOWN
-	big_step DOWN
-	big_step RIGHT
-	big_step RIGHT
-	turn_head DOWN
+	run_step_down
+	run_step_down
+	run_step_right
+	run_step_right
+	turn_head_down
 	step_end
 
 Rocket1Script_LetsYouPassNorth:
-	big_step LEFT
-	big_step LEFT
-	big_step UP
-	big_step UP
-	turn_head DOWN
+	run_step_left
+	run_step_left
+	run_step_up
+	run_step_up
+	turn_head_down
 	step_end
 
 Rocket2Script_BlocksYouSouth:
-	big_step UP
-	big_step UP
-	big_step LEFT
-	big_step LEFT
-	turn_head UP
+	run_step_up
+	run_step_up
+	run_step_left
+	run_step_left
+	turn_head_up
 	step_end
 
 Rocket2Script_LetsYouPassSouth:
-	big_step RIGHT
-	big_step RIGHT
-	big_step DOWN
-	big_step DOWN
-	turn_head UP
+	run_step_right
+	run_step_right
+	run_step_down
+	run_step_down
+	turn_head_up
 	step_end
 
 Rocket2Script_BlocksYouNorth:
-	big_step DOWN
-	big_step DOWN
-	big_step LEFT
-	big_step LEFT
-	turn_head DOWN
+	run_step_down
+	run_step_down
+	run_step_left
+	run_step_left
+	turn_head_down
 	step_end
 
 Rocket2Script_LetsYouPassNorth:
-	big_step RIGHT
-	big_step RIGHT
-	big_step UP
-	big_step UP
+	run_step_right
+	run_step_right
+	run_step_up
+	run_step_up
 	step_end
 
 RocketText_TollFee:
@@ -217,8 +206,8 @@ RocketText_MakingABundle:
 	para "Everyone wants to"
 	line "see what's going"
 
-	para "on up at LAKE OF"
-	line "RAGE."
+	para "on up at Lake of"
+	line "Rage."
 	done
 
 OfficerText_FoundTM:
@@ -234,31 +223,8 @@ OfficerText_FoundTM:
 	cont "you take it away?"
 	done
 
-Text_ReceivedTM30: ; unreferenced
-	text "<PLAYER> received"
-	line "TM30."
-	done
-
 OfficerText_AvoidGrass:
 	text "Use this gate to"
 	line "avoid walking in"
 	cont "the grass."
 	done
-
-Route43Gate_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  4,  0, ROUTE_43, 4
-	warp_event  5,  0, ROUTE_43, 5
-	warp_event  4,  7, ROUTE_43, 3
-	warp_event  5,  7, ROUTE_43, 3
-
-	def_coord_events
-
-	def_bg_events
-
-	def_object_events
-	object_event  0,  4, SPRITE_OFFICER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, OfficerScript_GuardWithSludgeBomb, EVENT_LAKE_OF_RAGE_CIVILIANS
-	object_event  2,  4, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, RocketScript_MakingABundle, EVENT_ROUTE_43_GATE_ROCKETS
-	object_event  7,  4, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, RocketScript_MakingABundle, EVENT_ROUTE_43_GATE_ROCKETS

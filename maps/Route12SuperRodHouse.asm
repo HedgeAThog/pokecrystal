@@ -1,43 +1,55 @@
-	object_const_def
-	const ROUTE12SUPERRODHOUSE_FISHING_GURU
-
-Route12SuperRodHouse_MapScripts:
+Route12SuperRodHouse_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
+	def_warp_events
+	warp_event  2,  7, ROUTE_12_SOUTH, 1
+	warp_event  3,  7, ROUTE_12_SOUTH, 1
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event  5,  3, SPRITE_FISHING_GURU, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, Route12SuperRodHouseFishingGuruScript, -1
+
 Route12SuperRodHouseFishingGuruScript:
+	checkevent EVENT_GOT_SUPER_ROD
+	iftrue_jumptextfaceplayer .GaveSuperRodText
 	faceplayer
 	opentext
-	checkevent EVENT_GOT_SUPER_ROD
-	iftrue .GotSuperRod
 	writetext OfferSuperRodText
 	yesorno
-	iffalse .Refused
+	iffalsefwd .Refused
 	writetext GiveSuperRodText
 	promptbutton
-	verbosegiveitem SUPER_ROD
-	iffalse .NoRoom
+	verbosegivekeyitem SUPER_ROD
+	iffalsefwd .NoRoom
 	setevent EVENT_GOT_SUPER_ROD
-.GotSuperRod:
-	writetext GaveSuperRodText
-	waitbutton
-	closetext
-	end
+	jumpthisopenedtext
+
+.GaveSuperRodText:
+	text "Try your hand at"
+	line "fishing wherever"
+	cont "there is water."
+
+	para "Remember--you can"
+	line "catch different"
+
+	para "#mon using"
+	line "different Rods."
+	done
 
 .Refused:
 	writetext DontWantSuperRodText
 	waitbutton
 .NoRoom:
-	closetext
-	end
-
-SuperRodHouseBookshelf: ; unreferenced
-	jumpstd PictureBookshelfScript
+	endtext
 
 OfferSuperRodText:
-	text "I'm the FISHING"
-	line "GURU's younger"
+	text "I'm the Fishing"
+	line "Guru's younger"
 	cont "brother."
 
 	para "I can see that you"
@@ -56,36 +68,10 @@ GiveSuperRodText:
 
 	para "Here, fishing fan!"
 	line "Take this--it's a"
-	cont "SUPER ROD."
-	done
-
-GaveSuperRodText:
-	text "Try your hand at"
-	line "fishing wherever"
-	cont "there is water."
-
-	para "Remember--you can"
-	line "catch different"
-
-	para "#MON using"
-	line "different RODS."
+	cont "Super Rod."
 	done
 
 DontWantSuperRodText:
 	text "Huh? My own eyes"
 	line "deceived me?"
 	done
-
-Route12SuperRodHouse_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2,  7, ROUTE_12, 1
-	warp_event  3,  7, ROUTE_12, 1
-
-	def_coord_events
-
-	def_bg_events
-
-	def_object_events
-	object_event  5,  3, SPRITE_FISHING_GURU, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, Route12SuperRodHouseFishingGuruScript, -1

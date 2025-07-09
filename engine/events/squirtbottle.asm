@@ -9,15 +9,11 @@ _Squirtbottle:
 	refreshmap
 	special UpdateTimePals
 	callasm .CheckCanUseSquirtbottle
-	iffalse .SquirtbottleNothingScript
+	iffalsefwd .NothingHappenedScript
 	farsjump WateredWeirdTreeScript
 
-.SquirtbottleNothingScript:
-	jumptext .SquirtbottleNothingText
-
-.SquirtbottleNothingText:
-	text_far _SquirtbottleNothingText
-	text_end
+.NothingHappenedScript:
+	farjumptext _SquirtbottleNothingText
 
 .CheckCanUseSquirtbottle:
 	ld a, [wMapGroup]
@@ -35,11 +31,11 @@ _Squirtbottle:
 	cp SPRITEMOVEDATA_SUDOWOODO
 	jr nz, .nope
 
-	ld a, 1
-	ld [wScriptVar], a
+	ld a, $1
+	ldh [hScriptVar], a
 	ret
 
 .nope
 	xor a
-	ld [wScriptVar], a
+	ldh [hScriptVar], a
 	ret

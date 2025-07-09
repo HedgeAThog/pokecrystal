@@ -1,11 +1,27 @@
-FontExtra:
-INCBIN "gfx/font/font_extra.2bpp"
+FontTiles::
+	table_width 114 * TILE_1BPP_SIZE
+FontNormal:
+INCBIN "gfx/font/normal.1bpp"
+FontNarrow:
+INCBIN "gfx/font/narrow.1bpp"
+FontBold:
+INCBIN "gfx/font/bold.1bpp"
+FontItalic:
+INCBIN "gfx/font/italic.1bpp"
+FontSerif:
+INCBIN "gfx/font/serif.1bpp"
+FontMICR:
+INCBIN "gfx/font/micr.1bpp"
+FontChicago:
+INCBIN "gfx/font/chicago.1bpp"
+FontUnown:
+INCBIN "gfx/font/unown.1bpp"
+	assert_table_length NUM_FONTS
 
-Font:
-INCBIN "gfx/font/font.1bpp"
-
-FontBattleExtra:
-INCBIN "gfx/font/font_battle_extra.2bpp"
+FontCommon:
+INCBIN "gfx/font/common.1bpp"
+TextboxSpaceGFX::
+INCBIN "gfx/font/space.vwf.1bpp"
 
 Frames:
 	table_width TEXTBOX_FRAME_TILES * TILE_1BPP_SIZE
@@ -17,50 +33,52 @@ INCBIN "gfx/frames/5.1bpp"
 INCBIN "gfx/frames/6.1bpp"
 INCBIN "gfx/frames/7.1bpp"
 INCBIN "gfx/frames/8.1bpp"
+INCBIN "gfx/frames/9.1bpp"
+INCBIN "gfx/frames/10.1bpp"
+INCBIN "gfx/frames/11.1bpp"
+INCBIN "gfx/frames/12.1bpp"
+INCBIN "gfx/frames/13.1bpp"
+INCBIN "gfx/frames/14.1bpp"
+INCBIN "gfx/frames/15.1bpp"
+INCBIN "gfx/frames/16.1bpp"
+INCBIN "gfx/frames/17.1bpp"
+INCBIN "gfx/frames/18.1bpp"
+INCBIN "gfx/frames/19.1bpp"
+INCBIN "gfx/frames/20.1bpp"
 	assert_table_length NUM_FRAMES
-INCBIN "gfx/frames/9.1bpp" ; unused
 
-StatsScreenPageTilesGFX:
-INCBIN "gfx/stats/stats_tiles.2bpp"
+Signs:
+	table_width 8 tiles
+INCBIN "gfx/signs/wood.2bpp"
+INCBIN "gfx/signs/city.2bpp"
+INCBIN "gfx/signs/forest.2bpp"
+INCBIN "gfx/signs/cave.2bpp"
+INCBIN "gfx/signs/route.2bpp"
+INCBIN "gfx/signs/water.2bpp"
+INCBIN "gfx/signs/building.2bpp"
+	assert_table_length NUM_SIGNS
 
-EnemyHPBarBorderGFX:
-INCBIN "gfx/battle/enemy_hp_bar_border.1bpp"
+BattleExtrasGFX:
+INCBIN "gfx/battle/hpexpbars.2bpp.lz"
 
-HPExpBarBorderGFX:
-INCBIN "gfx/battle/hp_exp_bar_border.1bpp"
+SummaryStatusIconGFX:
+INCBIN "gfx/stats/status.2bpp"
 
-ExpBarGFX:
-INCBIN "gfx/battle/expbar.2bpp"
+StatusIconGFX:
+INCBIN "gfx/battle/status.2bpp"
 
-TownMapGFX:
-INCBIN "gfx/pokegear/town_map.2bpp.lz"
+EnemyStatusIconGFX:
+INCBIN "gfx/battle/status-enemy.2bpp"
 
-UnusedWeekdayKanjiGFX: ; unreferenced
-INCBIN "gfx/font/unused_weekday_kanji.2bpp"
+TypeIconGFX:
+	table_width 4 * TILE_1BPP_SIZE
+INCBIN "gfx/battle/types.1bpp"
+	assert_table_length NUM_TYPES + 1
 
-PokegearPhoneIconGFX:
-INCBIN "gfx/font/phone_icon.2bpp"
+CategoryIconGFX:
+	table_width 2 tiles
+INCBIN "gfx/battle/categories.2bpp"
+	assert_table_length NUM_CATEGORIES
 
-UnusedBoldFontGFX: ; unreferenced
-INCBIN "gfx/font/unused_bold_font.1bpp"
-
-TextboxSpaceGFX:
-; StatsScreen_LoadTextboxSpaceGFX reads 2bpp; LoadFrame reads first half as 1bpp
-INCBIN "gfx/font/space.2bpp"
-
-FontsExtra_SolidBlackGFX:
-INCBIN "gfx/font/black.1bpp"
-
-UnusedUpArrowGFX: ; unreferenced
-INCBIN "gfx/font/unused_up_arrow.1bpp"
-
-MobilePhoneTilesGFX:
-INCBIN "gfx/mobile/phone_tiles.2bpp"
-
-MapEntryFrameGFX:
-INCBIN "gfx/frames/map_entry_sign.2bpp"
-
-FontsExtra2_UpArrowGFX:
-INCBIN "gfx/font/up_arrow.2bpp"
-
-INCLUDE "gfx/footprints.asm"
+PaintingFrameGFX:
+INCBIN "gfx/signs/painting.2bpp"

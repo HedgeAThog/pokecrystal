@@ -1,238 +1,256 @@
 ReadTrainerParty:
 	ld a, [wInBattleTowerBattle]
-	bit IN_BATTLE_TOWER_BATTLE_F, a
+	and a
 	ret nz
 
 	ld a, [wLinkMode]
 	and a
-	ret nz
+	ret nz ; populated elsewhere
 
-	ld hl, wOTPartyCount
 	xor a
-	ld [hli], a
-	dec a
-	ld [hl], a
+	ld [wOTPartyCount], a
 
 	ld hl, wOTPartyMons
 	ld bc, PARTYMON_STRUCT_LENGTH * PARTY_LENGTH
-	xor a
-	call ByteFill
+	rst ByteFill
 
-	ld a, [wOtherTrainerClass]
-	cp CAL
-	jr nz, .not_cal2
-	ld a, [wOtherTrainerID]
-	cp CAL2
-	jr z, .cal2
-	ld a, [wOtherTrainerClass]
-.not_cal2
-
-	dec a
-	ld c, a
-	ld b, 0
-	ld hl, TrainerGroups
-	add hl, bc
-	add hl, bc
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-
-	ld a, [wOtherTrainerID]
+	call FindTrainerData
+	ld a, b
+	add l
 	ld b, a
-.skip_trainer
-	dec b
-	jr z, .got_trainer
-.loop
-	ld a, [hli]
-	cp -1
-	jr nz, .loop
-	jr .skip_trainer
-.got_trainer
+	push bc
 
-.skip_name
-	ld a, [hli]
-	cp "@"
-	jr nz, .skip_name
+	call GetNextTrainerDataByte
+	ld [wOtherTrainerType], a
 
-	ld a, [hli]
+.loop2
+; level
+	pop bc
+	ld a, l
+	sub b
+	ret z
+	push bc
+
+	call GetNextTrainerDataByte
+	farcall AdjustLevelForBadges
+	ld [wCurPartyLevel], a
+
+; species
+	call GetNextTrainerDataByte
+	ld [wCurPartySpecies], a
 	ld c, a
-	ld b, 0
+
+	call GetNextTrainerDataByte
+	ld [wCurForm], a
+	ld b, a
+
+; NPC trainers should appear to have Kantonian Arbok in Kanto,
+; so form 0 becomes 1 (Johto) or 2 (Kanto), non-zero forms remain unchanged
+	assert !HIGH(ARBOK)
+	and SPECIESFORM_MASK
+	jr nz, .not_arbok
+	ld a, c
+	cp LOW(ARBOK)
+	jr nz, .not_arbok
+
+	push bc
+	call RegionCheck
+	ld a, e
+	pop bc
+	and a
+	assert ARBOK_JOHTO_FORM == ARBOK_KANTO_FORM - 1
+	ld c, ARBOK_KANTO_FORM
+	jr nz, .got_arbok_form
+	dec c
+.got_arbok_form
+	ld a, b
+	or c
+	ld [wCurForm], a
+
+.not_arbok
+	ld a, OTPARTYMON
+	ld [wMonType], a
+
+	push hl
+	predef TryAddMonToParty
+	pop hl
+
+; item?
+	ld a, [wOtherTrainerType]
+	bit TRNTYPE_ITEM, a
+	jr z, .not_item
+
+	push hl
+	ld a, [wOTPartyCount]
+	dec a
+	ld hl, wOTPartyMon1Item
+	ld bc, PARTYMON_STRUCT_LENGTH
+	rst AddNTimes
 	ld d, h
 	ld e, l
-	ld hl, TrainerTypes
-	add hl, bc
-	add hl, bc
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	ld bc, .done
-	push bc
-	jp hl
-
-.done
-	jp ComputeTrainerReward
-
-.cal2
-	ld a, BANK(sMysteryGiftTrainer)
-	call OpenSRAM
-	ld de, sMysteryGiftTrainer
-	call TrainerType2
-	call CloseSRAM
-	jr .done
-
-TrainerTypes:
-; entries correspond to TRAINERTYPE_* constants
-	dw TrainerType1 ; level, species
-	dw TrainerType2 ; level, species, moves
-	dw TrainerType3 ; level, species, item
-	dw TrainerType4 ; level, species, item, moves
-
-TrainerType1:
-; normal (level, species)
-	ld h, d
-	ld l, e
-.loop
-	ld a, [hli]
-	cp $ff
-	ret z
-
-	ld [wCurPartyLevel], a
-	ld a, [hli]
-
-; --- Start In-line Swap Logic ---
-	ld c, a ; BACK UP original species FIRST.
-	push hl
-	ld hl, wTrainerClass
-	ld a, [hl]
-	cp RIVAL1
-	jr z, .CheckSpecies_T1
-	cp RIVAL2
-	jr nz, .NotRival_T1
-.CheckSpecies_T1:
-	ld a, c ; Restore species to check
-	cp CHIKORITA
-	jr z, .DoSwap_T1
-	cp BAYLEEF
-	jr z, .DoSwap_T1
-	cp MEGANIUM
-	jr z, .DoSwap_T1
-	cp CYNDAQUIL
-	jr z, .DoSwap_T1
-	cp QUILAVA
-	jr z, .DoSwap_T1
-	cp TYPHLOSION
-	jr z, .DoSwap_T1
-	cp TOTODILE
-	jr z, .DoSwap_T1
-	cp CROCONAW
-	jr z, .DoSwap_T1
-	cp FERALIGATR
-	jr z, .DoSwap_T1
-	jr .NotRival_T1 ; Not a starter, so don't swap
-.DoSwap_T1:
-	ld a, [wRivalStarterSpecies]
-	and a
-	jr z, .NotRival_T1
 	pop hl
-	jr .DoneSwap_T1
-.NotRival_T1:
-	ld a, c
-	pop hl
-.DoneSwap_T1:
-; --- End In-line Swap Logic ---
 
-	ld [wCurPartySpecies], a
-	ld a, OTPARTYMON
-	ld [wMonType], a
-	push hl
-	predef TryAddMonToParty
-	pop hl
-	jr .loop
+	call GetNextTrainerDataByte
+	ld [de], a
 
-TrainerType2:
-; moves
-	ld h, d
-	ld l, e
-.loop
-	ld a, [hli]
-	cp $ff
-	ret z
-
-	ld [wCurPartyLevel], a
-	ld a, [hli]
-
-; --- Start In-line Swap Logic ---
-	ld c, a ; BACK UP original species FIRST.
-	xor a   ; NOW, clear 'a' for the flag.
-	ld [wDidSwapRivalMon], a
-	push hl
-	ld hl, wTrainerClass
-	ld a, [hl]
-	cp RIVAL1
-	jr z, .CheckSpecies_T2
-	cp RIVAL2
-	jr nz, .NotRival_T2
-.CheckSpecies_T2:
-	ld a, c ; Restore species to check
-	cp CHIKORITA
-	jr z, .DoSwap_T2
-	cp BAYLEEF
-	jr z, .DoSwap_T2
-	cp MEGANIUM
-	jr z, .DoSwap_T2
-	cp CYNDAQUIL
-	jr z, .DoSwap_T2
-	cp QUILAVA
-	jr z, .DoSwap_T2
-	cp TYPHLOSION
-	jr z, .DoSwap_T2
-	cp TOTODILE
-	jr z, .DoSwap_T2
-	cp CROCONAW
-	jr z, .DoSwap_T2
-	cp FERALIGATR
-	jr z, .DoSwap_T2
-	jr .NotRival_T2 ; Not a starter, so don't swap
-.DoSwap_T2:
-	ld a, [wRivalStarterSpecies]
-	and a
-	jr z, .NotRival_T2
-	ld c, a
-	ld a, 1
-	ld [wDidSwapRivalMon], a
-	ld a, c
-	pop hl
-	jr .DoneSwap_T2
-.NotRival_T2:
-	ld a, c
-	pop hl
-.DoneSwap_T2:
-; --- End In-line Swap Logic ---
-
-	ld [wCurPartySpecies], a
-	ld a, OTPARTYMON
-	ld [wMonType], a
+.not_item
+; DVs?
+	ld a, [wOtherTrainerType]
+	bit TRNTYPE_DVS, a
+	jr z, .not_dvs
 
 	push hl
-	predef TryAddMonToParty
+	ld a, [wOTPartyCount]
+	dec a
+	ld hl, wOTPartyMon1DVs
+	ld bc, PARTYMON_STRUCT_LENGTH
+	rst AddNTimes
+	ld d, h
+	ld e, l
+	pop hl
+
+	call GetNextTrainerDataByte
+	farcall WriteTrainerDVs
+
+.not_dvs
+; personality?
+	ld a, [wOtherTrainerType]
+	bit TRNTYPE_PERSONALITY, a
+	jr z, .not_personality
+
+	; We only care about the upper personality byte.
+	; The lower one has already been specified as part of
+	; extended species data ("dp").
+	push hl
+	ld a, [wOTPartyCount]
+	dec a
+	ld hl, wOTPartyMon1Personality
+	ld bc, PARTYMON_STRUCT_LENGTH
+	rst AddNTimes
+	ld d, h
+	ld e, l
+	pop hl
+	call GetNextTrainerDataByte
+	ld [de], a
+
+.not_personality
+; nickname?
+	ld a, [wOtherTrainerType]
+	bit TRNTYPE_NICKNAME, a
+	jr z, .not_nickname
+
+	call GetNextTrainerDataByte
+	cp "@"
+	jr z, .not_nickname
+
+	push de
+	ld de, wStringBuffer2
+	ld [de], a
+	inc de
+.copy
+	call GetNextTrainerDataByte
+	ld [de], a
+	inc de
+	cp "@"
+	jr nz, .copy
+	push hl
+	ld a, [wOTPartyCount]
+	dec a
+	ld hl, wOTPartyMonNicknames
+	ld bc, MON_NAME_LENGTH
+	rst AddNTimes
+	ld d, h
+	ld e, l
+	ld hl, wStringBuffer2
+	ld bc, MON_NAME_LENGTH
+	rst CopyBytes
+	pop hl
+	pop de
+
+.not_nickname
+; EVs?
+	ld a, [wOtherTrainerType]
+	bit TRNTYPE_EVS, a
+	jr z, .not_evs
+	push hl
+	ld a, [wOTPartyCount]
+	dec a
+	ld hl, wOTPartyMon1EVs
+	ld bc, PARTYMON_STRUCT_LENGTH
+	rst AddNTimes
+	ld d, h
+	ld e, l
+	pop hl
+
+	call GetNextTrainerDataByte
+	farcall WriteTrainerEVs
+
+.not_evs
+; moves?
+	ld a, [wOtherTrainerType]
+	bit TRNTYPE_MOVES, a
+	jr z, .not_moves
+
+	push hl
 	ld a, [wOTPartyCount]
 	dec a
 	ld hl, wOTPartyMon1Moves
 	ld bc, PARTYMON_STRUCT_LENGTH
-	call AddNTimes
+	rst AddNTimes
 	ld d, h
 	ld e, l
 	pop hl
 
-	ld a, [wDidSwapRivalMon]
-	and a
-	jr nz, .loop
-
 	ld b, NUM_MOVES
 .copy_moves
-	ld a, [hli]
+	call GetNextTrainerDataByte
 	ld [de], a
 	inc de
+	cp RETURN
+	jr z, .return
+	cp GYRO_BALL
+	jr nz, .done_special_moves
+
+	; Set speed EVs and IVs to 0
+	push hl
+	push de
+	push bc
+	ld a, [wOTPartyCount]
+	dec a
+	ld hl, wOTPartyMon1SpeEV
+	ld bc, PARTYMON_STRUCT_LENGTH
+	rst AddNTimes
+	ld [hl], 0
+	ld a, [wOTPartyCount]
+	dec a
+	ld hl, wOTPartyMon1DefSpeDV
+	ld bc, PARTYMON_STRUCT_LENGTH
+	rst AddNTimes
+	ld a, [hl]
+	; $f1, not $f0, to leave Hidden Power type alone
+	and $f1
+	ld [hl], a
+	pop bc
+	pop de
+	pop hl
+	jr .done_special_moves
+
+.return
+	; Maximize happiness
+	push hl
+	push de
+	push bc
+	ld a, [wOTPartyCount]
+	dec a
+	ld hl, wOTPartyMon1Happiness
+	ld bc, PARTYMON_STRUCT_LENGTH
+	rst AddNTimes
+	ld [hl], MAX_RETURN_HAPPINESS
+	pop bc
+	pop de
+	pop hl
+
+.done_special_moves
 	dec b
 	jr nz, .copy_moves
 
@@ -242,282 +260,61 @@ TrainerType2:
 	dec a
 	ld hl, wOTPartyMon1Species
 	ld bc, PARTYMON_STRUCT_LENGTH
-	call AddNTimes
+	rst AddNTimes
 	ld d, h
 	ld e, l
 	ld hl, MON_PP
 	add hl, de
+
 	push hl
 	ld hl, MON_MOVES
 	add hl, de
 	pop de
 
-	ld b, NUM_MOVES
-.copy_pp
-	ld a, [hli]
-	and a
-	jr z, .copied_pp
+	predef FillPP
 
+	pop hl
+
+.not_moves
+	; custom DVs or nature may alter stats
+	ld a, [wOtherTrainerType]
+	and TRAINERTYPE_EVS | TRAINERTYPE_DVS | TRAINERTYPE_PERSONALITY
+	jr z, .no_stat_recalc
 	push hl
-	push bc
-	dec a
-	ld hl, Moves + MOVE_PP
-	ld bc, MOVE_LENGTH
-	call AddNTimes
-	ld a, BANK(Moves)
-	call GetFarByte
-	pop bc
-	pop hl
-
-	ld [de], a
-	inc de
-	dec b
-	jr nz, .copy_pp
-.copied_pp
-
-	pop hl
-	jp .loop
-
-TrainerType3:
-; item
-	ld h, d
-	ld l, e
-.loop
-	ld a, [hli]
-	cp $ff
-	ret z
-
-	ld [wCurPartyLevel], a
-	ld a, [hli]
-
-; --- Start In-line Swap Logic ---
-	ld c, a ; BACK UP original species FIRST.
-	push hl
-	ld hl, wTrainerClass
-	ld a, [hl]
-	cp RIVAL1
-	jr z, .CheckSpecies_T3
-	cp RIVAL2
-	jr nz, .NotRival_T3
-.CheckSpecies_T3:
-	ld a, c ; Restore species to check
-	cp CHIKORITA
-	jr z, .DoSwap_T3
-	cp BAYLEEF
-	jr z, .DoSwap_T3
-	cp MEGANIUM
-	jr z, .DoSwap_T3
-	cp CYNDAQUIL
-	jr z, .DoSwap_T3
-	cp QUILAVA
-	jr z, .DoSwap_T3
-	cp TYPHLOSION
-	jr z, .DoSwap_T3
-	cp TOTODILE
-	jr z, .DoSwap_T3
-	cp CROCONAW
-	jr z, .DoSwap_T3
-	cp FERALIGATR
-	jr z, .DoSwap_T3
-	jr .NotRival_T3 ; Not a starter, so don't swap
-.DoSwap_T3:
-	ld a, [wRivalStarterSpecies]
-	and a
-	jr z, .NotRival_T3
-	pop hl
-	jr .DoneSwap_T3
-.NotRival_T3:
-	ld a, c
-	pop hl
-.DoneSwap_T3:
-; --- End In-line Swap Logic ---
-
-	ld [wCurPartySpecies], a
-	ld a, OTPARTYMON
-	ld [wMonType], a
-	push hl
-	predef TryAddMonToParty
 	ld a, [wOTPartyCount]
 	dec a
-	ld hl, wOTPartyMon1Item
+	ld hl, wOTPartyMon1MaxHP
 	ld bc, PARTYMON_STRUCT_LENGTH
-	call AddNTimes
-	ld d, h
-	ld e, l
-	pop hl
-	ld a, [hli]
-	ld [de], a
-	jr .loop
-
-TrainerType4:
-; item + moves
-	ld h, d
-	ld l, e
-.loop
-	ld a, [hli]
-	cp $ff
-	ret z
-
-	ld [wCurPartyLevel], a
-	ld a, [hli]
-
-; --- Start In-line Swap Logic ---
-	ld c, a ; BACK UP original species FIRST.
-	xor a   ; NOW, clear 'a' for the flag.
-	ld [wDidSwapRivalMon], a
+	push af
+	rst AddNTimes
+	pop af
 	push hl
-	ld hl, wTrainerClass
-	ld a, [hl]
-	cp RIVAL1
-	jr z, .CheckSpecies_T4
-	cp RIVAL2
-	jr nz, .NotRival_T4
-.CheckSpecies_T4:
-	ld a, c ; Restore species to check
-	cp CHIKORITA
-	jr z, .DoSwap_T4
-	cp BAYLEEF
-	jr z, .DoSwap_T4
-	cp MEGANIUM
-	jr z, .DoSwap_T4
-	cp CYNDAQUIL
-	jr z, .DoSwap_T4
-	cp QUILAVA
-	jr z, .DoSwap_T4
-	cp TYPHLOSION
-	jr z, .DoSwap_T4
-	cp TOTODILE
-	jr z, .DoSwap_T4
-	cp CROCONAW
-	jr z, .DoSwap_T4
-	cp FERALIGATR
-	jr z, .DoSwap_T4
-	jr .NotRival_T4 ; Not a starter, so don't swap
-.DoSwap_T4:
-	ld a, [wRivalStarterSpecies]
-	and a
-	jr z, .NotRival_T4
+	ld hl, wOTPartyMon1EVs - 1
+	ld bc, PARTYMON_STRUCT_LENGTH
+	rst AddNTimes
+	pop de
+	ld b, TRUE
+	push de
+	predef CalcPkmnStats
+	pop hl
+	inc hl
+	ld a, [hld]
 	ld c, a
-	ld a, 1
-	ld [wDidSwapRivalMon], a
-	ld a, c
-	pop hl
-	jr .DoneSwap_T4
-.NotRival_T4:
-	ld a, c
-	pop hl
-.DoneSwap_T4:
-; --- End In-line Swap Logic ---
-
-	ld [wCurPartySpecies], a
-
-	ld a, OTPARTYMON
-	ld [wMonType], a
-
-	push hl
-	predef TryAddMonToParty
-	ld a, [wOTPartyCount]
-	dec a
-	ld hl, wOTPartyMon1Item
-	ld bc, PARTYMON_STRUCT_LENGTH
-	call AddNTimes
-	ld d, h
-	ld e, l
-	pop hl
-
-	ld a, [hli]
-	ld [de], a
-
-	push hl
-	ld a, [wOTPartyCount]
-	dec a
-	ld hl, wOTPartyMon1Moves
-	ld bc, PARTYMON_STRUCT_LENGTH
-	call AddNTimes
-	ld d, h
-	ld e, l
-	pop hl
-
-	ld a, [wDidSwapRivalMon]
-	and a
-	jp nz, .loop
-
-	ld b, NUM_MOVES
-.copy_moves
-	ld a, [hli]
-	ld [de], a
-	inc de
-	dec b
-	jr nz, .copy_moves
-
-	push hl
-
-	ld a, [wOTPartyCount]
-	dec a
-	ld hl, wOTPartyMon1
-	ld bc, PARTYMON_STRUCT_LENGTH
-	call AddNTimes
-	ld d, h
-	ld e, l
-	ld hl, MON_PP
-	add hl, de
-
-	push hl
-	ld hl, MON_MOVES
-	add hl, de
-	pop de
-
-	ld b, NUM_MOVES
-.copy_pp
-	ld a, [hli]
-	and a
-	jr z, .copied_pp
-
-	push hl
-	push bc
-	dec a
-	ld hl, Moves + MOVE_PP
-	ld bc, MOVE_LENGTH
-	call AddNTimes
-	ld a, BANK(Moves)
-	call GetFarByte
-	pop bc
-	pop hl
-
-	ld [de], a
-	inc de
-	dec b
-	jr nz, .copy_pp
-.copied_pp
-
-	pop hl
-	jp .loop
-
-ComputeTrainerReward:
-	ld hl, hProduct
-	xor a
-	ld [hli], a
-	ld [hli], a ; hMultiplicand + 0
-	ld [hli], a ; hMultiplicand + 1
-	ld a, [wEnemyTrainerBaseReward]
-	ld [hli], a ; hMultiplicand + 2
-	ld a, [wCurPartyLevel]
-	ld [hl], a ; hMultiplier
-	call Multiply
-	ld hl, wBattleReward
-	xor a
-	ld [hli], a
-	ldh a, [hProduct + 2]
-	ld [hli], a
-	ldh a, [hProduct + 3]
+	ld a, [hld]
+	ld [hl], c ; no-optimize *hl++|*hl-- = b|c|d|e
+	dec hl
 	ld [hl], a
-	ret
+	pop hl
+.no_stat_recalc
+	jmp .loop2
 
 Battle_GetTrainerName::
 	ld a, [wInBattleTowerBattle]
-	bit IN_BATTLE_TOWER_BATTLE_F, a
+	and a
 	ld hl, wOTPlayerName
-	jp nz, CopyTrainerName
+	ld a, BANK(Battle_GetTrainerName) ; make FarCopyBytes act like CopyBytes
+	ld [wTrainerGroupBank], a
+	jr nz, CopyTrainerName
 
 	ld a, [wOtherTrainerID]
 	ld b, a
@@ -525,59 +322,182 @@ Battle_GetTrainerName::
 	ld c, a
 
 GetTrainerName::
-	ld a, c
-	cp CAL
-	jr nz, .not_cal2
-
-	ld a, BANK(sMysteryGiftTrainerHouseFlag)
-	call OpenSRAM
-	ld a, [sMysteryGiftTrainerHouseFlag]
-	and a
-	call CloseSRAM
-	jr z, .not_cal2
-
-	ld a, BANK(sMysteryGiftPartnerName)
-	call OpenSRAM
-	ld hl, sMysteryGiftPartnerName
-	call CopyTrainerName
-	jp CloseSRAM
-
-.not_cal2
 	dec c
 	push bc
 	ld b, 0
 	ld hl, TrainerGroups
 	add hl, bc
 	add hl, bc
+	add hl, bc
+	ld a, [hli]
+	ld [wTrainerGroupBank], a
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
 	pop bc
+	call SkipTrainerParties
+	jr CopyTrainerName
 
-.loop
+SkipTrainerParties:
+; Skips b-1 parties
+	; Size of the current party.
+	call GetNextTrainerDataByte
 	dec b
-	jr z, CopyTrainerName
+	ret z
 
-.skip
-	ld a, [hli]
-	cp $ff
-	jr nz, .skip
-	jr .loop
+	; Skip all of it.
+	add l
+	ld l, a
+	adc h
+	sub l
+	ld h, a
+	jr SkipTrainerParties
 
 CopyTrainerName:
 	ld de, wStringBuffer1
 	push de
 	ld bc, NAME_LENGTH
-	call CopyBytes
+	ld a, [wTrainerGroupBank]
+	call FarCopyBytes
 	pop de
 	ret
 
-IncompleteCopyNameFunction: ; unreferenced
-; Copy of CopyTrainerName but without "call CopyBytes"
-	ld de, wStringBuffer1
-	push de
-	ld bc, NAME_LENGTH
-	pop de
+SetTrainerBattleLevel:
+	ld a, 255
+	ld [wCurPartyLevel], a
+
+	ld a, [wInBattleTowerBattle]
+	and a
+	ret nz
+
+	ld a, [wLinkMode]
+	and a
+	ret nz
+
+	call FindTrainerData
+
+	inc hl
+	call GetNextTrainerDataByte
+
+	farcall AdjustLevelForBadges
+	ld [wCurPartyLevel], a
 	ret
 
+FindTrainerData:
+; Returns party size in bytes excluding trainer name in b.
+	farcall SetBadgeBaseLevel
+
+	ld a, [wOtherTrainerClass]
+	dec a
+	ld c, a
+	ld b, 0
+	ld hl, TrainerGroups
+	add hl, bc
+	add hl, bc
+	add hl, bc
+	ld a, [hli]
+	ld [wTrainerGroupBank], a
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
+
+	ld a, [wOtherTrainerID]
+	ld b, a
+	; fallthrough
+SkipTrainerPartiesAndName:
+	call SkipTrainerParties
+	ld b, a
+
+.skip_name
+	dec b
+	call GetNextTrainerDataByte
+	cp "@"
+	jr nz, .skip_name
+	ret
+
+GetNextTrainerDataByte:
+	ld a, [wTrainerGroupBank]
+	call GetFarByte
+	inc hl
+	ret
+
+; must come before the EVSpreads table below, to define
+; the EV_SPREAD_* values and NUM_EV_SPREADS total
 INCLUDE "data/trainers/parties.asm"
+
+
+SECTION "DV and EV Spreads", ROMX
+
+WriteTrainerDVs:
+; Writes DVs to de with the DV spread index in a.
+	push hl
+	push de
+	push bc
+
+	push de
+	ld hl, DVSpreads
+	ld bc, NUM_STATS / 2 ; 2 DVs per byte
+	rst AddNTimes
+	rst CopyBytes
+	pop hl
+	jmp PopBCDEHL
+
+WriteTrainerEVs:
+; Writes EVs to de with the EV spread index in a.
+; For classic EVs, writes (EV total / 2) to all stats.
+; For modern EVs, writes the table data directly.
+	push hl
+	push de
+	push bc
+
+	push de
+	ld hl, EVSpreads
+	ld bc, NUM_STATS
+	rst AddNTimes
+	rst CopyBytes
+	pop hl
+
+	; If modern EVs are enabled, we're done.
+	ld a, [wInitialOptions2]
+	and EV_OPTMASK
+	cp EVS_OPT_MODERN
+	jr z, .done
+
+	; Otherwise, calculate total and set EV to total/2.
+	push hl
+	farcall _GetEVTotal
+	pop hl
+	srl b
+	rr c
+	ld a, c
+	cp MODERN_MAX_EV + 1
+	jr c, .got_evs
+	ld a, MODERN_MAX_EV
+.got_evs
+	ld bc, NUM_STATS
+	rst ByteFill
+
+.done
+	jmp PopBCDEHL
+
+DVSpreads:
+	table_width NUM_STATS / 2
+	for n, NUM_DV_SPREADS
+		; each DV_SPREAD_*_HP/ATK/DEF/SPE/SAT/SDF is implicitly defined
+		; by `tr_dvs` (see data/trainers/parties.asm)
+		dn DV_SPREAD_{d:n}_HP, DV_SPREAD_{d:n}_ATK
+		dn DV_SPREAD_{d:n}_DEF, DV_SPREAD_{d:n}_SPE
+		dn DV_SPREAD_{d:n}_SAT, DV_SPREAD_{d:n}_SDF
+	endr
+	assert_table_length NUM_DV_SPREADS
+
+EVSpreads:
+	table_width NUM_STATS
+	for n, NUM_EV_SPREADS
+		; each EV_SPREAD_*_HP/ATK/DEF/SPE/SAT/SDF is implicitly defined
+		; by `tr_evs` (see data/trainers/parties.asm)
+		with_each_stat "db EV_SPREAD_{d:n}_?"
+	endr
+	assert_table_length NUM_EV_SPREADS
+
+ENDSECTION

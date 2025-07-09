@@ -1,21 +1,22 @@
-	db LARVITAR ; 246
-
-	db  50,  64,  50,  41,  45,  50
-	;   hp  atk  def  spd  sat  sdf
+	db  50,  64,  50,  41,  45,  50 ; 300 BST
+	;   hp  atk  def  spe  sat  sdf
 
 	db ROCK, GROUND ; type
 	db 45 ; catch rate
 	db 67 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_F50 ; gender ratio
-	db 100 ; unknown 1
-	db 40 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/larvitar/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db NO_ITEM, NO_ITEM ; held items
+	dn GENDER_F50, HATCH_SLOWEST ; gender ratio, step cycles to hatch
+
+if DEF(FAITHFUL)
+	abilities_for LARVITAR, GUTS, GUTS, SAND_VEIL
+else
+	abilities_for LARVITAR, GUTS, BATTLE_ARMOR, SAND_VEIL
+endc
 	db GROWTH_SLOW ; growth rate
 	dn EGG_MONSTER, EGG_MONSTER ; egg groups
 
+	ev_yield 1 Atk
+
 	; tm/hm learnset
-	tmhm HEADBUTT, CURSE, TOXIC, HIDDEN_POWER, SUNNY_DAY, SNORE, HYPER_BEAM, PROTECT, RAIN_DANCE, ENDURE, FRUSTRATION, EARTHQUAKE, RETURN, DIG, MUD_SLAP, DOUBLE_TEAM, SWAGGER, SLEEP_TALK, SANDSTORM, DETECT, REST, ATTRACT
+	tmhm CURSE, TOXIC, HIDDEN_POWER, SUNNY_DAY, HYPER_BEAM, PROTECT, RAIN_DANCE, BULLDOZE, IRON_TAIL, EARTHQUAKE, RETURN, DIG, ROCK_SMASH, DOUBLE_TEAM, SANDSTORM, SUBSTITUTE, FACADE, REST, ATTRACT, ROCK_SLIDE, DARK_PULSE, STONE_EDGE, BODY_SLAM, DOUBLE_EDGE, EARTH_POWER, ENDURE, HEADBUTT, IRON_HEAD, SLEEP_TALK, SWAGGER
 	; end

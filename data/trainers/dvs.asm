@@ -1,73 +1,160 @@
-TrainerClassDVs:
+TrainerClassDVsAndPersonality:
 ; entries correspond to trainer classes (see constants/trainer_constants.asm)
-	table_width 2
-	;  atk,def,spd,spc
-	dn  9, 10,  7,  7 ; FALKNER
-	dn  8,  8,  8,  8 ; WHITNEY
-	dn  9,  8,  8,  8 ; BUGSY
-	dn  9,  8,  8,  8 ; MORTY
-	dn  9,  8,  8,  8 ; PRYCE
-	dn  9,  8,  8,  8 ; JASMINE
-	dn  9,  8,  8,  8 ; CHUCK
-	dn  7, 12, 13, 13 ; CLAIR
-	dn 13, 13, 13, 13 ; RIVAL1
-	dn  9,  8,  8,  8 ; POKEMON_PROF
-	dn 13, 12, 13, 13 ; WILL
-	dn 13, 12, 13, 13 ; CAL
-	dn 13, 12, 13, 13 ; BRUNO
-	dn  7, 15, 13, 15 ; KAREN
-	dn 13, 12, 13, 13 ; KOGA
-	dn 13, 12, 13, 13 ; CHAMPION
-	dn  9,  8,  8,  8 ; BROCK
-	dn  7,  8,  8,  8 ; MISTY
-	dn  9,  8,  8,  8 ; LT_SURGE
-	dn  9,  8,  8,  8 ; SCIENTIST
-	dn  7,  8,  8,  8 ; ERIKA
-	dn  9,  8,  8,  8 ; YOUNGSTER
-	dn  9,  8,  8,  8 ; SCHOOLBOY
-	dn  9,  8,  8,  8 ; BIRD_KEEPER
-	dn  5,  8,  8,  8 ; LASS
-	dn  9,  8,  8,  8 ; JANINE
-	dn 13,  8, 12,  8 ; COOLTRAINERM
-	dn  7, 12, 12,  8 ; COOLTRAINERF
-	dn  6,  9, 12,  8 ; BEAUTY
-	dn  9,  8,  8,  8 ; POKEMANIAC
-	dn 13,  8, 10,  8 ; GRUNTM
-	dn  9,  8,  8,  8 ; GENTLEMAN
-	dn  9,  8,  8,  8 ; SKIER
-	dn  6,  8,  8,  8 ; TEACHER
-	dn  7, 13,  8,  7 ; SABRINA
-	dn  9,  8,  8,  8 ; BUG_CATCHER
-	dn  9,  8,  8,  8 ; FISHER
-	dn  9,  8,  8,  8 ; SWIMMERM
-	dn  7,  8,  8,  8 ; SWIMMERF
-	dn  9,  8,  8,  8 ; SAILOR
-	dn  9,  8,  8,  8 ; SUPER_NERD
-; BUG: RIVAL2 has lower DVs than RIVAL1 (see docs/bugs_and_glitches.md)
-	dn  9,  8,  8,  8 ; RIVAL2
-	dn  9,  8,  8,  8 ; GUITARIST
-	dn 10,  8,  8,  8 ; HIKER
-	dn  9,  8,  8,  8 ; BIKER
-	dn  9,  8,  8,  8 ; BLAINE
-	dn  9,  8,  8,  8 ; BURGLAR
-	dn  9,  8,  8,  8 ; FIREBREATHER
-	dn  9,  8,  8,  8 ; JUGGLER
-	dn  9,  8,  8,  8 ; BLACKBELT_T
-	dn 13,  8, 10,  8 ; EXECUTIVEM
-	dn  9,  8,  8,  8 ; PSYCHIC_T
-	dn  6, 10, 10,  8 ; PICNICKER
-	dn  9,  8,  8,  8 ; CAMPER
-	dn  7, 14, 10,  8 ; EXECUTIVEF
-	dn  9,  8,  8,  8 ; SAGE
-	dn  7,  8,  8,  8 ; MEDIUM
-	dn  9,  8,  8,  8 ; BOARDER
-	dn  9,  8,  8,  8 ; POKEFANM
-	dn  6,  8,  8, 10 ; KIMONO_GIRL
-	dn  6,  8, 10,  8 ; TWINS
-	dn  6, 13,  8,  8 ; POKEFANF
-	dn 15, 13, 13, 14 ; RED
-	dn  9, 13, 13, 13 ; BLUE
-	dn  9,  8,  8,  8 ; OFFICER
-	dn  7, 14, 10,  8 ; GRUNTF
-	dn  9,  8,  8,  8 ; MYSTICALMAN
+	table_width 5
+	;  EVs  HP   Def  SAt
+	;  *    Atk  Spe  SDf  Gender
+	db 252, PERFECT_DVS,   FEMALE ; carrie
+	db 252, PERFECT_DVS,   MALE   ; cal
+	db 252, PERFECT_DVS,   MALE   ; jacky
+	db 252, $BB, $BB, $BB, MALE   ; falkner
+	db 252, $BB, $BB, $BB, MALE   ; bugsy
+	db 252, $CC, $CC, $CC, FEMALE ; whitney
+	db 252, $CC, $CC, $CC, MALE   ; morty
+	db 252, $DD, $DD, $DD, MALE   ; chuck
+	db 252, $DD, $DD, $DD, FEMALE ; jasmine
+	db 252, $EE, $EE, $EE, MALE   ; pryce
+	db 252, $EE, $EE, $EE, FEMALE ; clair
+	db 252, PERFECT_DVS,   MALE   ; will
+	db 252, PERFECT_DVS,   MALE   ; koga
+	db 252, PERFECT_DVS,   MALE   ; bruno
+	db 252, PERFECT_DVS,   FEMALE ; karen
+	db 252, PERFECT_DVS,   MALE   ; champion
+	db 252, PERFECT_DVS,   MALE   ; brock
+	db 252, PERFECT_DVS,   FEMALE ; misty
+	db 252, PERFECT_DVS,   MALE   ; lt surge
+	db 252, PERFECT_DVS,   FEMALE ; erika
+	db 252, PERFECT_DVS,   FEMALE ; janine
+	db 252, PERFECT_DVS,   FEMALE ; sabrina
+	db 252, PERFECT_DVS,   MALE   ; blaine
+	db 252, PERFECT_DVS,   MALE   ; blue
+	db 252, PERFECT_DVS,   MALE   ; red
+	db 252, PERFECT_DVS,   FEMALE ; leaf
+	db   0, PERFECT_DVS,   MALE   ; rival0
+	db 144, PERFECT_DVS,   MALE   ; rival1
+	db 252, PERFECT_DVS,   MALE   ; rival2
+	db   0, $BB, $BB, $BB, FEMALE ; lyra1
+	db 252, $BB, $BB, $BB, FEMALE ; lyra2
+	db   0, $66, $66, $66, MALE   ; youngster
+	db   0, $66, $66, $66, MALE   ; bug catcher
+	db   8, $77, $77, $77, MALE   ; camper
+	db   8, $77, $77, $77, FEMALE ; picnicker
+	db  16, $88, $88, $88, FEMALE ; twins
+	db  16, $88, $88, $88, MALE   ; fisher
+	db  16, $88, $88, $88, MALE   ; bird keeper
+	db  24, $99, $99, $99, MALE   ; hiker
+	db  32, $AA, $AA, $AA, MALE   ; gruntm
+	db  32, $AA, $AA, $AA, FEMALE ; gruntf
+	db  32, $AA, $AA, $AA, MALE   ; pokefanm
+	db  32, $AA, $AA, $AA, FEMALE ; pokefanf
+	db  48, $DD, $BB, $DB, MALE   ; officerm
+	db  48, $7B, $DB, $FF, FEMALE ; officerf
+	db  48, $E5, $FA, $D6, FEMALE ; nurse
+	db  40, $BB, $BB, $BB, MALE   ; pokemaniac
+	db  40, $BB, $BB, $BB, FEMALE ; cosplayer
+	db  40, $BB, $BB, $BB, MALE   ; super nerd
+	db  40, $BB, $BB, $BB, FEMALE ; lass
+	db  48, $CC, $CC, $CC, FEMALE ; beauty
+	db  48, $CC, $CC, $CC, MALE   ; bug maniac
+	db  48, $CC, $CC, $CC, MALE   ; ruin maniac
+	db  48, $CC, $CC, $CC, MALE   ; firebreather
+	db  48, $CC, $CC, $CC, MALE   ; juggler
+	db  48, $CC, $CC, $CC, MALE   ; schoolboy
+	db  48, $CC, $CC, $CC, FEMALE ; schoolgirl
+	db  48, $AA, $CC, $EE, MALE   ; psychic
+	db  48, $AA, $CC, $EE, FEMALE ; hex maniac
+	db  48, $CC, $CC, $CC, MALE   ; sage
+	db  48, $CC, $CC, $CC, FEMALE ; medium
+	db  56, $DD, $DD, $DD, FEMALE ; kimono girl 1
+	db  56, $DD, $DD, $DD, FEMALE ; kimono girl 2
+	db  56, $DD, $DD, $DD, FEMALE ; kimono girl 3
+	db  56, $DD, $DD, $DD, FEMALE ; kimono girl 4
+	db  56, $DD, $DD, $DD, FEMALE ; kimono girl 5
+	db  56, $DD, $DD, $DD, FEMALE ; kimono girl 6
+	db  56, $DD, $DD, $DD, FEMALE ; kimono girl 7
+	db  56, $DD, $DD, $DD, FEMALE ; kimono girl 8
+	db  56, $DD, $DD, $DD, MALE   ; elder
+	db  48, $CC, $CC, $CC, FEMALE ; sr&jr
+	db  48, $CC, $CC, $CC, MALE   ; couple
+	db  48, $CC, $CC, $CC, MALE   ; gentleman
+	db 100, $CC, $CC, $CC, MALE   ; rich boy (high EVs from vitamins)
+	db  48, $CC, $CC, $CC, FEMALE ; lady
+	db  56, $DD, $DD, $DD, FEMALE ; breeder (low EVs due to breeding)
+	db  48, $CC, $CC, $CC, FEMALE ; baker
+	db  48, $CC, $CC, $CC, FEMALE ; cowgirl
+	db  48, $CC, $CC, $CC, MALE   ; sailor
+	db  48, $CC, $CC, $CC, MALE   ; swimmerm
+	db  48, $CC, $CC, $CC, FEMALE ; swimmerf
+	db  56, $DD, $DD, $DD, MALE   ; burglar
+	db  56, $DD, $DD, $DD, MALE   ; pi
+	db  56, $DD, $DD, $DD, MALE   ; scientist
+	db  56, $DD, $DD, $DD, MALE   ; rocket scientist
+	db  56, $DD, $DD, $DD, MALE   ; boarder
+	db  56, $DD, $DD, $DD, FEMALE ; skier
+	db  64, $FF, $DD, $DD, MALE   ; blackbelt
+	db  64, $FF, $DD, $DD, FEMALE ; battle girl
+	db  72, $DF, $DF, $DD, MALE   ; dragon tamer
+	db  72, $DD, $DD, $DD, MALE   ; engineer
+	db  72, $DD, $DD, $DD, FEMALE ; teacher_f
+	db  72, $DD, $DD, $DD, MALE   ; teacher_m
+	db  72, $DD, $DD, $DD, MALE   ; guitaristm
+	db  72, $DD, $DD, $DD, FEMALE ; guitaristf
+	db  72, $DD, $DD, $DD, MALE   ; biker
+	db  72, $DD, $DD, $DD, MALE   ; roughneck
+	db  72, $DD, $DD, $DD, MALE   ; tamer
+	db  72, $DD, $DD, $DD, FEMALE ; artist
+	db  72, $DD, $DD, $DD, FEMALE ; aroma lady
+	db  72, $DD, $DD, $DD, MALE   ; soldier
+	db  72, $DD, $DD, $DD, MALE   ; waiter
+	db  72, $DD, $DD, $DD, FEMALE ; waitress
+	db  72, $DD, $DD, $DD, MALE   ; sightseerm
+	db  72, $DD, $DD, $DD, FEMALE ; sightseerf
+	db  72, $EE, $EE, $EE, MALE   ; sightseers
+	db  64, $EE, $EE, $EE, MALE   ; cooltrainerm
+	db  64, $EE, $EE, $EE, FEMALE ; cooltrainerf
+	db  72, $EE, $EE, $EE, MALE   ; ace duo
+	db 128, PERFECT_DVS,   MALE   ; veteranm
+	db 128, PERFECT_DVS,   FEMALE ; veteranf
+	db  80, $BB, $BB, $BB, MALE   ; proton
+	db  96, $CC, $CC, $CC, MALE   ; petrel
+	db 128, $EE, $EE, $EE, MALE   ; archer
+	db 112, $DD, $DD, $DD, FEMALE ; ariana
+	db 160, PERFECT_DVS,   MALE   ; giovanni
+	db 252, PERFECT_DVS,   MALE   ; prof oak
+	db  32, $BB, $BB, $BB, MALE   ; prof elm
+	db 252, PERFECT_DVS,   FEMALE ; prof ivy
+	db  88, $DD, $DD, $DD, MALE   ; mysticalman
+	db  88, PERFECT_DVS,   MALE   ; karate king
+	db 252, PERFECT_DVS,   MALE   ; towertycoon
+	db 252, PERFECT_DVS,   MALE   ; factoryhead
+	db  88, $BB, $B8, $BB, MALE   ; jessie&james
+	db 252, PERFECT_DVS,   FEMALE ; lorelei
+	db 252, PERFECT_DVS,   FEMALE ; agatha
+	db 252, PERFECT_DVS,   MALE   ; steven
+	db 252, PERFECT_DVS,   FEMALE ; cynthia
+	db 252, PERFECT_DVS,   MALE   ; inver
+	db 192, $EE, $EE, $EE, FEMALE ; cheryl
+	db 192, $EE, $EE, $EE, MALE   ; riley
+	db 192, $EE, $EE, $EE, MALE   ; buck
+	db 192, $EE, $EE, $EE, FEMALE ; marley
+	db 192, $EE, $EE, $EE, FEMALE ; mira
+	db 192, $EE, $EE, $EE, FEMALE ; anabel
+	db 252, PERFECT_DVS,   MALE   ; darach
+	db 252, PERFECT_DVS,   FEMALE ; caitlin
+	db 252, PERFECT_DVS,   FEMALE ; candela
+	db 252, PERFECT_DVS,   FEMALE ; blanche
+	db 252, PERFECT_DVS,   MALE   ; spark
+	db 252, PERFECT_DVS,   FEMALE ; flannery
+	db 252, PERFECT_DVS,   FEMALE ; maylene
+	db 252, PERFECT_DVS,   MALE   ; marlon
+	db 252, PERFECT_DVS,   FEMALE ; valerie
+	db 252, PERFECT_DVS,   MALE   ; kukui
+	db 252, $DD, $DD, $DD, MALE   ; piers
+	db 252, $DD, $DD, $DD, FEMALE ; katy
+	db 192, $EE, $EE, $EE, MALE   ; victor
+	db 252, PERFECT_DVS,   MALE   ; bill
+	db 252, $EE, $EE, $EE, FEMALE ; yellow
+	db 252, $EE, $EE, $EE, MALE   ; walker
+	db 192, $EE, $EE, $EE, MALE   ; imakuni
+	db 252, PERFECT_DVS,   MALE   ; lawrence
+	db 252, $EE, $EE, $EE, FEMALE ; rei
 	assert_table_length NUM_TRAINER_CLASSES

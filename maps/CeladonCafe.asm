@@ -1,120 +1,104 @@
-	object_const_def
-	const CELADONCAFE_SUPER_NERD
-	const CELADONCAFE_FISHER1
-	const CELADONCAFE_FISHER2
-	const CELADONCAFE_FISHER3
-	const CELADONCAFE_TEACHER
-
-CeladonCafe_MapScripts:
+CeladonCafe_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-CeladonCafeChef:
+	def_warp_events
+	warp_event  6,  7, CELADON_CITY, 9
+	warp_event  7,  7, CELADON_CITY, 9
+
+	def_coord_events
+
+	def_bg_events
+	bg_event  5,  0, BGEVENT_JUMPTEXT, EatathonContestPosterText
+	bg_event  7,  1, BGEVENT_JUMPTEXT, EatathonContestTrashCanText
+
+	def_object_events
+	object_event  7,  4, SPRITE_MAYLENE, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, MayleneScript, -1
+	object_event  4,  3, SPRITE_POKEFAN_F, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, CeladonCafeTeacher, -1
+	object_event  4,  6, SPRITE_FAT_GUY, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, CeladonCafeFisher1, -1
+	object_event  1,  7, SPRITE_FAT_GUY, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, CeladonCafeFisher2, -1
+	object_event  1,  2, SPRITE_FAT_GUY, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, CeladonCafeFisher3, -1
+	object_event  9,  3, SPRITE_POKEMANIAC, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_BROWN, OBJECTTYPE_COMMAND, jumptextfaceplayer, ChefText_Eatathon, -1
+	object_event 11,  4, SPRITE_BAKER, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, CeladonCafeBakerText, -1
+
+	object_const_def
+	const CELADONCAFE_MAYLENE
+	const CELADONCAFE_TEACHER
+
+MayleneScript:
+	showtext MayleneText1
 	faceplayer
 	opentext
-	writetext ChefText_Eatathon
+	writetext MayleneText2
+	waitbutton
+	checkevent EVENT_BEAT_MAYLENE
+	iftruefwd .Done
+	writetext MayleneText3
+	yesorno
+	iffalsefwd .Refused
+	writetext MayleneSeenText
 	waitbutton
 	closetext
+	winlosstext MayleneBeatenText, 0
+	setlasttalked CELADONCAFE_MAYLENE
+	checkevent EVENT_BEAT_ELITE_FOUR_AGAIN
+	iftruefwd .Rematch
+	loadtrainer MAYLENE, 1
+	sjumpfwd .StartBattle
+.Rematch
+	loadtrainer MAYLENE, 2
+.StartBattle
+	startbattle
+	reloadmapafterbattle
+	setevent EVENT_BEAT_MAYLENE
+	opentext
+	writetext MayleneAfterText
+	waitbutton
+.Done
+	closetext
+	turnobject CELADONCAFE_MAYLENE, RIGHT
 	end
 
-CeladonCafeFisher1:
-	opentext
-	writetext Fisher1Text_Snarfle
+.Refused
+	writetext MayleneRefusedText
 	waitbutton
 	closetext
-	faceplayer
-	opentext
-	writetext Fisher1Text_Concentration
-	waitbutton
-	closetext
-	turnobject CELADONCAFE_FISHER1, LEFT
-	end
-
-CeladonCafeFisher2:
-	opentext
-	writetext Fisher2Text_GulpChew
-	waitbutton
-	closetext
-	faceplayer
-	opentext
-	writetext Fisher2Text_Quantity
-	waitbutton
-	closetext
-	turnobject CELADONCAFE_FISHER2, RIGHT
-	end
-
-CeladonCafeFisher3:
-	opentext
-	writetext Fisher3Text_MunchMunch
-	waitbutton
-	closetext
-	faceplayer
-	opentext
-	writetext Fisher3Text_GoldenrodIsBest
-	waitbutton
-	closetext
-	turnobject CELADONCAFE_FISHER3, RIGHT
+	turnobject CELADONCAFE_MAYLENE, RIGHT
 	end
 
 CeladonCafeTeacher:
-	checkitem COIN_CASE
-	iftrue .HasCoinCase
-	opentext
-	writetext TeacherText_CrunchCrunch
-	waitbutton
-	closetext
-	faceplayer
-	opentext
-	writetext TeacherText_NoCoinCase
-	waitbutton
-	closetext
-	turnobject CELADONCAFE_TEACHER, LEFT
+	checkkeyitem COIN_CASE
+	iftruefwd .NoCoinCase
+	showtext TeacherText_CrunchCrunch
+	showtextfaceplayer TeacherText_NoCoinCase
+	turnobject LAST_TALKED, LEFT
 	end
 
-.HasCoinCase:
-	opentext
-	writetext TeacherText_KeepEating
-	waitbutton
-	closetext
+.NoCoinCase:
+	showtext TeacherText_KeepEating
 	turnobject CELADONCAFE_TEACHER, RIGHT
-	opentext
-	writetext TeacherText_MoreChef
-	waitbutton
-	closetext
+	showtext TeacherText_MoreChef
 	turnobject CELADONCAFE_TEACHER, LEFT
 	end
 
-EatathonContestPoster:
-	jumptext EatathonContestPosterText
-
-CeladonCafeTrashcan:
-	checkevent EVENT_FOUND_LEFTOVERS_IN_CELADON_CAFE
-	iftrue .TrashEmpty
-	giveitem LEFTOVERS
-	iffalse .PackFull
-	opentext
-	getitemname STRING_BUFFER_3, LEFTOVERS
-	writetext FoundLeftoversText
-	playsound SFX_ITEM
-	waitsfx
-	itemnotify
-	closetext
-	setevent EVENT_FOUND_LEFTOVERS_IN_CELADON_CAFE
+CeladonCafeFisher1:
+	showtext Fisher1Text_Snarfle
+	showtextfaceplayer Fisher1Text_Concentration
+	turnobject LAST_TALKED, LEFT
 	end
 
-.PackFull:
-	opentext
-	getitemname STRING_BUFFER_3, LEFTOVERS
-	writetext FoundLeftoversText
-	promptbutton
-	writetext NoRoomForLeftoversText
-	waitbutton
-	closetext
+CeladonCafeFisher2:
+	showtext Fisher2Text_GulpChew
+	showtextfaceplayer Fisher2Text_Quantity
+	turnobject LAST_TALKED, RIGHT
 	end
 
-.TrashEmpty:
-	jumpstd TrashCanScript
+CeladonCafeFisher3:
+	showtext Fisher3Text_MunchMunch
+	showtextfaceplayer Fisher3Text_GoldenrodIsBest
+	turnobject LAST_TALKED, RIGHT
+	end
 
 ChefText_Eatathon:
 	text "Hi!"
@@ -155,8 +139,8 @@ Fisher3Text_MunchMunch:
 
 Fisher3Text_GoldenrodIsBest:
 	text "The food is good"
-	line "here, but GOLDEN-"
-	cont "ROD has the best"
+	line "here, but Golden-"
+	cont "rod has the best"
 	cont "food anywhere."
 	done
 
@@ -166,10 +150,10 @@ TeacherText_CrunchCrunch:
 
 TeacherText_NoCoinCase:
 	text "Nobody here will"
-	line "give you a COIN"
+	line "give you a Coin"
 
-	para "CASE. You should"
-	line "look in JOHTO."
+	para "Case. You should"
+	line "look in Johto."
 	done
 
 TeacherText_KeepEating:
@@ -179,7 +163,80 @@ TeacherText_KeepEating:
 	done
 
 TeacherText_MoreChef:
-	text "More, CHEF!"
+	text "More, Chef!"
+	done
+
+MayleneText1:
+	text "Maylene: Munch"
+	line "munch munch…"
+	done
+
+MayleneText2:
+	text "The eatathon"
+	line "contest!"
+
+	para "I never dreamed of"
+	line "such a wonderful"
+	cont "thing."
+
+	para "After a strict"
+	line "diet during train-"
+	cont "ing, I can eat"
+	cont "like a Snorlax."
+
+	para "The winner eats"
+	line "for free, too."
+
+	para "That's just a"
+	line "dream come true!"
+	done
+
+MayleneText3:
+	text "I'm starting to"
+	line "feel full…"
+
+	para "Um, as a break,"
+	line "do you want to"
+	cont "battle with me?"
+	done
+
+MayleneRefusedText:
+	text "Sigh… OK."
+	done
+
+MayleneSeenText:
+	text "OK! Rei!"
+
+	para "Oh, that's my bow"
+	line "before a match."
+
+	para "I'm throwing every-"
+	line "thing I have at"
+	cont "you!"
+	done
+
+MayleneBeatenText:
+	text "I'm forced to admit"
+	line "defeat…"
+
+	para "You are much too"
+	line "strong."
+	done
+
+MayleneAfterText:
+	text "Thank you,"
+	line "<PLAYER>!"
+
+	para "I'm ready to keep"
+	line "on eating!"
+	done
+
+CeladonCafeBakerText:
+	text "I'm working here"
+	line "'cause I get to"
+
+	para "eat any time I"
+	line "want. Simple."
 	done
 
 EatathonContestPosterText:
@@ -193,34 +250,8 @@ EatathonContestPosterText:
 	line "all for free!"
 	done
 
-FoundLeftoversText:
-	text "<PLAYER> found"
-	line "@"
-	text_ram wStringBuffer3
-	text "!"
+EatathonContestTrashCanText:
+	text "The trash is full"
+	line "of eatathon left-"
+	cont "overs…"
 	done
-
-NoRoomForLeftoversText:
-	text "But <PLAYER> can't"
-	line "hold another item…"
-	done
-
-CeladonCafe_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  6,  7, CELADON_CITY, 9
-	warp_event  7,  7, CELADON_CITY, 9
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  5,  0, BGEVENT_READ, EatathonContestPoster
-	bg_event  7,  1, BGEVENT_READ, CeladonCafeTrashcan
-
-	def_object_events
-	object_event  9,  3, SPRITE_SUPER_NERD, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, CeladonCafeChef, -1
-	object_event  4,  6, SPRITE_FISHER, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CeladonCafeFisher1, -1
-	object_event  1,  7, SPRITE_FISHER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, CeladonCafeFisher2, -1
-	object_event  1,  2, SPRITE_FISHER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CeladonCafeFisher3, -1
-	object_event  4,  3, SPRITE_TEACHER, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CeladonCafeTeacher, -1

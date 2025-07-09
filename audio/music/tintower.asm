@@ -11,7 +11,7 @@ Music_TinTower_Ch1:
 	duty_cycle 3
 	pitch_offset 4
 	vibrato 8, 4, 5
-.mainloop:
+Music_TinTower_branch_f682a:
 	stereo_panning TRUE, FALSE
 	note_type 12, 10, 5
 	octave 3
@@ -94,15 +94,15 @@ Music_TinTower_Ch1:
 	volume_envelope 10, 5
 	octave 3
 	note A#, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_TinTower_branch_f682a
 
 Music_TinTower_Ch2:
 	duty_cycle 3
 	pitch_offset 2
 	vibrato 24, 4, 4
-.mainloop:
+Music_TinTower_branch_f6893:
 	stereo_panning TRUE, TRUE
-.loop1:
+Music_TinTower_branch_f6895:
 	note_type 12, 11, 5
 	octave 4
 	note C_, 4
@@ -133,7 +133,7 @@ Music_TinTower_Ch2:
 	octave 4
 	note C_, 8
 	stereo_panning FALSE, TRUE
-	sound_loop 2, .loop1
+	sound_loop 2, Music_TinTower_branch_f6895
 	volume_envelope 11, 2
 	octave 3
 	note C_, 4
@@ -183,11 +183,11 @@ Music_TinTower_Ch2:
 	note C_, 6
 	volume_envelope 9, 5
 	note C#, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_TinTower_branch_f6893
 
 Music_TinTower_Ch3:
 	note_type 12, 1, 4
-.mainloop:
+Music_TinTower_branch_f68fb:
 	rest 16
 	rest 16
 	rest 16
@@ -257,12 +257,12 @@ Music_TinTower_Ch3:
 	note C_, 1
 	rest 11
 	stereo_panning TRUE, TRUE
-	sound_loop 0, .mainloop
+	sound_jump Music_TinTower_branch_f68fb
 
 Music_TinTower_Ch4:
 	toggle_noise 0
 	drum_speed 12
-.mainloop:
+Music_TinTower_branch_f694c:
 	stereo_panning FALSE, TRUE
 	drum_note 8, 2
 	stereo_panning TRUE, FALSE
@@ -289,4 +289,4 @@ Music_TinTower_Ch4:
 	drum_note 8, 2
 	drum_note 8, 2
 	drum_note 6, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_TinTower_branch_f694c

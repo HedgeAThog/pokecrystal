@@ -1,15 +1,54 @@
+CountCaught:
+	farcall Pokedex_CountSeenOwn
+	ld hl, wTempDexOwn
+	ld a, [hli]
+	ld b, a
+	ld c, [hl]
+	ldh a, [hScriptVar]
+	cpl
+	ld l, a
+	ldh a, [hScriptVar+1]
+	cpl
+	ld h, a
+	inc hl
+	xor a
+	ldh [hScriptVar], a
+	add hl, bc
+	ret nc
+	inc a ; TRUE
+	ldh [hScriptVar], a
+	ret
+
+CountSeen:
+	farcall Pokedex_CountSeenOwn
+	ld hl, wTempDexSeen
+	ld a, [hli]
+	ld b, a
+	ld c, [hl]
+	ldh a, [hScriptVar]
+	cpl
+	ld l, a
+	ldh a, [hScriptVar+1]
+	cpl
+	ld h, a
+	inc hl
+	xor a
+	ldh [hScriptVar], a
+	add hl, bc
+	ret nc
+	inc a ; TRUE
+	ldh [hScriptVar], a
+	ret
+
 ProfOaksPC:
 	ld hl, OakPCText1
 	call MenuTextbox
 	call YesNoBox
-	jr c, .shutdown
-	call ProfOaksPCBoot ; player chose "yes"?
-.shutdown
+	call nc, ProfOaksPCBoot ; player chose "yes"?
 	ld hl, OakPCText4
 	call PrintText
 	call JoyWaitAorB
-	call ExitMenu
-	ret
+	jmp ExitMenu
 
 ProfOaksPCBoot:
 	ld hl, OakPCText2
@@ -17,37 +56,29 @@ ProfOaksPCBoot:
 	call Rate
 	call PlaySFX ; sfx loaded by previous Rate function call
 	call JoyWaitAorB
-	call WaitSFX
-	ret
+	jmp WaitSFX
 
 ProfOaksPCRating:
 	call Rate
 	push de
-	ld de, MUSIC_NONE
+	ld e, MUSIC_NONE
 	call PlayMusic
 	pop de
 	call PlaySFX
 	call JoyWaitAorB
-	call WaitSFX
-	ret
+	jmp WaitSFX
 
 Rate:
 ; calculate Seen/Owned
-	ld hl, wPokedexSeen
-	ld b, wEndPokedexSeen - wPokedexSeen
-	call CountSetBits
-	ld [wTempPokedexSeenCount], a
-	ld hl, wPokedexCaught
-	ld b, wEndPokedexCaught - wPokedexCaught
-	call CountSetBits
-	ld [wTempPokedexCaughtCount], a
+	farcall Pokedex_CountSeenOwn
 
-; print appropriate rating
-	call .UpdateRatingBuffers
 	ld hl, OakPCText3
 	call PrintText
 	call JoyWaitAorB
-	ld a, [wTempPokedexCaughtCount]
+	ld hl, wTempDexOwn
+	ld a, [hli]
+	ld c, [hl]
+	ld b, a
 	ld hl, OakRatings
 	call FindOakRating
 	push de
@@ -55,38 +86,24 @@ Rate:
 	pop de
 	ret
 
-.UpdateRatingBuffers:
-	ld hl, wStringBuffer3
-	ld de, wTempPokedexSeenCount
-	call .UpdateRatingBuffer
-	ld hl, wStringBuffer4
-	ld de, wTempPokedexCaughtCount
-	call .UpdateRatingBuffer
-	ret
-
-.UpdateRatingBuffer:
-	push hl
-	ld a, "@"
-	ld bc, ITEM_NAME_LENGTH
-	call ByteFill
-	pop hl
-	lb bc, PRINTNUM_LEFTALIGN | 1, 3
-	call PrintNum
-	ret
-
 FindOakRating:
+; get pokedex caught count in bc
 ; return sound effect in de
 ; return text pointer in hl
-	nop
-	ld c, a
-.loop
 	ld a, [hli]
+	ld d, a
+	ld a, [hli]
+	cp b
+	jr c, .next
+	jr nz, .match
+	ld a, d
 	cp c
 	jr nc, .match
+.next
 rept 4
 	inc hl
 endr
-	jr .loop
+	jr FindOakRating
 
 .match
 	ld a, [hli]

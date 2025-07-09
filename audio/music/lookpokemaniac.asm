@@ -12,22 +12,21 @@ Music_LookPokemaniac_Ch1:
 	pitch_offset 2
 	note_type 12, 11, 3
 	rest 8
-.mainloop:
-.loop1:
+Music_LookPokemaniac_branch_ebdfb:
 	rest 4
 	octave 3
 	note A#, 1
 	rest 3
 	note A#, 1
 	rest 3
-	sound_loop 4, .loop1
+	sound_loop 4, Music_LookPokemaniac_branch_ebdfb
 	rest 4
 	note G_, 1
 	rest 3
 	note G_, 1
 	rest 3
-	sound_loop 4, .loop1
-	sound_loop 0, .mainloop
+	sound_loop 4, Music_LookPokemaniac_branch_ebdfb
+	sound_jump Music_LookPokemaniac_branch_ebdfb
 
 Music_LookPokemaniac_Ch2:
 	stereo_panning TRUE, TRUE
@@ -41,8 +40,7 @@ Music_LookPokemaniac_Ch2:
 	note C_, 1
 	octave 1
 	note A_, 4
-.mainloop:
-.loop1:
+Music_LookPokemaniac_branch_ebe24:
 	octave 2
 	note C_, 2
 	rest 2
@@ -59,8 +57,8 @@ Music_LookPokemaniac_Ch2:
 	rest 3
 	note D#, 1
 	rest 3
-	sound_loop 2, .loop1
-.loop2:
+	sound_loop 2, Music_LookPokemaniac_branch_ebe24
+Music_LookPokemaniac_branch_ebe38:
 	octave 1
 	note A_, 2
 	rest 2
@@ -78,8 +76,8 @@ Music_LookPokemaniac_Ch2:
 	octave 3
 	note C_, 1
 	rest 3
-	sound_loop 2, .loop2
-	sound_loop 0, .mainloop
+	sound_loop 2, Music_LookPokemaniac_branch_ebe38
+	sound_jump Music_LookPokemaniac_branch_ebe24
 
 Music_LookPokemaniac_Ch3:
 	stereo_panning TRUE, FALSE
@@ -93,14 +91,14 @@ Music_LookPokemaniac_Ch3:
 	octave 5
 	note C_, 4
 	volume_envelope 1, 0
-.mainloop:
-	sound_call .sub1
+Music_LookPokemaniac_branch_ebe62:
+	sound_call Music_LookPokemaniac_branch_ebe70
 	volume_envelope 1, 4
-	sound_call .sub1
+	sound_call Music_LookPokemaniac_branch_ebe70
 	volume_envelope 1, 0
-	sound_loop 0, .mainloop
+	sound_jump Music_LookPokemaniac_branch_ebe62
 
-.sub1:
+Music_LookPokemaniac_branch_ebe70:
 	note A#, 6
 	note A_, 2
 	note G#, 2

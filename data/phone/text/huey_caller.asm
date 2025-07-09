@@ -5,7 +5,7 @@ HueyBattleRematchText:
 	para "It won't be like"
 	line "last time!"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text "'s"
 	line "where I'm waiting"
@@ -34,7 +34,7 @@ HueyReminderText:
 	line "not have forgotten"
 	cont "about our battle!"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text "!"
 

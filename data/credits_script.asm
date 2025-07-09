@@ -16,7 +16,7 @@ CreditsScript:
 	db CREDITS_WAIT, 1
 
 ; Update the banner.
-	db CREDITS_SCENE, 0 ; Pichu
+	db CREDITS_SCENE, 0 ; Pichu or Smoochum
 
 	db             DIRECTOR, 1
 	db       SATOSHI_TAJIRI, 2
@@ -76,7 +76,7 @@ CreditsScript:
 	db CREDITS_WAIT, 1
 
 ; Update the banner.
-	db CREDITS_SCENE, 1 ; Smoochum
+	db CREDITS_SCENE, 1 ; Sentret or Ditto
 
 	db      GRAPHICS_DESIGN, 0
 	db     HIRONOBU_YOSHIDA, 1
@@ -144,7 +144,7 @@ CreditsScript:
 	db CREDITS_WAIT, 1
 
 ; Update the banner.
-	db CREDITS_SCENE, 2 ; Ditto
+	db CREDITS_SCENE, 2 ; Munchlax or Elekid
 
 	db        SCRIPT_DESIGN, 1
 	db         TETSUJI_OOTA, 2
@@ -188,7 +188,7 @@ CreditsScript:
 	db CREDITS_WAIT, 1
 
 ; Update the banner.
-	db CREDITS_SCENE, 3 ; Igglybuff
+	db CREDITS_SCENE, 3 ; Togepi or Bellossom
 
 	db     US_VERSION_STAFF, 2
 

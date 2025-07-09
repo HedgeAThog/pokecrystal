@@ -1,7 +1,4 @@
-BattleCommand_HealBell:
-	ld a, BATTLE_VARS_SUBSTATUS1
-	call GetBattleVarAddr
-	res SUBSTATUS_NIGHTMARE, [hl]
+BattleCommand_healbell:
 	ld de, wPartyMon1Status
 	ldh a, [hBattleTurn]
 	and a
@@ -24,9 +21,4 @@ BattleCommand_HealBell:
 	call AnimateCurrentMove
 
 	ld hl, BellChimedText
-	call StdBattleTextbox
-
-	ldh a, [hBattleTurn]
-	and a
-	jp z, CalcPlayerStats
-	jp CalcEnemyStats
+	jmp StdBattleTextbox

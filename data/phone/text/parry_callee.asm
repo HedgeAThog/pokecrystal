@@ -1,36 +1,36 @@
 ParryAnswerPhoneText:
 	text "Yup, yup!"
-	line "It's @"
+	line "It's "
 	text_ram wStringBuffer3
 	text "!"
 
 	para "Hah, and here's"
-	line "<PLAY_G>!"
+	line "<PLAYER>!"
 	done
 
 ParryAnswerPhoneDayText:
 	text "Yup, yup!"
-	line "It's @"
+	line "It's "
 	text_ram wStringBuffer3
 	text "!"
 
 	para "Hah, and here's"
-	line "<PLAY_G>!"
+	line "<PLAYER>!"
 	done
 
 ParryAnswerPhoneNiteText:
 	text "Yup, yup!"
-	line "It's @"
+	line "It's "
 	text_ram wStringBuffer3
 	text "!"
 
 	para "Hah, and here's"
-	line "<PLAY_G>!"
+	line "<PLAYER>!"
 	done
 
 ParryGreetText:
-	text "<PLAY_G>, it's"
-	line "@"
+	text "<PLAYER>, it's"
+	line ""
 	text_ram wStringBuffer3
 	text "!"
 
@@ -39,8 +39,8 @@ ParryGreetText:
 	done
 
 ParryGreetDayText:
-	text "<PLAY_G>, it's"
-	line "@"
+	text "<PLAYER>, it's"
+	line ""
 	text_ram wStringBuffer3
 	text "!"
 
@@ -49,8 +49,8 @@ ParryGreetDayText:
 	done
 
 ParryGreetNiteText:
-	text "<PLAY_G>, it's"
-	line "@"
+	text "<PLAYER>, it's"
+	line ""
 	text_ram wStringBuffer3
 	text "!"
 
@@ -59,10 +59,10 @@ ParryGreetNiteText:
 	done
 
 ParryGenericText:
-	text "Are your #MON"
+	text "Are your #mon"
 	line "looking good?"
 
-	para "My @"
+	para "My "
 	text_ram wStringBuffer4
 	text " and"
 	line "me--we're looking"

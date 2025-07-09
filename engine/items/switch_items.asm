@@ -1,135 +1,127 @@
+DoPackInsertSort:
+	ld [wScrollingMenuCursorPosition], a
+	ld a, b
+	inc a
+	ld [wSwitchItem], a
+	; fallthrough
 SwitchItemsInBag:
 	ld a, [wSwitchItem]
 	and a
-	jr z, .init
+	jr nz, .completeItemSwitch
+	ld a, [wScrollingMenuCursorPosition]
+	inc a
+	ld [wSwitchItem], a
+	ret
+.completeItemSwitch
 	ld b, a
 	ld a, [wScrollingMenuCursorPosition]
 	inc a
 	cp b
-	jr z, .trivial
-	ld a, [wScrollingMenuCursorPosition]
-	call ItemSwitch_GetNthItem
-	ld a, [hl]
-	cp -1
-	ret z
-	ld a, [wSwitchItem]
-	dec a
+	jr nz, .notSwappingItemWithItself
+	xor a
 	ld [wSwitchItem], a
-	call .try_combining_stacks
-	jp c, .combine_stacks
+	ret
+.notSwappingItemWithItself
+	ld a, [wScrollingMenuCursorPosition]
+	call ScrollingMenu_GetNthItem
+	ld a, [hl]
+	call ScrollingMenu_IsTerminator
+	ret z
+	ld hl, wSwitchItem
+	dec [hl]
+	call TryCombiningSwitchItems
+	jr c, CombineSwitchItems
 	ld a, [wScrollingMenuCursorPosition]
 	ld c, a
 	ld a, [wSwitchItem]
 	cp c
-	jr c, .above
-	jr .below
-
-.init:
-	ld a, [wScrollingMenuCursorPosition]
-	inc a
-	ld [wSwitchItem], a
-	ret
-
-.trivial:
-	xor a
-	ld [wSwitchItem], a
-	ret
-
-.below:
-	ld a, [wSwitchItem]
-	call ItemSwitch_CopyItemToBuffer
-	ld a, [wScrollingMenuCursorPosition]
-	ld d, a
-	ld a, [wSwitchItem]
-	ld e, a
-	call ItemSwitch_GetItemOffset
+	jr c, .insertItemAbove
+	call GetSwitchItemDestinationOffset
 	push bc
 	ld a, [wSwitchItem]
-	call ItemSwitch_GetNthItem
+	call ScrollingMenu_GetNthItem
 	dec hl
 	push hl
-	call ItemSwitch_GetItemFormatSize
+	call ItemSwitch_GetMenuSpacing
 	add hl, bc
 	ld d, h
 	ld e, l
 	pop hl
 	pop bc
-	call ItemSwitch_BackwardsCopyBytes
+	call SwitchItems_BackwardsCopy
 	ld a, [wScrollingMenuCursorPosition]
-	call ItemSwitch_CopyBufferToItem
+	call CopyBufferedSwitchItemToScrollLocation
 	xor a
 	ld [wSwitchItem], a
 	ret
 
-.above:
-	ld a, [wSwitchItem]
-	call ItemSwitch_CopyItemToBuffer
-	ld a, [wScrollingMenuCursorPosition]
-	ld d, a
-	ld a, [wSwitchItem]
-	ld e, a
-	call ItemSwitch_GetItemOffset
+.insertItemAbove
+	call GetSwitchItemDestinationOffset
 	push bc
 	ld a, [wSwitchItem]
-	call ItemSwitch_GetNthItem
+	call ScrollingMenu_GetNthItem
 	ld d, h
 	ld e, l
-	call ItemSwitch_GetItemFormatSize
+	call ItemSwitch_GetMenuSpacing
 	add hl, bc
 	pop bc
-	call CopyBytes
+	rst CopyBytes
 	ld a, [wScrollingMenuCursorPosition]
-	call ItemSwitch_CopyBufferToItem
+	call CopyBufferedSwitchItemToScrollLocation
 	xor a
 	ld [wSwitchItem], a
 	ret
 
-.try_combining_stacks:
+TryCombiningSwitchItems:
 	ld a, [wSwitchItem]
-	call ItemSwitch_GetNthItem
+	call ScrollingMenu_GetNthItem
 	ld d, h
 	ld e, l
 	ld a, [wScrollingMenuCursorPosition]
-	call ItemSwitch_GetNthItem
+	call ScrollingMenu_GetNthItem
 	ld a, [de]
 	cp [hl]
-	jr nz, .no_combine
+	jr nz, .doNotCombineSwitchItems
+	ld a, [wMenuData_ScrollingMenuSpacing]
+	cp SCROLLINGMENU_ITEMS_QUANTITY
+	jr nz, .doNotCombineSwitchItems
 	ld a, [wScrollingMenuCursorPosition]
-	call ItemSwitch_GetItemQuantity
-	cp MAX_ITEM_STACK
-	jr z, .no_combine
+	call GetQuantityOfSwitchItem
+	cp 99
+	jr z, .doNotCombineSwitchItems
 	ld a, [wSwitchItem]
-	call ItemSwitch_GetItemQuantity
-	cp MAX_ITEM_STACK
-	jr nz, .combine
-.no_combine
+	call GetQuantityOfSwitchItem
+	cp 99
+	jr nz, .combineSwitchItems
+.doNotCombineSwitchItems
 	and a
 	ret
-.combine
+
+.combineSwitchItems
 	scf
 	ret
 
-.combine_stacks:
+CombineSwitchItems:
 	ld a, [wSwitchItem]
-	call ItemSwitch_GetNthItem
+	call ScrollingMenu_GetNthItem
 	inc hl
 	push hl
 	ld a, [wScrollingMenuCursorPosition]
-	call ItemSwitch_GetNthItem
+	call ScrollingMenu_GetNthItem
 	inc hl
 	ld a, [hl]
 	pop hl
 	add [hl]
-	cp MAX_ITEM_STACK + 1
-	jr c, .merge_stacks
-	sub MAX_ITEM_STACK
+	cp 100
+	jr c, .mergeItemStacks
+	sub 99
 	push af
 	ld a, [wScrollingMenuCursorPosition]
-	call ItemSwitch_GetNthItem
+	call ScrollingMenu_GetNthItem
 	inc hl
-	ld [hl], MAX_ITEM_STACK
+	ld [hl], 99
 	ld a, [wSwitchItem]
-	call ItemSwitch_GetNthItem
+	call ScrollingMenu_GetNthItem
 	inc hl
 	pop af
 	ld [hl], a
@@ -137,10 +129,10 @@ SwitchItemsInBag:
 	ld [wSwitchItem], a
 	ret
 
-.merge_stacks:
+.mergeItemStacks
 	push af
 	ld a, [wScrollingMenuCursorPosition]
-	call ItemSwitch_GetNthItem
+	call ScrollingMenu_GetNthItem
 	inc hl
 	pop af
 	ld [hl], a
@@ -150,117 +142,87 @@ SwitchItemsInBag:
 	ld l, a
 	ld a, [wSwitchItem]
 	cp [hl]
-	jr nz, .not_combining_last_item
+	jr nz, .notCombiningLastItem
 	dec [hl]
 	ld a, [wSwitchItem]
-	call ItemSwitch_GetNthItem
-	ld [hl], -1 ; end
+	call ScrollingMenu_GetNthItem
+	ld [hl], $ff
 	xor a
 	ld [wSwitchItem], a
 	ret
 
-.not_combining_last_item:
+.notCombiningLastItem
 	dec [hl]
-	call ItemSwitch_GetItemFormatSize
+	call ItemSwitch_GetMenuSpacing
 	push bc
 	ld a, [wSwitchItem]
-	call ItemSwitch_GetNthItem
+	call ScrollingMenu_GetNthItem
 	pop bc
 	push hl
 	add hl, bc
 	pop de
-.copy_loop
+.shiftInventoryAboveLoop
 	ld a, [hli]
 	ld [de], a
 	inc de
-	cp -1 ; end?
-	jr nz, .copy_loop
+	cp $ff
+	jr nz, .shiftInventoryAboveLoop
 	xor a
 	ld [wSwitchItem], a
 	ret
 
-ItemSwitch_CopyItemToBuffer:
-	call ItemSwitch_GetNthItem
+CopySwitchItemToBuffer:
+	call ScrollingMenu_GetNthItem
 	ld de, wSwitchItemBuffer
-	call ItemSwitch_GetItemFormatSize
-	call CopyBytes
+	call ItemSwitch_GetMenuSpacing
+	rst CopyBytes
 	ret
 
-ItemSwitch_CopyBufferToItem:
-	call ItemSwitch_GetNthItem
+CopyBufferedSwitchItemToScrollLocation:
+	call ScrollingMenu_GetNthItem
 	ld d, h
 	ld e, l
 	ld hl, wSwitchItemBuffer
-	call ItemSwitch_GetItemFormatSize
-	call CopyBytes
+	call ItemSwitch_GetMenuSpacing
+	rst CopyBytes
 	ret
 
-ItemSwitch_GetNthItem:
-	push af
-	call ItemSwitch_GetItemFormatSize
-	ld hl, wMenuData_ItemsPointerAddr
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	inc hl
-	pop af
-	call AddNTimes
-	ret
-
-ItemSwitch_GetItemOffset:
+GetSwitchItemDestinationOffset:
+	ld a, [wSwitchItem]
+	call CopySwitchItemToBuffer
 	push hl
-	call ItemSwitch_GetItemFormatSize
-	ld a, d
+	call ItemSwitch_GetMenuSpacing
+	ld a, [wSwitchItem]
+	ld e, a
+	ld a, [wScrollingMenuCursorPosition]
 	sub e
 	jr nc, .dont_negate
 	dec a
 	cpl
 .dont_negate
 	ld hl, 0
-	call AddNTimes
+	rst AddNTimes
 	ld b, h
 	ld c, l
 	pop hl
 	ret
 
-ItemSwitch_GetItemFormatSize:
-	push hl
-	ld a, [wMenuData_ScrollingMenuItemFormat]
-	ld c, a
-	ld b, 0
-	ld hl, .item_format_sizes
-	add hl, bc
-	add hl, bc
-	ld c, [hl]
-	inc hl
-	ld b, [hl]
-	pop hl
+ItemSwitch_GetMenuSpacing:
+	ld a, [wMenuData_ScrollingMenuSpacing]
+	assert SCROLLINGMENU_ITEMS_QUANTITY == 2
+	ld bc, SCROLLINGMENU_ITEMS_QUANTITY
+	cp c
+	ret z
+	dec c
 	ret
 
-.item_format_sizes:
-; entries correspond to SCROLLINGMENU_ITEMS_* constants
-	dw 0 ; unused
-	dw 1 ; SCROLLINGMENU_ITEMS_NORMAL
-	dw 2 ; SCROLLINGMENU_ITEMS_QUANTITY
-
-ItemSwitch_GetItemQuantity:
-	push af
-	call ItemSwitch_GetItemFormatSize
-	ld a, c
-	cp 2
-	jr nz, .no_quantity
-	pop af
-	call ItemSwitch_GetNthItem
+GetQuantityOfSwitchItem:
+	call ScrollingMenu_GetNthItem
 	inc hl
 	ld a, [hl]
 	ret
 
-.no_quantity
-	pop af
-	ld a, 1
-	ret
-
-ItemSwitch_BackwardsCopyBytes:
+SwitchItems_BackwardsCopy:
 .loop
 	ld a, [hld]
 	ld [de], a
@@ -270,3 +232,51 @@ ItemSwitch_BackwardsCopyBytes:
 	or c
 	jr nz, .loop
 	ret
+
+SortItemsInBag:
+; Sorts items in the bag.
+; wMenuCursorY=1: by name
+; wMenuCursorY=2: by type (index order)
+	ld hl, GetSortingItemIndex
+	ld de, DoPackInsertSort
+	jmp SortItems
+
+GetSortingItemIndex:
+	ld a, b
+	push hl
+	push bc
+	call ScrollingMenu_GetNthItem
+	ld c, [hl]
+
+	; If we're dealing with key items, we still want a terminator of -1.
+	; To simplify handling, just decrement key item indices by 1.
+	ld a, [wCurPocket]
+	cp KEY_ITEM - 1
+	ld hl, ItemNameOrder
+	jr nz, .got_item_data
+	ld hl, KeyItemNameOrder
+	dec c
+.got_item_data
+	; If we're sorting by index, c has our desired value.
+	ld a, [wMenuCursorY]
+	dec a
+	ld a, c
+	jr z, .done
+
+	; If c is -1 (terminator), return it directly. We can't rely on
+	; NameOrder ending with a terminator, because we don't have 255
+	; key items, in case we're dealing with those.
+	inc c
+	jr z, .done
+
+	; Otherwise, reference the desired return index from NameOrder.
+	dec c
+	ld b, 0
+	add hl, bc
+	ld a, [hl]
+.done
+	pop bc
+	pop hl
+	ret
+
+INCLUDE "data/items/name_order.asm"

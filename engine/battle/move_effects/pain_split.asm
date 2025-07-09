@@ -1,91 +1,64 @@
-BattleCommand_PainSplit:
-	ld a, [wAttackMissed]
-	and a
-	jp nz, .ButItFailed
-	call CheckSubstituteOpp
-	jp nz, .ButItFailed
+BattleCommand_painsplit:
+	call CheckHiddenOpponent
+	jr nz, .failed
+
 	call AnimateCurrentMove
-	ld hl, wBattleMonMaxHP + 1
-	ld de, wEnemyMonMaxHP + 1
-	call .PlayerShareHP
-	ld a, $1
-	ld [wWhichHPBar], a
-	hlcoord 10, 9
-	predef AnimateHPBar
-	ld hl, wEnemyMonHP
-	ld a, [hli]
-	ld [wHPBuffer2 + 1], a
-	ld a, [hli]
-	ld [wHPBuffer2], a
-	ld a, [hli]
-	ld [wHPBuffer1 + 1], a
-	ld a, [hl]
-	ld [wHPBuffer1], a
-	call .EnemyShareHP
-	xor a
-	ld [wWhichHPBar], a
-	call ResetDamage
-	hlcoord 2, 2
-	predef AnimateHPBar
-	farcall _UpdateBattleHUDs
 
-	ld hl, SharedPainText
-	jp StdBattleTextbox
+	; Get HP
+	ld hl, wEnemyMonHP + 1
+	ld de, wBattleMonHP + 1
+	ldh a, [hBattleTurn]
+	and a
+	call nz, SwapHLDE
 
-.PlayerShareHP:
-	ld a, [hld]
-	ld [wHPBuffer1], a
-	ld a, [hld]
-	ld [wHPBuffer1 + 1], a
-	ld a, [hld]
-	ld b, a
-	ld [wHPBuffer2], a
-	ld a, [hl]
-	ld [wHPBuffer2 + 1], a
-	dec de
-	dec de
+	; Set bc to [de] - [hl] (user HP - target HP)
 	ld a, [de]
-	dec de
-	add b
-	ld [wCurDamage + 1], a
-	ld b, [hl]
-	ld a, [de]
-	adc b
-	srl a
-	ld [wCurDamage], a
-	ld a, [wCurDamage + 1]
-	rr a
-	ld [wCurDamage + 1], a
-	inc hl
-	inc hl
-	inc hl
-	inc de
-	inc de
-	inc de
-
-.EnemyShareHP:
-	ld c, [hl]
-	dec hl
-	ld a, [wCurDamage + 1]
-	sub c
-	ld b, [hl]
-	dec hl
-	ld a, [wCurDamage]
-	sbc b
-	jr nc, .skip
-
-	ld a, [wCurDamage]
-	ld b, a
-	ld a, [wCurDamage + 1]
+	sub [hl]
 	ld c, a
-.skip
-	ld a, c
-	ld [hld], a
-	ld [wHPBuffer3], a
-	ld a, b
-	ld [hli], a
-	ld [wHPBuffer3 + 1], a
-	ret
+	dec de
+	dec hl
+	ld a, [de]
+	sbc [hl]
+	jr c, .target_has_more
+	ld b, a
+	or c
+	jr z, .done ; do nothing, they're equal
 
-.ButItFailed:
-	jp PrintDidntAffect2
+	; User has more
+.share
+	; updates HP anim buffers
+	push bc
+	call GetMaxHP
+	pop bc
+	srl b
+	rr c
+	push bc
+	jr nc, .even_share
+	inc bc ; HP difference is odd, so round down result (HP decrease is done first)
+.even_share
+	predef SubtractHPFromUser
+	call UpdateUserInParty
+	call SwitchTurn
+	call GetMaxHP
+	pop bc
+	farcall RestoreHP
+	call UpdateUserInParty
+	call SwitchTurn
+.done
+	ld hl, SharedPainText ; text is turn agnostic, so turn swap if target>user is OK
+	jmp StdBattleTextbox
+
+.target_has_more
+	cpl
+	ld b, a
+	ld a, c
+	cpl
+	ld c, a
+	inc bc
+	call SwitchTurn
+	call .share
+	jmp SwitchTurn
+
+.failed
+	call AnimateFailedMove
+	jmp PrintButItFailed

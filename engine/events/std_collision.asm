@@ -1,8 +1,8 @@
 CheckFacingTileForStdScript::
 ; Checks to see if the tile you're facing has a std script associated with it.  If so, executes the script and returns carry.
 	ld a, c
-	ld de, 3
 	ld hl, TileCollisionStdScripts
+	ld de, 3
 	call IsInArray
 	jr nc, .notintable
 
@@ -13,8 +13,8 @@ CheckFacingTileForStdScript::
 	ld [wJumpStdScriptBuffer + 1], a
 	ld a, [hli]
 	ld [wJumpStdScriptBuffer + 2], a
-	ld a, BANK(Script_JumpStdFromRAM)
-	ld hl, Script_JumpStdFromRAM
+	ld a, BANK(.JumpStdFromRAMScript)
+	ld hl, .JumpStdFromRAMScript
 	call CallScript
 	scf
 	ret
@@ -23,7 +23,7 @@ CheckFacingTileForStdScript::
 	xor a
 	ret
 
-INCLUDE "data/collision/collision_stdscripts.asm"
-
-Script_JumpStdFromRAM:
+.JumpStdFromRAMScript:
 	sjump wJumpStdScriptBuffer
+
+INCLUDE "data/collision/collision_std_scripts.asm"

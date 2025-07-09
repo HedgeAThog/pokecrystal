@@ -1,20 +1,17 @@
-	db MAGIKARP ; 129
-
-	db  20,  10,  55,  80,  15,  20
-	;   hp  atk  def  spd  sat  sdf
+	db  20,  10,  55,  80,  15,  20 ; 200 BST
+	;   hp  atk  def  spe  sat  sdf
 
 	db WATER, WATER ; type
 	db 255 ; catch rate
 	db 20 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_F50 ; gender ratio
-	db 100 ; unknown 1
-	db 5 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/magikarp/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db NO_ITEM, NO_ITEM ; held items
+	dn GENDER_F50, HATCH_FASTEST ; gender ratio, step cycles to hatch
+
+	abilities_for MAGIKARP, SWIFT_SWIM, SWIFT_SWIM, RATTLED
 	db GROWTH_SLOW ; growth rate
 	dn EGG_WATER_2, EGG_DRAGON ; egg groups
+
+	ev_yield 1 Spe
 
 	; tm/hm learnset
 	tmhm

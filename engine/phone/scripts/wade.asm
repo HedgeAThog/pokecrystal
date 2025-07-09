@@ -1,26 +1,26 @@
-WadePhoneCalleeScript:
-	gettrainername STRING_BUFFER_3, BUG_CATCHER, WADE1
+WadePhoneScript1:
+	gettrainername BUG_CATCHER, WADE1, STRING_BUFFER_3
 	checkflag ENGINE_WADE_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	farscall PhoneScript_AnswerPhone_Male
 	checkflag ENGINE_WADE_TUESDAY_NIGHT
-	iftrue .NotTuesday
+	iftruefwd .NotTuesday
 	checkflag ENGINE_WADE_HAS_ITEM
-	iftrue .HasItem
+	iftruefwd .HasItem
 	readvar VAR_WEEKDAY
 	ifnotequal TUESDAY, .NotTuesday
-	checktime NITE
-	iftrue WadeTuesdayNight
+	checktime (1 << EVE) | (1 << NITE)
+	iftruefwd WadeTuesdayNight
 
 .NotTuesday:
 	farscall PhoneScript_Random2
-	ifequal 0, .NoContest
+	ifequalfwd $0, .NoContest
 	checkflag ENGINE_DAILY_BUG_CONTEST
-	iftrue .NoContest
+	iftruefwd .NoContest
 	readvar VAR_WEEKDAY
-	ifequal TUESDAY, .ContestToday
-	ifequal THURSDAY, .ContestToday
-	ifequal SATURDAY, .ContestToday
+	ifequalfwd TUESDAY, .ContestToday
+	ifequalfwd THURSDAY, .ContestToday
+	ifequalfwd SATURDAY, .ContestToday
 
 .NoContest:
 	farsjump WadeNoBerriesScript
@@ -29,42 +29,42 @@ WadePhoneCalleeScript:
 	farsjump PhoneScript_BugCatchingContest
 
 .WantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_31
+	getlandmarkname ROUTE_31, STRING_BUFFER_5
 	farsjump WadeQuickBattleScript
 
 .HasItem:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_31
+	getlandmarkname ROUTE_31, STRING_BUFFER_5
 	farsjump WadeComeQuickScript
 
-WadePhoneCallerScript:
-	gettrainername STRING_BUFFER_3, BUG_CATCHER, WADE1
+WadePhoneScript2:
+	gettrainername BUG_CATCHER, WADE1, STRING_BUFFER_3
 	farscall PhoneScript_GreetPhone_Male
 	farscall PhoneScript_Random2
-	ifequal 0, .NoContest
+	ifequalfwd $0, .NoContest
 	checkflag ENGINE_DAILY_BUG_CONTEST
-	iftrue .NoContest
+	iftruefwd .NoContest
 	readvar VAR_WEEKDAY
-	ifequal TUESDAY, .ContestToday
-	ifequal THURSDAY, .ContestToday
-	ifequal SATURDAY, .ContestToday
+	ifequalfwd TUESDAY, .ContestToday
+	ifequalfwd THURSDAY, .ContestToday
+	ifequalfwd SATURDAY, .ContestToday
 
 .NoContest:
 	checkflag ENGINE_WADE_READY_FOR_REMATCH
-	iftrue .next
+	iftruefwd .next
 	checkflag ENGINE_WADE_TUESDAY_NIGHT
-	iftrue .next
+	iftruefwd .next
 	checkflag ENGINE_WADE_HAS_ITEM
-	iftrue .next
+	iftruefwd .next
 	farscall PhoneScript_Random2
-	ifequal 0, WadeHasItem2
+	ifequalfwd $0, WadeHasItem2
 	checkflag ENGINE_FLYPOINT_GOLDENROD
-	iffalse .next
+	iffalsefwd .next
 	farscall PhoneScript_Random2
-	ifequal 0, WadeWantsBattle2
+	ifequalfwd $0, WadeWantsBattle2
 
 .next:
 	farscall PhoneScript_Random3
-	ifequal 0, WadeFoundRare
+	ifequalfwd $0, WadeFoundRare
 	farsjump Phone_GenericCall_Male
 
 .ContestToday:
@@ -74,7 +74,7 @@ WadeTuesdayNight:
 	setflag ENGINE_WADE_TUESDAY_NIGHT
 
 WadeWantsBattle2:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_31
+	getlandmarkname ROUTE_31, STRING_BUFFER_5
 	setflag ENGINE_WADE_READY_FOR_REMATCH
 	farsjump PhoneScript_WantsToBattle_Male
 
@@ -83,31 +83,31 @@ WadeFoundRare:
 
 WadeHasItem2:
 	setflag ENGINE_WADE_HAS_ITEM
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_31
-	clearevent EVENT_WADE_HAS_BERRY
-	clearevent EVENT_WADE_HAS_PSNCUREBERRY
-	clearevent EVENT_WADE_HAS_PRZCUREBERRY
-	clearevent EVENT_WADE_HAS_BITTER_BERRY
-	random 4
-	ifequal 0, .Berry
-	ifequal 1, .PsnCureBerry
-	ifequal 2, .PrzCureBerry
-	ifequal 3, .Bitterberry
+	getlandmarkname ROUTE_31, STRING_BUFFER_5
+	clearevent EVENT_WADE_HAS_ORAN_BERRY
+	clearevent EVENT_WADE_HAS_PECHA_BERRY
+	clearevent EVENT_WADE_HAS_CHERI_BERRY
+	clearevent EVENT_WADE_HAS_PERSIM_BERRY
+	random $4
+	ifequalfwd $0, .Berry
+	ifequalfwd $1, .PsnCureBerry
+	ifequalfwd $2, .PrzCureBerry
+	ifequalfwd $3, .Bitterberry
 
 .Berry:
-	setevent EVENT_WADE_HAS_BERRY
-	sjump .FoundBerry
+	setevent EVENT_WADE_HAS_ORAN_BERRY
+	sjumpfwd .FoundBerry
 
 .PsnCureBerry:
-	setevent EVENT_WADE_HAS_PSNCUREBERRY
-	sjump .FoundBerry
+	setevent EVENT_WADE_HAS_PECHA_BERRY
+	sjumpfwd .FoundBerry
 
 .PrzCureBerry:
-	setevent EVENT_WADE_HAS_PRZCUREBERRY
-	sjump .FoundBerry
+	setevent EVENT_WADE_HAS_CHERI_BERRY
+	sjumpfwd .FoundBerry
 
 .Bitterberry:
-	setevent EVENT_WADE_HAS_BITTER_BERRY
+	setevent EVENT_WADE_HAS_PERSIM_BERRY
 
 .FoundBerry:
 	farsjump PhoneScript_FoundItem_Male

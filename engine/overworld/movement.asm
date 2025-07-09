@@ -1,4 +1,10 @@
-MovementPointers:
+DoMovementFunction:
+	push af
+	call ApplyMovementToFollower
+	pop af
+	call StackJumpTable
+
+.MovementPointers:
 ; entries correspond to movement_* constants (see macros/scripts/movement.asm)
 	table_width 2
 	dw Movement_turn_head_down        ; 00
@@ -73,10 +79,10 @@ MovementPointers:
 	dw Movement_step_sleep_8          ; 45
 	dw Movement_step_sleep            ; 46
 	dw Movement_step_end              ; 47
-	dw Movement_step_wait_end         ; 48
+	dw Movement_step_resume           ; 48
 	dw Movement_remove_object         ; 49
 	dw Movement_step_loop             ; 4a
-	dw Movement_stop                  ; 4b
+	dw Movement_4b                    ; 4b
 	dw Movement_teleport_from         ; 4c
 	dw Movement_teleport_to           ; 4d
 	dw Movement_skyfall               ; 4e
@@ -91,6 +97,20 @@ MovementPointers:
 	dw Movement_rock_smash            ; 57
 	dw Movement_return_dig            ; 58
 	dw Movement_skyfall_top           ; 59
+	dw Movement_run_step_down         ; 5a
+	dw Movement_run_step_up           ; 5b
+	dw Movement_run_step_left         ; 5c
+	dw Movement_run_step_right        ; 5d
+	dw Movement_fast_step_down        ; 5e
+	dw Movement_fast_step_up          ; 5f
+	dw Movement_fast_step_left        ; 60
+	dw Movement_fast_step_right       ; 61
+	dw Movement_stairs_step_down      ; 62
+	dw Movement_stairs_step_up        ; 63
+	dw Movement_stairs_step_left      ; 64
+	dw Movement_stairs_step_right     ; 65
+	dw Movement_exeggutor_shake       ; 66
+	dw Movement_step_right            ; 67
 	assert_table_length NUM_MOVEMENT_CMDS
 
 Movement_teleport_from:
@@ -193,8 +213,9 @@ Movement_step_loop:
 	ld hl, OBJECT_MOVEMENT_INDEX
 	add hl, bc
 	ld [hl], $0
-	jp ContinueReadingMovement
+	jmp ContinueReadingMovement
 
+Movement_step_resume:
 Movement_step_end:
 	call RestoreDefaultMovement
 	ld hl, OBJECT_MOVEMENT_TYPE
@@ -213,33 +234,10 @@ Movement_step_end:
 	ld [hl], STEP_TYPE_FROM_MOVEMENT
 	ret
 
-Movement_step_wait_end:
-	call RestoreDefaultMovement
-	ld hl, OBJECT_MOVEMENT_TYPE
-	add hl, bc
-	ld [hl], a
-
-	ld hl, OBJECT_MOVEMENT_INDEX
-	add hl, bc
-	ld [hl], $0
-
-	call JumpMovementPointer
-	ld hl, OBJECT_STEP_DURATION
-	add hl, bc
-	ld [hl], a
-
-	ld hl, OBJECT_STEP_TYPE
-	add hl, bc
-	ld [hl], STEP_TYPE_SLEEP
-
-	ld hl, wStateFlags
-	res SCRIPTED_MOVEMENT_STATE_F, [hl]
-	ret
-
 Movement_remove_object:
 	call DeleteMapObject
 	ld hl, wObjectFollow_Leader
-	ldh a, [hMapObjectIndex]
+	ldh a, [hMapObjectIndexBuffer]
 	cp [hl]
 	jr nz, .not_leading
 	ld [hl], -1
@@ -249,7 +247,7 @@ Movement_remove_object:
 	res SCRIPTED_MOVEMENT_STATE_F, [hl]
 	ret
 
-Movement_stop:
+Movement_4b:
 	ld hl, OBJECT_ACTION
 	add hl, bc
 	ld [hl], OBJECT_ACTION_STAND
@@ -297,10 +295,8 @@ Movement_step_sleep_8:
 Movement_step_sleep:
 ; parameters:
 ;	duration (DecimalParam)
-
 	call JumpMovementPointer
-	jr Movement_step_sleep_common
-
+	; fallthrough
 Movement_step_sleep_common:
 	ld hl, OBJECT_STEP_DURATION
 	add hl, bc
@@ -338,11 +334,16 @@ Movement_step_bump:
 	ld [hl], STANDING
 	ret
 
+Movement_exeggutor_shake:
+	lb de, OBJECT_ACTION_SHAKE_EXEGGUTOR, 64
+	jr ShakeTree
+
 Movement_tree_shake:
-	ld a, 24
+	lb de, OBJECT_ACTION_WEIRD_TREE, 24
+ShakeTree:
 	ld hl, OBJECT_STEP_DURATION
 	add hl, bc
-	ld [hl], a
+	ld [hl], e
 
 	ld hl, OBJECT_STEP_TYPE
 	add hl, bc
@@ -350,7 +351,7 @@ Movement_tree_shake:
 
 	ld hl, OBJECT_ACTION
 	add hl, bc
-	ld [hl], OBJECT_ACTION_WEIRD_TREE
+	ld [hl], d
 
 	ld hl, OBJECT_WALKING
 	add hl, bc
@@ -361,45 +362,45 @@ Movement_remove_sliding:
 	ld hl, OBJECT_FLAGS1
 	add hl, bc
 	res SLIDING_F, [hl]
-	jp ContinueReadingMovement
+	jmp ContinueReadingMovement
 
 Movement_set_sliding:
 	ld hl, OBJECT_FLAGS1
 	add hl, bc
 	set SLIDING_F, [hl]
-	jp ContinueReadingMovement
+	jmp ContinueReadingMovement
 
 Movement_remove_fixed_facing:
 	ld hl, OBJECT_FLAGS1
 	add hl, bc
 	res FIXED_FACING_F, [hl]
-	jp ContinueReadingMovement
+	jmp ContinueReadingMovement
 
 Movement_fix_facing:
 	ld hl, OBJECT_FLAGS1
 	add hl, bc
 	set FIXED_FACING_F, [hl]
-	jp ContinueReadingMovement
+	jmp ContinueReadingMovement
 
 Movement_show_object:
 	ld hl, OBJECT_FLAGS1
 	add hl, bc
 	res INVISIBLE_F, [hl]
-	jp ContinueReadingMovement
+	jmp ContinueReadingMovement
 
 Movement_hide_object:
 	ld hl, OBJECT_FLAGS1
 	add hl, bc
 	set INVISIBLE_F, [hl]
-	jp ContinueReadingMovement
+	jmp ContinueReadingMovement
 
 Movement_hide_emote:
 	call DespawnEmote
-	jp ContinueReadingMovement
+	jmp ContinueReadingMovement
 
 Movement_show_emote:
 	call SpawnEmote
-	jp ContinueReadingMovement
+	jmp ContinueReadingMovement
 
 Movement_step_shake:
 ; parameters:
@@ -407,7 +408,7 @@ Movement_step_shake:
 
 	call JumpMovementPointer
 	call ShakeScreen
-	jp ContinueReadingMovement
+	jmp ContinueReadingMovement
 
 Movement_turn_head_down:
 	ld a, OW_DOWN
@@ -423,8 +424,7 @@ Movement_turn_head_left:
 
 Movement_turn_head_right:
 	ld a, OW_RIGHT
-	jr TurnHead
-
+	; fallthrough
 TurnHead:
 	ld hl, OBJECT_DIRECTION
 	add hl, bc
@@ -441,195 +441,235 @@ TurnHead:
 
 Movement_slow_step_down:
 	ld a, STEP_SLOW << 2 | DOWN
-	jp NormalStep
+	jr Movement_do_step
 
 Movement_slow_step_up:
 	ld a, STEP_SLOW << 2 | UP
-	jp NormalStep
+	jr Movement_do_step
 
 Movement_slow_step_left:
 	ld a, STEP_SLOW << 2 | LEFT
-	jp NormalStep
+	jr Movement_do_step
 
 Movement_slow_step_right:
 	ld a, STEP_SLOW << 2 | RIGHT
-	jp NormalStep
+	jr Movement_do_step
 
 Movement_step_down:
 	ld a, STEP_WALK << 2 | DOWN
-	jp NormalStep
+	jr Movement_do_step
 
 Movement_step_up:
 	ld a, STEP_WALK << 2 | UP
-	jp NormalStep
+	jr Movement_do_step
 
 Movement_step_left:
 	ld a, STEP_WALK << 2 | LEFT
-	jp NormalStep
+	jr Movement_do_step
 
 Movement_step_right:
 	ld a, STEP_WALK << 2 | RIGHT
-	jp NormalStep
+	jr Movement_do_step
+
+Movement_fast_step_down:
+	ld a, STEP_RUN << 2 | DOWN
+	jr Movement_do_step
+
+Movement_fast_step_up:
+	ld a, STEP_RUN << 2 | UP
+	jr Movement_do_step
+
+Movement_fast_step_left:
+	ld a, STEP_RUN << 2 | LEFT
+	jr Movement_do_step
+
+Movement_fast_step_right:
+	ld a, STEP_RUN << 2 | RIGHT
+	jr Movement_do_step
 
 Movement_big_step_down:
 	ld a, STEP_BIKE << 2 | DOWN
-	jp NormalStep
+	jr Movement_do_step
 
 Movement_big_step_up:
 	ld a, STEP_BIKE << 2 | UP
-	jp NormalStep
+	jr Movement_do_step
 
 Movement_big_step_left:
 	ld a, STEP_BIKE << 2 | LEFT
-	jp NormalStep
+	jr Movement_do_step
 
 Movement_big_step_right:
 	ld a, STEP_BIKE << 2 | RIGHT
-	jp NormalStep
+Movement_do_step:
+	ld d, OBJECT_ACTION_STEP
+Movement_normal_step:
+	jmp NormalStep
+
+Movement_run_step_down:
+	ld a, STEP_RUN << 2 | DOWN  ; STEP_RUN
+	jr Movement_do_run
+
+Movement_run_step_up:
+	ld a, STEP_RUN << 2 | UP    ; STEP_RUN
+	jr Movement_do_run
+
+Movement_run_step_left:
+	ld a, STEP_RUN << 2 | LEFT  ; STEP_RUN
+	jr Movement_do_run
+
+Movement_run_step_right:
+	ld a, STEP_RUN << 2 | RIGHT ; STEP_RUN
+Movement_do_run:
+	ld d, OBJECT_ACTION_RUN
+	jr Movement_normal_step
 
 Movement_turn_away_down:
 	ld a, STEP_SLOW << 2 | DOWN
-	jp TurningStep
+	jr Movement_turning_step
 
 Movement_turn_away_up:
 	ld a, STEP_SLOW << 2 | UP
-	jp TurningStep
+	jr Movement_turning_step
 
 Movement_turn_away_left:
 	ld a, STEP_SLOW << 2 | LEFT
-	jp TurningStep
+	jr Movement_turning_step
 
 Movement_turn_away_right:
 	ld a, STEP_SLOW << 2 | RIGHT
-	jp TurningStep
+	jr Movement_turning_step
 
 Movement_turn_in_down:
 	ld a, STEP_WALK << 2 | DOWN
-	jp TurningStep
+	jr Movement_turning_step
 
 Movement_turn_in_up:
 	ld a, STEP_WALK << 2 | UP
-	jp TurningStep
+	jr Movement_turning_step
 
 Movement_turn_in_left:
 	ld a, STEP_WALK << 2 | LEFT
-	jp TurningStep
+	jr Movement_turning_step
 
 Movement_turn_in_right:
 	ld a, STEP_WALK << 2 | RIGHT
-	jp TurningStep
+	jr Movement_turning_step
 
 Movement_turn_waterfall_down:
-	ld a, STEP_BIKE << 2 | DOWN
-	jp TurningStep
+	ld a, STEP_WALK << 2 | DOWN
+	jr Movement_turning_step
 
 Movement_turn_waterfall_up:
-	ld a, STEP_BIKE << 2 | UP
-	jp TurningStep
+	ld a, STEP_WALK << 2 | UP
+	jr Movement_turning_step
 
 Movement_turn_waterfall_left:
-	ld a, STEP_BIKE << 2 | LEFT
-	jp TurningStep
+	ld a, STEP_WALK << 2 | LEFT
+	jr Movement_turning_step
 
 Movement_turn_waterfall_right:
-	ld a, STEP_BIKE << 2 | RIGHT
-	jp TurningStep
+	ld a, STEP_WALK << 2 | RIGHT
+Movement_turning_step:
+	jmp TurningStep
 
 Movement_slow_slide_step_down:
 	ld a, STEP_SLOW << 2 | DOWN
-	jp SlideStep
+	jr Movement_slide_step
 
 Movement_slow_slide_step_up:
 	ld a, STEP_SLOW << 2 | UP
-	jp SlideStep
+	jr Movement_slide_step
 
 Movement_slow_slide_step_left:
 	ld a, STEP_SLOW << 2 | LEFT
-	jp SlideStep
+	jr Movement_slide_step
 
 Movement_slow_slide_step_right:
 	ld a, STEP_SLOW << 2 | RIGHT
-	jp SlideStep
+	jr Movement_slide_step
 
 Movement_slide_step_down:
 	ld a, STEP_WALK << 2 | DOWN
-	jp SlideStep
+	jr Movement_slide_step
 
 Movement_slide_step_up:
 	ld a, STEP_WALK << 2 | UP
-	jp SlideStep
+	jr Movement_slide_step
 
 Movement_slide_step_left:
 	ld a, STEP_WALK << 2 | LEFT
-	jp SlideStep
+	jr Movement_slide_step
 
 Movement_slide_step_right:
 	ld a, STEP_WALK << 2 | RIGHT
-	jp SlideStep
+	jr Movement_slide_step
 
 Movement_fast_slide_step_down:
-	ld a, STEP_BIKE << 2 | DOWN
-	jp SlideStep
+	ld a, STEP_RUN << 2 | DOWN
+	jr Movement_slide_step
 
 Movement_fast_slide_step_up:
-	ld a, STEP_BIKE << 2 | UP
-	jp SlideStep
+	ld a, STEP_RUN << 2 | UP
+	jr Movement_slide_step
 
 Movement_fast_slide_step_left:
-	ld a, STEP_BIKE << 2 | LEFT
-	jp SlideStep
+	ld a, STEP_RUN << 2 | LEFT
+	jr Movement_slide_step
 
 Movement_fast_slide_step_right:
-	ld a, STEP_BIKE << 2 | RIGHT
-	jp SlideStep
+	ld a, STEP_RUN << 2 | RIGHT
+Movement_slide_step:
+	jmp SlideStep
 
 Movement_slow_jump_step_down:
 	ld a, STEP_SLOW << 2 | DOWN
-	jp JumpStep
+	jr Movement_jump_step
 
 Movement_slow_jump_step_up:
 	ld a, STEP_SLOW << 2 | UP
-	jp JumpStep
+	jr Movement_jump_step
 
 Movement_slow_jump_step_left:
 	ld a, STEP_SLOW << 2 | LEFT
-	jp JumpStep
+	jr Movement_jump_step
 
 Movement_slow_jump_step_right:
 	ld a, STEP_SLOW << 2 | RIGHT
-	jp JumpStep
+	jr Movement_jump_step
 
 Movement_jump_step_down:
 	ld a, STEP_WALK << 2 | DOWN
-	jp JumpStep
+	jr Movement_jump_step
 
 Movement_jump_step_up:
 	ld a, STEP_WALK << 2 | UP
-	jp JumpStep
+	jr Movement_jump_step
 
 Movement_jump_step_left:
 	ld a, STEP_WALK << 2 | LEFT
-	jp JumpStep
+	jr Movement_jump_step
 
 Movement_jump_step_right:
 	ld a, STEP_WALK << 2 | RIGHT
-	jp JumpStep
+	jr Movement_jump_step
 
 Movement_fast_jump_step_down:
 	ld a, STEP_BIKE << 2 | DOWN
-	jp JumpStep
+	jr Movement_jump_step
 
 Movement_fast_jump_step_up:
 	ld a, STEP_BIKE << 2 | UP
-	jp JumpStep
+	jr Movement_jump_step
 
 Movement_fast_jump_step_left:
 	ld a, STEP_BIKE << 2 | LEFT
-	jp JumpStep
+	jr Movement_jump_step
 
 Movement_fast_jump_step_right:
 	ld a, STEP_BIKE << 2 | RIGHT
-	jp JumpStep
+Movement_jump_step:
+	jr JumpStep ; no-optimize stub jump
 
 Movement_turn_step_down:
 	ld a, OW_DOWN
@@ -645,8 +685,7 @@ Movement_turn_step_left:
 
 Movement_turn_step_right:
 	ld a, OW_RIGHT
-	jr TurnStep
-
+	; fallthrough
 TurnStep:
 	ld hl, OBJECT_1D ; new facing
 	add hl, bc
@@ -662,38 +701,41 @@ TurnStep:
 	ret
 
 NormalStep:
+	push de
 	call InitStep
 	call UpdateTallGrassFlags
 	ld hl, OBJECT_ACTION
 	add hl, bc
 	ld [hl], OBJECT_ACTION_STEP
+	pop de
+	ld [hl], d
+
+	ld hl, OBJECT_FLAGS1
+	add hl, bc
+	bit INVISIBLE_F, [hl]
+	jr nz, SetWalkStepType
 
 	ld hl, OBJECT_TILE_COLLISION
 	add hl, bc
 	ld a, [hl]
-	call CheckSuperTallGrassTile
+	cp COLL_LONG_GRASS
 	jr z, .shake_grass
-
-	call CheckGrassTile
-	jr c, .skip_grass
+	cp COLL_TALL_GRASS
+	jr z, .shake_grass
+	cp COLL_PUDDLE
+	call z, SplashPuddle
+	jr SetWalkStepType
 
 .shake_grass
 	call ShakeGrass
-
-.skip_grass
+SetWalkStepType:
 	ld hl, wCenteredObject
-	ldh a, [hMapObjectIndex]
+	ldh a, [hMapObjectIndexBuffer]
 	cp [hl]
-	jr z, .player
-
 	ld hl, OBJECT_STEP_TYPE
 	add hl, bc
 	ld [hl], STEP_TYPE_NPC_WALK
-	ret
-
-.player
-	ld hl, OBJECT_STEP_TYPE
-	add hl, bc
+	ret nz
 	ld [hl], STEP_TYPE_PLAYER_WALK
 	ret
 
@@ -704,22 +746,7 @@ TurningStep:
 	ld hl, OBJECT_ACTION
 	add hl, bc
 	ld [hl], OBJECT_ACTION_SPIN
-
-	ld hl, wCenteredObject
-	ldh a, [hMapObjectIndex]
-	cp [hl]
-	jr z, .player
-
-	ld hl, OBJECT_STEP_TYPE
-	add hl, bc
-	ld [hl], STEP_TYPE_NPC_WALK
-	ret
-
-.player
-	ld hl, OBJECT_STEP_TYPE
-	add hl, bc
-	ld [hl], STEP_TYPE_PLAYER_WALK
-	ret
+	jr SetWalkStepType
 
 SlideStep:
 	call InitStep
@@ -728,22 +755,7 @@ SlideStep:
 	ld hl, OBJECT_ACTION
 	add hl, bc
 	ld [hl], OBJECT_ACTION_STAND
-
-	ld hl, wCenteredObject
-	ldh a, [hMapObjectIndex]
-	cp [hl]
-	jr z, .player
-
-	ld hl, OBJECT_STEP_TYPE
-	add hl, bc
-	ld [hl], STEP_TYPE_NPC_WALK
-	ret
-
-.player
-	ld hl, OBJECT_STEP_TYPE
-	add hl, bc
-	ld [hl], STEP_TYPE_PLAYER_WALK
-	ret
+	jr SetWalkStepType
 
 JumpStep:
 	call InitStep
@@ -762,17 +774,46 @@ JumpStep:
 	call SpawnShadow
 
 	ld hl, wCenteredObject
-	ldh a, [hMapObjectIndex]
+	ldh a, [hMapObjectIndexBuffer]
 	cp [hl]
-	jr z, .player
-
 	ld hl, OBJECT_STEP_TYPE
 	add hl, bc
 	ld [hl], STEP_TYPE_NPC_JUMP
+	ret nz
+	ld [hl], STEP_TYPE_PLAYER_JUMP
 	ret
 
-.player
+Movement_stairs_step_down:
+	ld a, STEP_WALK << 2 | DOWN
+	jr DiagonalStairsStep
+
+Movement_stairs_step_up:
+	ld a, STEP_WALK << 2 | UP
+	jr DiagonalStairsStep
+
+Movement_stairs_step_left:
+	ld a, STEP_WALK << 2 | LEFT
+	jr DiagonalStairsStep
+
+Movement_stairs_step_right:
+	ld a, STEP_WALK << 2 | RIGHT
+
+DiagonalStairsStep:
+	call InitStep
+	ld hl, OBJECT_JUMP_HEIGHT
+	add hl, bc
+	ld [hl], $0
+
+	ld hl, OBJECT_ACTION
+	add hl, bc
+	ld [hl], OBJECT_ACTION_STEP
+
+	ld hl, wCenteredObject
+	ldh a, [hMapObjectIndexBuffer]
+	cp [hl]
 	ld hl, OBJECT_STEP_TYPE
 	add hl, bc
-	ld [hl], STEP_TYPE_PLAYER_JUMP
+	ld [hl], STEP_TYPE_NPC_STAIRS
+	ret nz
+	ld [hl], STEP_TYPE_PLAYER_STAIRS
 	ret

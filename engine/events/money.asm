@@ -1,8 +1,6 @@
 GiveMoney::
-	ld a, 3
 	call AddMoney
 	ld bc, MaxMoney
-	ld a, 3
 	call CompareMoney
 	jr z, .not_maxed_out
 	jr c, .not_maxed_out
@@ -23,10 +21,9 @@ GiveMoney::
 	ret
 
 MaxMoney:
-	bigdt MAX_MONEY
+	dt MAX_MONEY
 
 TakeMoney::
-	ld a, 3
 	call SubtractMoney
 	jr nc, .okay
 	; leave with 0 money
@@ -42,6 +39,16 @@ TakeMoney::
 .okay
 	and a
 	ret
+
+CheckBP::
+	ld de, wBattlePoints
+	jr _Check2
+
+CheckCoins::
+	ld de, wCoins
+_Check2:
+	ld a, 2
+	jr CompareFunds
 
 CompareMoney::
 	ld a, 3
@@ -86,10 +93,7 @@ CompareFunds:
 	and a
 	scf
 .skip_carry
-	pop bc
-	pop de
-	pop hl
-	ret
+	jmp PopBCDEHL
 
 SubtractMoney:
 	ld a, 3
@@ -121,10 +125,7 @@ SubtractFunds:
 	dec hl
 	dec b
 	jr nz, .loop2
-	pop bc
-	pop de
-	pop hl
-	ret
+	jmp PopBCDEHL
 
 AddMoney:
 	ld a, 3
@@ -157,14 +158,16 @@ AddFunds:
 	dec b
 	jr nz, .loop2
 
-	pop bc
-	pop de
-	pop hl
-	ret
+	jmp PopBCDEHL
+
+GiveBP::
+	ld de, wBattlePoints
+	jr _GiveUpto50K
 
 GiveCoins::
-	ld a, 2
 	ld de, wCoins
+_GiveUpto50K:
+	ld a, 2
 	call AddFunds
 	ld a, 2
 	ld bc, .maxcoins
@@ -183,12 +186,17 @@ GiveCoins::
 	and a
 	ret
 
-.maxcoins
+.maxcoins ; also max battle points
 	bigdw MAX_COINS
 
+TakeBP::
+	ld de, wBattlePoints
+	jr _TakeDownTo0
+
 TakeCoins::
-	ld a, 2
 	ld de, wCoins
+_TakeDownTo0:
+	ld a, 2
 	call SubtractFunds
 	jr nc, .okay
 	; leave with 0 coins
@@ -202,8 +210,3 @@ TakeCoins::
 .okay
 	and a
 	ret
-
-CheckCoins::
-	ld a, 2
-	ld de, wCoins
-	jp CompareFunds

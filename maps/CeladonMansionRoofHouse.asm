@@ -1,44 +1,50 @@
-	object_const_def
-	const CELADONMANSIONROOFHOUSE_PHARMACIST
-
-CeladonMansionRoofHouse_MapScripts:
+CeladonMansionRoofHouse_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
+	def_warp_events
+	warp_event  2,  7, CELADON_MANSION_ROOF, 3
+	warp_event  3,  7, CELADON_MANSION_ROOF, 3
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event  3,  2, SPRITE_PHARMACIST, SPRITEMOVEDATA_STANDING_DOWN, 2, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, CeladonMansionRoofHousePharmacistScript, -1
+
 CeladonMansionRoofHousePharmacistScript:
+	checkevent EVENT_GOT_TM03_CURSE
+	iftrue_jumptextfaceplayer .CurseText
 	faceplayer
 	opentext
-	checkevent EVENT_GOT_TM03_CURSE
-	iftrue .GotCurse
-	writetext CeladonMansionRoofHousePharmacistIntroText
+	writetext .IntroText
 	promptbutton
-	checktime NITE
-	iftrue .Night
-	writetext CeladonMansionRoofHousePharmacistNotNightText
-	waitbutton
-	closetext
-	end
-
-.Night:
-	writetext CeladonMansionRoofHousePharmacistStoryText
+	checktime 1 << NITE
+	iffalse_jumpopenedtext .NotNiteText
+	writetext .StoryText
 	promptbutton
-	verbosegiveitem TM_CURSE
-	iffalse .NoRoom
+	verbosegivetmhm TM_CURSE
 	setevent EVENT_GOT_TM03_CURSE
-.GotCurse:
-	writetext CeladonMansionRoofHousePharmacistCurseText
-	waitbutton
-.NoRoom:
-	closetext
-	end
+	jumpthisopenedtext
 
-CeladonMansionRoofHousePharmacistIntroText:
+.CurseText:
+	text "TM03 is Curse."
+
+	para "It's a terrifying"
+	line "move that slowly"
+
+	para "whittles down the"
+	line "victim's HP."
+	done
+
+.IntroText:
 	text "Let me recount a"
 	line "terrifying tale…"
 	done
 
-CeladonMansionRoofHousePharmacistNotNightText:
+.NotNiteText:
 	text "Then again, it's"
 	line "not as scary while"
 
@@ -49,12 +55,12 @@ CeladonMansionRoofHousePharmacistNotNightText:
 	line "sunset, OK?"
 	done
 
-CeladonMansionRoofHousePharmacistStoryText:
+.StoryText:
 	text "Once upon a time,"
 	line "there was a little"
 
 	para "boy who was given"
-	line "a new BICYCLE…"
+	line "a new Bicycle…"
 
 	para "He wanted to try"
 	line "it right away…"
@@ -94,7 +100,7 @@ CeladonMansionRoofHousePharmacistStoryText:
 
 	para "The boy had been"
 	line "riding uphill on"
-	cont "CYCLING ROAD!"
+	cont "Cycling Road!"
 
 	para "…"
 	line "Ba-dum ba-dum!"
@@ -103,27 +109,3 @@ CeladonMansionRoofHousePharmacistStoryText:
 	line "patiently, you may"
 	cont "take this--TM03!"
 	done
-
-CeladonMansionRoofHousePharmacistCurseText:
-	text "TM03 is CURSE."
-
-	para "It's a terrifying"
-	line "move that slowly"
-
-	para "whittles down the"
-	line "victim's HP."
-	done
-
-CeladonMansionRoofHouse_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2,  7, CELADON_MANSION_ROOF, 3
-	warp_event  3,  7, CELADON_MANSION_ROOF, 3
-
-	def_coord_events
-
-	def_bg_events
-
-	def_object_events
-	object_event  3,  2, SPRITE_PHARMACIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 2, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, CeladonMansionRoofHousePharmacistScript, -1

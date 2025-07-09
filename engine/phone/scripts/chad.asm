@@ -1,44 +1,44 @@
-ChadPhoneCalleeScript:
-	gettrainername STRING_BUFFER_3, SCHOOLBOY, CHAD1
+ChadPhoneScript1:
+	gettrainername SCHOOLBOY, CHAD1, STRING_BUFFER_3
 	checkflag ENGINE_CHAD_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	farscall PhoneScript_AnswerPhone_Male
 	checkflag ENGINE_CHAD_FRIDAY_MORNING
-	iftrue .NotFriday
+	iftruefwd .NotFriday
 	readvar VAR_WEEKDAY
 	ifnotequal FRIDAY, .NotFriday
-	checktime MORN
-	iftrue ChadFridayMorning
+	checktime 1 << MORN
+	iftruefwd ChadFridayMorning
 
 .NotFriday:
 	farsjump ChadHangUpScript
 
 .WantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_38
+	getlandmarkname ROUTE_38, STRING_BUFFER_5
 	farsjump ChadReminderScript
 
-ChadPhoneCallerScript:
-	gettrainername STRING_BUFFER_3, SCHOOLBOY, CHAD1
+ChadPhoneScript2:
+	gettrainername SCHOOLBOY, CHAD1, STRING_BUFFER_3
 	farscall PhoneScript_GreetPhone_Male
 	farscall PhoneScript_Random2
-	ifequal 0, ChadOakGossip
+	ifequalfwd $0, ChadOakGossip
 	checkflag ENGINE_CHAD_READY_FOR_REMATCH
-	iftrue .Generic
+	iftruefwd .Generic
 	checkflag ENGINE_CHAD_FRIDAY_MORNING
-	iftrue .Generic
+	iftruefwd .Generic
 	farscall PhoneScript_Random2
-	ifequal 0, ChadWantsBattle
+	ifequalfwd $0, ChadWantsBattle
 
 .Generic:
 	farscall PhoneScript_Random3
-	ifequal 0, ChadFoundRare
+	ifequalfwd $0, ChadFoundRare
 	farsjump Phone_GenericCall_Male
 
 ChadFridayMorning:
 	setflag ENGINE_CHAD_FRIDAY_MORNING
 
 ChadWantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_38
+	getlandmarkname ROUTE_38, STRING_BUFFER_5
 	setflag ENGINE_CHAD_READY_FOR_REMATCH
 	farsjump PhoneScript_WantsToBattle_Male
 

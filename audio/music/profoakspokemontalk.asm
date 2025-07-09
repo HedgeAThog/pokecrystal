@@ -4,8 +4,6 @@ Music_ProfOaksPokemonTalk:
 	channel 2, Music_ProfOaksPokemonTalk_Ch2
 	channel 3, Music_ProfOaksPokemonTalk_Ch3
 
-	db $3 ; unused, leftover from a channel 4
-
 Music_ProfOaksPokemonTalk_Ch1:
 	tempo 164
 	volume 7, 7
@@ -24,7 +22,7 @@ Music_ProfOaksPokemonTalk_Ch1:
 	note D#, 1
 	note E_, 1
 	note F#, 1
-.mainloop:
+Music_ProfOaksPokemonTalk_branch_f4cc3:
 	note D#, 6
 	note C#, 1
 	octave 3
@@ -131,7 +129,7 @@ Music_ProfOaksPokemonTalk_Ch1:
 	rest 1
 	note F#, 1
 	rest 1
-	sound_loop 0, .mainloop
+	sound_jump Music_ProfOaksPokemonTalk_branch_f4cc3
 
 Music_ProfOaksPokemonTalk_Ch2:
 	vibrato 8, 2, 4
@@ -156,7 +154,7 @@ Music_ProfOaksPokemonTalk_Ch2:
 	note F#, 1
 	note G#, 1
 	note A#, 1
-.mainloop:
+Music_ProfOaksPokemonTalk_branch_f4d4d:
 	note B_, 6
 	note A#, 1
 	note G#, 1
@@ -206,7 +204,7 @@ Music_ProfOaksPokemonTalk_Ch2:
 	rest 1
 	note A#, 1
 	rest 1
-	sound_loop 0, .mainloop
+	sound_jump Music_ProfOaksPokemonTalk_branch_f4d4d
 
 Music_ProfOaksPokemonTalk_Ch3:
 	vibrato 6, 3, 8
@@ -223,7 +221,7 @@ Music_ProfOaksPokemonTalk_Ch3:
 	note C#, 1
 	octave 2
 	note A#, 1
-.mainloop:
+Music_ProfOaksPokemonTalk_branch_f4d95:
 	note B_, 6
 	octave 3
 	note D#, 1
@@ -305,4 +303,4 @@ Music_ProfOaksPokemonTalk_Ch3:
 	octave 2
 	note A#, 1
 	rest 1
-	sound_loop 0, .mainloop
+	sound_jump Music_ProfOaksPokemonTalk_branch_f4d95

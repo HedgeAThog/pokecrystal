@@ -1,5 +1,29 @@
 ; Macros to verify assumptions about the data or code
 
+MACRO dbas
+	db BANK(\1)
+	dw \#
+	for x, 1, _NARG
+		for y, x + 1, _NARG + 1
+			assert BANK(\<x>) == BANK(\<y>) || !BANK(\<x>) || !BANK(\<y>), \
+				"\<x> and \<y> must be in the same bank"
+		endr
+	endr
+ENDM
+
+MACRO farbank
+	REDEF CURRENT_FAR_BANK EQUS "\1"
+ENDM
+
+MACRO fardw
+	rept _NARG
+		dw \1
+		assert BANK(\1) == BANK({CURRENT_FAR_BANK}) || !BANK(\1), \
+			"\1 must be in the bank of {CURRENT_FAR_BANK}"
+		shift
+	endr
+ENDM
+
 MACRO _redef_current_label
 	if DEF(\1)
 		PURGE \1
@@ -22,29 +46,29 @@ MACRO _redef_current_label
 ENDM
 
 MACRO table_width
-	DEF CURRENT_TABLE_WIDTH = \1
+	def CURRENT_TABLE_WIDTH = \1
 	_redef_current_label CURRENT_TABLE_START, "._table_width\@", 2, \#
 ENDM
 
 MACRO assert_table_length
-	DEF x = \1
+	def x = \1
 	assert x * CURRENT_TABLE_WIDTH == @ - {CURRENT_TABLE_START}, \
 		"{CURRENT_TABLE_START}: expected {d:x} entries, each {d:CURRENT_TABLE_WIDTH} bytes"
 ENDM
 
 MACRO list_start
-	DEF list_index = 0
+	def list_index = 0
 	_redef_current_label CURRENT_LIST_START, "._list_start\@", 1, \#
 ENDM
 
 MACRO li
 	assert STRFIND(\1, "@") == -1, "String terminator \"@\" in list entry: \1"
 	db \1, "@"
-	DEF list_index += 1
+	redef list_index += 1
 ENDM
 
 MACRO assert_list_length
-	DEF x = \1
+	def x = \1
 	assert x == list_index, \
 		"{CURRENT_LIST_START}: expected {d:x} entries, got {d:list_index}"
 ENDM
@@ -71,6 +95,19 @@ MACRO def_water_wildmons
 ENDM
 
 MACRO end_water_wildmons
-	assert WATER_WILDDATA_LENGTH == @ - {CURRENT_WATER_WILDMONS_LABEL}, \
+	assert WATER_WILDDATA_LENGTH == @ - CURRENT_WATER_WILDMONS_LABEL, \
 		"def_water_wildmons {CURRENT_WATER_WILDMONS_MAP}: expected {d:WATER_WILDDATA_LENGTH} bytes"
+ENDM
+
+MACRO wildmon
+	db (\1)
+	shift
+	dp \#
+ENDM
+
+MACRO jmp
+	jp \#
+	if DEF(DEBUG)
+		assert warn, (\<_NARG>) - @ > 127 || (\<_NARG>) - @ < -129, "jp can be jr"
+	endc
 ENDM

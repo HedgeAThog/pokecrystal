@@ -20,16 +20,12 @@ Elevator::
 	ld a, b
 	ld [wElevatorPointerBank], a
 	ld a, e
-	ld [wElevatorPointer], a
+	ld [wElevatorPointerLo], a
 	ld a, d
-	ld [wElevatorPointer + 1], a
-	call .LoadFloors
-	ret
-
-.LoadFloors:
-	ld de, wCurElevatorCount
-	ld bc, wElevatorDataEnd - wElevatorData
-	ld hl, wElevatorPointer
+	ld [wElevatorPointerHi], a
+	ld de, wCurElevator
+	ld bc, 4
+	ld hl, wElevatorPointerLo
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
@@ -38,7 +34,6 @@ Elevator::
 	inc hl
 	ld [de], a
 	inc de
-	assert wCurElevatorCount + 1 == wCurElevatorFloors
 .loop
 	ld a, [wElevatorPointerBank]
 	call GetFarByte
@@ -50,7 +45,7 @@ Elevator::
 	ret
 
 .FindCurrentFloor:
-	ld hl, wElevatorPointer
+	ld hl, wElevatorPointerLo
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
@@ -99,27 +94,26 @@ Elevator::
 
 Elevator_GoToFloor:
 	push af
-	ld hl, wElevatorPointer
+	ld hl, wElevatorPointerLo
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
 	inc hl
 	pop af
-	ld bc, wElevatorDataEnd - wElevatorData
-	call AddNTimes
+	ld bc, 4
+	rst AddNTimes
 	inc hl
 	ld de, wBackupWarpNumber
 	ld a, [wElevatorPointerBank]
-	ld bc, wElevatorDataEnd - wElevatorData - 1
-	call FarCopyBytes
-	ret
+	ld bc, 3
+	jmp FarCopyBytes
 
 Elevator_AskWhichFloor:
 	call LoadStandardMenuHeader
-	ld hl, AskFloorElevatorText
+	ld hl, Elevator_WhichFloorText
 	call PrintText
 	call Elevator_GetCurrentFloorText
-	ld hl, Elevator_MenuHeader
+	ld hl, Elevator_MenuDataHeader
 	call CopyMenuHeader
 	call InitScrollingMenu
 	call UpdateSprites
@@ -138,26 +132,26 @@ Elevator_AskWhichFloor:
 	scf
 	ret
 
-AskFloorElevatorText:
+Elevator_WhichFloorText:
+	; Which floor?
 	text_far _AskFloorElevatorText
 	text_end
 
 Elevator_GetCurrentFloorText:
-	ld hl, wOptions
+	ld hl, wOptions1
 	ld a, [hl]
 	push af
 	set NO_TEXT_SCROLL, [hl]
 	hlcoord 0, 0
-	ld b, 4
-	ld c, 8
+	lb bc, 4, 8
 	call Textbox
 	hlcoord 1, 2
 	ld de, Elevator_CurrentFloorText
-	call PlaceString
+	rst PlaceString
 	hlcoord 4, 4
 	call Elevator_GetCurrentFloorString
 	pop af
-	ld [wOptions], a
+	ld [wOptions1], a
 	ret
 
 Elevator_CurrentFloorText:
@@ -172,33 +166,34 @@ Elevator_GetCurrentFloorString:
 	add hl, de
 	ld a, [hl]
 	pop de
-	call GetFloorString
-	ret
+	jr GetFloorString
 
-Elevator_MenuHeader:
-	db MENU_BACKUP_TILES ; flags
+Elevator_MenuDataHeader:
+	db MENU_BACKUP_TILES
 	menu_coords 12, 1, 18, 9
-	dw Elevator_MenuData
+	dw Elevator_MenuData2
 	db 1 ; default option
 
-Elevator_MenuData:
-	db SCROLLINGMENU_DISPLAY_ARROWS ; flags
+Elevator_MenuData2:
+	db $10 ; flags
 	db 4, 0 ; rows, columns
-	db SCROLLINGMENU_ITEMS_NORMAL ; item format
-	dbw 0, wCurElevatorCount
-	dba GetElevatorFloorStrings
+	db 1 ; horizontal spacing
+	dbw 0, wCurElevator
+	dba .GetElevatorFloorStrings
 	dba NULL
 	dba NULL
 
-GetElevatorFloorStrings:
+.GetElevatorFloorStrings:
 	ld a, [wMenuSelection]
+	; fallthrough
 GetFloorString:
 	push de
 	call FloorToString
 	ld d, h
 	ld e, l
 	pop hl
-	jp PlaceString
+	rst PlaceString
+	ret
 
 FloorToString:
 	push de
@@ -206,10 +201,8 @@ FloorToString:
 	ld d, 0
 	ld hl, ElevatorFloorNames
 	add hl, de
+	ld e, [hl]
 	add hl, de
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
 	pop de
 	ret
 

@@ -1,92 +1,103 @@
-	object_const_def
-	const PEWTERGYM_BROCK
-	const PEWTERGYM_YOUNGSTER
-	const PEWTERGYM_GYM_GUIDE
-
-PewterGym_MapScripts:
+PewterGym_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
+
+	def_warp_events
+	warp_event  4, 13, PEWTER_CITY, 2
+	warp_event  5, 13, PEWTER_CITY, 2
+
+	def_coord_events
+
+	def_bg_events
+	bg_event  2, 11, BGEVENT_READ, PewterGymStatue
+	bg_event  7, 11, BGEVENT_READ, PewterGymStatue
+
+	def_object_events
+	object_event  5,  1, SPRITE_BROCK, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, PewterGymBrockScript, -1
+	object_event  2,  7, SPRITE_CAMPER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerCamperJerry, -1
+	object_event  7,  5, SPRITE_HIKER, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerHikerEdwin, -1
+	object_event  6, 11, SPRITE_GYM_GUY, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 1, PewterGymGuyScript, -1
 
 PewterGymBrockScript:
 	faceplayer
 	opentext
 	checkflag ENGINE_BOULDERBADGE
-	iftrue .FightDone
+	iftruefwd .FightDone
 	writetext BrockIntroText
 	waitbutton
 	closetext
 	winlosstext BrockWinLossText, 0
-	loadtrainer BROCK, BROCK1
+	loadtrainer BROCK, 1
 	startbattle
 	reloadmapafterbattle
 	setevent EVENT_BEAT_BROCK
 	setevent EVENT_BEAT_CAMPER_JERRY
+	setevent EVENT_BEAT_HIKER_EDWIN
 	opentext
-	writetext ReceivedBoulderBadgeText
-	playsound SFX_GET_BADGE
-	waitsfx
-	setflag ENGINE_BOULDERBADGE
-	writetext BrockBoulderBadgeText
-	waitbutton
-	closetext
-	end
-
+	givebadge BOULDERBADGE, KANTO_REGION
+	callstd kantopostgymevents
 .FightDone:
-	writetext BrockFightDoneText
-	waitbutton
-	closetext
-	end
+	checkevent EVENT_GOT_TM48_ROCK_SLIDE
+	iftrue_jumpopenedtext BrockFightDoneText
+	writetext BrockBoulderBadgeText
+	promptbutton
+	verbosegivetmhm TM_ROCK_SLIDE
+	setevent EVENT_GOT_TM48_ROCK_SLIDE
+	jumpthisopenedtext
 
-TrainerCamperJerry:
-	trainer CAMPER, JERRY, EVENT_BEAT_CAMPER_JERRY, CamperJerrySeenText, CamperJerryBeatenText, 0, .Script
+	text "It can sometimes"
+	line "cause your foe to"
+	cont "flinch."
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext CamperJerryAfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerCamperJerry:
+	generictrainer CAMPER, JERRY, EVENT_BEAT_CAMPER_JERRY, CamperJerrySeenText, CamperJerryBeatenText
 
-PewterGymGuideScript:
-	faceplayer
-	opentext
+	text "Hey, you! Trainer"
+	line "from Johto! Brock"
+
+	para "is tough. He'll"
+	line "punish you if you"
+
+	para "don't take him"
+	line "seriously."
+	done
+
+GenericTrainerHikerEdwin:
+	generictrainer HIKER, EDWIN, EVENT_BEAT_HIKER_EDWIN, HikerEdwinSeenText, HikerEdwinBeatenText
+
+	text "Phew… Broken"
+	line "in pieces."
+	done
+
+PewterGymGuyScript:
 	checkevent EVENT_BEAT_BROCK
-	iftrue .PewterGymGuideWinScript
-	writetext PewterGymGuideText
-	waitbutton
-	closetext
-	end
-
-.PewterGymGuideWinScript:
-	writetext PewterGymGuideWinText
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer PewterGymGuyWinText
+	jumptextfaceplayer PewterGymGuyText
 
 PewterGymStatue:
+	gettrainername BROCK, 1, STRING_BUFFER_4
 	checkflag ENGINE_BOULDERBADGE
-	iftrue .Beaten
-	jumpstd GymStatue1Script
+	iftruefwd .Beaten
+	jumpstd gymstatue1
 .Beaten:
-	gettrainername STRING_BUFFER_4, BROCK, BROCK1
-	jumpstd GymStatue2Script
+	jumpstd gymstatue2
 
 BrockIntroText:
-	text "BROCK: Wow, it's"
+	text "Brock: Wow, it's"
 	line "not often that we"
 
 	para "get a challenger"
-	line "from JOHTO."
+	line "from Johto."
 
-	para "I'm BROCK, the"
-	line "PEWTER GYM LEADER."
+	para "I'm Brock, the"
+	line "Pewter Gym Leader."
 
 	para "I'm an expert on"
-	line "rock-type #MON."
+	line "Rock-type #mon."
 
-	para "My #MON are im-"
+	para "My #mon are im-"
 	line "pervious to most"
 
 	para "physical attacks."
@@ -99,8 +110,8 @@ BrockIntroText:
 	done
 
 BrockWinLossText:
-	text "BROCK: Your #-"
-	line "MON's powerful at-"
+	text "Brock: Your #-"
+	line "mon's powerful at-"
 	cont "tacks overcame my"
 	cont "rock-hard defense…"
 
@@ -108,31 +119,24 @@ BrockWinLossText:
 	line "than I expected…"
 
 	para "Go ahead--take"
-	line "this BADGE."
-	done
-
-ReceivedBoulderBadgeText:
-	text "<PLAYER> received"
-	line "BOULDERBADGE."
+	line "this Badge."
 	done
 
 BrockBoulderBadgeText:
-	text "BROCK: <PLAY_G>,"
+	text "Brock: <PLAYER>,"
 	line "thanks. I enjoyed"
 
 	para "battling you, even"
 	line "though I am a bit"
 	cont "upset."
 
-	para "That BOULDERBADGE"
-	line "will make your"
-
-	para "#MON even more"
-	line "powerful."
+	para "I'll give you the"
+	line "TM for Rock Slide,"
+	cont "too."
 	done
 
 BrockFightDoneText:
-	text "BROCK: The world"
+	text "Brock: The world"
 	line "is huge. There are"
 
 	para "still many strong"
@@ -146,11 +150,11 @@ BrockFightDoneText:
 
 CamperJerrySeenText:
 	text "The trainers of"
-	line "this GYM use rock-"
-	cont "type #MON."
+	line "this Gym use Rock-"
+	cont "type #mon."
 
-	para "The rock-type has"
-	line "high DEFENSE."
+	para "The Rock-type has"
+	line "high Defense."
 
 	para "Battles could end"
 	line "up going a long"
@@ -164,37 +168,34 @@ CamperJerryBeatenText:
 	line "these battles…"
 	done
 
-CamperJerryAfterBattleText:
-	text "Hey, you! Trainer"
-	line "from JOHTO! BROCK"
-
-	para "is tough. He'll"
-	line "punish you if you"
-
-	para "don't take him"
-	line "seriously."
+HikerEdwinSeenText: ; text > text
+	text "R-r-r-R-R--CRASH!"
 	done
 
-PewterGymGuideText:
-	text "Yo! CHAMP in"
+HikerEdwinBeatenText: ; text > text
+	text "BOOM!"
+	done
+
+PewterGymGuyText:
+	text "Yo! Champ in"
 	line "making! You're"
 
 	para "really rocking."
 	line "Are you battling"
 
-	para "the GYM LEADERS of"
-	line "KANTO?"
+	para "the Gym Leaders of"
+	line "Kanto?"
 
 	para "They're strong and"
 	line "dedicated people,"
 
-	para "just like JOHTO's"
-	line "GYM LEADERS."
+	para "just like Johto's"
+	line "Gym Leaders."
 	done
 
-PewterGymGuideWinText:
-	text "Yo! CHAMP in"
-	line "making! That GYM"
+PewterGymGuyWinText:
+	text "Yo! Champ in"
+	line "making! That Gym"
 
 	para "didn't give you"
 	line "much trouble."
@@ -205,21 +206,3 @@ PewterGymGuideWinText:
 	para "inspiring. I mean"
 	line "that seriously."
 	done
-
-PewterGym_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  4, 13, PEWTER_CITY, 2
-	warp_event  5, 13, PEWTER_CITY, 2
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  2, 11, BGEVENT_READ, PewterGymStatue
-	bg_event  7, 11, BGEVENT_READ, PewterGymStatue
-
-	def_object_events
-	object_event  5,  1, SPRITE_BROCK, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, PewterGymBrockScript, -1
-	object_event  2,  5, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_TRAINER, 3, TrainerCamperJerry, -1
-	object_event  6, 11, SPRITE_GYM_GUIDE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 1, PewterGymGuideScript, -1

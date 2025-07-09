@@ -1,5 +1,5 @@
-SmallFarFlagAction:
-; Perform action b on bit c in flag array hl.
+FlagPredef:
+; Perform action b on flag c in flag array hl.
 ; If checking a flag, check flag array d:hl unless d is 0.
 
 ; For longer flag arrays, see FlagAction.
@@ -33,12 +33,11 @@ SmallFarFlagAction:
 
 ; What are we doing to this flag?
 	dec b
-	jr z, .set ; 1 = SET_FLAG
+	jr z, .set ; 1
 	dec b
-	jr z, .check ; 2 = CHECK_FLAG
-	; 0 = RESET_FLAG
+	jr z, .check ; 2
 
-; reset
+.reset
 	ld a, c
 	cpl
 	and [hl]
@@ -53,7 +52,7 @@ SmallFarFlagAction:
 
 .check
 	ld a, d
-	cp 0
+	and a
 	jr nz, .farcheck
 
 	ld a, [hl]

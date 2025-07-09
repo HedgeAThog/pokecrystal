@@ -1,13 +1,22 @@
 ItemPocketNames:
-; entries correspond to item type constants
-	table_width 2
-	dw .Item
-	dw .Key
-	dw .Ball
-	dw .TM
-	assert_table_length NUM_ITEM_TYPES
+	table_width 1
+	dr .Item
+	dr .Medicine
+	dr .Ball
+	dr .TM ; impossible
+	dr .Berry
+	dr .Key ; impossible
+	assert_table_length NUM_POCKETS
 
-.Item: db "ITEM POCKET@"
-.Key:  db "KEY POCKET@"
-.Ball: db "BALL POCKET@"
-.TM:   db "TM POCKET@"
+.Item:
+	db "Item Pocket@"
+.Medicine:
+	db "Med.Pocket@"
+.Ball:
+	db "Ball Pocket@"
+.TM:
+	db "TM Pocket@"
+.Berry:
+	db "Berry Pocket@"
+.Key:
+	db "Key Pocket@"

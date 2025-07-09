@@ -4,8 +4,6 @@ Music_NewBarkTown:
 	channel 2, Music_NewBarkTown_Ch2
 	channel 3, Music_NewBarkTown_Ch3
 
-	db $3 ; unused, leftover from a channel 4
-
 Music_NewBarkTown_Ch1:
 	tempo 187
 	volume 7, 7
@@ -13,9 +11,9 @@ Music_NewBarkTown_Ch1:
 	vibrato 18, 2, 3
 	note_type 12, 8, 7
 	rest 4
-.mainloop:
+Music_NewBarkTown_branch_eb2eb:
 	duty_cycle 0
-	sound_call .sub1
+	sound_call Music_NewBarkTown_branch_eb349
 	octave 3
 	note C#, 1
 	rest 1
@@ -38,7 +36,7 @@ Music_NewBarkTown_Ch1:
 	note G_, 1
 	duty_cycle 0
 	volume_envelope 8, 7
-	sound_call .sub1
+	sound_call Music_NewBarkTown_branch_eb349
 	octave 3
 	note C#, 1
 	rest 1
@@ -64,9 +62,9 @@ Music_NewBarkTown_Ch1:
 	note A_, 1
 	duty_cycle 1
 	volume_envelope 5, -6
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
+	sound_call Music_NewBarkTown_branch_eb37c
+	sound_call Music_NewBarkTown_branch_eb37c
+	sound_call Music_NewBarkTown_branch_eb37c
 	octave 2
 	note G_, 2
 	note B_, 2
@@ -84,9 +82,9 @@ Music_NewBarkTown_Ch1:
 	note A_, 4
 	note B_, 2
 	volume_envelope 8, 7
-	sound_loop 0, .mainloop
+	sound_jump Music_NewBarkTown_branch_eb2eb
 
-.sub1:
+Music_NewBarkTown_branch_eb349:
 	octave 3
 	note F#, 1
 	rest 1
@@ -139,7 +137,7 @@ Music_NewBarkTown_Ch1:
 	rest 1
 	sound_ret
 
-.sub2:
+Music_NewBarkTown_branch_eb37c:
 	octave 2
 	note G_, 2
 	note B_, 2
@@ -163,12 +161,12 @@ Music_NewBarkTown_Ch2:
 	vibrato 18, 2, 3
 	note_type 6, 10, 7
 	rest 8
-.mainloop:
+Music_NewBarkTown_branch_eb396:
 	duty_cycle 2
 	note_type 6, 10, 7
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
+	sound_call Music_NewBarkTown_branch_eb3bf
+	sound_call Music_NewBarkTown_branch_eb3bf
+	sound_call Music_NewBarkTown_branch_eb3f2
 	volume_envelope 8, 7
 	octave 5
 	note B_, 6
@@ -177,7 +175,7 @@ Music_NewBarkTown_Ch2:
 	octave 6
 	note D_, 4
 	note C#, 16
-	sound_call .sub2
+	sound_call Music_NewBarkTown_branch_eb3f2
 	volume_envelope 8, 7
 	octave 5
 	note B_, 6
@@ -186,9 +184,9 @@ Music_NewBarkTown_Ch2:
 	octave 6
 	note D_, 4
 	note E_, 16
-	sound_loop 0, .mainloop
+	sound_jump Music_NewBarkTown_branch_eb396
 
-.sub1:
+Music_NewBarkTown_branch_eb3bf:
 	octave 2
 	note D_, 4
 	rest 8
@@ -241,7 +239,7 @@ Music_NewBarkTown_Ch2:
 	note C#, 4
 	sound_ret
 
-.sub2:
+Music_NewBarkTown_branch_eb3f2:
 	note_type 6, 9, 7
 	duty_cycle 2
 	octave 4
@@ -258,7 +256,7 @@ Music_NewBarkTown_Ch3:
 	octave 5
 	note D_, 2
 	note E_, 2
-.mainloop:
+Music_NewBarkTown_branch_eb408:
 	vibrato 22, 2, 3
 	note F#, 4
 	note A_, 4
@@ -322,4 +320,4 @@ Music_NewBarkTown_Ch3:
 	octave 5
 	note D_, 1
 	note E_, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_NewBarkTown_branch_eb408

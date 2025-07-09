@@ -1,273 +1,123 @@
-	object_const_def
-	const ROUTE25_MISTY
-	const ROUTE25_COOLTRAINER_M1
-	const ROUTE25_YOUNGSTER1
-	const ROUTE25_LASS1
-	const ROUTE25_YOUNGSTER2
-	const ROUTE25_LASS2
-	const ROUTE25_YOUNGSTER3
-	const ROUTE25_LASS3
-	const ROUTE25_SUPER_NERD
-	const ROUTE25_COOLTRAINER_M2
-	const ROUTE25_POKE_BALL
-
-Route25_MapScripts:
+Route25_MapScriptHeader:
 	def_scene_scripts
-	scene_script Route25Noop1Scene, SCENE_ROUTE25_NOOP
-	scene_script Route25Noop2Scene, SCENE_ROUTE25_MISTYS_DATE
 
 	def_callbacks
 
-Route25Noop1Scene:
-	end
+	def_warp_events
 
-Route25Noop2Scene:
-	end
+	def_coord_events
 
-Route25MistyDate1Script:
-	showemote EMOTE_HEART, ROUTE25_MISTY, 15
-	pause 30
-	showemote EMOTE_SHOCK, ROUTE25_COOLTRAINER_M1, 10
-	turnobject ROUTE25_MISTY, DOWN
-	applymovement ROUTE25_COOLTRAINER_M1, Route25MistysDateLeavesMovement1
-	disappear ROUTE25_COOLTRAINER_M1
-	pause 15
-	playmusic MUSIC_BEAUTY_ENCOUNTER
-	turnobject ROUTE25_MISTY, UP
-	pause 10
-	applymovement ROUTE25_MISTY, Route25MistyApproachesPlayerMovement1
+	def_bg_events
+
+	def_object_events
+	object_event 30,  8, SPRITE_ACE_TRAINER_M, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, TrainerCooltrainermKevin, EVENT_ROUTE_25_COOLTRAINER_M_BEFORE
+	object_event 32,  8, SPRITE_ACE_TRAINER_M, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, CooltrainermKevinAfterBattleText, EVENT_ROUTE_25_COOLTRAINER_M_AFTER
+	object_event  7, 11, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSchoolboyDudley, -1
+	object_event 11,  8, SPRITE_LASS, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerLassEllen, -1
+	object_event 14, 10, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerSchoolboyJoe, -1
+	object_event 12,  6, SPRITE_LASS, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerLassLaura, -1
+	object_event 18,  9, SPRITE_CAMPER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerCamperLloyd, -1
+	object_event 22, 11, SPRITE_LASS, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerLassShannon, -1
+	object_event 25,  7, SPRITE_SUPER_NERD, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerSupernerdPat, -1
+	itemball_event 25,  4, PROTEIN, 1, EVENT_ROUTE_25_PROTEIN
+	cuttree_event 28,  6, EVENT_ROUTE_25_CUT_TREE
+	object_event 20,  4, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, Route25MewYoungsterText, -1
+	object_event 21,  4, SPRITE_MON_ICON, SPRITEMOVEDATA_POKEMON, 0, SLOWPOKE, -1, PAL_NPC_PINK, OBJECTTYPE_SCRIPT, PLAIN_FORM, Route25SlowpokeScript, -1
+
+	object_const_def
+	const ROUTE25_COOLTRAINERM_BEFORE
+	const ROUTE25_COOLTRAINERM_AFTER
+
+GenericTrainerSchoolboyDudley:
+	generictrainer SCHOOLBOY, DUDLEY, EVENT_BEAT_SCHOOLBOY_DUDLEY, SchoolboyDudleySeenText, SchoolboyDudleyBeatenText
+
+	text "I did my best."
+	line "I have no regrets."
+	done
+
+GenericTrainerLassEllen:
+	generictrainer LASS, ELLEN, EVENT_BEAT_LASS_ELLEN, LassEllenSeenText, LassEllenBeatenText
+
+	text "I did my best."
+	line "I have no regrets."
+	done
+
+GenericTrainerSchoolboyJoe:
+	generictrainer SCHOOLBOY, JOE, EVENT_BEAT_SCHOOLBOY_JOE, SchoolboyJoeSeenText, SchoolboyJoeBeatenText
+
+	text "I did my best."
+	line "I have no regrets."
+	done
+
+GenericTrainerLassLaura:
+	generictrainer LASS, LAURA, EVENT_BEAT_LASS_LAURA, LassLauraSeenText, LassLauraBeatenText
+
+	text "I did my best."
+	line "I have no regrets."
+	done
+
+GenericTrainerCamperLloyd:
+	generictrainer CAMPER, LLOYD, EVENT_BEAT_CAMPER_LLOYD, CamperLloydSeenText, CamperLloydBeatenText
+
+	text "I did my best."
+	line "I have no regrets."
+	done
+
+GenericTrainerLassShannon:
+	generictrainer LASS, SHANNON, EVENT_BEAT_LASS_SHANNON, LassShannonSeenText, LassShannonBeatenText
+
+	text "I did my best."
+	line "I have no regrets."
+	done
+
+GenericTrainerSupernerdPat:
+	generictrainer SUPER_NERD, PAT, EVENT_BEAT_SUPER_NERD_PAT, SupernerdPatSeenText, SupernerdPatBeatenText
+
+	text "I'm sorry… I won't"
+	line "cheat anymore…"
+	done
+
+Route25SlowpokeScript:
 	opentext
-	writetext Route25MistyDateText
-	waitbutton
-	closetext
-	turnobject PLAYER, DOWN
-	applymovement ROUTE25_MISTY, Route25MistyLeavesPlayerMovement1
-	turnobject PLAYER, LEFT
-	applymovement ROUTE25_MISTY, Route25MistyLeavesMovement
-	disappear ROUTE25_MISTY
-	clearevent EVENT_TRAINERS_IN_CERULEAN_GYM
-	setscene SCENE_ROUTE25_NOOP
-	special RestartMapMusic
-	end
-
-Route25MistyDate2Script:
-	showemote EMOTE_HEART, ROUTE25_MISTY, 15
-	pause 30
-	showemote EMOTE_SHOCK, ROUTE25_COOLTRAINER_M1, 10
-	turnobject ROUTE25_MISTY, DOWN
-	applymovement ROUTE25_COOLTRAINER_M1, Route25MistysDateLeavesMovement2
-	disappear ROUTE25_COOLTRAINER_M1
-	pause 15
-	playmusic MUSIC_BEAUTY_ENCOUNTER
-	turnobject ROUTE25_MISTY, UP
-	pause 10
-	applymovement ROUTE25_MISTY, Route25MistyApproachesPlayerMovement2
-	opentext
-	writetext Route25MistyDateText
-	waitbutton
-	closetext
-	turnobject PLAYER, UP
-	applymovement ROUTE25_MISTY, Route25MistyLeavesPlayerMovement2
-	turnobject PLAYER, LEFT
-	applymovement ROUTE25_MISTY, Route25MistyLeavesMovement
-	disappear ROUTE25_MISTY
-	clearevent EVENT_TRAINERS_IN_CERULEAN_GYM
-	setscene SCENE_ROUTE25_NOOP
-	special RestartMapMusic
-	end
-
-TrainerSchoolboyDudley:
-	trainer SCHOOLBOY, DUDLEY, EVENT_BEAT_SCHOOLBOY_DUDLEY, SchoolboyDudleySeenText, SchoolboyDudleyBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext SchoolboyDudleyAfterBattleText
-	waitbutton
-	closetext
-	end
-
-TrainerLassEllen:
-	trainer LASS, ELLEN, EVENT_BEAT_LASS_ELLEN, LassEllenSeenText, LassEllenBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext LassEllenAfterBattleText
-	waitbutton
-	closetext
-	end
-
-TrainerSchoolboyJoe:
-	trainer SCHOOLBOY, JOE, EVENT_BEAT_SCHOOLBOY_JOE, SchoolboyJoeSeenText, SchoolboyJoeBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext SchoolboyJoeAfterBattleText
-	waitbutton
-	closetext
-	end
-
-TrainerLassLaura:
-	trainer LASS, LAURA, EVENT_BEAT_LASS_LAURA, LassLauraSeenText, LassLauraBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext LassLauraAfterBattleText
-	waitbutton
-	closetext
-	end
-
-TrainerCamperLloyd:
-	trainer CAMPER, LLOYD, EVENT_BEAT_CAMPER_LLOYD, CamperLloydSeenText, CamperLloydBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext CamperLloydAfterBattleText
-	waitbutton
-	closetext
-	end
-
-TrainerLassShannon:
-	trainer LASS, SHANNON, EVENT_BEAT_LASS_SHANNON, LassShannonSeenText, LassShannonBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext LassShannonAfterBattleText
-	waitbutton
-	closetext
-	end
-
-TrainerSupernerdPat:
-	trainer SUPER_NERD, PAT, EVENT_BEAT_SUPER_NERD_PAT, SupernerdPatSeenText, SupernerdPatBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext SupernerdPatAfterBattleText
-	waitbutton
-	closetext
-	end
+	writetext Route25SlowpokeText1
+	pause 60
+	writetext Route25SlowpokeText2
+	cry SLOWPOKE
+	waitendtext
 
 TrainerCooltrainermKevin:
+	checkevent EVENT_BEAT_SUPER_NERD_PAT
+	iffalse_jumptextfaceplayer NuggetBridgeNotClearedText
 	faceplayer
 	opentext
-	checkevent EVENT_BEAT_COOLTRAINERM_KEVIN
-	iftrue .AfterBattle
 	checkevent EVENT_CLEARED_NUGGET_BRIDGE
-	iftrue .AfterNuggetBridge
+	iftruefwd .AfterNuggetBridge
 	writetext CooltrainermKevinNuggetText
 	promptbutton
 	verbosegiveitem NUGGET
-	iffalse .NoRoomForNugget
+	iffalse_endtext
 	setevent EVENT_CLEARED_NUGGET_BRIDGE
 .AfterNuggetBridge:
 	writetext CooltrainermKevinSeenText
 	waitbutton
 	closetext
+	follow ROUTE25_COOLTRAINERM_BEFORE, PLAYER
+	applymovement ROUTE25_COOLTRAINERM_BEFORE, Route25CooltrainerMovementData
+	stopfollow
+	turnobject ROUTE25_COOLTRAINERM_BEFORE, LEFT
 	winlosstext CooltrainermKevinBeatenText, 0
 	loadtrainer COOLTRAINERM, KEVIN
 	startbattle
+	disappear ROUTE25_COOLTRAINERM_BEFORE
+	appear ROUTE25_COOLTRAINERM_AFTER
 	reloadmapafterbattle
 	setevent EVENT_BEAT_COOLTRAINERM_KEVIN
-	opentext
-.AfterBattle:
-	writetext CooltrainermKevinAfterBattleText
-	waitbutton
-.NoRoomForNugget:
-	closetext
-	end
+	jumptext CooltrainermKevinAfterBattleText
 
-BillsHouseSign:
-	jumptext BillsHouseSignText
-
-Route25Protein:
-	itemball PROTEIN
-
-Route25HiddenPotion:
-	hiddenitem POTION, EVENT_ROUTE_25_HIDDEN_POTION
-
-Route25MistysDateLeavesMovement1:
-	big_step DOWN
+Route25CooltrainerMovementData:
+	step_right
+	step_right
 	step_end
-
-Route25MistysDateLeavesMovement2:
-	big_step DOWN
-	big_step DOWN
-	step_end
-
-Route25MistyApproachesPlayerMovement1:
-	step UP
-	step UP
-	step UP
-	step LEFT
-	step LEFT
-	step LEFT
-	step_end
-
-Route25MistyApproachesPlayerMovement2:
-	step UP
-	step UP
-	step LEFT
-	step LEFT
-	step LEFT
-	step_end
-
-Route25MistyLeavesPlayerMovement1:
-	step DOWN
-	step LEFT
-	step_end
-
-Route25MistyLeavesPlayerMovement2:
-	step UP
-	step LEFT
-	step_end
-
-Route25MistyLeavesMovement:
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	step_end
-
-Route25MistyDateText:
-	text "MISTY: Aww! Why"
-	line "did you have to"
-
-	para "show up and bug us"
-	line "now?"
-
-	para "Do you know what"
-	line "they call people"
-	cont "like you?"
-
-	para "Pests! You heard"
-	line "me right, pest!"
-
-	para "…"
-
-	para "…Oh? Those BADGES"
-	line "you have… Are they"
-	cont "JOHTO GYM BADGES?"
-
-	para "If you have eight,"
-	line "you must be good."
-
-	para "OK, then. Come to"
-	line "CERULEAN GYM."
-
-	para "I'll be happy to"
-	line "take you on."
-
-	para "I'm MISTY, the"
-	line "GYM LEADER in"
-	cont "CERULEAN."
-	done
 
 SchoolboyDudleySeenText:
 	text "Beat the six of us"
@@ -282,11 +132,6 @@ SchoolboyDudleyBeatenText:
 	text "Whoo! Good stuff."
 	done
 
-SchoolboyDudleyAfterBattleText:
-	text "I did my best."
-	line "I have no regrets."
-	done
-
 LassEllenSeenText:
 	text "I'm second."
 	line "Now it's serious!"
@@ -294,11 +139,6 @@ LassEllenSeenText:
 
 LassEllenBeatenText:
 	text "How could I lose?"
-	done
-
-LassEllenAfterBattleText:
-	text "I did my best."
-	line "I have no regrets."
 	done
 
 SchoolboyJoeSeenText:
@@ -310,11 +150,6 @@ SchoolboyJoeBeatenText:
 	text "Ow! Stomped flat!"
 	done
 
-SchoolboyJoeAfterBattleText:
-	text "I did my best."
-	line "I have no regrets."
-	done
-
 LassLauraSeenText:
 	text "I'm No. 4!"
 	line "Getting tired?"
@@ -322,11 +157,6 @@ LassLauraSeenText:
 
 LassLauraBeatenText:
 	text "I lost too…"
-	done
-
-LassLauraAfterBattleText:
-	text "I did my best."
-	line "I have no regrets."
 	done
 
 CamperLloydSeenText:
@@ -338,11 +168,6 @@ CamperLloydBeatenText:
 	text "Whoa! Too much."
 	done
 
-CamperLloydAfterBattleText:
-	text "I did my best."
-	line "I have no regrets."
-	done
-
 LassShannonSeenText:
 	text "I'm the last in"
 	line "line, but I tell"
@@ -351,11 +176,6 @@ LassShannonSeenText:
 
 LassShannonBeatenText:
 	text "You're kidding."
-	done
-
-LassShannonAfterBattleText:
-	text "I did my best."
-	line "I have no regrets."
 	done
 
 SupernerdPatSeenText:
@@ -377,9 +197,23 @@ SupernerdPatBeatenText:
 	line "at all?"
 	done
 
-SupernerdPatAfterBattleText:
-	text "I'm sorry… I won't"
-	line "cheat anymore…"
+Route25MewYoungsterText:
+	text "One time I saw a"
+	line "Mew around here!"
+
+	para "You don't believe"
+	line "me? Slowpoke saw"
+	cont "it too!"
+	done
+
+Route25SlowpokeText1:
+	text "Slowpoke: …"
+
+	para "…… …… ……"
+	done
+
+Route25SlowpokeText2:
+	text "…… ……Yawn?"
 	done
 
 CooltrainermKevinNuggetText:
@@ -414,42 +248,23 @@ CooltrainermKevinAfterBattleText:
 	line "battle!"
 
 	para "You and your #-"
-	line "MON are truly out-"
+	line "mon are truly out-"
 	cont "standing!"
 	done
 
-BillsHouseSignText:
-	text "SEA COTTAGE"
-	line "BILL'S HOUSE"
+NuggetBridgeNotClearedText:
+	text "Hey there!"
+
+	para "Six trainers and"
+	line "I are hosting a"
+
+	para "battle challenge"
+	line "on this route."
+
+	para "You can't skip"
+	line "ahead of them!"
+
+	para "There's a shortcut"
+	line "just below us back"
+	cont "to Route 24."
 	done
-
-UnusedBillsHouseSignText: ; unreferenced
-	text "BILL'S HOUSE"
-	done
-
-Route25_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event 47,  5, BILLS_HOUSE, 1
-
-	def_coord_events
-	coord_event 42,  6, SCENE_ROUTE25_MISTYS_DATE, Route25MistyDate1Script
-	coord_event 42,  7, SCENE_ROUTE25_MISTYS_DATE, Route25MistyDate2Script
-
-	def_bg_events
-	bg_event 45,  5, BGEVENT_READ, BillsHouseSign
-	bg_event  4,  5, BGEVENT_ITEM, Route25HiddenPotion
-
-	def_object_events
-	object_event 46,  9, SPRITE_MISTY, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_ROUTE_25_MISTY_BOYFRIEND
-	object_event 46, 10, SPRITE_COOLTRAINER_M, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_ROUTE_25_MISTY_BOYFRIEND
-	object_event 12,  8, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 3, TrainerSchoolboyDudley, -1
-	object_event 16, 11, SPRITE_LASS, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 3, TrainerLassEllen, -1
-	object_event 21,  8, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerSchoolboyJoe, -1
-	object_event 22,  6, SPRITE_LASS, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 3, TrainerLassLaura, -1
-	object_event 25,  4, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_TRAINER, 2, TrainerCamperLloyd, -1
-	object_event 28, 11, SPRITE_LASS, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerLassShannon, -1
-	object_event 31,  7, SPRITE_SUPER_NERD, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_TRAINER, 1, TrainerSupernerdPat, -1
-	object_event 37,  8, SPRITE_COOLTRAINER_M, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, TrainerCooltrainermKevin, -1
-	object_event 32,  4, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, Route25Protein, EVENT_ROUTE_25_PROTEIN

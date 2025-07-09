@@ -1,21 +1,22 @@
-	db SHUCKLE ; 213
-
-	db  20,  10, 230,  05,  10, 230
-	;   hp  atk  def  spd  sat  sdf
+	db  20,  10, 230,  05,  10, 230 ; 505 BST
+	;   hp  atk  def  spe  sat  sdf
 
 	db BUG, ROCK ; type
 	db 190 ; catch rate
 	db 80 ; base exp
-	db BERRY, BERRY ; items
-	db GENDER_F50 ; gender ratio
-	db 100 ; unknown 1
-	db 20 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/shuckle/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db ALWAYS_ITEM_2, BERRY_JUICE ; held items
+	dn GENDER_F50, HATCH_MEDIUM_FAST ; gender ratio, step cycles to hatch
+
+if DEF(FAITHFUL)
+	abilities_for SHUCKLE, STURDY, GLUTTONY, CONTRARY
+else
+	abilities_for SHUCKLE, SOLID_ROCK, GLUTTONY, CONTRARY
+endc
 	db GROWTH_MEDIUM_SLOW ; growth rate
 	dn EGG_BUG, EGG_BUG ; egg groups
 
+	ev_yield 1 Def, 1 SDf
+
 	; tm/hm learnset
-	tmhm HEADBUTT, CURSE, ROLLOUT, TOXIC, ROCK_SMASH, HIDDEN_POWER, SUNNY_DAY, SNORE, PROTECT, ENDURE, FRUSTRATION, EARTHQUAKE, RETURN, DIG, MUD_SLAP, DOUBLE_TEAM, SWAGGER, SLEEP_TALK, SLUDGE_BOMB, SANDSTORM, DEFENSE_CURL, REST, ATTRACT, STRENGTH, FLASH
+	tmhm CURSE, TOXIC, VENOSHOCK, HIDDEN_POWER, SUNNY_DAY, PROTECT, SAFEGUARD, BULLDOZE, EARTHQUAKE, RETURN, DIG, ROCK_SMASH, DOUBLE_TEAM, SLUDGE_BOMB, SANDSTORM, SUBSTITUTE, FACADE, REST, ATTRACT, ROCK_SLIDE, FLASH, STONE_EDGE, GYRO_BALL, STRENGTH, BODY_SLAM, DEFENSE_CURL, DOUBLE_EDGE, EARTH_POWER, ENDURE, HEADBUTT, KNOCK_OFF, ROLLOUT, SLEEP_TALK, SWAGGER
 	; end

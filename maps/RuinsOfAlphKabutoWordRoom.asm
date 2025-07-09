@@ -1,10 +1,7 @@
-RuinsOfAlphKabutoWordRoom_MapScripts:
+RuinsOfAlphKabutoWordRoom_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
-
-RuinsOfAlphKabutoWordRoom_MapEvents:
-	db 0, 0 ; filler
 
 	def_warp_events
 	warp_event  9,  5, RUINS_OF_ALPH_KABUTO_ITEM_ROOM, 3

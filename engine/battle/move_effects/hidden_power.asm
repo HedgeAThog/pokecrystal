@@ -1,6 +1,5 @@
-BattleCommand_HiddenPower:
+BattleCommand_hiddenpower:
 	ld a, [wAttackMissed]
 	and a
 	ret nz
-	farcall HiddenPowerDamage
-	ret
+	farjp SetHiddenPowerType

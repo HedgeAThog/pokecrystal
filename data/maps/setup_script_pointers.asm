@@ -1,14 +1,6 @@
 MACRO add_mapsetup
 \1_MapSetupCmd:
-	; A second argument of TRUE indicates taking a parameter.
-	if _NARG < 2
-		dba \1
-	elif \2
-		db (1 << MAPSETUPSCRIPT_HAS_PARAM_F) | BANK(\1)
-		dw \1
-	else
-		dba \1
-	endc
+	dba \1
 ENDM
 
 MapSetupCommands:
@@ -41,8 +33,8 @@ MapSetupCommands:
 	add_mapsetup LoadMapAttributes ; 1a
 	add_mapsetup LoadMapAttributes_SkipObjects ; 1b
 	add_mapsetup ClearBGPalettes ; 1c
-	add_mapsetup FadeOutToWhite ; 1d
-	add_mapsetup FadeInFromWhite ; 1e
+	add_mapsetup FadeOutPalettes ; 1d
+	add_mapsetup FadeInPalettes ; 1e
 	add_mapsetup GetMapScreenCoords ; 1f
 	add_mapsetup GetWarpDestCoords ; 20
 	add_mapsetup SpawnInFacingDown ; 21
@@ -56,5 +48,16 @@ MapSetupCommands:
 	add_mapsetup ActivateMapAnims ; 29
 	add_mapsetup SuspendMapAnims ; 2a
 	add_mapsetup ApplyMapPalettes ; 2b
-	add_mapsetup EnableTextAcceleration ; 2c
-	add_mapsetup InitMapNameSign ; 2d
+	add_mapsetup InitMapNameSign ; 2c
+	add_mapsetup DecompressMetatiles ; 2d
+	add_mapsetup DeferredLoadMapGraphics ; 2e
+	add_mapsetup LoadMapTilesetGFX ; 2f
+	add_mapsetup DisableDynPalUpdates ; 30
+	add_mapsetup EnableDynPalUpdates ; 31
+	add_mapsetup EnableDynPalUpdatesNoApply ; 32
+	add_mapsetup ClearWeather ; 33
+	add_mapsetup SetCurrentWeather ; 34
+	add_mapsetup MapConnOWFadePalettesInit ; 35
+	add_mapsetup LoadMapObjects_Connection ; 36
+	add_mapsetup GrottoUpdatePlayerTallGrassFlags ; 37
+	add_mapsetup LoadMapAttributes_Connection ; 38

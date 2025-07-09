@@ -1,124 +1,104 @@
 DEF BLUE_CARD_POINT_CAP EQU 30
 
-	object_const_def
-	const RADIOTOWER2F_SUPER_NERD
-	const RADIOTOWER2F_TEACHER
-	const RADIOTOWER2F_ROCKET1
-	const RADIOTOWER2F_ROCKET2
-	const RADIOTOWER2F_ROCKET3
-	const RADIOTOWER2F_ROCKET_GIRL
-	const RADIOTOWER2F_BLACK_BELT1
-	const RADIOTOWER2F_BLACK_BELT2
-	const RADIOTOWER2F_JIGGLYPUFF
-	const RADIOTOWER2F_BUENA
-	const RADIOTOWER2F_RECEPTIONIST
-
-RadioTower2F_MapScripts:
+RadioTower2F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-RadioTower2FNoopScene: ; unreferenced
-	end
+	def_warp_events
+	warp_event  0,  0, RADIO_TOWER_3F, 1
+	warp_event 15,  0, RADIO_TOWER_1F, 3
 
-RadioTower2FSuperNerdScript:
-	jumptextfaceplayer RadioTower2FSuperNerdText
+	def_coord_events
+
+	def_bg_events
+	bg_event  3,  0, BGEVENT_JUMPTEXT, RadioTower2FSalesSignText
+	bg_event  5,  0, BGEVENT_JUMPTEXT, RadioTower2FOaksPKMNTalkSignText
+	bg_event 13,  0, BGEVENT_JUMPTEXT, RadioTower2FPokemonRadioSignText
+
+	def_object_events
+	object_event 14,  5, SPRITE_BUENA, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, Buena, -1
+	object_event  6,  6, SPRITE_POKEMANIAC, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_COMMAND, jumptextfaceplayer, RadioTower2FSuperNerdText, EVENT_GOLDENROD_CITY_CIVILIANS
+	object_event 17,  2, SPRITE_POKEFAN_F, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, RadioTower2FTeacherScript, -1
+	object_event  1,  4, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerGruntM4, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+	object_event  7,  4, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerGruntM5, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+	object_event  4,  1, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 2, GenericTrainerGruntM6, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+	object_event 10,  5, SPRITE_ROCKET_GIRL, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerGruntF2, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+	object_event  0,  1, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, RadioTower2FBlackBelt1Text, EVENT_RADIO_TOWER_BLACKBELT_BLOCKS_STAIRS
+	object_event  1,  1, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, RadioTower2FBlackBelt2Text, EVENT_RADIO_TOWER_CIVILIANS_AFTER
+	pokemon_event 12,  1, JIGGLYPUFF, SPRITEMOVEDATA_POKEMON, -1, PAL_NPC_PINK, RadioTowerJigglypuffText, -1
+	object_event 12,  7, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, RadioTowerBuenaPrizeReceptionist, EVENT_GOLDENROD_CITY_CIVILIANS
+	object_event  3,  6, SPRITE_ROCKER, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, RadioTower2FRockerText, EVENT_GOLDENROD_CITY_CIVILIANS
+
+	object_const_def
+	const RADIOTOWER2F_BUENA
 
 RadioTower2FTeacherScript:
-	faceplayer
-	opentext
 	checkflag ENGINE_ROCKETS_IN_RADIO_TOWER
-	iftrue .Rockets
-	writetext RadioTower2FTeacherText
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer RadioTower2FTeacherText_Rockets
+	jumpthistextfaceplayer
 
-.Rockets:
-	writetext RadioTower2FTeacherText_Rockets
-	waitbutton
-	closetext
-	end
+	text "Lullabies on the"
+	line "radio may make"
+	cont "#mon sleep."
+	done
 
-RadioTowerJigglypuff:
-	opentext
-	writetext RadioTowerJigglypuffText
-	cry JIGGLYPUFF
-	waitbutton
-	closetext
-	end
+GenericTrainerGruntM4:
+	generictrainer GRUNTM, 4, EVENT_BEAT_ROCKET_GRUNTM_4, GruntM4SeenText, GruntM4BeatenText
 
-RadioTower2FBlackBelt1Script:
-	jumptextfaceplayer RadioTower2FBlackBelt1Text
+	text "We won't let you"
+	line "ruin our plans"
+	cont "for our comeback!"
+	done
 
-RadioTower2FBlackBelt2Script:
-	jumptextfaceplayer RadioTower2FBlackBelt2Text
+GenericTrainerGruntM5:
+	generictrainer GRUNTM, 5, EVENT_BEAT_ROCKET_GRUNTM_5, GruntM5SeenText, GruntM5BeatenText
 
-TrainerGruntM4:
-	trainer GRUNTM, GRUNTM_4, EVENT_BEAT_ROCKET_GRUNTM_4, GruntM4SeenText, GruntM4BeatenText, 0, .Script
+	text "We're not always"
+	line "evil. We just do"
+	cont "whatever we like."
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext GruntM4AfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerGruntM6:
+	generictrainer GRUNTM, 6, EVENT_BEAT_ROCKET_GRUNTM_6, GruntM6SeenText, GruntM6BeatenText
 
-TrainerGruntM5:
-	trainer GRUNTM, GRUNTM_5, EVENT_BEAT_ROCKET_GRUNTM_5, GruntM5SeenText, GruntM5BeatenText, 0, .Script
+	text "Our Executives are"
+	line "trying to take"
+	cont "this place over."
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext GruntM5AfterBattleText
-	waitbutton
-	closetext
-	end
+	para "They have some big"
+	line "plan. I wonder"
+	cont "what that is?"
+	done
 
-TrainerGruntM6:
-	trainer GRUNTM, GRUNTM_6, EVENT_BEAT_ROCKET_GRUNTM_6, GruntM6SeenText, GruntM6BeatenText, 0, .Script
+GenericTrainerGruntF2:
+	generictrainer GRUNTF, 2, EVENT_BEAT_ROCKET_GRUNTF_2, GruntF2SeenText, GruntF2BeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext GruntM6AfterBattleText
-	waitbutton
-	closetext
-	end
-
-TrainerGruntF2:
-	trainer GRUNTF, GRUNTF_2, EVENT_BEAT_ROCKET_GRUNTF_2, GruntF2SeenText, GruntF2BeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext GruntF2AfterBattleText
-	waitbutton
-	closetext
-	end
+	text "You beat me, and"
+	line "I won't forget it!"
+	done
 
 Buena:
+	checkflag ENGINE_ROCKETS_IN_RADIO_TOWER
+	iftrue_jumptextfaceplayer RadioTower2FBuenaPasswordIsHelpText
 	faceplayer
 	opentext
-	checkflag ENGINE_ROCKETS_IN_RADIO_TOWER
-	iftrue .MidRocketTakeover
 	checkevent EVENT_MET_BUENA
-	iffalse .Introduction
+	iffalsefwd .Introduction
 	checkflag ENGINE_BUENAS_PASSWORD_2
-	iftrue .PlayedAlready
+	iftruefwd .PlayedAlready
 	readvar VAR_HOUR
-	ifless NITE_HOUR, .TooEarly
+	ifless EVE_HOUR, .TooEarly
 	checkflag ENGINE_BUENAS_PASSWORD
-	iffalse .TuneIn
-	checkitem BLUE_CARD
-	iffalse .NoBlueCard
+	iffalsefwd .TuneIn
+	checkkeyitem BLUE_CARD
+	iffalsefwd .NoBlueCard
 	readvar VAR_BLUECARDBALANCE
-	ifequal BLUE_CARD_POINT_CAP, .BlueCardCapped0
+	ifequalfwd BLUE_CARD_POINT_CAP, .BlueCardCapped0
 	playmusic MUSIC_BUENAS_PASSWORD
 	writetext RadioTower2FBuenaDoYouKnowPasswordText
 	special AskRememberPassword
-	iffalse .ForgotPassword
+	iffalsefwd .ForgotPassword
 	writetext RadioTower2FBuenaJoinTheShowText
 	waitbutton
 	closetext
@@ -128,51 +108,42 @@ Buena:
 	applymovement PLAYER, RadioTower2FPlayerWalksToMicrophoneMovement
 .DontNeedToMove:
 	turnobject PLAYER, RIGHT
-	opentext
-	writetext RadioTower2FBuenaEveryoneSayPasswordText
-	waitbutton
-	closetext
+	showtext RadioTower2FBuenaEveryoneSayPasswordText
 	turnobject RADIOTOWER2F_BUENA, DOWN
 	reanchormap
-	special BuenasPassword
+	special SpecialBuenasPassword
 	closetext
-	iffalse .WrongAnswer
-	opentext
-	writetext RadioTower2FBuenaCorrectAnswerText
-	waitbutton
-	closetext
+	iffalsefwd .WrongAnswer
+	showtext RadioTower2FBuenaCorrectAnswerText
 	readvar VAR_BLUECARDBALANCE
-	addval 1
+	addval $1
 	writevar VAR_BLUECARDBALANCE
 	waitsfx
 	playsound SFX_TRANSACTION
 	setflag ENGINE_BUENAS_PASSWORD_2
 	pause 20
 	turnobject RADIOTOWER2F_BUENA, RIGHT
-	opentext
-	writetext RadioTower2FBuenaThanksForComingText
-	waitbutton
-	closetext
-	special FadeOutMusic
+	showtext RadioTower2FBuenaThanksForComingText
+	special Special_FadeOutMusic
 	pause 20
 	special RestartMapMusic
 	readvar VAR_BLUECARDBALANCE
-	ifequal BLUE_CARD_POINT_CAP, .BlueCardCapped1
+	ifequalfwd BLUE_CARD_POINT_CAP, .BlueCardCapped1
 	end
 
 .Introduction:
 	writetext RadioTower2FBuenaShowIntroductionText
 	promptbutton
 	setevent EVENT_MET_BUENA
-	verbosegiveitem BLUE_CARD
+	verbosegivekeyitem BLUE_CARD
 .TuneIn:
 	writetext RadioTower2FBuenaTuneInToMyShowText
 	waitbutton
 	closetext
 	checkcellnum PHONE_BUENA
-	iftrue .Registered0
+	iftruefwd .Registered0
 	checkevent EVENT_BUENA_OFFERED_HER_PHONE_NUMBER
-	iftrue .OfferedNumberBefore
+	iftruefwd .OfferedNumberBefore
 .Registered0:
 	turnobject RADIOTOWER2F_BUENA, RIGHT
 	end
@@ -182,7 +153,7 @@ Buena:
 	waitbutton
 	closetext
 	turnobject RADIOTOWER2F_BUENA, RIGHT
-	special FadeOutMusic
+	special Special_FadeOutMusic
 	pause 20
 	special RestartMapMusic
 	end
@@ -192,9 +163,9 @@ Buena:
 	waitbutton
 	closetext
 	checkcellnum PHONE_BUENA
-	iftrue .Registered1
+	iftruefwd .Registered1
 	checkevent EVENT_BUENA_OFFERED_HER_PHONE_NUMBER
-	iftrue .OfferedNumberBefore
+	iftruefwd .OfferedNumberBefore
 .Registered1:
 	turnobject RADIOTOWER2F_BUENA, RIGHT
 	pause 10
@@ -202,26 +173,14 @@ Buena:
 
 .WrongAnswer:
 	setflag ENGINE_BUENAS_PASSWORD_2
-	opentext
-	writetext RadioTower2FBuenaDidYouForgetText
-	waitbutton
-	closetext
+	showtext RadioTower2FBuenaDidYouForgetText
 	turnobject RADIOTOWER2F_BUENA, RIGHT
 	pause 20
-	opentext
-	writetext RadioTower2FBuenaThanksForComingText
-	waitbutton
-	closetext
+	showtext RadioTower2FBuenaThanksForComingText
 	turnobject RADIOTOWER2F_BUENA, RIGHT
-	special FadeOutMusic
+	special Special_FadeOutMusic
 	pause 20
 	special RestartMapMusic
-	end
-
-.MidRocketTakeover:
-	writetext RadioTower2FBuenaPasswordIsHelpText
-	waitbutton
-	closetext
 	end
 
 .NoBlueCard:
@@ -229,9 +188,9 @@ Buena:
 	waitbutton
 	closetext
 	checkcellnum PHONE_BUENA
-	iftrue .Registered2
+	iftruefwd .Registered2
 	checkevent EVENT_BUENA_OFFERED_HER_PHONE_NUMBER_NO_BLUE_CARD
-	iftrue .OfferedNumberBefore
+	iftruefwd .OfferedNumberBefore
 .Registered2:
 	turnobject RADIOTOWER2F_BUENA, RIGHT
 	end
@@ -241,9 +200,9 @@ Buena:
 	waitbutton
 	closetext
 	checkcellnum PHONE_BUENA
-	iftrue .Registered3
+	iftruefwd .Registered3
 	checkevent EVENT_BUENA_OFFERED_HER_PHONE_NUMBER_NO_BLUE_CARD
-	iftrue .OfferedNumberBefore
+	iftruefwd .OfferedNumberBefore
 .Registered3:
 	turnobject RADIOTOWER2F_BUENA, RIGHT
 	end
@@ -253,36 +212,36 @@ Buena:
 	waitbutton
 	closetext
 	checkcellnum PHONE_BUENA
-	iftrue .Registered4
+	iftruefwd .Registered4
 	checkevent EVENT_BUENA_OFFERED_HER_PHONE_NUMBER
-	iftrue .OfferedNumberBefore
+	iftruefwd .OfferedNumberBefore
 .Registered4:
 	end
 
 .BlueCardCapped1:
 	checkcellnum PHONE_BUENA
-	iftrue .HasNumber
+	iftruefwd .HasNumber
 	pause 20
 	turnobject RADIOTOWER2F_BUENA, DOWN
 	pause 15
 	turnobject PLAYER, UP
 	pause 15
 	checkevent EVENT_BUENA_OFFERED_HER_PHONE_NUMBER_NO_BLUE_CARD
-	iftrue .OfferedNumberBefore
+	iftruefwd .OfferedNumberBefore
 	showemote EMOTE_SHOCK, RADIOTOWER2F_BUENA, 15
 	setevent EVENT_BUENA_OFFERED_HER_PHONE_NUMBER_NO_BLUE_CARD
 	setevent EVENT_BUENA_OFFERED_HER_PHONE_NUMBER
 	opentext
 	writetext RadioTower2FBuenaOfferPhoneNumberText
-	sjump .AskForNumber
+	sjumpfwd .AskForNumber
 
 .OfferedNumberBefore:
 	opentext
 	writetext RadioTower2FBuenaOfferNumberAgainText
 .AskForNumber:
 	askforphonenumber PHONE_BUENA
-	ifequal PHONE_CONTACTS_FULL, .PhoneFull
-	ifequal PHONE_CONTACT_REFUSED, .NumberDeclined
+	ifequalfwd $1, .PhoneFull
+	ifequalfwd $2, .NumberDeclined
 	writetext RadioTower2FRegisteredBuenasNumberText
 	playsound SFX_REGISTER_PHONE_NUMBER
 	waitsfx
@@ -310,37 +269,13 @@ Buena:
 	end
 
 RadioTowerBuenaPrizeReceptionist:
-	faceplayer
-	opentext
-	checkitem BLUE_CARD
-	iffalse .NoCard
-	writetext RadioTower2FBuenaReceptionistPointsForPrizesText
-	promptbutton
-	special BuenaPrize
-	closetext
-	end
-
-.NoCard:
-	writetext RadioTower2FBuenaReceptionistNoCardText
-	promptbutton
-	closetext
-	end
-
-RadioTower2FSalesSign:
-	jumptext RadioTower2FSalesSignText
-
-RadioTower2FOaksPKMNTalkSign:
-	jumptext RadioTower2FOaksPKMNTalkSignText
-
-RadioTower2FPokemonRadioSign:
-	jumptext RadioTower2FPokemonRadioSignText
-
-RadioTower2FBookshelf:
-	jumpstd MagazineBookshelfScript
+	checkkeyitem BLUE_CARD
+	iffalse_jumptextfaceplayer RadioTower2FBuenaReceptionistNoCardText
+	pokemart MARTTYPE_BLUECARD, 0
 
 RadioTower2FPlayerWalksToMicrophoneMovement:
-	slow_step DOWN
-	slow_step RIGHT
+	slow_step_down
+	slow_step_right
 	step_end
 
 RadioTower2FSuperNerdText:
@@ -349,20 +284,29 @@ RadioTower2FSuperNerdText:
 	cont "where. Tune in!"
 	done
 
-RadioTower2FTeacherText:
-	text "Lullabies on the"
-	line "radio may make"
-	cont "#MON sleep."
+RadioTower2FRockerText:
+	text "I have a radio"
+	line "interview to pro-"
+
+	para "mote my latest"
+	line "song."
+
+	para "I've performed in"
+	line "front of big"
+	cont "crowds before,"
+
+	para "but boy am I"
+	line "nervous."
 	done
 
 RadioTower2FTeacherText_Rockets:
 	text "Why would they"
 	line "want to take over"
-	cont "the RADIO TOWER?"
+	cont "the Radio Tower?"
 	done
 
 RadioTowerJigglypuffText:
-	text "JIGGLYPUFF:"
+	text "Jigglypuff:"
 	line "Jiggly…"
 	done
 
@@ -376,21 +320,21 @@ RadioTower2FBlackBelt1Text:
 
 	para "There's something"
 	line "wrong with the"
-	cont "DIRECTOR…"
+	cont "Director…"
 	done
 
 RadioTower2FBlackBelt2Text:
 	text "Feel free to look"
 	line "around anywhere."
 
-	para "The DIRECTOR is"
+	para "The Director is"
 	line "nice again, just"
 	cont "as he was before."
 	done
 
 GruntM4SeenText:
 	text "Three years ago,"
-	line "TEAM ROCKET was"
+	line "Team Rocket was"
 	cont "forced to disband."
 
 	para "But we're making a"
@@ -402,16 +346,10 @@ GruntM4BeatenText:
 	line "cute!"
 	done
 
-GruntM4AfterBattleText:
-	text "We won't let you"
-	line "ruin our plans"
-	cont "for our comeback!"
-	done
-
 GruntM5SeenText:
-	text "We're TEAM ROCKET,"
+	text "We're Team Rocket,"
 	line "the exploiters of"
-	cont "#MON!"
+	cont "#mon!"
 
 	para "We love being"
 	line "evil! Scared?"
@@ -422,12 +360,6 @@ GruntM5BeatenText:
 	line "hero?"
 	done
 
-GruntM5AfterBattleText:
-	text "We're not always"
-	line "evil. We just do"
-	cont "whatever we like."
-	done
-
 GruntM6SeenText:
 	text "Hey, hey! Keep out"
 	line "of our way!"
@@ -435,16 +367,6 @@ GruntM6SeenText:
 
 GruntM6BeatenText:
 	text "Arggh. I give up."
-	done
-
-GruntM6AfterBattleText:
-	text "Our EXECUTIVES are"
-	line "trying to take"
-	cont "this place over."
-
-	para "They have some big"
-	line "plan. I wonder"
-	cont "what that is?"
 	done
 
 GruntF2SeenText:
@@ -464,18 +386,13 @@ GruntF2BeatenText:
 	text "Wh-who are you?"
 	done
 
-GruntF2AfterBattleText:
-	text "You beat me, and"
-	line "I won't forget it!"
-	done
-
 RadioTower2FBuenaShowIntroductionText:
-	text "BUENA: Hi! I'm"
-	line "BUENA!"
+	text "Buena: Hi! I'm"
+	line "Buena!"
 
 	para "Do you know about"
 	line "a radio program"
-	cont "called PASSWORD?"
+	cont "called Password?"
 
 	para "If you can tell me"
 	line "the password from"
@@ -499,12 +416,12 @@ RadioTower2FBuenaShowIntroductionText:
 	done
 
 RadioTower2FBuenaTuneInToMyShowText:
-	text "BUENA: Tune in to"
-	line "my PASSWORD SHOW!"
+	text "Buena: Tune in to"
+	line "my Password Show!"
 	done
 
 RadioTower2FBuenaDoYouKnowPasswordText:
-	text "BUENA: Hi!"
+	text "Buena: Hi!"
 	line "Did you tune in to"
 	cont "my radio show?"
 
@@ -513,31 +430,31 @@ RadioTower2FBuenaDoYouKnowPasswordText:
 	done
 
 RadioTower2FBuenaJoinTheShowText:
-	text "BUENA: Oh, wow!"
+	text "Buena: Oh, wow!"
 	line "Thank you!"
 
 	para "What was your name"
 	line "again?"
 
-	para "…<PLAY_G>, OK!"
+	para "…<PLAYER>, OK!"
 
-	para "Come on, <PLAY_G>."
+	para "Come on, <PLAYER>."
 	line "Join the show."
 	done
 
 RadioTower2FBuenaEveryoneSayPasswordText:
-	text "BUENA: Everyone"
+	text "Buena: Everyone"
 	line "ready?"
 
 	para "I want to hear you"
 	line "shout out today's"
 
 	para "password for"
-	line "<PLAY_G>!"
+	line "<PLAYER>!"
 	done
 
 RadioTower2FBuenaComeBackAfterListeningText:
-	text "BUENA: Come back"
+	text "Buena: Come back"
 	line "after you listen"
 
 	para "to my show, OK?"
@@ -545,7 +462,7 @@ RadioTower2FBuenaComeBackAfterListeningText:
 	done
 
 RadioTower2FBuenaAlreadyPlayedText:
-	text "BUENA: Sorry…"
+	text "Buena: Sorry…"
 
 	para "You get just one"
 	line "chance each day."
@@ -555,7 +472,7 @@ RadioTower2FBuenaAlreadyPlayedText:
 	done
 
 RadioTower2FBuenaCorrectAnswerText:
-	text "BUENA: YIPPEE!"
+	text "Buena: YIPPEE!"
 	line "That's right!"
 
 	para "You did tune in!"
@@ -566,7 +483,7 @@ RadioTower2FBuenaCorrectAnswerText:
 	done
 
 RadioTower2FBuenaDidYouForgetText:
-	text "BUENA: Aww…"
+	text "Buena: Aww…"
 	line "That's not it…"
 
 	para "Did you forget the"
@@ -574,10 +491,10 @@ RadioTower2FBuenaDidYouForgetText:
 	done
 
 RadioTower2FBuenaThanksForComingText:
-	text "BUENA: Yup! Our"
+	text "Buena: Yup! Our"
 	line "contestant was"
 
-	para "<PLAY_G>."
+	para "<PLAYER>."
 	line "Thanks for coming!"
 
 	para "I hope all you"
@@ -588,35 +505,36 @@ RadioTower2FBuenaThanksForComingText:
 	done
 
 RadioTower2FBuenaPasswordIsHelpText:
-	text "BUENA: Huh?"
+	text "Buena: Huh?"
 	line "Today's password?"
 
 	para "HELP, of course!"
 	done
 
 RadioTower2FBuenaCardIsFullText:
-	text "BUENA: Your BLUE"
-	line "CARD's full."
+	text "Buena: Your Blue"
+	line "Card's full."
 
 	para "Trade it in for a"
 	line "fabulous prize!"
 	done
 
 RadioTower2FBuenaTuneInAfterSixText:
-	text "BUENA: Tune in to"
-	line "PASSWORD every"
+	text "Buena: Tune in to"
+	line "Password every"
 
-	para "night from six to"
-	line "midnight!"
+	assert EVE_HOUR == 12 + 5
+	para "night from five"
+	line "to midnight!"
 
 	para "Tune in, then drop"
 	line "in for a visit!"
 	done
 
 RadioTower2FBuenaNoBlueCardText:
-	text "BUENA: Oh? You"
+	text "Buena: Oh? You"
 	line "forgot to bring"
-	cont "your BLUE CARD?"
+	cont "your Blue Card?"
 
 	para "I can't give you"
 	line "points if you"
@@ -624,8 +542,8 @@ RadioTower2FBuenaNoBlueCardText:
 	done
 
 RadioTower2FBuenaOfferPhoneNumberText:
-	text "BUENA: Oh! Your"
-	line "BLUE CARD reached"
+	text "Buena: Oh! Your"
+	line "Blue Card reached"
 
 	para "{d:BLUE_CARD_POINT_CAP} points today!"
 	line "That's so wild!"
@@ -635,7 +553,7 @@ RadioTower2FBuenaOfferPhoneNumberText:
 	cont "{d:BLUE_CARD_POINT_CAP} points, but…"
 
 	para "You came by so"
-	line "often, <PLAY_G>."
+	line "often, <PLAYER>."
 
 	para "I'll make you a"
 	line "special deal!"
@@ -645,7 +563,7 @@ RadioTower2FBuenaOfferPhoneNumberText:
 	done
 
 RadioTower2FBuenaOfferNumberAgainText:
-	text "BUENA: <PLAY_G>,"
+	text "Buena: <PLAYER>,"
 	line "do you want to"
 
 	para "register my phone"
@@ -654,52 +572,44 @@ RadioTower2FBuenaOfferNumberAgainText:
 
 RadioTower2FRegisteredBuenasNumberText:
 	text "<PLAYER> registered"
-	line "BUENA's number."
+	line "Buena's number."
 	done
 
 RadioTower2FBuenaCallMeText:
-	text "BUENA: I look"
+	text "Buena: I look"
 	line "forward to hearing"
 	cont "from you!"
 	done
 
 RadioTower2FBuenaSadRejectedText:
-	text "BUENA: Aww… It's a"
+	text "Buena: Aww… It's a"
 	line "special prize…"
 	done
 
 RadioTower2FBuenaYourPhoneIsFullText:
-	text "BUENA: <PLAY_G>,"
+	text "Buena: <PLAYER>,"
 	line "your phone list"
 
 	para "has no room left"
 	line "for me…"
 	done
 
-RadioTower2FBuenaReceptionistPointsForPrizesText:
-	text "You can cash in"
-	line "your saved points"
-
-	para "for a lovely prize"
-	line "of your choice!"
-	done
-
 RadioTower2FBuenaReceptionistNoCardText:
 	text "You can't trade in"
 	line "points without"
-	cont "your BLUE CARD."
+	cont "your Blue Card."
 
 	para "Don't forget your"
-	line "BLUE CARD!"
+	line "Blue Card!"
 	done
 
 RadioTower2FSalesSignText:
-	text "2F SALES"
+	text "2F Sales"
 	done
 
 RadioTower2FOaksPKMNTalkSignText:
-	text "PROF.OAK'S #MON"
-	line "TALK"
+	text "Prof.Oak's #mon"
+	line "Talk"
 
 	para "The Hottest Show"
 	line "on the Air!"
@@ -707,35 +617,5 @@ RadioTower2FOaksPKMNTalkSignText:
 
 RadioTower2FPokemonRadioSignText:
 	text "Anywhere, Anytime"
-	line "#MON Radio"
+	line "#mon Radio"
 	done
-
-RadioTower2F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  0,  0, RADIO_TOWER_3F, 1
-	warp_event 15,  0, RADIO_TOWER_1F, 3
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  3,  0, BGEVENT_READ, RadioTower2FSalesSign
-	bg_event  5,  0, BGEVENT_READ, RadioTower2FOaksPKMNTalkSign
-	bg_event  9,  1, BGEVENT_READ, RadioTower2FBookshelf
-	bg_event 10,  1, BGEVENT_READ, RadioTower2FBookshelf
-	bg_event 11,  1, BGEVENT_READ, RadioTower2FBookshelf
-	bg_event 13,  0, BGEVENT_READ, RadioTower2FPokemonRadioSign
-
-	def_object_events
-	object_event  6,  6, SPRITE_SUPER_NERD, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, RadioTower2FSuperNerdScript, EVENT_GOLDENROD_CITY_CIVILIANS
-	object_event 17,  2, SPRITE_TEACHER, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 1, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, RadioTower2FTeacherScript, -1
-	object_event  1,  4, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_TRAINER, 3, TrainerGruntM4, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
-	object_event  8,  4, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_TRAINER, 3, TrainerGruntM5, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
-	object_event  4,  1, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_TRAINER, 2, TrainerGruntM6, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
-	object_event 10,  5, SPRITE_ROCKET_GIRL, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 3, TrainerGruntF2, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
-	object_event  0,  1, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, RadioTower2FBlackBelt1Script, EVENT_RADIO_TOWER_BLACKBELT_BLOCKS_STAIRS
-	object_event  1,  1, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, RadioTower2FBlackBelt2Script, EVENT_RADIO_TOWER_CIVILIANS_AFTER
-	object_event 12,  1, SPRITE_JIGGLYPUFF, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, RadioTowerJigglypuff, -1
-	object_event 14,  5, SPRITE_BEAUTY, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, Buena, -1
-	object_event 12,  7, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, RadioTowerBuenaPrizeReceptionist, EVENT_GOLDENROD_CITY_CIVILIANS

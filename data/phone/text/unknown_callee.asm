@@ -1,11 +1,11 @@
 UnknownGenericText:
 	text "How are your"
-	line "#MON doing?"
+	line "#mon doing?"
 
-	para "My #MON are a"
+	para "My #mon are a"
 	line "bit too energetic."
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text ","
 	line "especially."
@@ -19,7 +19,7 @@ UnknownGenericText:
 	done
 
 UnknownTougherThanEverText:
-	text "My @"
+	text "My "
 	text_ram wStringBuffer4
 	text "'s"
 	line "looking tougher"

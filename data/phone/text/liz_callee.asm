@@ -1,46 +1,43 @@
 LizAnswerPhoneText:
-	text "Hello, @"
+	text "Hello, "
 	text_ram wStringBuffer3
-	text_start
 	line "speaking."
 
-	para "Oh, <PLAY_G>."
+	para "Oh, <PLAYER>."
 	line "Good morning."
 	done
 
 LizAnswerPhoneDayText:
-	text "Hello, @"
+	text "Hello, "
 	text_ram wStringBuffer3
-	text_start
 	line "speaking."
 
-	para "Oh, <PLAY_G>."
+	para "Oh, <PLAYER>."
 	line "How are you?"
 	done
 
 LizAnswerPhoneNiteText:
-	text "Hello, @"
+	text "Hello, "
 	text_ram wStringBuffer3
-	text_start
 	line "speaking."
 
-	para "Oh, <PLAY_G>."
+	para "Oh, <PLAYER>."
 	line "Good evening."
 	done
 
 LizGreetText:
 	text "Good morning,"
-	line "<PLAY_G>."
+	line "<PLAYER>."
 
-	para "This is @"
+	para "This is "
 	text_ram wStringBuffer3
 	text "."
 	line "Were you sleeping?"
 	done
 
 LizGreetDayText:
-	text "Hi, <PLAY_G>."
-	line "This is @"
+	text "Hi, <PLAYER>."
+	line "This is "
 	text_ram wStringBuffer3
 	text "."
 
@@ -50,9 +47,9 @@ LizGreetDayText:
 
 LizGreetNiteText:
 	text "Good evening,"
-	line "<PLAY_G>."
+	line "<PLAYER>."
 
-	para "This is @"
+	para "This is "
 	text_ram wStringBuffer3
 	text "."
 	line "Are you awake?"
@@ -63,15 +60,15 @@ LizGenericText:
 	line "so I called you."
 
 	para "So anyway, how are"
-	line "your #MON?"
+	line "your #mon?"
 
 	para "Me, I take my"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text " to the"
 
-	para "#MON CENTER in"
-	line "VIOLET every day,"
+	para "#mon Center in"
+	line "Violet every day,"
 
 	para "so it's doing just"
 	line "fantastic!"

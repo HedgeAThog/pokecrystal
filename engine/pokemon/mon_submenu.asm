@@ -5,7 +5,7 @@ MonSubmenu:
 	ldh [hBGMapMode], a
 	call GetMonSubmenuItems
 	farcall FreezeMonIcons
-	ld hl, .MenuHeader
+	ld hl, .MenuDataHeader
 	call LoadMenuHeader
 	call .GetTopCoord
 	call PopulateMonMenu
@@ -15,18 +15,17 @@ MonSubmenu:
 	call MonMenuLoop
 	ld [wMenuSelection], a
 
-	call ExitMenu
-	ret
+	jmp ExitMenu
 
-.MenuHeader:
-	db MENU_BACKUP_TILES ; flags
-	menu_coords 6, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1
+.MenuDataHeader:
+	db MENU_BACKUP_TILES
+	menu_coords 6, 0, 19, 17
 	dw 0
 	db 1 ; default option
 
 .GetTopCoord:
-; [wMenuBorderTopCoord] = 1 + [wMenuBorderBottomCoord] - 2 * ([wMonSubmenuCount] + 1)
-	ld a, [wMonSubmenuCount]
+; TopCoord = 1 + BottomCoord - 2 * (NumSubmenuItems + 1)
+	ld a, [wBuffer1]
 	inc a
 	add a
 	ld b, a
@@ -34,29 +33,25 @@ MonSubmenu:
 	sub b
 	inc a
 	ld [wMenuBorderTopCoord], a
-	call MenuBox
-	ret
+	jmp MenuBox
 
 MonMenuLoop:
 .loop
-	ld a, MENU_UNUSED | MENU_BACKUP_TILES_2 ; flags
+	ld a, $a0 ; flags
 	ld [wMenuDataFlags], a
-	ld a, [wMonSubmenuCount]
+	ld a, [wBuffer1] ; items
 	ld [wMenuDataItems], a
 	call InitVerticalMenuCursor
 	ld hl, w2DMenuFlags1
-	set _2DMENU_ENABLE_SPRITE_ANIMS_F, [hl]
-	call StaticMenuJoypad
+	set 6, [hl]
+	call DoMenuJoypadLoop
 	ld de, SFX_READ_TEXT_2
 	call PlaySFX
 	ldh a, [hJoyPressed]
-	bit B_PAD_A, a
+	bit 0, a ; A
 	jr nz, .select
-	bit B_PAD_B, a
-	jr nz, .cancel
-	jr .loop
-
-.cancel
+	bit 1, a ; B
+	jr z, .loop
 	ld a, MONMENUITEM_CANCEL
 	ret
 
@@ -65,16 +60,16 @@ MonMenuLoop:
 	dec a
 	ld c, a
 	ld b, 0
-	ld hl, wMonSubmenuItems
+	ld hl, wBuffer2
 	add hl, bc
 	ld a, [hl]
 	ret
 
 PopulateMonMenu:
 	call MenuBoxCoord2Tile
-	ld bc, 2 * SCREEN_WIDTH + 2
+	ld bc, $2a ; 42
 	add hl, bc
-	ld de, wMonSubmenuItems
+	ld de, wBuffer2
 .loop
 	ld a, [de]
 	inc de
@@ -84,8 +79,8 @@ PopulateMonMenu:
 	push hl
 	call GetMonMenuString
 	pop hl
-	call PlaceString
-	ld bc, 2 * SCREEN_WIDTH
+	rst PlaceString
+	ld bc, $28 ; 40
 	add hl, bc
 	pop de
 	jr .loop
@@ -101,8 +96,7 @@ GetMonMenuString:
 	inc hl
 	ld a, [hl]
 	ld [wNamedObjectIndex], a
-	call GetMoveName
-	ret
+	jmp GetMoveName
 
 .NotMove:
 	inc hl
@@ -116,14 +110,15 @@ GetMonMenuString:
 
 GetMonSubmenuItems:
 	call ResetMonSubmenu
-	ld a, [wCurPartySpecies]
-	cp EGG
-	jr z, .egg
+	ld a, MON_IS_EGG
+	call GetPartyParamLocationAndValue
+	bit MON_IS_EGG_F, a
+	jr nz, .egg
 	ld a, [wLinkMode]
 	and a
 	jr nz, .skip_moves
 	ld a, MON_MOVES
-	call GetPartyParamLocation
+	call GetPartyParamLocationAndValue
 	ld d, h
 	ld e, l
 	ld c, NUM_MOVES
@@ -136,9 +131,7 @@ GetMonSubmenuItems:
 	push hl
 	call IsFieldMove
 	pop hl
-	jr nc, .next
-	call AddMonMenuItem
-
+	call c, AddMonMenuItem
 .next
 	pop de
 	inc de
@@ -147,48 +140,41 @@ GetMonSubmenuItems:
 	jr nz, .loop
 
 .skip_moves
-	ld a, MONMENUITEM_STATS
+	ld a, MONMENUITEM_SUMMARY
 	call AddMonMenuItem
 	ld a, MONMENUITEM_SWITCH
-	call AddMonMenuItem
-	ld a, MONMENUITEM_MOVE
 	call AddMonMenuItem
 	ld a, [wLinkMode]
 	and a
 	jr nz, .skip2
 	push hl
 	ld a, MON_ITEM
-	call GetPartyParamLocation
-	ld d, [hl]
-	farcall ItemIsMail
+	call GetPartyParamLocationAndValue
+	ld d, a
+	call ItemIsMail ; set carry if mail
 	pop hl
-	ld a, MONMENUITEM_MAIL
-	jr c, .ok
-	ld a, MONMENUITEM_ITEM
-
-.ok
+	; a = carry ? MONMENUITEM_MAIL : MONMENUITEM_ITEM
+	sbc a
+	and MONMENUITEM_MAIL - MONMENUITEM_ITEM
+	add MONMENUITEM_ITEM
 	call AddMonMenuItem
 
 .skip2
-	ld a, [wMonSubmenuCount]
+	ld a, [wBuffer1]
 	cp NUM_MONMENU_ITEMS
-	jr z, .ok2
+	jr z, TerminateMonSubmenu
 	ld a, MONMENUITEM_CANCEL
 	call AddMonMenuItem
-
-.ok2
-	call TerminateMonSubmenu
-	ret
+	jr TerminateMonSubmenu
 
 .egg
-	ld a, MONMENUITEM_STATS
+	ld a, MONMENUITEM_SUMMARY
 	call AddMonMenuItem
 	ld a, MONMENUITEM_SWITCH
 	call AddMonMenuItem
 	ld a, MONMENUITEM_CANCEL
 	call AddMonMenuItem
-	call TerminateMonSubmenu
-	ret
+	jr TerminateMonSubmenu
 
 IsFieldMove:
 	ld b, a
@@ -196,33 +182,31 @@ IsFieldMove:
 .next
 	ld a, [hli]
 	cp -1
-	jr z, .nope
+	ret z
 	cp MONMENU_MENUOPTION
-	jr z, .nope
-	ld d, [hl]
-	inc hl
+	ret z
+	ld a, [hli]
+	ld d, a
 	ld a, [hli]
 	cp b
 	jr nz, .next
 	ld a, d
 	scf
-
-.nope
 	ret
 
 ResetMonSubmenu:
 	xor a
-	ld [wMonSubmenuCount], a
-	ld hl, wMonSubmenuItems
+	ld [wBuffer1], a
+	ld hl, wBuffer2
 	ld bc, NUM_MONMENU_ITEMS + 1
-	call ByteFill
+	rst ByteFill
 	ret
 
 TerminateMonSubmenu:
-	ld a, [wMonSubmenuCount]
+	ld a, [wBuffer1]
 	ld e, a
-	ld d, 0
-	ld hl, wMonSubmenuItems
+	ld d, $0
+	ld hl, wBuffer2
 	add hl, de
 	ld [hl], -1
 	ret
@@ -231,60 +215,15 @@ AddMonMenuItem:
 	push hl
 	push de
 	push af
-	ld a, [wMonSubmenuCount]
+	ld a, [wBuffer1]
 	ld e, a
 	inc a
-	ld [wMonSubmenuCount], a
-	ld d, 0
-	ld hl, wMonSubmenuItems
+	ld [wBuffer1], a
+	ld d, $0
+	ld hl, wBuffer2
 	add hl, de
 	pop af
 	ld [hl], a
 	pop de
 	pop hl
 	ret
-
-BattleMonMenu:
-	ld hl, .MenuHeader
-	call CopyMenuHeader
-	xor a
-	ldh [hBGMapMode], a
-	call MenuBox
-	call UpdateSprites
-	call PlaceVerticalMenuItems
-	call WaitBGMap
-	call CopyMenuData
-	ld a, [wMenuDataFlags]
-	bit STATICMENU_CURSOR_F, a
-	jr z, .set_carry
-	call InitVerticalMenuCursor
-	ld hl, w2DMenuFlags1
-	set _2DMENU_ENABLE_SPRITE_ANIMS_F, [hl]
-	call StaticMenuJoypad
-	ld de, SFX_READ_TEXT_2
-	call PlaySFX
-	ldh a, [hJoyPressed]
-	bit B_PAD_B, a
-	jr z, .clear_carry
-	ret z
-
-.set_carry
-	scf
-	ret
-
-.clear_carry
-	and a
-	ret
-
-.MenuHeader:
-	db 0 ; flags
-	menu_coords 11, 11, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1
-	dw .MenuData
-	db 1 ; default option
-
-.MenuData:
-	db STATICMENU_CURSOR | STATICMENU_NO_TOP_SPACING ; flags
-	db 3 ; items
-	db "SWITCH@"
-	db "STATS@"
-	db "CANCEL@"

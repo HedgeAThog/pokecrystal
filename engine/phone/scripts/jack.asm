@@ -1,44 +1,44 @@
-JackPhoneCalleeScript:
-	gettrainername STRING_BUFFER_3, SCHOOLBOY, JACK1
+JackPhoneScript1:
+	gettrainername SCHOOLBOY, JACK1, STRING_BUFFER_3
 	checkflag ENGINE_JACK_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	farscall PhoneScript_AnswerPhone_Male
 	checkflag ENGINE_JACK_MONDAY_MORNING
-	iftrue .NotMonday
+	iftruefwd .NotMonday
 	readvar VAR_WEEKDAY
 	ifnotequal MONDAY, .NotMonday
-	checktime MORN
-	iftrue JackMondayMorning
+	checktime 1 << MORN
+	iftruefwd JackMondayMorning
 
 .NotMonday:
 	farsjump JackPhoneTipsScript
 
 .WantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_NATIONAL_PARK
+	getlandmarkname NATIONAL_PARK, STRING_BUFFER_5
 	farsjump JackWantsBattleScript
 
-JackPhoneCallerScript:
-	gettrainername STRING_BUFFER_3, SCHOOLBOY, JACK1
+JackPhoneScript2:
+	gettrainername SCHOOLBOY, JACK1, STRING_BUFFER_3
 	farscall PhoneScript_GreetPhone_Male
 	farscall PhoneScript_Random2
-	ifequal 0, JackBattleTrivia
+	ifequalfwd $0, JackBattleTrivia
 	checkflag ENGINE_JACK_READY_FOR_REMATCH
-	iftrue .WaitingForBattle
+	iftruefwd .WaitingForBattle
 	checkflag ENGINE_JACK_MONDAY_MORNING
-	iftrue .WaitingForBattle
+	iftruefwd .WaitingForBattle
 	farscall PhoneScript_Random2
-	ifequal 0, JackWantsToBattle
+	ifequalfwd $0, JackWantsToBattle
 
 .WaitingForBattle:
 	farscall PhoneScript_Random3
-	ifequal 0, JackFindsRare
+	ifequalfwd $0, JackFindsRare
 	farsjump Phone_GenericCall_Male
 
 JackMondayMorning:
 	setflag ENGINE_JACK_MONDAY_MORNING
 
 JackWantsToBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_NATIONAL_PARK
+	getlandmarkname NATIONAL_PARK, STRING_BUFFER_5
 	setflag ENGINE_JACK_READY_FOR_REMATCH
 	farsjump PhoneScript_WantsToBattle_Male
 

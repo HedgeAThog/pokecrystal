@@ -1,13 +1,29 @@
-; Places and People will describe the landmarks of these maps.
+; Places and People will describe these locations.
 
 PnP_Places:
-	map_id PALLET_TOWN                 ; PALLET_TOWN
-	map_id ROUTE_22                    ; ROUTE_22
-	map_id PEWTER_CITY                 ; PEWTER_CITY
-	map_id CERULEAN_POLICE_STATION     ; CERULEAN_CITY
-	map_id ROUTE_12                    ; ROUTE_12
-	map_id ROUTE_11                    ; ROUTE_11
-	map_id ROUTE_16                    ; ROUTE_16
-	map_id ROUTE_14                    ; ROUTE_14
-	map_id CINNABAR_POKECENTER_2F_BETA ; CINNABAR_ISLAND
+	db PALLET_TOWN
+	db ROUTE_1
+	db VIRIDIAN_CITY
+	db VIRIDIAN_FOREST
+	db PEWTER_CITY
+	db MT_MOON
+	db CERULEAN_CITY
+	db CERULEAN_CAPE
+	db VERMILION_CITY
+	db DIGLETTS_CAVE
+	db ROCK_TUNNEL
+	db LAVENDER_TOWN
+	db CELADON_CITY
+	db CELADON_UNIVERSITY
+	db SAFFRON_CITY
+	db ROUTE_17
+	db FUCHSIA_CITY
+	db SAFARI_ZONE
+	db SEAFOAM_ISLANDS
+	db CINNABAR_ISLAND
+	db ROUTE_22
+	db TOHJO_FALLS
+	db VICTORY_ROAD
+	db INDIGO_PLATEAU
+	db SHAMOUTI_ISLAND
 .End

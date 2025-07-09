@@ -4,8 +4,6 @@ Music_DancingHall:
 	channel 2, Music_DancingHall_Ch2
 	channel 3, Music_DancingHall_Ch3
 
-	db $3 ; unused, leftover from a channel 4
-
 Music_DancingHall_Ch1:
 	tempo 208
 	volume 7, 7
@@ -13,11 +11,11 @@ Music_DancingHall_Ch1:
 	note_type 6, 11, 7
 	rest 3
 	duty_cycle 0
-.mainloop:
+Music_DancingHall_branch_ef9d3:
 	note_type 12, 11, 7
-	sound_call .sub1
+	sound_call Music_DancingHall_branch_efa17
 	rest 16
-	sound_call .sub1
+	sound_call Music_DancingHall_branch_efa17
 	rest 16
 	rest 16
 	rest 16
@@ -63,9 +61,9 @@ Music_DancingHall_Ch1:
 	note A_, 1
 	rest 1
 	note F_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_DancingHall_branch_ef9d3
 
-.sub1:
+Music_DancingHall_branch_efa17:
 	octave 3
 	note B_, 1
 	rest 1
@@ -94,10 +92,10 @@ Music_DancingHall_Ch2:
 	duty_cycle 0
 	vibrato 16, 2, 4
 	rest 3
-.mainloop:
+Music_DancingHall_branch_efa37:
 	note_type 6, 10, 2
-	sound_call .sub1
-	sound_call .sub1
+	sound_call Music_DancingHall_branch_efa7a
+	sound_call Music_DancingHall_branch_efa7a
 	volume_envelope 10, 7
 	octave 2
 	note D_, 16
@@ -141,9 +139,9 @@ Music_DancingHall_Ch2:
 	note E_, 1
 	rest 1
 	note D_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_DancingHall_branch_efa37
 
-.sub1:
+Music_DancingHall_branch_efa7a:
 	volume_envelope 10, 1
 	octave 4
 	note E_, 4
@@ -229,7 +227,7 @@ Music_DancingHall_Ch3:
 	note B_, 1
 	octave 6
 	note D_, 1
-.mainloop:
+Music_DancingHall_branch_efae3:
 	note E_, 13
 	note D_, 1
 	note E_, 1
@@ -303,4 +301,4 @@ Music_DancingHall_Ch3:
 	note B_, 1
 	octave 6
 	note D_, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_DancingHall_branch_efae3

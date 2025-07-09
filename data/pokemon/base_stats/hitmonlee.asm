@@ -1,21 +1,18 @@
-	db HITMONLEE ; 106
-
-	db  50, 120,  53,  87,  35, 110
-	;   hp  atk  def  spd  sat  sdf
+	db  50, 120,  53,  87,  35, 110 ; 455 BST
+	;   hp  atk  def  spe  sat  sdf
 
 	db FIGHTING, FIGHTING ; type
 	db 45 ; catch rate
 	db 139 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_F0 ; gender ratio
-	db 100 ; unknown 1
-	db 25 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/hitmonlee/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db NO_ITEM, NO_ITEM ; held items
+	dn GENDER_F0, HATCH_MEDIUM_SLOW ; gender ratio, step cycles to hatch
+
+	abilities_for HITMONLEE, LIMBER, RECKLESS, UNBURDEN
 	db GROWTH_MEDIUM_FAST ; growth rate
 	dn EGG_HUMANSHAPE, EGG_HUMANSHAPE ; egg groups
 
+	ev_yield 2 Atk
+
 	; tm/hm learnset
-	tmhm DYNAMICPUNCH, HEADBUTT, CURSE, TOXIC, ROCK_SMASH, HIDDEN_POWER, SUNNY_DAY, SNORE, PROTECT, ENDURE, FRUSTRATION, RETURN, MUD_SLAP, DOUBLE_TEAM, SWAGGER, SLEEP_TALK, SWIFT, DETECT, REST, ATTRACT, THIEF, STRENGTH
+	tmhm DYNAMICPUNCH, CURSE, TOXIC, BULK_UP, HIDDEN_POWER, SUNNY_DAY, PROTECT, RAIN_DANCE, BULLDOZE, EARTHQUAKE, RETURN, ROCK_SMASH, DOUBLE_TEAM, SWIFT, AERIAL_ACE, SUBSTITUTE, FACADE, REST, ATTRACT, THIEF, ROCK_SLIDE, FOCUS_BLAST, POISON_JAB, STONE_EDGE, STRENGTH, BODY_SLAM, COUNTER, DOUBLE_EDGE, ENDURE, HEADBUTT, KNOCK_OFF, SEISMIC_TOSS, SLEEP_TALK, SUCKER_PUNCH, SWAGGER
 	; end

@@ -1,21 +1,27 @@
-	db ONIX ; 095
-
-	db  35,  45, 160,  70,  30,  45
-	;   hp  atk  def  spd  sat  sdf
+if DEF(FAITHFUL)
+	db  35,  45, 160,  70,  30,  45 ; 385 BST
+	;   hp  atk  def  spe  sat  sdf
+else
+	db  35,  80, 160,  70,  30,  45 ; 420 BST
+	;   hp  atk  def  spe  sat  sdf
+endc
 
 	db ROCK, GROUND ; type
 	db 45 ; catch rate
+if DEF(FAITHFUL)
 	db 108 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_F50 ; gender ratio
-	db 100 ; unknown 1
-	db 25 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/onix/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+else
+	db 128 ; base exp
+endc
+	db LAGGING_TAIL, HARD_STONE ; held items
+	dn GENDER_F50, HATCH_MEDIUM_SLOW ; gender ratio, step cycles to hatch
+
+	abilities_for ONIX, ROCK_HEAD, STURDY, WEAK_ARMOR
 	db GROWTH_MEDIUM_FAST ; growth rate
 	dn EGG_MINERAL, EGG_MINERAL ; egg groups
 
+	ev_yield 1 Def
+
 	; tm/hm learnset
-	tmhm HEADBUTT, CURSE, ROAR, TOXIC, ROCK_SMASH, HIDDEN_POWER, SUNNY_DAY, SNORE, PROTECT, ENDURE, FRUSTRATION, IRON_TAIL, EARTHQUAKE, RETURN, DIG, MUD_SLAP, DOUBLE_TEAM, SWAGGER, SLEEP_TALK, SANDSTORM, REST, ATTRACT, STRENGTH
+	tmhm CURSE, ROAR, TOXIC, HIDDEN_POWER, SUNNY_DAY, PROTECT, BULLDOZE, IRON_TAIL, EARTHQUAKE, RETURN, DIG, ROCK_SMASH, DOUBLE_TEAM, FLASH_CANNON, SANDSTORM, SUBSTITUTE, FACADE, REST, ATTRACT, ROCK_SLIDE, DRAGON_PULSE, EXPLOSION, STONE_EDGE, GYRO_BALL, STRENGTH, BODY_SLAM, DOUBLE_EDGE, EARTH_POWER, ENDURE, HEADBUTT, IRON_HEAD, ROLLOUT, SLEEP_TALK, SWAGGER
 	; end

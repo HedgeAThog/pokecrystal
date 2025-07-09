@@ -1,245 +1,208 @@
 CheckPartyFullAfterContest:
-	ld a, [wContestMonSpecies]
+	ld a, [wContestMon]
 	and a
-	jp z, .DidntCatchAnything
+	jmp z, .DidntCatchAnything
 	ld [wCurPartySpecies], a
 	ld [wCurSpecies], a
+	ld a, [wContestMonForm]
+	and SPECIESFORM_MASK
+	ld [wCurForm], a
 	call GetBaseData
 	ld hl, wPartyCount
 	ld a, [hl]
-	cp PARTY_LENGTH
-	jp nc, .TryAddToBox
-	inc a
-	ld [hl], a
-	ld c, a
-	ld b, 0
-	add hl, bc
-	ld a, [wContestMonSpecies]
-	ld [hli], a
-	ld [wCurSpecies], a
-	ld a, -1
-	ld [hl], a
-	ld hl, wPartyMon1Species
-	ld a, [wPartyCount]
-	dec a
-	ld bc, PARTYMON_STRUCT_LENGTH
-	call AddNTimes
+	cp 6
+	jr nc, .TryAddToBox
+	inc [hl]
+	ld [wCurPartyMon], a
+	ld a, MON_SPECIES
+	call GetPartyParamLocationAndValue
 	ld d, h
 	ld e, l
 	ld hl, wContestMon
+	ld a, [hl]
+	ld [wCurSpecies], a
 	ld bc, PARTYMON_STRUCT_LENGTH
-	call CopyBytes
-	ld a, [wPartyCount]
-	dec a
+	rst CopyBytes
+	ld a, [wCurPartyMon]
 	ld hl, wPartyMonOTs
 	call SkipNames
 	ld d, h
 	ld e, l
 	ld hl, wPlayerName
-	call CopyBytes
-	ld a, [wCurPartySpecies]
-	ld [wNamedObjectIndex], a
-	call GetPokemonName
+	rst CopyBytes
+	call GetPartyPokemonName
 	ld hl, wStringBuffer1
 	ld de, wMonOrItemNameBuffer
 	ld bc, MON_NAME_LENGTH
-	call CopyBytes
+	rst CopyBytes
 	call GiveANickname_YesNo
 	jr c, .Party_SkipNickname
-	ld a, [wPartyCount]
-	dec a
-	ld [wCurPartyMon], a
 	xor a
 	ld [wMonType], a
 	ld de, wMonOrItemNameBuffer
-	callfar InitNickname
+	farcall InitNickname
 
 .Party_SkipNickname:
-	ld a, [wPartyCount]
-	dec a
+	ld a, [wCurPartyMon]
 	ld hl, wPartyMonNicknames
 	call SkipNames
 	ld d, h
 	ld e, l
 	ld hl, wMonOrItemNameBuffer
-	call CopyBytes
-	ld a, [wPartyCount]
-	dec a
-	ld hl, wPartyMon1Level
-	call GetPartyLocation
-	ld a, [hl]
+	rst CopyBytes
+	ld a, MON_LEVEL
+	call GetPartyParamLocationAndValue
 	ld [wCurPartyLevel], a
+	xor a ; PARK_BALL
+	ld [wCurItem], a
 	call SetCaughtData
-	ld a, [wPartyCount]
-	dec a
-	ld hl, wPartyMon1CaughtLocation
-	call GetPartyLocation
-	ld a, [hl]
-	and CAUGHT_GENDER_MASK
-	ld b, LANDMARK_NATIONAL_PARK
-	or b
-	ld [hl], a
+	ld a, MON_CAUGHTLOCATION
+	call GetPartyParamLocationAndValue
+	ld [hl], NATIONAL_PARK
 	xor a
-	ld [wContestMonSpecies], a
-	and a ; BUGCONTEST_CAUGHT_MON
-	ld [wScriptVar], a
+	ld [wContestMon], a
+	ldh [hScriptVar], a
 	ret
 
 .TryAddToBox:
-	ld a, BANK(sBoxCount)
-	call OpenSRAM
-	ld hl, sBoxCount
-	ld a, [hl]
-	cp MONS_PER_BOX
-	call CloseSRAM
-	jr nc, .BoxFull
+	farcall NewStorageBoxPointer
+	jr c, .BoxFull
+	push bc
 	xor a
 	ld [wCurPartyMon], a
 	ld hl, wContestMon
-	ld de, wBufferMon
-	ld bc, BOXMON_STRUCT_LENGTH
-	call CopyBytes
+	ld de, wTempMon
+	ld bc, PARTYMON_STRUCT_LENGTH
+	rst CopyBytes
 	ld hl, wPlayerName
-	ld de, wBufferMonOT
+	ld de, wTempMonOT
 	ld bc, NAME_LENGTH
-	call CopyBytes
-	callfar InsertPokemonIntoBox
+	rst CopyBytes
+	pop bc
+	ld a, b
+	ld [wTempMonBox], a
+	ld a, c
+	ld [wTempMonSlot], a
+	farcall UpdateStorageBoxMonFromTemp
 	ld a, [wCurPartySpecies]
 	ld [wNamedObjectIndex], a
 	call GetPokemonName
 	call GiveANickname_YesNo
 	ld hl, wStringBuffer1
 	jr c, .Box_SkipNickname
-	ld a, BOXMON
+	ld a, TEMPMON
 	ld [wMonType], a
 	ld de, wMonOrItemNameBuffer
-	callfar InitNickname
+	farcall InitNickname
 	ld hl, wMonOrItemNameBuffer
 
 .Box_SkipNickname:
-	ld a, BANK(sBoxMonNicknames)
-	call OpenSRAM
-	ld de, sBoxMonNicknames
+	ld de, wTempMonNickname
 	ld bc, MON_NAME_LENGTH
-	call CopyBytes
-	call CloseSRAM
+	rst CopyBytes
+	farcall UpdateStorageBoxMonFromTemp
 
 .BoxFull:
-	ld a, BANK(sBoxMon1Level)
-	call OpenSRAM
-	ld a, [sBoxMon1Level]
+	ld a, [wTempMonLevel]
 	ld [wCurPartyLevel], a
-	call CloseSRAM
+	xor a ; PARK_BALL
+	ld [wCurItem], a
 	call SetBoxMonCaughtData
-	ld a, BANK(sBoxMon1CaughtLocation)
-	call OpenSRAM
-	ld hl, sBoxMon1CaughtLocation
-	ld a, [hl]
-	and CAUGHT_GENDER_MASK
-	ld b, LANDMARK_NATIONAL_PARK
-	or b
-	ld [hl], a
-	call CloseSRAM
+	ld hl, wTempMonCaughtLocation
+	ld [hl], NATIONAL_PARK
+	farcall UpdateStorageBoxMonFromTemp
 	xor a
 	ld [wContestMon], a
-	ld a, BUGCONTEST_BOXED_MON
-	ld [wScriptVar], a
+	ld a, $1
+	ldh [hScriptVar], a
 	ret
 
 .DidntCatchAnything:
-	ld a, BUGCONTEST_NO_CATCH
-	ld [wScriptVar], a
+	ld a, $2
+	ldh [hScriptVar], a
 	ret
 
 GiveANickname_YesNo:
-	ld hl, CaughtAskNicknameText
+	ld hl, TextJump_GiveANickname
 	call PrintText
-	jp YesNoBox
+	jmp YesNoBox
 
-CaughtAskNicknameText:
+TextJump_GiveANickname:
+	; Give a nickname to the @  you received?
 	text_far _CaughtAskNicknameText
 	text_end
 
 SetCaughtData:
 	ld a, [wPartyCount]
 	dec a
-	ld hl, wPartyMon1CaughtLevel
+	ld hl, wPartyMon1CaughtData
 	call GetPartyLocation
 SetBoxmonOrEggmonCaughtData:
+	; CaughtTime
 	ld a, [wTimeOfDay]
 	inc a
 	rrca
 	rrca
+	rrca
+	and CAUGHT_TIME_MASK
 	ld b, a
-	ld a, [wCurPartyLevel]
+	; CaughtBall
+	ld a, [wCurItem]
+	and CAUGHT_BALL_MASK
 	or b
 	ld [hli], a
-	ld a, [wMapGroup]
-	ld b, a
-	ld a, [wMapNumber]
-	ld c, a
-	cp MAP_POKECENTER_2F
-	jr nz, .NotPokecenter2F
-	ld a, b
-	cp GROUP_POKECENTER_2F
-	jr nz, .NotPokecenter2F
-
-	ld a, [wBackupMapGroup]
-	ld b, a
-	ld a, [wBackupMapNumber]
-	ld c, a
-
-.NotPokecenter2F:
-	call GetWorldMapLocation
-	ld b, a
-	ld a, [wPlayerGender]
-	rrca ; shift bit 0 (PLAYERGENDER_FEMALE_F) to bit 7 (CAUGHT_GENDER_MASK)
-	or b
+	; CaughtLevel
+	ld a, [wCurPartyLevel]
+	ld [hli], a
+	; CaughtLocation
+	call GetCurrentLandmark
 	ld [hl], a
 	ret
 
 SetBoxMonCaughtData:
-	ld a, BANK(sBoxMon1CaughtLevel)
-	call OpenSRAM
-	ld hl, sBoxMon1CaughtLevel
+	ld hl, wTempMonCaughtData
 	call SetBoxmonOrEggmonCaughtData
-	call CloseSRAM
-	ret
-
-SetGiftBoxMonCaughtData:
-	push bc
-	ld a, BANK(sBoxMon1CaughtLevel)
-	call OpenSRAM
-	ld hl, sBoxMon1CaughtLevel
-	pop bc
-	call SetGiftMonCaughtData
-	call CloseSRAM
-	ret
+	farjp UpdateStorageBoxMonFromTemp
 
 SetGiftPartyMonCaughtData:
 	ld a, [wPartyCount]
 	dec a
-	ld hl, wPartyMon1CaughtLevel
-	push bc
+	ld hl, wPartyMon1CaughtData
 	call GetPartyLocation
-	pop bc
 SetGiftMonCaughtData:
+	; CaughtTime
+	ld a, [wTimeOfDay]
+	inc a
+	rrca
+	rrca
+	rrca
+	and CAUGHT_TIME_MASK ; no-optimize a = (a & MASK) | (b|c|d|e|h|l & ~MASK) (false detection)
+	ld b, a
+	; CaughtBall
+	; c contains it
+	ld a, c
+	and CAUGHT_BALL_MASK
+	or b
+	ld [hli], a
+	; CaughtLevel
+	; Met in a trade
 	xor a
 	ld [hli], a
-	ld a, LANDMARK_GIFT
-	rrc b
-	or b
+	; CaughtLocation
+	; Unknown location
 	ld [hl], a
 	ret
 
 SetEggMonCaughtData:
 	ld a, [wCurPartyMon]
-	ld hl, wPartyMon1CaughtLevel
+	ld hl, wPartyMon1CaughtData
 	call GetPartyLocation
 	ld a, [wCurPartyLevel]
 	push af
-	ld a, CAUGHT_EGG_LEVEL
+	ld a, -1 ; marks that the mon is hatched
 	ld [wCurPartyLevel], a
+	ld a, [hl] ; reused poke ball data
+	ld [wCurItem], a
 	call SetBoxmonOrEggmonCaughtData
 	pop af
 	ld [wCurPartyLevel], a

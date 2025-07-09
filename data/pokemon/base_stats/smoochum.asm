@@ -1,21 +1,22 @@
-	db SMOOCHUM ; 238
+	db  45,  30,  15,  65,  85,  65 ; 305 BST
+	;   hp  atk  def  spe  sat  sdf
 
-	db  45,  30,  15,  65,  85,  65
-	;   hp  atk  def  spd  sat  sdf
-
-	db ICE, PSYCHIC_TYPE ; type
+	db ICE, PSYCHIC ; type
 	db 45 ; catch rate
 	db 87 ; base exp
-	db ICE_BERRY, ICE_BERRY ; items
-	db GENDER_F100 ; gender ratio
-	db 100 ; unknown 1
-	db 25 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/smoochum/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db ALWAYS_ITEM_2, ASPEAR_BERRY ; held items
+	dn GENDER_F100, HATCH_MEDIUM_SLOW ; gender ratio, step cycles to hatch
+
+if DEF(FAITHFUL)
+	abilities_for SMOOCHUM, OBLIVIOUS, FOREWARN, HYDRATION
+else
+	abilities_for SMOOCHUM, OBLIVIOUS, FILTER, HYDRATION
+endc
 	db GROWTH_MEDIUM_FAST ; growth rate
 	dn EGG_NONE, EGG_NONE ; egg groups
 
+	ev_yield 1 SAt
+
 	; tm/hm learnset
-	tmhm DYNAMICPUNCH, CURSE, TOXIC, PSYCH_UP, HIDDEN_POWER, SWEET_SCENT, SNORE, BLIZZARD, ICY_WIND, PROTECT, RAIN_DANCE, ENDURE, FRUSTRATION, RETURN, PSYCHIC_M, SHADOW_BALL, MUD_SLAP, DOUBLE_TEAM, ICE_PUNCH, SWAGGER, SLEEP_TALK, DREAM_EATER, REST, ATTRACT, THIEF, NIGHTMARE, ICE_BEAM
+	tmhm DYNAMICPUNCH, CURSE, CALM_MIND, TOXIC, HAIL, HIDDEN_POWER, ICE_BEAM, BLIZZARD, LIGHT_SCREEN, PROTECT, RAIN_DANCE, RETURN, PSYCHIC, SHADOW_BALL, DOUBLE_TEAM, REFLECT, SUBSTITUTE, FACADE, REST, ATTRACT, THIEF, WATER_PULSE, AVALANCHE, FLASH, BODY_SLAM, CHARM, COUNTER, DOUBLE_EDGE, DREAM_EATER, ENDURE, ICE_PUNCH, ICY_WIND, SEISMIC_TOSS, SKILL_SWAP, SLEEP_TALK, SWAGGER, TRICK, TRICK_ROOM, ZEN_HEADBUTT
 	; end

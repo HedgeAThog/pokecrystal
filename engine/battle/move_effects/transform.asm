@@ -1,14 +1,43 @@
-BattleCommand_Transform:
+BattleCommand_transform:
 	call ClearLastMove
-	ld a, BATTLE_VARS_SUBSTATUS5_OPP
+
+	ld a, BATTLE_VARS_SUBSTATUS2_OPP
 	call GetBattleVarAddr
 	bit SUBSTATUS_TRANSFORMED, [hl]
-	jp nz, BattleEffect_ButItFailed
+	jmp nz, BattleEffect_ButItFailed
+
+	ldh a, [hBattleTurn]
+	and a
+	ld hl, wEnemyMonSpecies
+	ld de, wEnemyMonItem
+	jr z, .got_mon_item
+	ld hl, wBattleMonSpecies
+	ld de, wBattleMonItem
+.got_mon_item
+	ld a, [hl]
+	cp MEWTWO
+	jr nz, .not_armored_mewtwo
+	ld a, [de]
+	cp ARMOR_SUIT
+	jmp z, BattleEffect_ButItFailed
+.not_armored_mewtwo
+
+	call GetTrueUserAbility
+	cp INFILTRATOR
+	jr z, .bypass_sub
+	ld a, BATTLE_VARS_SUBSTATUS4_OPP
+	call GetBattleVarAddr
+	bit SUBSTATUS_SUBSTITUTE, [hl]
+	jmp nz, BattleEffect_ButItFailed
+.bypass_sub
 	call CheckHiddenOpponent
-	jp nz, BattleEffect_ButItFailed
+	jmp nz, BattleEffect_ButItFailed
+
+	farcall GetDisableEncoreMoves
+	push de
 	xor a
-	ld [wBattleAfterAnim], a
-	ld [wFXAnimID + 1], a
+	ld [wNumHits], a
+	ld [wFXAnimIDHi], a
 	ld a, $1
 	ld [wBattleAnimParam], a
 	ld a, BATTLE_VARS_SUBSTATUS4
@@ -21,7 +50,7 @@ BattleCommand_Transform:
 	ld a, SUBSTITUTE
 	call LoadAnim
 .mimic_substitute
-	ld a, BATTLE_VARS_SUBSTATUS5
+	ld a, BATTLE_VARS_SUBSTATUS2
 	call GetBattleVarAddr
 	set SUBSTATUS_TRANSFORMED, [hl]
 	call ResetActorDisable
@@ -42,18 +71,18 @@ BattleCommand_Transform:
 	inc de
 	inc de
 	ld bc, NUM_MOVES
-	call CopyBytes
-	ldh a, [hBattleTurn]
-	and a
-	jr z, .mimic_enemy_backup
-	ld a, [de]
-	ld [wEnemyBackupDVs], a
+	rst CopyBytes
+
+	; copy DVs and personality
+	ld a, [hli]
+	ld [de], a
 	inc de
-	ld a, [de]
-	ld [wEnemyBackupDVs + 1], a
-	dec de
-.mimic_enemy_backup
-; copy DVs
+	ld a, [hli]
+	ld [de], a
+	inc de
+	ld a, [hli]
+	ld [de], a
+	inc de
 	ld a, [hli]
 	ld [de], a
 	inc de
@@ -71,14 +100,11 @@ BattleCommand_Transform:
 	ld e, l
 	pop hl
 	ld bc, wBattleMonStructEnd - wBattleMonStats
-	call CopyBytes
+	rst CopyBytes
 ; init the power points
 	ld bc, wBattleMonMoves - wBattleMonStructEnd
 	add hl, bc
-	push de
-	ld d, h
-	ld e, l
-	pop hl
+	call SwapHLDE
 	ld bc, wBattleMonPP - wBattleMonStructEnd
 	add hl, bc
 	ld b, NUM_MOVES
@@ -97,55 +123,69 @@ BattleCommand_Transform:
 	jr nz, .pp_loop
 	pop hl
 	ld a, [hl]
-	ld [wNamedObjectIndex], a
+	assert wBattleMonForm - wBattleMonSpecies == wEnemyMonForm - wEnemyMonSpecies
+	ld bc, wBattleMonForm - wBattleMonSpecies
+	add hl, bc
+	ld b, [hl]
+	ld hl, wNamedObjectIndex
+	ld [hli], a
+	ld [hl], b
 	call GetPokemonName
-	ld hl, wEnemyStats
-	ld de, wPlayerStats
-	ld bc, 2 * 5
-	call BattleSideCopy
 	ld hl, wEnemyStatLevels
 	ld de, wPlayerStatLevels
 	ld bc, 8
 	call BattleSideCopy
-	call _CheckBattleScene
+	call _CheckBattleEffects
 	jr c, .mimic_anims
-	ldh a, [hBattleTurn]
-	and a
-	ld a, [wPlayerMinimized]
-	jr z, .got_byte
-	ld a, [wEnemyMinimized]
-.got_byte
-	and a
+	ld a, BATTLE_VARS_SUBSTATUS2
+	call GetBattleVar
+	bit SUBSTATUS_MINIMIZED, a
 	jr nz, .mimic_anims
-	call LoadMoveAnim
+	; Animation is done "raw" to allow Imposter
+	; to use the correct animation
+	ld de, TRANSFORM
+	call FarPlayBattleAnimation
 	jr .after_anim
 
 .mimic_anims
-	call BattleCommand_MoveDelay
-	call BattleCommand_RaiseSubNoAnim
+	call BattleCommand_movedelay
+	call BattleCommand_raisesubnoanim
 .after_anim
 	xor a
-	ld [wBattleAfterAnim], a
-	ld [wFXAnimID + 1], a
+	ld [wNumHits], a
+	ld [wFXAnimIDHi], a
 	ld a, $2
 	ld [wBattleAnimParam], a
 	pop af
 	ld a, SUBSTITUTE
 	call nz, LoadAnim
 	ld hl, TransformedText
-	jp StdBattleTextbox
+	call StdBattleTextbox
+	pop de
+	farcall SetDisableEncoreMoves
 
-BattleSideCopy:
-; Copy bc bytes from hl to de if it's the player's turn.
-; Copy bc bytes from de to hl if it's the enemy's turn.
+	; Update revealed moves if player transformed: the AI knows what its own moves are...
 	ldh a, [hBattleTurn]
 	and a
-	jr z, .copy
+	jr nz, .move_reveal_done
+	ld hl, wBattleMonMoves
+	ld de, wPlayerUsedMoves
+	ld bc, NUM_MOVES
+	rst CopyBytes
 
-; Swap hl and de
-	push hl
-	ld h, d
-	ld l, e
-	pop de
-.copy
-	jp CopyBytes
+.move_reveal_done
+	; Copy ability. -1 is sentinel used when NG mon is about to switch out.
+	ld a, BATTLE_VARS_ABILITY
+	call GetBattleVarAddr
+	ld a, BATTLE_VARS_ABILITY_OPP
+	call GetBattleVar
+	inc a
+	jr nz, .no_gas
+	ld a, NEUTRALIZING_GAS + 1 ; since we decrease a immediately
+.no_gas
+	dec a
+	ld [hl], a
+	cp IMPOSTER
+	ret z ; avoid infinite loop
+
+	farjp RunEntryAbilitiesInner

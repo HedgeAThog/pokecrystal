@@ -3225,7 +3225,7 @@ EZChat_GetCategoryWordsByKana:
 	ldh [rWBK], a
 	ret
 
-INCLUDE "data/pokemon/ezchat_order.asm"
+;INCLUDE "data/pokemon/ezchat_order.asm"
 
 SelectStartGFX:
 INCBIN "gfx/mobile/select_start.2bpp"

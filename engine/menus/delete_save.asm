@@ -1,35 +1,70 @@
 _DeleteSaveData:
 	farcall BlankScreen
-	ld b, SCGB_DIPLOMA
-	call GetSGBLayout
+	ld a, CGB_PLAIN
+	call GetCGBLayout
 	call LoadStandardFont
-	call LoadFontsExtra
-	ld de, MUSIC_MAIN_MENU
+	call LoadFrame
+	call BlackOutScreen
+	ld e, MUSIC_MAIN_MENU
 	call PlayMusic
-	ld hl, .ClearAllSaveDataText
+	ld hl, .Text_ClearAllSaveData
 	call PrintText
-	ld hl, .NoYesMenuHeader
+	ld hl, NoYesMenuDataHeader
 	call CopyMenuHeader
 	call VerticalMenu
 	ret c
 	ld a, [wMenuCursorY]
-	cp 1
+	dec a
 	ret z
-	farcall EmptyAllSRAMBanks
-	ret
 
-.ClearAllSaveDataText:
+	xor a
+	call .EmptyBank
+	ld a, 1
+	call .EmptyBank
+	ld a, 2
+	call .EmptyBank
+	ld a, 3
+.EmptyBank:
+	call GetSRAMBank
+	ld hl, STARTOF(SRAM)
+	ld bc, SIZEOF(SRAM)
+	xor a
+	rst ByteFill
+	jmp CloseSRAM
+
+.Text_ClearAllSaveData:
+	; Clear all save data?
 	text_far _ClearAllSaveDataText
 	text_end
 
-.NoYesMenuHeader:
-	db 0 ; flags
-	menu_coords 14, 7, SCREEN_WIDTH - 1, TEXTBOX_Y - 1
-	dw .MenuData
-	db 1 ; default option
+_ResetInitialOptions:
+	farcall BlankScreen
+	ld a, CGB_PLAIN
+	call GetCGBLayout
+	call LoadStandardFont
+	call LoadFrame
+	call BlackOutScreen
+	ld e, MUSIC_MAIN_MENU
+	call PlayMusic
+	ld hl, .Text_ResetInitialOptions
+	call PrintText
+	ld hl, NoYesMenuDataHeader
+	call CopyMenuHeader
+	call VerticalMenu
+	ret c
+	ld a, [wMenuCursorY]
+	dec a
+	ret z
+	ld a, [wInitialOptions2]
+	set RESET_INIT_OPTS, a
+	ld [wInitialOptions2], a
+	ld a, BANK(sOptions)
+	call GetSRAMBank
+	ld a, [wInitialOptions2]
+	ld [sOptions + wInitialOptions2 - wOptions], a ; sInitialOptions2
+	jmp CloseSRAM
 
-.MenuData:
-	db STATICMENU_CURSOR | STATICMENU_NO_TOP_SPACING ; flags
-	db 2 ; items
-	db "NO@"
-	db "YES@"
+.Text_ResetInitialOptions:
+	; Reset the initial game options?
+	text_far ResetInitialOptionsText
+	text_end

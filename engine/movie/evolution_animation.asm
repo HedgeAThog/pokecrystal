@@ -4,17 +4,15 @@ EvolutionAnimation:
 	push bc
 	ld a, [wCurSpecies]
 	push af
+	ld a, [wCurForm]
+	push af
 	ldh a, [rOBP0]
 	push af
-	ld a, [wBaseDexNo]
-	push af
-
 	call .EvolutionAnimation
-
-	pop af
-	ld [wBaseDexNo], a
 	pop af
 	ldh [rOBP0], a
+	pop af
+	ld [wCurForm], a
 	pop af
 	ld [wCurSpecies], a
 	pop bc
@@ -32,10 +30,10 @@ EvolutionAnimation:
 	ld a, %11100100
 	ldh [rOBP0], a
 
-	ld de, MUSIC_NONE
+	ld e, MUSIC_NONE
 	call PlayMusic
 
-	farcall ClearSpriteAnims
+	call ClearSpriteAnims
 
 	ld de, .GFX
 	ld hl, vTiles0
@@ -44,76 +42,107 @@ EvolutionAnimation:
 
 	xor a
 	ld [wLowHealthAlarm], a
-	call WaitBGMap
+	call ApplyTilemapInVBlank
 	xor a
 	ldh [hBGMapMode], a
-
 	ld a, [wEvolutionOldSpecies]
 	ld [wPlayerHPPal], a
 
-	ld c, FALSE
-	call .GetSGBLayout
-
+	call .GetColoredCGBLayout
 	ld a, [wEvolutionOldSpecies]
 	ld [wCurPartySpecies], a
 	ld [wCurSpecies], a
-	call .PlaceFrontpic
+	call GetBaseData ; [wCurForm] is already set
+	hlcoord 7, 2
+	call PrepMonFrontpic
 
 	ld de, vTiles2
 	ld hl, vTiles2 tile $31
 	ld bc, 7 * 7
 	call Request2bpp
 
+	ld a, $1
+	ldh [hBGMapMode], a
+	call .check_statused
+	jr c, .skip_cry
+
+	ld hl, wEvolutionOldSpecies
+	ld a, [hli]
+	ld c, a
+	ld b, [hl]
+	call PlayMonCry
+
+.skip_cry
+	ld e, MUSIC_EVOLUTION
+	call PlayMusic
+
 	ld a, 7 * 7
 	ld [wEvolutionPicOffset], a
 	call .ReplaceFrontpic
-	ld a, [wEvolutionNewSpecies]
+	ld hl, wEvolutionNewSpecies
+	ld a, [hli]
 	ld [wCurPartySpecies], a
 	ld [wCurSpecies], a
+	ld a, [hl]
+	ld [wCurForm], a
+
 	call .LoadFrontpic
-
-	ld a, [wEvolutionOldSpecies]
-	ld [wCurPartySpecies], a
-	ld [wCurSpecies], a
-
-	ld a, 1
-	ldh [hBGMapMode], a
-
-	call .check_statused
-	jr c, .skip_cry
-	ld a, [wEvolutionOldSpecies]
-	call PlayMonCry
-.skip_cry
-
-	ld de, MUSIC_EVOLUTION
-	call PlayMusic
-
 	ld c, 80
 	call DelayFrames
 
 	ld c, TRUE
-	call .GetSGBLayout
-
+	call .GetCGBLayout
 	call .AnimationSequence
-	jr c, .cancel_evo
+	jmp c, .cancel_evo
 
 	ld a, -7 * 7
 	ld [wEvolutionPicOffset], a
 	call .ReplaceFrontpic
-
 	xor a
 	ld [wEvolutionCanceled], a
 
+	ld a, [wEvolutionNewForm]
+	ld [wTempMonForm], a
+
 	ld a, [wEvolutionNewSpecies]
 	ld [wPlayerHPPal], a
+	ld [wTempMonSpecies], a
 
-	ld c, FALSE
-	call .GetSGBLayout
+	call .GetColoredCGBLayout
+	ld de, SFX_EVOLVED
+	call PlaySFX
+	ld hl, wJumptableIndex
+	ld a, [hl]
+	push af
+	ld [hl], $0
+.loop4
+	ld hl, wJumptableIndex
+	ld a, [hl]
+	cp 32
+	jr nc, .done
+	ld d, a
+	inc [hl]
+	and $1
+	jr nz, .done_balls
+	ld e, a
+	call .GenerateBallOfLight
+	ld e, $10
+	call .GenerateBallOfLight
+.done_balls
+	call .AnimateBallsOfLight
+	jr .loop4
 
-	call .PlayEvolvedSFX
-	farcall ClearSpriteAnims
+.done
+	ld c, 32
+.loop5
+	call .AnimateBallsOfLight
+	dec c
+	jr nz, .loop5
+	pop af
+	ld [wJumptableIndex], a
+	call ClearSpriteAnims
 	call .check_statused
-	jr c, .no_anim
+	ret c
 
 	ld a, [wBoxAlignment]
 	push af
@@ -121,21 +150,21 @@ EvolutionAnimation:
 	ld [wBoxAlignment], a
 	ld a, [wCurPartySpecies]
 	push af
+	ld a, [wCurForm]
+	push af
 
 	ld a, [wPlayerHPPal]
 	ld [wCurPartySpecies], a
 	hlcoord 7, 2
-	ld d, $0
-	ld e, ANIM_MON_EVOLVE
+	lb de, $0, ANIM_MON_EVOLVE
 	predef AnimateFrontpic
 
+	pop af
+	ld [wCurForm], a
 	pop af
 	ld [wCurPartySpecies], a
 	pop af
 	ld [wBoxAlignment], a
-	ret
-
-.no_anim
 	ret
 
 .cancel_evo
@@ -145,33 +174,32 @@ EvolutionAnimation:
 	ld a, [wEvolutionOldSpecies]
 	ld [wPlayerHPPal], a
 
-	ld c, FALSE
-	call .GetSGBLayout
+	ld e, MUSIC_NONE
+	call PlayMusic
 
-	call .PlayEvolvedSFX
-	farcall ClearSpriteAnims
+	call .GetColoredCGBLayout
+	call ClearSpriteAnims
 	call .check_statused
 	ret c
 
-	ld a, [wPlayerHPPal]
-	call PlayMonCry
-	ret
+	ld hl, wEvolutionOldSpecies
+	ld a, [hli]
+	ld c, a
+	ld b, [hl]
+	jmp PlayMonCry
 
-.GetSGBLayout:
-	ld b, SCGB_EVOLUTION
-	jp GetSGBLayout
-
-.PlaceFrontpic:
-	call GetBaseData
-	hlcoord 7, 2
-	jp PrepMonFrontpic
+.GetColoredCGBLayout:
+	ld c, FALSE
+.GetCGBLayout:
+	ld a, CGB_EVOLUTION
+	jmp GetCGBLayout
 
 .LoadFrontpic:
-	call GetBaseData
+	call GetBaseData ; [wCurForm] is already set
 	ld a, $1
 	ld [wBoxAlignment], a
 	ld de, vTiles2
-	predef GetAnimatedFrontpic
+	predef FrontpicPredef
 	xor a
 	ld [wBoxAlignment], a
 	ret
@@ -230,7 +258,7 @@ EvolutionAnimation:
 	jr nz, .loop1
 	ld a, $1
 	ldh [hBGMapMode], a
-	call WaitBGMap
+	call ApplyTilemapInVBlank
 	pop bc
 	ret
 
@@ -261,63 +289,18 @@ EvolutionAnimation:
 	call GetPartyLocation
 	ld b, h
 	ld c, l
-	farcall CheckFaintedFrzSlp
-	ret
-
-.PlayEvolvedSFX:
-	ld a, [wEvolutionCanceled]
-	and a
-	ret nz
-	ld de, SFX_EVOLVED
-	call PlaySFX
-	ld hl, wJumptableIndex
-	ld a, [hl]
-	push af
-	ld [hl], $0
-.loop4
-	call .balls_of_light
-	jr nc, .done
-	call .AnimateBallsOfLight
-	jr .loop4
-
-.done
-	ld c, 32
-.loop5
-	call .AnimateBallsOfLight
-	dec c
-	jr nz, .loop5
-	pop af
-	ld [wJumptableIndex], a
-	ret
-
-.balls_of_light
-	ld hl, wJumptableIndex
-	ld a, [hl]
-	cp 32
-	ret nc
-	ld d, a
-	inc [hl]
-	and $1
-	jr nz, .done_balls
-	ld e, $0
-	call .GenerateBallOfLight
-	ld e, $10
-	call .GenerateBallOfLight
-
-.done_balls
-	scf
-	ret
+	jmp CheckFaintedFrzSlp
 
 .GenerateBallOfLight:
 	push de
 	depixel 9, 11
-	ld a, SPRITE_ANIM_OBJ_EVOLUTION_BALL_OF_LIGHT
+	ld a, SPRITE_ANIM_INDEX_EVOLUTION_BALL_OF_LIGHT
 	call InitSpriteAnimStruct
 	ld hl, SPRITEANIMSTRUCT_JUMPTABLE_INDEX
 	add hl, bc
 	ld a, [wJumptableIndex]
 	and %1110
-	sla a
+	add a
 	pop de
 	add e
 	ld [hl], a
@@ -331,7 +314,7 @@ EvolutionAnimation:
 
 .AnimateBallsOfLight:
 	push bc
-	callfar PlaySpriteAnimations
+	farcall PlaySpriteAnimations
 	; a = (([hVBlankCounter] + 4) / 2) % NUM_PALETTES
 	ldh a, [hVBlankCounter]
 	and %1110
@@ -340,20 +323,19 @@ EvolutionAnimation:
 	inc a
 	and $7
 	ld b, a
-	ld hl, wShadowOAMSprite00Attributes
-	ld c, OAM_COUNT
+	ld hl, wShadowOAM + 3 ; attributes
+	ld c, 40
 .loop6
 	ld a, [hl]
 	or b
-	ld [hli], a ; attributes
-rept OBJ_SIZE - 1
+	ld [hli], a
 	inc hl
-endr
+	inc hl
+	inc hl
 	dec c
 	jr nz, .loop6
 	pop bc
-	call DelayFrame
-	ret
+	jmp DelayFrame
 
 .GFX:
 INCBIN "gfx/evo/bubble_large.2bpp"

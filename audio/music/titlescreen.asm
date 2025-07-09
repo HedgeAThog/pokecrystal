@@ -195,17 +195,17 @@ Music_TitleScreen_Ch1:
 	tempo 136
 	note C#, 6
 	tempo 134
-	sound_call .sub1
+	sound_call Music_TitleScreen_branch_eb96d
 	octave 4
 	note C_, 4
 	note C_, 4
 	note C#, 4
-	sound_call .sub1
+	sound_call Music_TitleScreen_branch_eb96d
 	octave 4
 	note C_, 4
 	note C_, 4
 	note C#, 4
-	sound_call .sub1
+	sound_call Music_TitleScreen_branch_eb96d
 	octave 3
 	note E_, 4
 	note E_, 4
@@ -273,10 +273,10 @@ Music_TitleScreen_Ch1:
 	rest 11
 	sound_ret
 
-.sub1:
+Music_TitleScreen_branch_eb96d:
 	note_type 12, 12, 3
 	note D_, 1
-.sub1loop1:
+Music_TitleScreen_branch_eb971:
 	rest 1
 	octave 2
 	note D_, 1
@@ -284,7 +284,7 @@ Music_TitleScreen_Ch1:
 	note A_, 1
 	octave 2
 	note D_, 1
-	sound_loop 5, .sub1loop1
+	sound_loop 5, Music_TitleScreen_branch_eb971
 	rest 1
 	note D_, 1
 	octave 1
@@ -480,11 +480,11 @@ Music_TitleScreen_Ch2:
 	note C#, 4
 	pitch_offset 1
 	stereo_panning FALSE, TRUE
-	sound_call .sub1
+	sound_call Music_TitleScreen_branch_ebae7
 	note C#, 4
-	sound_call .sub1
+	sound_call Music_TitleScreen_branch_ebae7
 	note C#, 4
-	sound_call .sub1
+	sound_call Music_TitleScreen_branch_ebae7
 	octave 4
 	note A_, 4
 	stereo_panning TRUE, TRUE
@@ -555,17 +555,17 @@ Music_TitleScreen_Ch2:
 	rest 11
 	sound_ret
 
-.sub1:
+Music_TitleScreen_branch_ebae7:
 	note_type 12, 11, 2
 	note D_, 1
-.sub1loop1:
+Music_TitleScreen_branch_ebaeb:
 	octave 3
 	note A_, 1
 	octave 4
 	note D_, 1
 	note A_, 1
 	note D_, 1
-	sound_loop 5, .sub1loop1
+	sound_loop 5, Music_TitleScreen_branch_ebaeb
 	octave 3
 	note A_, 1
 	octave 4
@@ -948,9 +948,9 @@ Music_TitleScreen_Ch4:
 	drum_note 1, 1
 	drum_note 1, 1
 	drum_speed 12
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub2
+	sound_call Music_TitleScreen_branch_ebd77
+	sound_call Music_TitleScreen_branch_ebd81
+	sound_call Music_TitleScreen_branch_ebd81
 	drum_note 1, 2
 	drum_note 4, 2
 	drum_note 1, 2
@@ -965,7 +965,7 @@ Music_TitleScreen_Ch4:
 	drum_note 1, 1
 	drum_note 1, 1
 	drum_speed 12
-	sound_call .sub1
+	sound_call Music_TitleScreen_branch_ebd77
 	drum_note 1, 2
 	drum_note 4, 2
 	drum_note 1, 2
@@ -975,7 +975,7 @@ Music_TitleScreen_Ch4:
 	drum_note 1, 1
 	drum_note 1, 2
 	drum_note 1, 2
-	sound_call .sub2
+	sound_call Music_TitleScreen_branch_ebd81
 	drum_note 1, 2
 	drum_note 4, 2
 	drum_note 1, 2
@@ -986,9 +986,9 @@ Music_TitleScreen_Ch4:
 	drum_note 1, 2
 	drum_note 1, 1
 	drum_note 1, 1
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub2
+	sound_call Music_TitleScreen_branch_ebd77
+	sound_call Music_TitleScreen_branch_ebd81
+	sound_call Music_TitleScreen_branch_ebd81
 	drum_note 1, 2
 	drum_note 4, 2
 	drum_note 1, 2
@@ -1003,8 +1003,8 @@ Music_TitleScreen_Ch4:
 	drum_note 3, 1
 	drum_note 2, 1
 	drum_speed 12
-	sound_call .sub1
-	sound_call .sub2
+	sound_call Music_TitleScreen_branch_ebd77
+	sound_call Music_TitleScreen_branch_ebd81
 	drum_note 1, 2
 	drum_note 4, 2
 	drum_note 1, 2
@@ -1054,31 +1054,31 @@ Music_TitleScreen_Ch4:
 	drum_note 2, 1
 	drum_note 1, 1
 	drum_note 1, 1
-	sound_call .sub3
-	sound_call .sub4
+	sound_call Music_TitleScreen_branch_ebd8b
+	sound_call Music_TitleScreen_branch_ebd93
 	drum_note 2, 1
 	drum_note 3, 1
 	drum_note 3, 1
 	drum_note 2, 1
 	drum_speed 12
-	sound_call .sub3
-	sound_call .sub4
+	sound_call Music_TitleScreen_branch_ebd8b
+	sound_call Music_TitleScreen_branch_ebd93
 	drum_note 3, 1
 	drum_note 3, 1
 	drum_note 2, 1
 	drum_note 2, 1
 	drum_speed 12
-	sound_call .sub3
-	sound_call .sub4
+	sound_call Music_TitleScreen_branch_ebd8b
+	sound_call Music_TitleScreen_branch_ebd93
 	drum_note 2, 1
 	drum_note 2, 1
 	drum_note 2, 1
 	drum_note 2, 1
 	drum_speed 12
 	drum_note 9, 16
-.loop1:
+Music_TitleScreen_branch_ebd40:
 	rest 16
-	sound_loop 6, .loop1
+	sound_loop 6, Music_TitleScreen_branch_ebd40
 	rest 12
 	drum_speed 6
 	drum_note 3, 1
@@ -1125,7 +1125,7 @@ Music_TitleScreen_Ch4:
 	drum_note 12, 4
 	sound_ret
 
-.sub1:
+Music_TitleScreen_branch_ebd77:
 	drum_note 1, 2
 	drum_note 4, 2
 	drum_note 1, 2
@@ -1137,7 +1137,7 @@ Music_TitleScreen_Ch4:
 	drum_note 4, 2
 	sound_ret
 
-.sub2:
+Music_TitleScreen_branch_ebd81:
 	drum_note 1, 2
 	drum_note 4, 2
 	drum_note 1, 2
@@ -1149,15 +1149,14 @@ Music_TitleScreen_Ch4:
 	drum_note 4, 2
 	sound_ret
 
-.sub3:
-.sub3loop1:
+Music_TitleScreen_branch_ebd8b:
 	drum_note 1, 2
 	drum_note 1, 1
 	drum_note 1, 1
-	sound_loop 4, .sub3loop1
+	sound_loop 4, Music_TitleScreen_branch_ebd8b
 	sound_ret
 
-.sub4:
+Music_TitleScreen_branch_ebd93:
 	drum_note 1, 2
 	drum_note 1, 1
 	drum_note 1, 1

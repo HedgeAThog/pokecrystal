@@ -1,5 +1,5 @@
-MagnetTrain:
-	ld a, [wScriptVar]
+Special_MagnetTrain:
+	ldh a, [hScriptVar]
 	and a
 	jr nz, .ToGoldenrod
 	ld a, 1 ; forwards
@@ -35,17 +35,17 @@ MagnetTrain:
 	ldh a, [hSCY]
 	push af
 	call MagnetTrain_LoadGFX_PlayMusic
-	ld hl, hVBlank
-	ld a, [hl]
+	ldh a, [hVBlank]
 	push af
-	ld [hl], VBLANK_CUTSCENE
+	ld a, $1
+	ldh [hVBlank], a
 .loop
 	ld a, [wJumptableIndex]
 	and a
 	jr z, .initialize
-	bit JUMPTABLE_EXIT_F, a
+	bit 7, a
 	jr nz, .done
-	callfar PlaySpriteAnimations
+	call PlaySpriteAnimations
 	call MagnetTrain_Jumptable
 	call MagnetTrain_UpdateLYOverrides
 	call PushLYOverrides
@@ -60,17 +60,19 @@ MagnetTrain:
 	pop af
 	ldh [hVBlank], a
 	call ClearBGPalettes
+	ld hl, rIE
+	res B_IE_STAT, [hl]
 	xor a
 	ldh [hLCDCPointer], a
 	ldh [hLYOverrideStart], a
 	ldh [hLYOverrideEnd], a
 	ldh [hSCX], a
-	ld [wRequested2bppSource], a
-	ld [wRequested2bppSource + 1], a
-	ld [wRequested2bppDest], a
-	ld [wRequested2bppDest + 1], a
-	ld [wRequested2bppSize], a
-	call ClearTilemap
+	ldh [hRequestedVTileSource], a
+	ldh [hRequestedVTileSource + 1], a
+	ldh [hRequestedVTileDest], a
+	ldh [hRequestedVTileDest + 1], a
+	ldh [hRequested2bpp], a
+	call ClearTileMap
 
 	pop af
 	ldh [hSCY], a
@@ -90,10 +92,10 @@ MagnetTrain_UpdateLYOverrides:
 	add a
 	ldh [hSCX], a
 	call .loadloop
-	ld c, 6 * TILE_WIDTH
+	ld c, 4 * TILE_WIDTH
 	ld a, [wMagnetTrainPosition]
 	call .loadloop
-	ld c, 6 * TILE_WIDTH + 1
+	ld c, 8 * TILE_WIDTH + 1
 	ld a, [wMagnetTrainOffset]
 	add a
 	call .loadloop
@@ -117,7 +119,7 @@ MagnetTrain_LoadGFX_PlayMusic:
 	call ClearBGPalettes
 	call ClearSprites
 	call DisableLCD
-	callfar ClearSpriteAnims
+	call ClearSpriteAnims
 	call SetMagnetTrainPals
 	call DrawMagnetTrain
 	ld a, SCREEN_HEIGHT_PX
@@ -138,8 +140,11 @@ MagnetTrain_LoadGFX_PlayMusic:
 	ldh [rWBK], a
 	ld hl, vTiles0
 	ld c, 4
-	call Request2bpp
-
+	push bc
+	push de
+	call Request2bppInWRA6
+	pop de
+	pop bc
 	; Load the player sprite's walking frames
 	ld hl, 12 tiles
 	add hl, de
@@ -147,7 +152,7 @@ MagnetTrain_LoadGFX_PlayMusic:
 	ld e, l
 	ld hl, vTiles0 tile $04
 	ld c, 4
-	call Request2bpp
+	call Request2bppInWRA6
 
 	call MagnetTrain_InitLYOverrides
 
@@ -159,15 +164,14 @@ MagnetTrain_LoadGFX_PlayMusic:
 	ld [hli], a ; wMagnetTrainPosition
 	ld [hli], a ; wMagnetTrainWaitCounter
 
-	ld de, MUSIC_MAGNET_TRAIN
-	call PlayMusic2
-	ret
+	ld e, MUSIC_MAGNET_TRAIN
+	jmp PlayMusic2
 
 DrawMagnetTrain:
 	hlbgcoord 0, 0
 	xor a
 .loop
-	call GetMagnetTrainBGTiles
+	call .GetBGTiles
 	ld b, TILEMAP_WIDTH / 2
 	call .FillAlt
 	inc a
@@ -189,8 +193,7 @@ DrawMagnetTrain:
 	hlbgcoord 0, 9
 	ld de, MagnetTrainTilemap + (SCREEN_WIDTH * 3)
 	ld c, SCREEN_WIDTH
-	call .FillLine
-	ret
+	; fallthrough
 
 .FillLine:
 	ld a, [de]
@@ -201,22 +204,22 @@ DrawMagnetTrain:
 	ret
 
 .FillAlt:
-	ld [hl], e
+	ld [hl], e ; no-optimize *hl++|*hl-- = b|c|d|e (a is the .loop counter)
 	inc hl
-	ld [hl], d
+	ld [hl], d ; no-optimize *hl++|*hl-- = b|c|d|e (a is the .loop counter)
 	inc hl
 	dec b
 	jr nz, .FillAlt
 	ret
 
-GetMagnetTrainBGTiles:
+.GetBGTiles:
 	push hl
 	ld e, a
 	ld d, 0
 	ld hl, MagnetTrainBGTiles
 	add hl, de
 	add hl, de
-	ld e, [hl]
+	ld e, [hl] ; no-optimize b|c|d|e = *hl++|*hl-- (a is the .loop counter)
 	inc hl
 	ld d, [hl]
 	pop hl
@@ -230,11 +233,13 @@ MagnetTrain_InitLYOverrides:
 	ld hl, wLYOverrides
 	ld bc, wLYOverridesEnd - wLYOverrides
 	ld a, [wMagnetTrainInitPosition]
-	call ByteFill
+	rst ByteFill
 	ld hl, wLYOverridesBackup
 	ld bc, wLYOverridesBackupEnd - wLYOverridesBackup
 	ld a, [wMagnetTrainInitPosition]
-	call ByteFill
+	rst ByteFill
+	ld hl, rIE
+	set B_IE_STAT, [hl]
 	ld a, LOW(rSCX)
 	ldh [hLCDCPointer], a
 	ret
@@ -247,32 +252,32 @@ SetMagnetTrainPals:
 	hlbgcoord 0, 0
 	ld bc, 4 * TILEMAP_WIDTH
 	ld a, PAL_BG_GREEN
-	call ByteFill
+	rst ByteFill
 
 	; train
 	hlbgcoord 0, 4
 	ld bc, 10 * TILEMAP_WIDTH
 	xor a ; PAL_BG_GRAY
-	call ByteFill
+	rst ByteFill
 
 	; more bushes
 	hlbgcoord 0, 14
 	ld bc, 4 * TILEMAP_WIDTH
 	ld a, PAL_BG_GREEN
-	call ByteFill
+	rst ByteFill
 
 	; train window
 	hlbgcoord 7, 8
 	ld bc, 6
 	ld a, PAL_BG_YELLOW
-	call ByteFill
+	rst ByteFill
 
-	ld a, 0
+	xor a
 	ldh [rVBK], a
 	ret
 
 MagnetTrain_Jumptable:
-	jumptable .Jumptable, wJumptableIndex
+	call StandardStackJumpTable
 
 .Jumptable:
 	dw .InitPlayerSpriteAnim
@@ -289,22 +294,12 @@ MagnetTrain_Jumptable:
 	ret
 
 .InitPlayerSpriteAnim:
+	ld hl, wPalFlags
+	set USE_DAYTIME_PAL_F, [hl]
 	ld d, (8 + 2) * TILE_WIDTH + 5
 	ld a, [wMagnetTrainPlayerSpriteInitX]
 	ld e, a
-	ld b, SPRITE_ANIM_OBJ_MAGNET_TRAIN_RED
-	ldh a, [rWBK]
-	push af
-	ld a, BANK(wPlayerGender)
-	ldh [rWBK], a
-	ld a, [wPlayerGender]
-	bit PLAYERGENDER_FEMALE_F, a
-	jr z, .got_gender
-	ld b, SPRITE_ANIM_OBJ_MAGNET_TRAIN_BLUE
-.got_gender
-	pop af
-	ldh [rWBK], a
-	ld a, b
+	ld a, SPRITE_ANIM_INDEX_MAGNET_TRAIN
 	call InitSpriteAnimStruct
 	ld hl, SPRITEANIMSTRUCT_TILE_ID
 	add hl, bc
@@ -321,7 +316,7 @@ MagnetTrain_Jumptable:
 	jr z, .PrepareToHoldTrain
 	ld e, a
 	ld a, [wMagnetTrainDirection]
-	xor $ff
+	cpl
 	inc a
 	add e
 	ld [wMagnetTrainPosition], a
@@ -341,22 +336,18 @@ MagnetTrain_Jumptable:
 	ld hl, wMagnetTrainWaitCounter
 	ld a, [hl]
 	and a
-	jr z, .DoneWaiting
+	jr z, .Next
 	dec [hl]
-	ret
-
-.DoneWaiting:
-	call .Next
 	ret
 
 .MoveTrain2:
 	ld hl, wMagnetTrainFinalPosition
 	ld a, [wMagnetTrainPosition]
 	cp [hl]
-	jr z, .PrepareToFinishAnim
+	jr z, .Next
 	ld e, a
 	ld a, [wMagnetTrainDirection]
-	xor $ff
+	cpl
 	inc a
 	ld d, a
 	ld a, e
@@ -372,21 +363,16 @@ MagnetTrain_Jumptable:
 	ld [hl], a
 	ret
 
-	ret
-
-.PrepareToFinishAnim:
-	call .Next
-	ret
-
 .TrainArrived:
-	ld a, JUMPTABLE_EXIT
+	ld hl, wPalFlags
+	res USE_DAYTIME_PAL_F, [hl]
+	ld a, $80
 	ld [wJumptableIndex], a
 	ld de, SFX_TRAIN_ARRIVED
-	call PlaySFX
-	ret
+	jmp PlaySFX
 
 MagnetTrain_Jumptable_FirstRunThrough:
-	farcall PlaySpriteAnimations
+	call PlaySpriteAnimations
 	call MagnetTrain_Jumptable
 	call MagnetTrain_UpdateLYOverrides
 	call PushLYOverrides
@@ -406,8 +392,8 @@ MagnetTrain_Jumptable_FirstRunThrough:
 	ld [wTimeOfDayPal], a
 	ld a, TOWN
 	ld [wEnvironment], a
-	ld b, SCGB_MAPPALS
-	call GetSGBLayout
+	ld a, CGB_MAPPALS
+	call GetCGBLayout
 	call UpdateTimePals
 
 	ldh a, [rBGP]

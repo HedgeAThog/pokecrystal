@@ -1,42 +1,123 @@
-	object_const_def
-	const ROUTE24_ROCKET
-
-Route24_MapScripts:
+Route24_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
+	callback MAPCALLBACK_TILES, Route24TileScript
+
+	def_warp_events
+
+	def_coord_events
+	coord_event 19, 15, 1, Route24BridgeOverheadTrigger
+	coord_event 20, 14, 1, Route24BridgeOverheadTrigger
+	coord_event 21, 14, 1, Route24BridgeOverheadTrigger
+	coord_event 22, 15, 1, Route24BridgeOverheadTrigger
+	coord_event 20, 15, 0, Route24BridgeUnderfootTrigger
+	coord_event 21, 15, 0, Route24BridgeUnderfootTrigger
+	coord_event 20, 39, 0, Route24BridgeUnderfootTrigger
+	coord_event 21, 39, 0, Route24BridgeUnderfootTrigger
+	coord_event 25, 13, 1, Route24BridgeOverheadTrigger
+	coord_event 25, 15, 1, Route24BridgeOverheadTrigger
+	coord_event 25, 16, 1, Route24BridgeOverheadTrigger
+	coord_event 25, 17, 1, Route24BridgeOverheadTrigger
+	coord_event 25, 18, 1, Route24BridgeOverheadTrigger
+	coord_event 25, 19, 1, Route24BridgeOverheadTrigger
+	coord_event 25, 20, 1, Route24BridgeOverheadTrigger
+	coord_event 25, 21, 1, Route24BridgeOverheadTrigger
+	coord_event 25, 22, 1, Route24BridgeOverheadTrigger
+	coord_event 25, 23, 1, Route24BridgeOverheadTrigger
+
+	def_bg_events
+	bg_event 15, 19, BGEVENT_ITEM + MAX_POTION, EVENT_ROUTE_24_HIDDEN_MAX_POTION
+	bg_event 23, 11, BGEVENT_JUMPTEXT, Route24AdvancedTipsSignText
+
+	def_object_events
+	object_event 21, 25, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_TRAINER, 1, TrainerGruntM31, EVENT_ROUTE_24_ROCKET
+	fruittree_event 16,  5, FRUITTREE_ROUTE_24, LANSAT_BERRY, PAL_NPC_PINK
+
+	object_const_def
+	const ROUTE24_ROCKET
+
+Route24TileScript:
+	checkscene
+	iftruefwd .underfoot
+	callasm Route24_OverheadBridgeAsm
+	endcallback
+
+.underfoot:
+	callasm Route24_UnderfootBridgeAsm
+	endcallback
+
+Route24_OverheadBridgeAsm:
+	changebridgeblock 20, 16, $ee, ROUTE_24
+	changebridgeblock 20, 18, $ec, ROUTE_24
+	changebridgeblock 20, 20, $ec, ROUTE_24
+	changebridgeblock 20, 22, $ec, ROUTE_24
+	changebridgeblock 20, 24, $ec, ROUTE_24
+	changebridgeblock 20, 26, $ec, ROUTE_24
+	changebridgeblock 20, 28, $ec, ROUTE_24
+	changebridgeblock 20, 30, $ec, ROUTE_24
+	changebridgeblock 20, 32, $ec, ROUTE_24
+	changebridgeblock 20, 34, $ec, ROUTE_24
+	changebridgeblock 20, 36, $ec, ROUTE_24
+	changebridgeblock 20, 38, $ed, ROUTE_24
+	jmp BufferScreen
+
+Route24_UnderfootBridgeAsm:
+	changebridgeblock 20, 16, $d2, ROUTE_24
+	changebridgeblock 20, 18, $d2, ROUTE_24
+	changebridgeblock 20, 20, $d2, ROUTE_24
+	changebridgeblock 20, 22, $d2, ROUTE_24
+	changebridgeblock 20, 24, $d2, ROUTE_24
+	changebridgeblock 20, 26, $d2, ROUTE_24
+	changebridgeblock 20, 28, $d2, ROUTE_24
+	changebridgeblock 20, 30, $d2, ROUTE_24
+	changebridgeblock 20, 32, $d2, ROUTE_24
+	changebridgeblock 20, 34, $d2, ROUTE_24
+	changebridgeblock 20, 36, $d2, ROUTE_24
+	changebridgeblock 20, 38, $b1, ROUTE_24
+	jmp BufferScreen
+
+Route24BridgeOverheadTrigger:
+	callasm Route24_OverheadBridgeAsm
+	callthisasm
+	xor a
+	jr Route24_FinishBridge
+
+Route24BridgeUnderfootTrigger:
+	callasm Route24_UnderfootBridgeAsm
+	callthisasm
+	ld a, $1
+Route24_FinishBridge:
+	ld [wWalkingOnBridge], a
+	ld [wRoute24SceneID], a ; setscene a
+	jmp GenericFinishBridge
+
+TrainerGruntM31:
+	trainer GRUNTM, 31, EVENT_BEAT_ROCKET_GRUNTM_31, Route24RocketSeenText, Route24RocketBeatenText, 0, Route24RocketScript
 
 Route24RocketScript:
-	faceplayer
-	playmusic MUSIC_ROCKET_ENCOUNTER
-	opentext
-	writetext Route24RocketSeenText
-	waitbutton
-	closetext
-	winlosstext Route24RocketBeatenText, -1
-	loadtrainer GRUNTM, GRUNTM_31
-	startbattle
-	dontrestartmapmusic
-	reloadmapafterbattle
 	playmusic MUSIC_ROCKET_ENCOUNTER
 	opentext
 	writetext Route24RocketAfterBattleText
 	promptbutton
-	special FadeOutMusic
+	special Special_FadeOutMusic
 	writetext Route24RocketDisappearsText
 	waitbutton
 	closetext
-	special FadeOutToBlack
-	special ReloadSpritesNoPalettes
+	special Special_FadeBlackQuickly
+	special Special_ReloadSpritesNoPalettes
 	disappear ROUTE24_ROCKET
+	setevent EVENT_LEARNED_ABOUT_MACHINE_PART
+	clearevent EVENT_CERULEAN_CAPE_BOYFRIEND
+	setmapscene CERULEAN_CAPE, $1
 	pause 25
-	special FadeInFromBlack
-	playmapmusic
+	special Special_FadeInQuickly
+	playmusic MUSIC_NUGGET_BRIDGE_HGSS
 	end
 
 Route24RocketSeenText:
 	text "Hey, kid! Me am a"
-	line "TEAM ROCKET member"
+	line "Team Rocket member"
 	cont "kind of guy!"
 
 	para "Come from another"
@@ -77,25 +158,25 @@ Route24RocketAfterBattleText:
 	text "OK. Tell you mine"
 	line "secret will I."
 
-	para "MACHINE PART steal"
+	para "Machine Part steal"
 	line "by me, hide it I"
 
-	para "did in GYM of the"
-	line "CERULEAN."
+	para "did in Gym of the"
+	line "Cerulean."
 
 	para "Inside water put"
 	line "it I did. Look for"
 
 	para "in water center of"
-	line "GYM at."
+	line "Gym at."
 
 	para "But you forget me"
 	line "not!"
 
 	para "Beat you for sure"
-	line "will TEAM ROCKET."
+	line "will Team Rocket."
 
-	para "Come from JOHTO"
+	para "Come from Johto"
 	line "will they, mine"
 
 	para "friends, yes. Will"
@@ -105,8 +186,8 @@ Route24RocketAfterBattleText:
 Route24RocketDisappearsText:
 	text "…"
 
-	para "You say what? TEAM"
-	line "ROCKET bye-bye a"
+	para "You say what? Team"
+	line "Rocket bye-bye a"
 
 	para "go-go? Broken it"
 	line "is says you?"
@@ -116,14 +197,21 @@ Route24RocketDisappearsText:
 	cont "from, me?"
 	done
 
-Route24_MapEvents:
-	db 0, 0 ; filler
+Route24AdvancedTipsSignText:
+	text "Advanced Tips!"
 
-	def_warp_events
+	para "The Sheer Force"
+	line "Ability negates"
 
-	def_coord_events
+	para "side effects of"
+	line "moves, but it"
 
-	def_bg_events
+	para "also negates some"
+	line "other effects!"
 
-	def_object_events
-	object_event  8,  7, SPRITE_ROCKET, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, Route24RocketScript, EVENT_ROUTE_24_ROCKET
+	para "In particular,"
+	line "the damage done"
+
+	para "by a held Life Orb"
+	line "is ignored!"
+	done

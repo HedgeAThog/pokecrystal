@@ -1,149 +1,119 @@
-	object_const_def
-	const CIANWOODGYM_CHUCK
-	const CIANWOODGYM_BLACK_BELT1
-	const CIANWOODGYM_BLACK_BELT2
-	const CIANWOODGYM_BLACK_BELT3
-	const CIANWOODGYM_BLACK_BELT4
-	const CIANWOODGYM_BOULDER1
-	const CIANWOODGYM_BOULDER2
-	const CIANWOODGYM_BOULDER3
-	const CIANWOODGYM_BOULDER4
-
-CianwoodGym_MapScripts:
+CianwoodGym_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
+
+	def_warp_events
+	warp_event  4, 17, CIANWOOD_CITY, 2
+	warp_event  5, 17, CIANWOOD_CITY, 2
+
+	def_coord_events
+
+	def_bg_events
+	bg_event  3, 15, BGEVENT_READ, CianwoodGymStatue
+	bg_event  6, 15, BGEVENT_READ, CianwoodGymStatue
+
+	def_object_events
+	object_event  4,  1, SPRITE_CHUCK, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, CianwoodGymChuckScript, -1
+	strengthboulder_event  5, 1
+	object_event  2, 12, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerBlackbeltYoshi, -1
+	object_event  7, 12, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerBlackbeltLao, -1
+	object_event  3,  9, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 2, GenericTrainerBlackbeltNob, -1
+	object_event  5,  5, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerBlackbeltLung, -1
+	object_event  7, 15, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, CianwoodGymBlackBeltText, -1
+	strengthboulder_event  3, 7
+	strengthboulder_event  4, 7
+	strengthboulder_event  5, 7
+
+	object_const_def
+	const CIANWOODGYM_CHUCK
+	const CIANWOODGYM_BOULDER1
 
 CianwoodGymChuckScript:
 	faceplayer
 	opentext
 	checkevent EVENT_BEAT_CHUCK
-	iftrue .FightDone
+	iftruefwd .FightDone
 	writetext ChuckIntroText1
 	waitbutton
 	closetext
 	turnobject CIANWOODGYM_CHUCK, RIGHT
-	opentext
-	writetext ChuckIntroText2
-	waitbutton
-	closetext
+	showtext ChuckIntroText2
 	applymovement CIANWOODGYM_BOULDER1, CianwoodGymMovement_ChuckChucksBoulder
 	playsound SFX_STRENGTH
 	earthquake 80
 	disappear CIANWOODGYM_BOULDER1
 	pause 30
-	faceplayer
-	opentext
-	writetext ChuckIntroText3
-	waitbutton
-	closetext
+	showtextfaceplayer ChuckIntroText3
 	winlosstext ChuckLossText, 0
-	loadtrainer CHUCK, CHUCK1
+	loadtrainer CHUCK, 1
 	startbattle
 	reloadmapafterbattle
 	setevent EVENT_BEAT_CHUCK
 	opentext
-	writetext GetStormBadgeText
-	playsound SFX_GET_BADGE
-	waitsfx
-	setflag ENGINE_STORMBADGE
-	readvar VAR_BADGES
-	scall CianwoodGymActivateRockets
+	givebadge STORMBADGE, JOHTO_REGION
+	specialphonecall SPECIALCALL_YELLOWFOREST
 .FightDone:
 	checkevent EVENT_GOT_TM01_DYNAMICPUNCH
-	iftrue .AlreadyGotTM
+	iftrue_jumpopenedtext ChuckAfterText
 	setevent EVENT_BEAT_BLACKBELT_YOSHI
 	setevent EVENT_BEAT_BLACKBELT_LAO
 	setevent EVENT_BEAT_BLACKBELT_NOB
 	setevent EVENT_BEAT_BLACKBELT_LUNG
 	writetext ChuckExplainBadgeText
 	promptbutton
-	verbosegiveitem TM_DYNAMICPUNCH
-	iffalse .BagFull
+	verbosegivetmhm TM_DYNAMICPUNCH
 	setevent EVENT_GOT_TM01_DYNAMICPUNCH
-	writetext ChuckExplainTMText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ChuckExplainTMText
 
-.AlreadyGotTM:
-	writetext ChuckAfterText
-	waitbutton
-.BagFull:
-	closetext
-	end
+GenericTrainerBlackbeltYoshi:
+	generictrainer BLACKBELT_T, YOSHI, EVENT_BEAT_BLACKBELT_YOSHI, BlackbeltYoshiSeenText, BlackbeltYoshiBeatenText
 
-CianwoodGymActivateRockets:
-	ifequal 7, .RadioTowerRockets
-	ifequal 6, .GoldenrodRockets
-	end
+	text "You seem to have a"
+	line "strong bond with"
+	cont "your #mon too!"
+	done
 
-.GoldenrodRockets:
-	jumpstd GoldenrodRocketsScript
+GenericTrainerBlackbeltLao:
+	generictrainer BLACKBELT_T, LAO, EVENT_BEAT_BLACKBELT_LAO, BlackbeltLaoSeenText, BlackbeltLaoBeatenText
 
-.RadioTowerRockets:
-	jumpstd RadioTowerRocketsScript
+	text "Fighting #mon"
+	line "are afraid of psy-"
+	cont "chics…"
+	done
 
-TrainerBlackbeltYoshi:
-	trainer BLACKBELT_T, YOSHI, EVENT_BEAT_BLACKBELT_YOSHI, BlackbeltYoshiSeenText, BlackbeltYoshiBeatenText, 0, .Script
+GenericTrainerBlackbeltNob:
+	generictrainer BLACKBELT_T, NOB, EVENT_BEAT_BLACKBELT_NOB, BlackbeltNobSeenText, BlackbeltNobBeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext BlackbeltYoshiAfterText
-	waitbutton
-	closetext
-	end
+	text "I lost!"
+	line "I'm speechless!"
+	done
 
-TrainerBlackbeltLao:
-	trainer BLACKBELT_T, LAO, EVENT_BEAT_BLACKBELT_LAO, BlackbeltLaoSeenText, BlackbeltLaoBeatenText, 0, .Script
+GenericTrainerBlackbeltLung:
+	generictrainer BLACKBELT_T, LUNG, EVENT_BEAT_BLACKBELT_LUNG, BlackbeltLungSeenText, BlackbeltLungBeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext BlackbeltLaoAfterText
-	waitbutton
-	closetext
-	end
-
-TrainerBlackbeltNob:
-	trainer BLACKBELT_T, NOB, EVENT_BEAT_BLACKBELT_NOB, BlackbeltNobSeenText, BlackbeltNobBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext BlackbeltNobAfterText
-	waitbutton
-	closetext
-	end
-
-TrainerBlackbeltLung:
-	trainer BLACKBELT_T, LUNG, EVENT_BEAT_BLACKBELT_LUNG, BlackbeltLungSeenText, BlackbeltLungBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext BlackbeltLungAfterText
-	waitbutton
-	closetext
-	end
-
-CianwoodGymBoulder:
-	jumpstd StrengthBoulderScript
+	text "My #mon lost…"
+	line "My… my pride is"
+	cont "shattered…"
+	done
 
 CianwoodGymStatue:
+	gettrainername CHUCK, 1, STRING_BUFFER_4
 	checkflag ENGINE_STORMBADGE
-	iftrue .Beaten
-	jumpstd GymStatue1Script
+	iftruefwd .Beaten
+	jumpstd gymstatue1
 .Beaten:
-	gettrainername STRING_BUFFER_4, CHUCK, CHUCK1
-	jumpstd GymStatue2Script
+	readvar VAR_BADGES
+	ifgreater 12, .LyraToo
+	jumpstd gymstatue2
+.LyraToo
+	jumpstd gymstatue3
 
 CianwoodGymMovement_ChuckChucksBoulder:
 	set_sliding
-	big_step LEFT
-	big_step UP
-	fast_jump_step RIGHT
+	run_step_left
+	run_step_up
+	fast_jump_step_right
 	remove_sliding
 	step_end
 
@@ -156,7 +126,7 @@ ChuckIntroText1:
 	para "Let me tell you,"
 	line "I'm tough!"
 
-	para "My #MON will"
+	para "My #mon will"
 	line "crush stones and"
 	cont "shatter bones!"
 
@@ -164,7 +134,7 @@ ChuckIntroText1:
 	done
 
 ChuckIntroText2:
-	text "CHUCK: Urggh!"
+	text "Chuck: Urggh!"
 	line "…"
 
 	para "Oooarrgh!"
@@ -177,7 +147,7 @@ ChuckIntroText3:
 	para "What?"
 	line "It has nothing to"
 
-	para "do with #MON?"
+	para "do with #mon?"
 	line "That's true!"
 
 	para "Come on. We shall"
@@ -190,34 +160,24 @@ ChuckLossText:
 
 	para "How about that!"
 	line "You're worthy of"
-	cont "STORMBADGE!"
-	done
-
-GetStormBadgeText:
-	text "<PLAYER> received"
-	line "STORMBADGE."
+	cont "the Storm Badge!"
 	done
 
 ChuckExplainBadgeText:
-	text "STORMBADGE makes"
-	line "all #MON up to"
+	text "The Storm Badge"
+	line "lets your #mon"
 
-	para "L70 obey, even"
-	line "traded ones."
-
-	para "It also lets your"
-	line "#MON use FLY"
-
-	para "when you're not in"
-	line "a battle."
+	para "Fly to any city"
+	line "or town you've"
+	cont "already been to."
 
 	para "Here, take this"
 	line "too!"
 	done
 
 ChuckExplainTMText:
-	text "That is DYNAMIC-"
-	line "PUNCH."
+	text "That is Dynamic-"
+	line "Punch."
 
 	para "It doesn't always"
 	line "hit, but when it"
@@ -239,7 +199,7 @@ ChuckAfterText:
 	done
 
 BlackbeltYoshiSeenText:
-	text "My #MON and I"
+	text "My #mon and I"
 	line "are bound togeth-"
 	cont "er by friendship."
 
@@ -251,12 +211,6 @@ BlackbeltYoshiBeatenText:
 	text "This isn't real!"
 	done
 
-BlackbeltYoshiAfterText:
-	text "You seem to have a"
-	line "strong bond with"
-	cont "your #MON too!"
-	done
-
 BlackbeltLaoSeenText:
 	text "We martial artists"
 	line "fear nothing!"
@@ -266,63 +220,30 @@ BlackbeltLaoBeatenText:
 	text "That's shocking!"
 	done
 
-BlackbeltLaoAfterText:
-	text "Fighting #MON"
-	line "are afraid of psy-"
-	cont "chics…"
-	done
-
 BlackbeltNobSeenText:
 	text "Words are useless."
 	line "Let your fists do"
 	cont "the talking!"
 	done
 
-BlackbeltNobBeatenText:
+BlackbeltNobBeatenText: ; text > text
 	text "…"
-	done
-
-BlackbeltNobAfterText:
-	text "I lost! "
-	line "I'm speechless!"
 	done
 
 BlackbeltLungSeenText:
 	text "My raging fists"
 	line "will shatter your"
-	cont "#MON!"
+	cont "#mon!"
 	done
 
 BlackbeltLungBeatenText:
 	text "I got shattered!"
 	done
 
-BlackbeltLungAfterText:
-	text "My #MON lost…"
-	line "My… my pride is"
-	cont "shattered…"
+CianwoodGymBlackBeltText:
+	text "The Gym guide is"
+	line "too scared of us"
+	cont "to stay here."
+
+	para "What a wimp!"
 	done
-
-CianwoodGym_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  4, 17, CIANWOOD_CITY, 2
-	warp_event  5, 17, CIANWOOD_CITY, 2
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  3, 15, BGEVENT_READ, CianwoodGymStatue
-	bg_event  6, 15, BGEVENT_READ, CianwoodGymStatue
-
-	def_object_events
-	object_event  4,  1, SPRITE_CHUCK, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, CianwoodGymChuckScript, -1
-	object_event  2, 12, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_TRAINER, 3, TrainerBlackbeltYoshi, -1
-	object_event  7, 12, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_TRAINER, 3, TrainerBlackbeltLao, -1
-	object_event  3,  9, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_TRAINER, 2, TrainerBlackbeltNob, -1
-	object_event  5,  5, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_TRAINER, 1, TrainerBlackbeltLung, -1
-	object_event  5,  1, SPRITE_BOULDER, SPRITEMOVEDATA_STRENGTH_BOULDER, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CianwoodGymBoulder, -1
-	object_event  3,  7, SPRITE_BOULDER, SPRITEMOVEDATA_STRENGTH_BOULDER, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CianwoodGymBoulder, -1
-	object_event  4,  7, SPRITE_BOULDER, SPRITEMOVEDATA_STRENGTH_BOULDER, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CianwoodGymBoulder, -1
-	object_event  5,  7, SPRITE_BOULDER, SPRITEMOVEDATA_STRENGTH_BOULDER, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CianwoodGymBoulder, -1

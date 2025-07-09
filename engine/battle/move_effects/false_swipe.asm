@@ -1,6 +1,4 @@
-BattleCommand_FalseSwipe:
-; Makes sure wCurDamage < MonHP
-
+BattleCommand_falseswipe:
 	ld hl, wEnemyMonHP
 	ldh a, [hBattleTurn]
 	and a
@@ -11,18 +9,16 @@ BattleCommand_FalseSwipe:
 	ld c, 2
 	push hl
 	push de
-	call CompareBytes
+	call StringCmp
 	pop de
 	pop hl
 	jr c, .done
-
 	ld a, [hli]
 	ld [de], a
 	inc de
 	ld a, [hl]
 	dec a
 	ld [de], a
-
 	inc a
 	jr nz, .okay
 	dec de
@@ -30,14 +26,6 @@ BattleCommand_FalseSwipe:
 	dec a
 	ld [de], a
 .okay
-
-	ld a, [wCriticalHit]
-	cp 2
-	jr nz, .carry
-	xor a
-	ld [wCriticalHit], a
-
-.carry
 	scf
 	ret
 

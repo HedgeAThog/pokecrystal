@@ -1,41 +1,30 @@
-	object_const_def
-	const REDSHOUSE1F_REDS_MOM
-
-RedsHouse1F_MapScripts:
+RedsHouse1F_MapScriptHeader:
 	def_scene_scripts
-	scene_script RedHouse1FNoopScene ; unusable
 
 	def_callbacks
 
-RedHouse1FNoopScene:
-	end
+	def_warp_events
+	warp_event  2,  7, PALLET_TOWN, 1
+	warp_event  3,  7, PALLET_TOWN, 1
+	warp_event  7,  0, REDS_HOUSE_2F, 1
+
+	def_coord_events
+
+	def_bg_events
+	bg_event  5,  1, BGEVENT_UP, RedsHouse1FTVScript
+
+	def_object_events
+	object_event  5,  3, SPRITE_REDS_MOM, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, RedsMom, -1
 
 RedsMom:
-	faceplayer
-	opentext
 	checkevent EVENT_MET_REDS_MOM
-	iftrue .MetAlready
-	writetext RedsMomText1
-	waitbutton
-	closetext
+	iftrue_jumptextfaceplayer .Text2
 	setevent EVENT_MET_REDS_MOM
-	end
-.MetAlready:
-	writetext RedsMomText2
-	waitbutton
-	closetext
-	end
+	jumpthistextfaceplayer
 
-RedsHouse1FTV:
-	jumptext RedsHouse1FTVText
-
-RedsHouse1FBookshelf:
-	jumpstd PictureBookshelfScript
-
-RedsMomText1:
 	text "Hi!"
 
-	para "RED's been away"
+	para "Red's been away"
 	line "for a long time."
 
 	para "He hasn't called"
@@ -53,8 +42,8 @@ RedsMomText1:
 	cont "about him."
 	done
 
-RedsMomText2:
-	text "I worry about RED"
+.Text2:
+	text "I worry about Red"
 	line "getting hurt or"
 
 	para "sick, but he's a"
@@ -62,30 +51,13 @@ RedsMomText2:
 
 	para "that he is doing"
 	line "what he wants to"
-
-	para "do."
+	cont "do."
 	done
 
-RedsHouse1FTVText:
+RedsHouse1FTVScript:
+	jumpthistext
+
 	text "They have programs"
 	line "that aren't shown"
-	cont "in JOHTO…"
+	cont "in Johto…"
 	done
-
-RedsHouse1F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2,  7, PALLET_TOWN, 1
-	warp_event  3,  7, PALLET_TOWN, 1
-	warp_event  7,  0, REDS_HOUSE_2F, 1
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  0,  1, BGEVENT_READ, RedsHouse1FBookshelf
-	bg_event  1,  1, BGEVENT_READ, RedsHouse1FBookshelf
-	bg_event  2,  1, BGEVENT_READ, RedsHouse1FTV
-
-	def_object_events
-	object_event  5,  3, SPRITE_REDS_MOM, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, RedsMom, -1

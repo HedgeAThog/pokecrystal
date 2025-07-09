@@ -1,67 +1,196 @@
-	object_const_def
-	const BATTLETOWEROUTSIDE_STANDING_YOUNGSTER
-	const BATTLETOWEROUTSIDE_BEAUTY
-	const BATTLETOWEROUTSIDE_SAILOR
-	const BATTLETOWEROUTSIDE_LASS
-
-BattleTowerOutside_MapScripts:
+BattleTowerOutside_MapScriptHeader:
 	def_scene_scripts
+	scene_script BattleTowerOutsideStepDownTrigger
 
 	def_callbacks
-	callback MAPCALLBACK_TILES, BattleTowerOutsideNoopCallback
-	callback MAPCALLBACK_OBJECTS, BattleTowerOutsideShowCiviliansCallback
 
-BattleTowerOutsideNoopCallback:
-	endcallback
+	def_warp_events
+	warp_event  8, 21, ROUTE_40_BATTLE_TOWER_GATE, 3
+	warp_event  9, 21, ROUTE_40_BATTLE_TOWER_GATE, 4
+	warp_event  8,  9, BATTLE_TOWER_1F, 1 ; hole
+	warp_event  9,  9, BATTLE_TOWER_1F, 2 ; hole
 
-BattleTowerOutsideShowCiviliansCallback:
-	clearevent EVENT_BATTLE_TOWER_OPEN_CIVILIANS
-	endcallback
+	def_coord_events
+	coord_event  8,  9, 1, BattleTowerOutsidePanUpTrigger1
+	coord_event  9,  9, 1, BattleTowerOutsidePanUpTrigger2
+
+	def_bg_events
+	bg_event 10, 10, BGEVENT_JUMPTEXT, BattleTowerOutsideSignText
+
+	def_object_events
+	object_event 15,  7, SPRITE_ANABEL, SPRITEMOVEDATA_SPINRANDOM_SLOW, 1, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, BattleTowerOutsideAnabelScript, EVENT_BATTLE_TOWER_OUTSIDE_ANABEL
+	object_event  6, 12, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, BattleTowerOutsideYoungsterScript, -1
+	object_event 13, 11, SPRITE_BEAUTY, SPRITEMOVEDATA_WANDER, 1, 1, -1, 0, OBJECTTYPE_SCRIPT, 0, BattleTowerOutsideBeautyScript, -1
+	object_event 12, 18, SPRITE_SAILOR, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, BattleTowerOutsideSailorText, EVENT_BATTLE_TOWER_CLOSED
+	object_event 12, 24, SPRITE_PICNICKER, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, ObjectEvent, -1
+	object_event  8,  9, SPRITE_RATTATA_BACK, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptext, BattleTowerOutsideDoorsClosedText, EVENT_BATTLE_TOWER_OPEN
+	object_event  9,  9, SPRITE_RATTATA_BACK, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptext, BattleTowerOutsideDoorsClosedText, EVENT_BATTLE_TOWER_OPEN
+
+	object_const_def
+	const BATTLETOWEROUTSIDE_ANABEL
+
+BattleTowerOutsideStepDownTrigger:
+	sdefer .Script
+	end
+
+.Script:
+	readvar VAR_YCOORD
+	ifnotequal $9, .Done
+	readvar VAR_XCOORD
+	ifequalfwd $8, .Down
+	ifnotequal $9, .Done
+.Down
+	applyonemovement PLAYER, step_down
+.Done
+	setscene $1
+	end
+
+BattleTowerOutsidePanUpTrigger1:
+	scall BattleTowerOutsidePanUpHelperScript
+	warpfacing UP, BATTLE_TOWER_1F, 10, 15
+	end
+
+BattleTowerOutsidePanUpTrigger2:
+	scall BattleTowerOutsidePanUpHelperScript
+	warpfacing UP, BATTLE_TOWER_1F, 11, 15
+	end
+
+BattleTowerOutsidePanUpHelperScript:
+	playsound SFX_EXIT_BUILDING
+	applyonemovement PLAYER, hide_object
+	waitsfx
+	applymovement PLAYER, .PanUpMovement
+	disappear PLAYER
+	pause 10
+	special Special_FadeOutMusic
+	special FadeOutPalettes
+	pause 15
+	setscene $0
+	end
+
+.PanUpMovement:
+	step_up
+	step_up
+	step_up
+	step_up
+	step_up
+	step_end
+
+BattleTowerOutsideSignText:
+	text "Battle Tower"
+
+	para "Take the Ultimate"
+	line "Trainer Challenge!"
+	done
+
+BattleTowerOutsideAnabelScript:
+	faceplayer
+	checkevent EVENT_BEAT_ANABEL
+	iftruefwd .Beaten
+	opentext
+	writetext .ChallengeText
+	yesorno
+	iffalse_jumpopenedtext .NoText
+	writetext .YesText
+	waitbutton
+	closetext
+	winlosstext .BeatenText, 0
+	setlasttalked BATTLETOWEROUTSIDE_ANABEL
+	loadtrainer ANABEL, 1
+	startbattle
+	reloadmapafterbattle
+	setevent EVENT_BEAT_ANABEL
+.Beaten
+	opentext
+	writetext .ItemText
+	promptbutton
+	verbosegiveitem POWER_BAND
+	iffalse_endtext
+	writetext .GoodbyeText
+	waitbutton
+	closetext
+	special Special_FadeBlackQuickly
+	special Special_ReloadSpritesNoPalettes
+	disappear BATTLETOWEROUTSIDE_ANABEL
+	pause 15
+	special Special_FadeInQuickly
+	clearevent EVENT_BATTLE_TOWER_ANABEL
+	end
+
+.ChallengeText:
+	text "Greetings… My name"
+	line "is Anabel."
+
+	para "…You are <PLAYER>?"
+	line "I have heard sev-"
+	cont "eral rumors about"
+	cont "you…"
+
+	para "Let me see your"
+	line "talent in its"
+	cont "entirety…"
+	done
+
+.YesText:
+	text "Let's begin,"
+	line "shall we?"
+	done
+
+.NoText:
+	text "It's very dis-"
+	line "appointing…"
+	done
+
+.BeatenText:
+	text "OK, I understand…"
+	done
+
+.ItemText:
+	text "Fufufu, nicely"
+	line "done…"
+
+	para "Take this, please…"
+	done
+
+.GoodbyeText:
+	text "I urge you to keep"
+	line "battling and keep"
+	cont "on winning."
+
+	para "I will be waiting"
+	line "for you in this"
+	cont "Battle Tower."
+
+	para "Until the next"
+	line "time we meet…"
+	done
 
 BattleTowerOutsideYoungsterScript:
-	jumptextfaceplayer BattleTowerOutsideYoungsterText
+	checkevent EVENT_BATTLE_TOWER_OPEN
+	iftrue_jumptextfaceplayer .OpenText
+	jumpthistextfaceplayer
 
-BattleTowerOutsideBeautyScript:
-	jumptextfaceplayer BattleTowerOutsideBeautyText
-
-BattleTowerOutsideSailorScript:
-	jumptextfaceplayer BattleTowerOutsideSailorText
-
-BattleTowerOutsideSign:
-	jumptext BattleTowerOutsideSignText
-
-BattleTowerOutsideYoungsterText_NotYetOpen: ; unreferenced
-	text "Wow, the BATTLE"
-	line "TOWER is huge! My"
+	text "Wow, the Battle"
+	line "Tower is huge! My"
 
 	para "neck is tired from"
 	line "looking up at it."
 	done
 
-BattleTowerOutsideYoungsterText_Mobile: ; unreferenced
-	text "Wow, the BATTLE"
-	line "TOWER is huge!"
-
-	para "Since there are a"
-	line "whole bunch of"
-
-	para "trainers inside,"
-	line "there must also be"
-
-	para "a wide variety of"
-	line "#MON."
-	done
-
-BattleTowerOutsideYoungsterText:
-	text "Wow, the BATTLE"
-	line "TOWER is huge!"
+.OpenText:
+	text "Wow, the Battle"
+	line "Tower is huge!"
 
 	para "There must be many"
-	line "kinds of #MON"
+	line "kinds of #mon"
 	cont "in there!"
 	done
 
-BattleTowerOutsideBeautyText_NotYetOpen: ; unreferenced
+BattleTowerOutsideBeautyScript:
+	checkevent EVENT_BATTLE_TOWER_OPEN
+	iftrue_jumptextfaceplayer .OpenText
+	jumpthistextfaceplayer
+
 	text "What on earth do"
 	line "they do here?"
 
@@ -69,28 +198,18 @@ BattleTowerOutsideBeautyText_NotYetOpen: ; unreferenced
 	line "anything, I guess"
 
 	para "it must be for"
-	line "#MON battles."
+	line "#mon battles."
 	done
 
-BattleTowerOutsideBeautyText:
+.OpenText:
 	text "You can use only"
-	line "three #MON."
+	line "three #mon."
 
 	para "It's so hard to"
 	line "decide which three"
 
 	para "should go into"
 	line "battle…"
-	done
-
-BattleTowerOutsideSailorText_Mobile: ; unreferenced
-	text "Ehehehe…"
-	line "I sneaked out of"
-	cont "work to come here."
-
-	para "I'm never giving"
-	line "up until I become"
-	cont "a LEADER!"
 	done
 
 BattleTowerOutsideSailorText:
@@ -104,45 +223,7 @@ BattleTowerOutsideSailorText:
 	line "all. That I must!"
 	done
 
-BattleTowerOutsideSignText_NotYetOpen: ; unreferenced
-; originally shown when the Battle Tower was closed
-	text "BATTLE TOWER"
-	done
-
-BattleTowerOutsideSignText:
-	text "BATTLE TOWER"
-
-	para "Take the Ultimate"
-	line "Trainer Challenge!"
-	done
-
-BattleTowerOutsideText_DoorsClosed: ; unreferenced
-; originally shown when the Battle Tower was closed
-	text "The BATTLE TOWER's"
+BattleTowerOutsideDoorsClosedText:
+	text "The Battle Tower's"
 	line "doors are closed…"
 	done
-
-BattleTowerOutsideText_DoorsOpen: ; unreferenced
-; originally shown after the Battle Tower opened
-	text "It's open!"
-	done
-
-BattleTowerOutside_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  8, 21, ROUTE_40_BATTLE_TOWER_GATE, 3
-	warp_event  9, 21, ROUTE_40_BATTLE_TOWER_GATE, 4
-	warp_event  8,  9, BATTLE_TOWER_1F, 1
-	warp_event  9,  9, BATTLE_TOWER_1F, 2
-
-	def_coord_events
-
-	def_bg_events
-	bg_event 10, 10, BGEVENT_READ, BattleTowerOutsideSign
-
-	def_object_events
-	object_event  6, 12, SPRITE_STANDING_YOUNGSTER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, BattleTowerOutsideYoungsterScript, -1
-	object_event 13, 11, SPRITE_BEAUTY, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, BattleTowerOutsideBeautyScript, -1
-	object_event 12, 18, SPRITE_SAILOR, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 1, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, BattleTowerOutsideSailorScript, EVENT_BATTLE_TOWER_OPEN_CIVILIANS
-	object_event 12, 24, SPRITE_LASS, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, ObjectEvent, -1

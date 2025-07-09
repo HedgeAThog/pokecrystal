@@ -1,5 +1,5 @@
 AlanGettingStrongerText:
-	text "My @"
+	text "My "
 	text_ram wStringBuffer4
 	text "'s"
 	line "getting stronger,"
@@ -12,7 +12,7 @@ AlanDefeatedMonText:
 	text "By the way, we"
 	line "knocked out a wild"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text " just"
 	line "the other day."
@@ -23,7 +23,7 @@ AlanDefeatedMonText:
 
 AlanLostAMonText:
 	text "By the way, a wild"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text " escaped"
 	cont "on me yesterday."
@@ -40,7 +40,7 @@ AlanBattleRematchText:
 	line "lot better!"
 
 	para "I'm hanging out on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 
@@ -59,9 +59,8 @@ AlanFoundItemText:
 	para "You can have it!"
 	line "Why don't you come"
 
-	para "to @"
+	para "to "
 	text_ram wStringBuffer5
-	text_start
 	line "and pick it up?"
 	done
 
@@ -79,7 +78,7 @@ AlanReminderText:
 	cont "my strategy!"
 
 	para "I'm waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done
@@ -92,7 +91,7 @@ AlanComePickUpGiftText:
 	line "gift right away?"
 
 	para "I'm waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done

@@ -1,98 +1,89 @@
-	object_const_def
-	const ROUTE35GOLDENRODGATE_RANDY
-	const ROUTE35GOLDENRODGATE_POKEFAN_F
-	const ROUTE35GOLDENRODGATE_FISHER
-
-Route35GoldenrodGate_MapScripts:
+Route35GoldenrodGate_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
+
+	def_warp_events
+	warp_event  4,  0, ROUTE_35, 1
+	warp_event  5,  0, ROUTE_35, 2
+	warp_event  4,  7, GOLDENROD_CITY, 12
+	warp_event  5,  7, GOLDENROD_CITY, 12
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event  0,  4, SPRITE_OFFICER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, RandyScript, -1
+	object_event  6,  4, SPRITE_BREEDER, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, Route35GoldenrodGatePokefanFScript, -1
+	object_event  3,  2, SPRITE_FAT_GUY, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, PAL_NPC_PURPLE, OBJECTTYPE_COMMAND, jumptextfaceplayer, Route35GoldenrodGateFisherText, -1
 
 RandyScript:
 	faceplayer
 	opentext
 	checkevent EVENT_GOT_HP_UP_FROM_RANDY
-	iftrue .gothpup
+	iftruefwd .gothpup
 	checkevent EVENT_GAVE_KENYA
-	iftrue .questcomplete
+	iftruefwd .questcomplete
 	checkevent EVENT_GOT_KENYA
-	iftrue .alreadyhavekenya
+	iftruefwd .alreadyhavekenya
 	writetext Route35GoldenrodGateRandyAskTakeThisMonToMyFriendText
 	yesorno
-	iffalse .refused
+	iffalsefwd .refused
+	readvar VAR_PARTYCOUNT
+	ifequalfwd PARTY_LENGTH, .partyfull
 	writetext Route35GoldenrodGateRandyThanksText
 	promptbutton
 	waitsfx
-	readvar VAR_PARTYCOUNT
-	ifequal PARTY_LENGTH, .partyfull
 	writetext Route35GoldenrodGatePlayerReceivedAMonWithMailText
 	playsound SFX_KEY_ITEM
 	waitsfx
-	givepoke SPEAROW, 10, NO_ITEM, GiftSpearowName, GiftSpearowOTName
+	givepoke SPEAROW, FEMALE | PLAIN_FORM, 10, NO_ITEM, NET_BALL, NO_MOVE, GiftSpearowName, GiftSpearowOTName, 01001
 	givepokemail GiftSpearowMail
 	setevent EVENT_GOT_KENYA
 .alreadyhavekenya
-	writetext Route35GoldenrodGateRandyWeirdTreeBlockingRoadText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext Route35GoldenrodGateRandyWeirdTreeBlockingRoadText
 
 .partyfull
-	writetext Route35GoldenrodGateRandyCantCarryAnotherMonText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext Route35GoldenrodGateRandyCantCarryAnotherMonText
 
 .refused
-	writetext Route35GoldenrodGateRandyOhNeverMindThenText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext Route35GoldenrodGateRandyOhNeverMindThenText
 
 .questcomplete
 	writetext Route35GoldenrodGateRandySomethingForYourTroubleText
 	promptbutton
 	verbosegiveitem HP_UP
-	iffalse .bagfull
+	iffalsefwd .bagfull
 	setevent EVENT_GOT_HP_UP_FROM_RANDY
 .gothpup
 	writetext Route35GoldenrodGateRandyMyPalWasSnoozingRightText
 	waitbutton
 .bagfull
-	closetext
-	end
+	endtext
 
 GiftSpearowMail:
-	db FLOWER_MAIL
-	db   "DARK CAVE leads"
+	db   FLOWER_MAIL
+	setcharmap no_ngrams
+	db   "Dark Cave leads"
 	next "to another road@"
+	setcharmap default
 
 GiftSpearowName:
-	db "KENYA@"
+	rawchar "Kenya@"
 
 GiftSpearowOTName:
-	db "RANDY@"
-
-	db 0 ; unused
+	rawchar "Randy@"
 
 Route35GoldenrodGatePokefanFScript:
 	faceplayer
 	opentext
 	checkevent EVENT_FOUGHT_SUDOWOODO
-	iftrue .FoughtSudowoodo
-	writetext Route35GoldenrodGatePokefanFText
-	waitbutton
-	closetext
-	end
+	iftruefwd .aftersudowoodo
+	jumpopenedtext Route35GoldenrodGatePokefanFText
 
-.FoughtSudowoodo
-	writetext Route35GoldenrodGatePokefanFText_FoughtSudowoodo
-	waitbutton
-	closetext
-	end
-
-Route35GoldenrodGateFisherScript:
-	jumptextfaceplayer Route35GoldenrodGateFisherText
+.aftersudowoodo
+	jumpopenedtext Route35GoldenrodGatePokefanFText_FoughtSudowoodo
 
 Route35GoldenrodGateRandyAskTakeThisMonToMyFriendText:
 	text "Excuse me, kid!"
@@ -100,10 +91,10 @@ Route35GoldenrodGateRandyAskTakeThisMonToMyFriendText:
 	cont "a favor?"
 
 	para "Can you take this"
-	line "#MON with MAIL"
+	line "#mon with Mail"
 	cont "to my friend?"
 
-	para "He's on ROUTE 31."
+	para "He's on Route 31."
 	done
 
 Route35GoldenrodGateRandyThanksText:
@@ -120,13 +111,13 @@ Route35GoldenrodGateRandyThanksText:
 
 Route35GoldenrodGatePlayerReceivedAMonWithMailText:
 	text "<PLAYER> received a"
-	line "#MON with MAIL."
+	line "#mon with Mail."
 	done
 
 Route35GoldenrodGateRandyWeirdTreeBlockingRoadText:
 	text "You can read it,"
 	line "but don't lose it!"
-	cont "ROUTE 31!"
+	cont "Route 31!"
 
 	para "Oh, yeah. There"
 	line "was a weird tree"
@@ -138,7 +129,7 @@ Route35GoldenrodGateRandyWeirdTreeBlockingRoadText:
 
 Route35GoldenrodGateRandyCantCarryAnotherMonText:
 	text "You can't carry"
-	line "another #MON…"
+	line "another #mon…"
 	done
 
 Route35GoldenrodGateRandyOhNeverMindThenText:
@@ -172,43 +163,25 @@ Route35GoldenrodGatePokefanFText:
 	line "wild when someone"
 
 	para "watered it with a"
-	line "SQUIRTBOTTLE."
+	line "SquirtBottle."
 	done
 
 Route35GoldenrodGatePokefanFText_FoughtSudowoodo:
-	text "I like the #MON"
+	text "I like the #mon"
 	line "Lullaby they play"
 	cont "on the radio."
 	done
 
 Route35GoldenrodGateFisherText:
 	text "I wonder how many"
-	line "kinds of #MON"
+	line "kinds of #mon"
 
 	para "there are in the"
 	line "world."
 
 	para "Three years ago,"
-	line "PROF.OAK said that"
+	line "Prof.Oak said that"
 
 	para "there were 150"
 	line "different kinds."
 	done
-
-Route35GoldenrodGate_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  4,  0, ROUTE_35, 1
-	warp_event  5,  0, ROUTE_35, 2
-	warp_event  4,  7, GOLDENROD_CITY, 12
-	warp_event  5,  7, GOLDENROD_CITY, 12
-
-	def_coord_events
-
-	def_bg_events
-
-	def_object_events
-	object_event  0,  4, SPRITE_OFFICER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, RandyScript, -1
-	object_event  6,  4, SPRITE_POKEFAN_F, SPRITEMOVEDATA_WALK_UP_DOWN, 0, 1, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, Route35GoldenrodGatePokefanFScript, -1
-	object_event  3,  2, SPRITE_FISHER, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, Route35GoldenrodGateFisherScript, -1

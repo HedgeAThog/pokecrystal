@@ -1,30 +1,24 @@
 HealParty:
+	ld a, [wPartyCount]
+	ld c, a
 	xor a
-	ld [wCurPartyMon], a
-	ld hl, wPartySpecies
 .loop
-	ld a, [hli]
-	cp -1
-	jr z, .done
-	cp EGG
-	jr z, .next
-
-	push hl
-	call HealPartyMon
-	pop hl
-
-.next
+	cp c
+	ret z
+	ld [wCurPartyMon], a
+	push bc
+	ld a, MON_IS_EGG
+	call GetPartyParamLocationAndValue
+	bit MON_IS_EGG_F, a
+	call z, HealPartyMon
+	pop bc
 	ld a, [wCurPartyMon]
 	inc a
-	ld [wCurPartyMon], a
 	jr .loop
-
-.done
-	ret
 
 HealPartyMon:
 	ld a, MON_SPECIES
-	call GetPartyParamLocation
+	call GetPartyParamLocationAndValue
 	ld d, h
 	ld e, l
 
@@ -49,11 +43,10 @@ HealPartyMon:
 	ld a, [hl]
 	ld [bc], a
 
-	farcall RestoreAllPP
-	ret
+	jmp RestoreAllPP
 
 ComputeHPBarPixels:
-; e = bc * HP_BAR_LENGTH_PX / de
+; e = bc * (6 * 8) / de
 	ld a, b
 	or c
 	jr z, .zero
@@ -64,9 +57,9 @@ ComputeHPBarPixels:
 	ldh [hMultiplicand + 1], a
 	ld a, c
 	ldh [hMultiplicand + 2], a
-	ld a, HP_BAR_LENGTH_PX
+	ld a, 6 * 8
 	ldh [hMultiplier], a
-	call Multiply
+	farcall Multiply
 	; We need de to be under 256 because hDivisor is only 1 byte.
 	ld a, d
 	and a
@@ -76,13 +69,16 @@ ComputeHPBarPixels:
 	rr e
 	srl d
 	rr e
+	ldh a, [hProduct + 1]
+	srl a ; get the 17th bit into the carry bit
+	ldh [hProduct + 1], a
 	ldh a, [hProduct + 2]
 	ld b, a
 	ldh a, [hProduct + 3]
+	rr b
+	rra
 	srl b
-	rr a
-	srl b
-	rr a
+	rra
 	ldh [hDividend + 3], a
 	ld a, b
 	ldh [hDividend + 2], a
@@ -90,8 +86,8 @@ ComputeHPBarPixels:
 	ld a, e
 	ldh [hDivisor], a
 	ld b, 4
-	call Divide
-	ldh a, [hQuotient + 3]
+	farcall Divide
+	ldh a, [hQuotient + 2]
 	ld e, a
 	pop hl
 	and a
@@ -101,10 +97,4 @@ ComputeHPBarPixels:
 
 .zero
 	ld e, 0
-	ret
-
-AnimateHPBar:
-	call WaitBGMap
-	call _AnimateHPBar
-	call WaitBGMap
 	ret

@@ -1,21 +1,34 @@
-	object_const_def
-	const ROUTE37_WEIRD_TREE1
-	const ROUTE37_WEIRD_TREE2
-	const ROUTE37_YOUNGSTER
-	const ROUTE37_FRUIT_TREE1
-	const ROUTE37_SUNNY
-	const ROUTE37_FRUIT_TREE2
-	const ROUTE37_FRUIT_TREE3
-
-Route37_MapScripts:
+Route37_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
-	callback MAPCALLBACK_OBJECTS, Route37SunnyCallback
+	callback MAPCALLBACK_OBJECTS, SunnyCallback
 
-Route37SunnyCallback:
+	def_warp_events
+
+	def_coord_events
+
+	def_bg_events
+	bg_event  5,  3, BGEVENT_JUMPTEXT, Route37SignText
+	bg_event  4,  2, BGEVENT_ITEM + ETHER, EVENT_ROUTE_37_HIDDEN_ETHER
+
+	def_object_events
+	object_event 16,  8, SPRITE_BUG_CATCHER, SPRITEMOVEDATA_WANDER, 1, 1, -1, 0, OBJECTTYPE_SCRIPT, 0, SunnyScript, EVENT_ROUTE_37_SUNNY_OF_SUNDAY
+	object_event  6, 12, SPRITE_TWIN, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerTwinsToriandtil1, -1
+	object_event  7, 12, SPRITE_TWIN, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerTwinsToriandtil2, -1
+	object_event 14, 11, SPRITE_PSYCHIC, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerPsychicGreg, -1
+	object_event  4,  6, SPRITE_BEAUTY, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerBeautyCallie, -1
+	object_event  9,  6, SPRITE_BEAUTY, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerBeautyCassandra, -1
+	fruittree_event 13,  5, FRUITTREE_ROUTE_37_1, RED_APRICORN, PAL_NPC_RED
+	fruittree_event 16,  5, FRUITTREE_ROUTE_37_2, BLU_APRICORN, PAL_NPC_BLUE
+	fruittree_event 15,  7, FRUITTREE_ROUTE_37_3, BLK_APRICORN, PAL_NPC_BLACK
+
+	object_const_def
+	const ROUTE37_SUNNY
+
+SunnyCallback:
 	readvar VAR_WEEKDAY
-	ifequal SUNDAY, .SunnyAppears
+	ifequalfwd SUNDAY, .SunnyAppears
 	disappear ROUTE37_SUNNY
 	endcallback
 
@@ -23,135 +36,99 @@ Route37SunnyCallback:
 	appear ROUTE37_SUNNY
 	endcallback
 
-TrainerTwinsAnnandanne1:
-	trainer TWINS, ANNANDANNE1, EVENT_BEAT_TWINS_ANN_AND_ANNE, TwinsAnnandanne1SeenText, TwinsAnnandanne1BeatenText, 0, .Script
+GenericTrainerTwinsToriandtil1:
+	generictrainer TWINS, ANNANDANNE1, EVENT_BEAT_TWINS_ANN_AND_ANNE, TwinsToriandtil1SeenText, TwinsToriandtil1BeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext TwinsAnnandanne1AfterBattleText
-	waitbutton
-	closetext
-	end
+	text "Til: I can tell"
+	line "what my sister and"
 
-TrainerTwinsAnnandanne2:
-	trainer TWINS, ANNANDANNE2, EVENT_BEAT_TWINS_ANN_AND_ANNE, TwinsAnnandanne2SeenText, TwinsAnnandanne2BeatenText, 0, .Script
+	para "my #mon are"
+	line "thinking."
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext TwinsAnnandanne2AfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerTwinsToriandtil2:
+	generictrainer TWINS, ANNANDANNE2, EVENT_BEAT_TWINS_ANN_AND_ANNE, TwinsToriandtil2SeenText, TwinsToriandtil2BeatenText
 
-TrainerPsychicGreg:
-	trainer PSYCHIC_T, GREG, EVENT_BEAT_PSYCHIC_GREG, PsychicGregSeenText, PsychicGregBeatenText, 0, .Script
+	text "Tori: We share the"
+	line "same feelings as"
+	cont "our #mon."
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext PsychicGregAfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerPsychicGreg:
+	generictrainer PSYCHIC_T, GREG, EVENT_BEAT_PSYCHIC_GREG, PsychicGregSeenText, PsychicGregBeatenText
+
+	text "Putting #mon to"
+	line "sleep or paralyz-"
+	cont "ing them are good"
+	cont "battle techniques."
+	done
 
 SunnyScript:
 	faceplayer
 	opentext
 	checkevent EVENT_GOT_MAGNET_FROM_SUNNY
-	iftrue SunnySundayScript
+	iftruefwd SunnySundayScript
 	readvar VAR_WEEKDAY
 	ifnotequal SUNDAY, SunnyNotSundayScript
 	checkevent EVENT_MET_SUNNY_OF_SUNDAY
-	iftrue .MetSunny
+	iftruefwd .MetSunny
 	writetext MeetSunnyText
 	promptbutton
 	setevent EVENT_MET_SUNNY_OF_SUNDAY
 .MetSunny:
-	checkflag ENGINE_PLAYER_IS_FEMALE
-	iftrue .Kris
-	writetext SunnyGivesGiftText1
+	writetext SunnyGivesGiftText
 	promptbutton
-	sjump .next
-.Kris:
-	writetext SunnyGivesGiftText2
-	promptbutton
-.next
 	verbosegiveitem MAGNET
-	iffalse SunnyDoneScript
+	iffalsefwd SunnyDoneScript
 	setevent EVENT_GOT_MAGNET_FROM_SUNNY
-	writetext SunnyGaveGiftText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext SunnyGaveGiftText
 
 SunnySundayScript:
 	writetext SunnySundayText
 	waitbutton
 SunnyDoneScript:
-	closetext
-	end
+	endtext
 
 SunnyNotSundayScript:
-	writetext SunnyNotSundayText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext SunnyNotSundayText
 
-Route37Sign:
-	jumptext Route37SignText
+GenericTrainerBeautyCallie:
+	generictrainer BEAUTY, CALLIE, EVENT_BEAT_BEAUTY_CALLIE, BeautyCallieSeenText, BeautyCallieBeatenText
 
-Route37FruitTree1:
-	fruittree FRUITTREE_ROUTE_37_1
+	text "Wow, you're cute"
+	line "and skilled too!"
+	done
 
-Route37FruitTree2:
-	fruittree FRUITTREE_ROUTE_37_2
+GenericTrainerBeautyCassandra:
+	generictrainer BEAUTY, CASSANDRA, EVENT_BEAT_BEAUTY_CASSANDRA, BeautyCassandraSeenText, BeautyCassandraBeatenText
 
-Route37FruitTree3:
-	fruittree FRUITTREE_ROUTE_37_3
+	text "People like you"
+	line "are skilled even"
 
-Route37HiddenEther:
-	hiddenitem ETHER, EVENT_ROUTE_37_HIDDEN_ETHER
+	para "though they're"
+	line "young…"
+	done
 
-TwinsAnnandanne1SeenText:
-	text "ANN: ANNE and I"
+TwinsToriandtil1SeenText:
+	text "Til: Tori and I"
 	line "are in this to-"
 	cont "gether!"
 	done
 
-TwinsAnnandanne1BeatenText:
-	text "ANN & ANNE: Nnn… A"
+TwinsToriandtil1BeatenText:
+TwinsToriandtil2BeatenText:
+	text "Til & Tori: Nnn… A"
 	line "little too strong."
 	done
 
-TwinsAnnandanne1AfterBattleText:
-	text "ANN: I can tell"
-	line "what my sister and"
-
-	para "my #MON are"
-	line "thinking."
-	done
-
-TwinsAnnandanne2SeenText:
-	text "ANNE: ANN and I"
+TwinsToriandtil2SeenText:
+	text "Tori: Til and I"
 	line "are in this to-"
 	cont "gether!"
-	done
-
-TwinsAnnandanne2BeatenText:
-	text "ANN & ANNE: Nnn… A"
-	line "little too strong."
-	done
-
-TwinsAnnandanne2AfterBattleText:
-	text "ANNE: We share the"
-	line "same feelings as"
-	cont "our #MON."
 	done
 
 PsychicGregSeenText:
-	text "#MON can't do a"
+	text "#mon can't do a"
 	line "thing if they are"
 	cont "asleep."
 
@@ -164,93 +141,84 @@ PsychicGregBeatenText:
 	line "pretty sad…"
 	done
 
-PsychicGregAfterBattleText:
-	text "Putting #MON to"
-	line "sleep or paralyz-"
-	cont "ing them are good"
-	cont "battle techniques."
-	done
-
 MeetSunnyText:
-	text "SUNNY: Hi!"
+	text "Sunny: Hi!"
 
-	para "I'm SUNNY of Sun-"
+	para "I'm Sunny of Sun-"
 	line "day, meaning it's"
 	cont "Sunday today!"
 	done
 
-SunnyGivesGiftText1:
-	text "I was told to give"
-	line "you this if I saw"
-	cont "you!"
-	done
-
-SunnyGivesGiftText2:
+SunnyGivesGiftText:
 	text "I was told to give"
 	line "you this if I saw"
 	cont "you!"
 	done
 
 SunnyGaveGiftText:
-	text "SUNNY: That thing…"
+	text "Sunny: That thing…"
 
 	para "Um…"
 
-	para "… What was it now…"
+	para "…What was it now…"
 
 	para "…"
 
 	para "Oh! I remember"
 	line "now!"
 
-	para "A #MON that"
-	line "knows electric"
+	para "A #mon that"
+	line "knows Electric"
 
 	para "moves should hold"
 	line "it."
 
-	para "My sis MONICA said"
+	para "My sis Monica said"
 	line "it powers up"
-	cont "electric moves!"
+	cont "Electric moves!"
 	done
 
 SunnySundayText:
-	text "SUNNY: My sisters"
+	text "Sunny: My sisters"
 	line "and brothers are"
-	cont "MONICA, TUSCANY,"
-	cont "WESLEY, ARTHUR,"
-	cont "FRIEDA and SANTOS."
+	cont "Monica, Tuscany,"
+	cont "Wesley, Arthur,"
+	cont "Frieda and Santos."
 
 	para "They're all older"
 	line "than me!"
 	done
 
 SunnyNotSundayText:
-	text "SUNNY: Isn't today"
+	text "Sunny: Isn't today"
 	line "Sunday?"
 	cont "Um… I forgot!"
 	done
 
-Route37SignText:
-	text "ROUTE 37"
+BeautyCallieSeenText:
+	text "Oh, you're a cute"
+	line "little trainer!"
+
+	para "Why don't you"
+	line "battle me?"
 	done
 
-Route37_MapEvents:
-	db 0, 0 ; filler
+BeautyCallieBeatenText:
+	text "You're good…"
+	done
 
-	def_warp_events
+BeautyCassandraSeenText:
+	text "Hey hey there,"
+	line "you young trainer!"
 
-	def_coord_events
+	para "Won't you battle"
+	line "with me?"
+	done
 
-	def_bg_events
-	bg_event  5,  3, BGEVENT_READ, Route37Sign
-	bg_event  4,  2, BGEVENT_ITEM, Route37HiddenEther
+BeautyCassandraBeatenText:
+	text "Wow, you're strong…"
+	done
 
-	def_object_events
-	object_event  6, 12, SPRITE_WEIRD_TREE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 1, TrainerTwinsAnnandanne1, -1
-	object_event  7, 12, SPRITE_WEIRD_TREE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 1, TrainerTwinsAnnandanne2, -1
-	object_event  6,  6, SPRITE_YOUNGSTER, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerPsychicGreg, -1
-	object_event 13,  5, SPRITE_FRUIT_TREE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, Route37FruitTree1, -1
-	object_event 16,  8, SPRITE_BUG_CATCHER, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, SunnyScript, EVENT_ROUTE_37_SUNNY_OF_SUNDAY
-	object_event 16,  5, SPRITE_FRUIT_TREE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, Route37FruitTree2, -1
-	object_event 15,  7, SPRITE_FRUIT_TREE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, Route37FruitTree3, -1
+Route37SignText:
+	text "Route 37"
+	done

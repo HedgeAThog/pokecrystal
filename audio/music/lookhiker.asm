@@ -17,7 +17,7 @@ Music_LookHiker_Ch1:
 	note F#, 2
 	note F_, 2
 	note F#, 8
-.mainloop:
+Music_LookHiker_branch_f7433:
 	note D_, 2
 	note D#, 2
 	note E_, 2
@@ -30,7 +30,7 @@ Music_LookHiker_Ch1:
 	rest 2
 	note F#, 2
 	rest 6
-	sound_loop 0, .mainloop
+	sound_jump Music_LookHiker_branch_f7433
 
 Music_LookHiker_Ch2:
 	duty_cycle 0
@@ -49,7 +49,7 @@ Music_LookHiker_Ch2:
 	note F#, 1
 	note D_, 1
 	volume_envelope 10, 1
-.mainloop:
+Music_LookHiker_branch_f7457:
 	octave 1
 	note B_, 1
 	note B_, 2
@@ -66,7 +66,7 @@ Music_LookHiker_Ch2:
 	note D_, 1
 	note F#, 1
 	note D_, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_LookHiker_branch_f7457
 
 Music_LookHiker_Ch3:
 	vibrato 18, 2, 4
@@ -76,21 +76,21 @@ Music_LookHiker_Ch3:
 	note B_, 2
 	note A#, 2
 	note B_, 8
-.mainloop:
+Music_LookHiker_branch_f7477:
 	octave 5
 	note D#, 2
 	note D_, 2
 	note C#, 2
 	note C_, 2
-	sound_call .sub1
+	sound_call Music_LookHiker_branch_f748a
 	note G_, 2
 	note G#, 2
 	note A_, 2
 	note A#, 2
-	sound_call .sub1
-	sound_loop 0, .mainloop
+	sound_call Music_LookHiker_branch_f748a
+	sound_jump Music_LookHiker_branch_f7477
 
-.sub1:
+Music_LookHiker_branch_f748a:
 	octave 4
 	note B_, 2
 	rest 4
@@ -107,9 +107,9 @@ Music_LookHiker_Ch4:
 	drum_speed 12
 	drum_note 6, 4
 	rest 16
-.mainloop:
+Music_LookHiker_branch_f749a:
 	drum_note 4, 2
 	drum_note 8, 2
 	drum_note 3, 2
 	drum_note 8, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_LookHiker_branch_f749a

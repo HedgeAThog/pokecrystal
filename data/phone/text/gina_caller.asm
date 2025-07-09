@@ -1,5 +1,5 @@
 GinaGettingInSyncWithMonText:
-	text "My @"
+	text "My "
 	text_ram wStringBuffer4
 	text " and"
 	line "I are getting more"
@@ -10,7 +10,7 @@ GinaGettingInSyncWithMonText:
 
 GinaDefeatedMonText:
 	text "We battled a wild"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text " and"
 
@@ -25,7 +25,7 @@ GinaLostAMonText:
 	text "But, you know?"
 
 	para "I still haven't"
-	line "caught @"
+	line "caught "
 	text_ram wStringBuffer4
 	text "."
 
@@ -39,7 +39,7 @@ GinaBattleRematchText:
 	cont "again sometime?"
 
 	para "I'll be waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 
@@ -55,11 +55,11 @@ GinaHangUpText:
 
 GinaRocketTakeoverRumorText:
 	text "Have you heard"
-	line "about TEAM ROCKET?"
+	line "about Team Rocket?"
 
 	para "They've taken over"
-	line "the RADIO TOWER in"
-	cont "GOLDENROD."
+	line "the Radio Tower in"
+	cont "Goldenrod."
 
 	para "Are the people"
 	line "inside safe?"
@@ -75,7 +75,7 @@ GinaFoundItemText:
 	para "You will come for"
 	line "it, won't you?"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text " is"
 	line "where I am."
@@ -93,14 +93,14 @@ GinaHaventFoundAnythingYetText:
 	done
 
 GinaReminderText:
-	text "Oh, <PLAY_G>!"
+	text "Oh, <PLAYER>!"
 	line "How soon can I"
 
 	para "expect to see you"
 	line "for our battle?"
 
 	para "Don't forget,"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done
@@ -113,7 +113,7 @@ GinaComePickUpText:
 	line "present!"
 
 	para "Hurry over to"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done

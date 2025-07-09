@@ -1,6 +1,6 @@
 BeverlyAnswerPhoneText:
 	text "Hello, this is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 
@@ -10,7 +10,7 @@ BeverlyAnswerPhoneText:
 
 BeverlyAnswerPhoneDayText:
 	text "Hello, this is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 
@@ -20,7 +20,7 @@ BeverlyAnswerPhoneDayText:
 
 BeverlyAnswerPhoneNiteText:
 	text "Hello, this is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 
@@ -32,7 +32,7 @@ BeverlyGreetText:
 	text "Hello, <PLAYER>."
 	line "Good morning."
 
-	para "This is @"
+	para "This is "
 	text_ram wStringBuffer3
 	text "."
 	line "Were you asleep?"
@@ -40,7 +40,7 @@ BeverlyGreetText:
 
 BeverlyGreetDayText:
 	text "Hi, <PLAYER>."
-	line "This is @"
+	line "This is "
 	text_ram wStringBuffer3
 	text "."
 
@@ -49,7 +49,7 @@ BeverlyGreetDayText:
 
 BeverlyGreetNiteText:
 	text "Hi, <PLAYER>."
-	line "This is @"
+	line "This is "
 	text_ram wStringBuffer3
 	text "."
 
@@ -58,9 +58,9 @@ BeverlyGreetNiteText:
 
 BeverlyGenericText:
 	text "Keeping your"
-	line "#MON happy?"
+	line "#mon happy?"
 
-	para "My @"
+	para "My "
 	text_ram wStringBuffer4
 	text " is"
 	line "healthy. It eats a"

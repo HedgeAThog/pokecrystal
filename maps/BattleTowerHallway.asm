@@ -1,82 +1,8 @@
-	object_const_def
-	const BATTLETOWERHALLWAY_RECEPTIONIST
-
-BattleTowerHallway_MapScripts:
+BattleTowerHallway_MapScriptHeader:
 	def_scene_scripts
-	scene_script BattleTowerHallwayEnterScene, SCENE_BATTLETOWERHALLWAY_ENTER
-	scene_script BattleTowerHallwayNoopScene,  SCENE_BATTLETOWERHALLWAY_NOOP
+	scene_script BattleTowerHallwayFollowReceptionist
 
 	def_callbacks
-
-BattleTowerHallwayEnterScene:
-	sdefer BattleTowerHallwayChooseBattleRoomScript
-	setscene SCENE_BATTLETOWERHALLWAY_NOOP
-	; fallthrough
-BattleTowerHallwayNoopScene:
-	end
-
-BattleTowerHallwayChooseBattleRoomScript:
-	follow BATTLETOWERHALLWAY_RECEPTIONIST, PLAYER
-	callasm .asm_load_battle_room
-	sjump .WalkToChosenBattleRoom
-
-.asm_load_battle_room
-	ldh a, [rWBK]
-	push af
-
-	ld a, BANK(wBTChoiceOfLvlGroup)
-	ldh [rWBK], a
-	ld a, [wBTChoiceOfLvlGroup]
-	ld [wScriptVar], a
-
-	pop af
-	ldh [rWBK], a
-	ret
-
-; enter different rooms for different levels to battle against
-; at least it should look like that
-; because all warps lead to the same room
-.WalkToChosenBattleRoom:
-	ifequal 3, .L30L40
-	ifequal 4, .L30L40
-	ifequal 5, .L50L60
-	ifequal 6, .L50L60
-	ifequal 7, .L70L80
-	ifequal 8, .L70L80
-	ifequal 9, .L90L100
-	ifequal 10, .L90L100
-	applymovement BATTLETOWERHALLWAY_RECEPTIONIST, MovementData_BattleTowerHallwayWalkTo1020Room
-	sjump .EnterBattleRoom
-
-.L30L40:
-	applymovement BATTLETOWERHALLWAY_RECEPTIONIST, MovementData_BattleTowerHallwayWalkTo3040Room
-	sjump .EnterBattleRoom
-
-.L50L60:
-	applymovement BATTLETOWERHALLWAY_RECEPTIONIST, MovementData_BattleTowerHallwayWalkTo5060Room
-	sjump .EnterBattleRoom
-
-.L70L80:
-	applymovement BATTLETOWERHALLWAY_RECEPTIONIST, MovementData_BattleTowerHallwayWalkTo7080Room
-	sjump .EnterBattleRoom
-
-.L90L100:
-	applymovement BATTLETOWERHALLWAY_RECEPTIONIST, MovementData_BattleTowerHallwayWalkTo90100Room
-	sjump .EnterBattleRoom
-
-.EnterBattleRoom:
-	faceobject PLAYER, BATTLETOWERHALLWAY_RECEPTIONIST
-	opentext
-	writetext Text_PleaseStepThisWay
-	waitbutton
-	closetext
-	stopfollow
-	applymovement PLAYER, MovementData_BattleTowerHallwayPlayerEntersBattleRoom
-	warpcheck
-	end
-
-BattleTowerHallway_MapEvents:
-	db 0, 0 ; filler
 
 	def_warp_events
 	warp_event 11,  1, BATTLE_TOWER_ELEVATOR, 1
@@ -91,4 +17,80 @@ BattleTowerHallway_MapEvents:
 	def_bg_events
 
 	def_object_events
-	object_event 11,  2, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, BattleTowerHallway_MapEvents, -1
+	object_event 11,  2, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, ObjectEvent, -1
+
+	object_const_def
+	const BATTLETOWERHALLWAY_RECEPTIONIST
+
+BattleTowerHallwayFollowReceptionist:
+	sdefer .ChooseBattleRoom
+	end
+
+.ChooseBattleRoom:
+	follow BATTLETOWERHALLWAY_RECEPTIONIST, PLAYER
+	scall .PickBattleRoom
+	ifequalfwd 0, .Room1
+	ifequalfwd 1, .Room2
+	ifequalfwd 2, .Room3
+	ifequalfwd 3, .Room4
+	applymovement BATTLETOWERHALLWAY_RECEPTIONIST, MovementData_BattleTowerHallwayWalkTo1020Room
+	sjumpfwd .EnterBattleRoom
+
+.Room1:
+	applymovement BATTLETOWERHALLWAY_RECEPTIONIST, MovementData_BattleTowerHallwayWalkTo3040Room
+	sjumpfwd .EnterBattleRoom
+
+.Room2:
+	applymovement BATTLETOWERHALLWAY_RECEPTIONIST, MovementData_BattleTowerHallwayWalkTo5060Room
+	sjumpfwd .EnterBattleRoom
+
+.Room3:
+	applymovement BATTLETOWERHALLWAY_RECEPTIONIST, MovementData_BattleTowerHallwayWalkTo7080Room
+	sjumpfwd .EnterBattleRoom
+
+.Room4:
+	applymovement BATTLETOWERHALLWAY_RECEPTIONIST, MovementData_BattleTowerHallwayWalkTo90100Room
+	; fallthrough
+
+.EnterBattleRoom:
+	stopfollow
+	faceobject PLAYER, BATTLETOWERHALLWAY_RECEPTIONIST
+	showtext .PleaseStepThisWayText
+	applyonemovement PLAYER, step_up
+	warpcheck
+	end
+
+.PickBattleRoom:
+	; TODO: base this on winstreak instead since level group is gone
+	random 5
+	end
+
+.PleaseStepThisWayText:
+	text "Please step this"
+	line "way."
+	done
+
+MovementData_BattleTowerHallwayWalkTo1020Room:
+	step_right
+	step_right
+MovementData_BattleTowerHallwayWalkTo3040Room:
+	step_right
+	step_right
+	step_up
+	step_right
+	turn_head_left
+	step_end
+
+MovementData_BattleTowerHallwayWalkTo90100Room:
+	step_left
+	step_left
+MovementData_BattleTowerHallwayWalkTo7080Room:
+	step_left
+	step_left
+MovementData_BattleTowerHallwayWalkTo5060Room:
+	step_left
+	step_left
+	step_up
+	step_left
+	turn_head_right
+	step_end

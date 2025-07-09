@@ -2,10 +2,10 @@ AnthonyMonAteSomeBerriesText:
 	text "The other day, I"
 	line "was watching my"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text " eat"
-	line "some BERRIES."
+	line "some Berries."
 
 	para "It looked like it"
 	line "was enjoying its"
@@ -24,9 +24,8 @@ AnthonyDefeatedMonText:
 	text "Lately, I've been"
 	line "running across"
 
-	para "wild @"
+	para "wild "
 	text_ram wStringBuffer4
-	text_start
 	line "quite often."
 
 	para "They're easily"
@@ -37,14 +36,14 @@ AnthonyLostAMonText:
 	text "Oh yeah, I was"
 	line "battling this"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text " the"
 	line "other day…"
 
 	para "It took off when I"
 	line "got distracted by"
-	cont "a passing BEAUTY."
+	cont "a passing Beauty."
 
 	para "Learn from my"
 	line "mistake--always"
@@ -57,7 +56,7 @@ AnthonyBattleRematchText:
 	text "Come on--let's"
 	line "battle right now!"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text " is"
 	line "where I am."
@@ -76,31 +75,30 @@ AnthonySwarmText:
 	line "mind-blowing!"
 
 	para "I took a hike in"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
-	text_start
 	cont "yesterday, see?"
 
 	para "Well, there were"
-	line "tons of @"
+	line "tons of "
 	text_ram wStringBuffer4
-	text_start
+
 	para "around! You have"
 	line "to see it!"
 
 	para "I get this feeling"
-	line "that @"
+	line "that "
 	text_ram wStringBuffer4
-	text_start
+
 	para "may be timid."
 	line "I didn't see any"
 
 	para "where there are"
-	line "strong #MON."
+	line "strong #mon."
 	done
 
 AnthonyWasntPayingAttentionText:
-	text "Rare #MON?"
+	text "Rare #mon?"
 
 	para "Hey, sorry! I was"
 	line "too focused on my"
@@ -116,7 +114,7 @@ AnthonyReminderText:
 	para "our battle, have"
 	line "you?"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text "!"
 	line "I'm waiting!"
@@ -124,16 +122,16 @@ AnthonyReminderText:
 
 AnthonyHurryText:
 	text "Hello? What? Where"
-	line "is DUNSPARCE?"
+	line "is Dunsparce?"
 
-	para "DARK CAVE! Hurry!"
+	para "Dark Cave! Hurry!"
 
 	para "I know I've said"
 	line "it before, but"
 
-	para "DUNSPARCE don't"
+	para "Dunsparce don't"
 	line "appear when there"
 
-	para "are strong #MON"
+	para "are strong #mon"
 	line "around."
 	done

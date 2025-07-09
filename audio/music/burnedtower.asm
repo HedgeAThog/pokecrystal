@@ -27,7 +27,7 @@ Music_BurnedTower_Ch1:
 	note D_, 2
 	volume_envelope 8, 0
 	note C#, 6
-.loop1:
+Music_BurnedTower_branch_f6ac8:
 	volume_envelope 9, 1
 	octave 2
 	note A_, 4
@@ -35,9 +35,9 @@ Music_BurnedTower_Ch1:
 	note A_, 2
 	volume_envelope 8, 0
 	note A#, 6
-	sound_loop 2, .loop1
+	sound_loop 2, Music_BurnedTower_branch_f6ac8
 	tempo 150
-.mainloop:
+Music_BurnedTower_branch_f6ad8:
 	volume_envelope 11, 1
 	octave 2
 	note A_, 4
@@ -87,7 +87,7 @@ Music_BurnedTower_Ch1:
 	note E_, 2
 	volume_envelope 10, 0
 	note D#, 6
-.loop2:
+Music_BurnedTower_branch_f6b17:
 	volume_envelope 11, 1
 	octave 2
 	note B_, 4
@@ -96,18 +96,18 @@ Music_BurnedTower_Ch1:
 	volume_envelope 10, 0
 	octave 3
 	note C_, 6
-	sound_loop 2, .loop2
-	sound_loop 0, .mainloop
+	sound_loop 2, Music_BurnedTower_branch_f6b17
+	sound_jump Music_BurnedTower_branch_f6ad8
 
 Music_BurnedTower_Ch2:
 	duty_cycle 2
 	vibrato 32, 8, 2
 	pitch_offset 2
 	note_type 12, 7, 0
-	sound_call .sub1
+	sound_call Music_BurnedTower_branch_f6b8e
 	volume_envelope 12, 5
-.mainloop:
-	sound_call .sub1
+Music_BurnedTower_branch_f6b39:
+	sound_call Music_BurnedTower_branch_f6b8e
 	volume_envelope 12, 1
 	duty_cycle 3
 	rest 2
@@ -168,9 +168,9 @@ Music_BurnedTower_Ch2:
 	note E_, 4
 	volume_envelope 11, 7
 	note F#, 16
-	sound_loop 0, .mainloop
+	sound_jump Music_BurnedTower_branch_f6b39
 
-.sub1:
+Music_BurnedTower_branch_f6b8e:
 	octave 3
 	note E_, 4
 	note D_, 2
@@ -201,8 +201,7 @@ Music_BurnedTower_Ch3:
 	rest 12
 	octave 3
 	note D#, 4
-.mainloop:
-.loop1:
+Music_BurnedTower_branch_f6bad:
 	octave 2
 	note A_, 2
 	octave 3
@@ -221,8 +220,8 @@ Music_BurnedTower_Ch3:
 	rest 2
 	note E_, 2
 	note D#, 4
-	sound_loop 4, .loop1
-.loop2:
+	sound_loop 4, Music_BurnedTower_branch_f6bad
+Music_BurnedTower_branch_f6bc3:
 	octave 2
 	note B_, 2
 	octave 3
@@ -241,21 +240,21 @@ Music_BurnedTower_Ch3:
 	rest 2
 	note F#, 2
 	note F_, 4
-	sound_loop 2, .loop2
-	sound_loop 0, .mainloop
+	sound_loop 2, Music_BurnedTower_branch_f6bc3
+	sound_jump Music_BurnedTower_branch_f6bad
 
 Music_BurnedTower_Ch4:
 	toggle_noise 0
 	drum_speed 12
-.loop1:
+Music_BurnedTower_branch_f6be1:
 	rest 16
-	sound_loop 4, .loop1
+	sound_loop 4, Music_BurnedTower_branch_f6be1
 	rest 2
-.mainloop:
+Music_BurnedTower_branch_f6be7:
 	stereo_panning TRUE, FALSE
 	drum_note 8, 2
 	drum_note 9, 2
 	drum_note 8, 4
 	drum_note 9, 2
 	drum_note 8, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_BurnedTower_branch_f6be7

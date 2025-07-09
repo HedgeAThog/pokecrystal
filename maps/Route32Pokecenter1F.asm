@@ -1,49 +1,61 @@
-	object_const_def
-	const ROUTE32POKECENTER1F_NURSE
-	const ROUTE32POKECENTER1F_FISHING_GURU
-	const ROUTE32POKECENTER1F_COOLTRAINER_F
-
-Route32Pokecenter1F_MapScripts:
+Route32PokeCenter1F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-Route32Pokecenter1FNurseScript:
-	jumpstd PokecenterNurseScript
+	def_warp_events
+	warp_event  5,  7, ROUTE_32, 1
+	warp_event  6,  7, ROUTE_32, 1
+	warp_event  0,  7, POKECENTER_2F, 1
+
+	def_coord_events
+
+	def_bg_events
+	bg_event 10,  1, BGEVENT_READ, PokemonJournalKurtScript
+
+	def_object_events
+	pc_nurse_event  5, 1
+	object_event  3,  4, SPRITE_FISHING_GURU, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, Route32Pokecenter1FFishingGuruScript, -1
+	object_event  8,  2, SPRITE_ACE_TRAINER_F, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, Route32Pokecenter1FCooltrainerFText, -1
+	object_event  0,  5, SPRITE_HIKER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, PAL_NPC_PURPLE, OBJECTTYPE_SCRIPT, 0, Route32PokeCenter1FPokefanMScript, -1
+
+PokemonJournalKurtScript:
+	setflag ENGINE_READ_KURT_JOURNAL
+	jumpthistext
+
+	text "#mon Journal"
+
+	para "Special Feature:"
+	line "Craftsman Kurt!"
+
+	para "Kurt does not let"
+	line "anyone near while"
+
+	para "he is making #"
+	line "Balls except his"
+
+	para "granddaughter"
+	line "Maizie."
+	done
 
 Route32Pokecenter1FFishingGuruScript:
+	checkevent EVENT_GOT_OLD_ROD
+	iftrue_jumptextfaceplayer .DoneText
 	faceplayer
 	opentext
-	checkevent EVENT_GOT_OLD_ROD
-	iftrue .GotOldRod
-	writetext Route32Pokecenter1FFishingGuruText_Question
+	writetext .IntroText
 	yesorno
-	iffalse .Refused
-	writetext Route32Pokecenter1FFishingGuruText_Yes
+	iffalse_jumpopenedtext .NoText
+	writetext .YesText
 	promptbutton
-	verbosegiveitem OLD_ROD
-	writetext Route32Pokecenter1FFishingGuruText_GiveOldRod
+	verbosegivekeyitem OLD_ROD
+	writetext .AfterText
 	waitbutton
 	closetext
 	setevent EVENT_GOT_OLD_ROD
 	end
 
-.Refused:
-	writetext Route32Pokecenter1FFishingGuruText_No
-	waitbutton
-	closetext
-	end
-
-.GotOldRod:
-	writetext Route32Pokecenter1FFishingGuruText_After
-	waitbutton
-	closetext
-	end
-
-Route32Pokecenter1FCooltrainerFScript:
-	jumptextfaceplayer Route32Pokecenter1FCooltrainerFText
-
-Route32Pokecenter1FFishingGuruText_Question:
+.IntroText:
 	text "This is a great"
 	line "fishing spot."
 
@@ -52,10 +64,10 @@ Route32Pokecenter1FFishingGuruText_Question:
 	cont "about you?"
 
 	para "Would you like one"
-	line "of my RODS?"
+	line "of my Rods?"
 	done
 
-Route32Pokecenter1FFishingGuruText_Yes:
+.YesText:
 	text "Heh, that's good"
 	line "to hear."
 
@@ -63,48 +75,96 @@ Route32Pokecenter1FFishingGuruText_Yes:
 	line "angler too!"
 	done
 
-Route32Pokecenter1FFishingGuruText_GiveOldRod:
+.AfterText:
 	text "Fishing is great!"
 
 	para "If there's water,"
 	line "be it the sea or a"
 
 	para "stream, try out"
-	line "your ROD."
+	line "your Rod."
 	done
 
-Route32Pokecenter1FFishingGuruText_No:
+.NoText:
 	text "Oh. That's rather"
 	line "disappointing…"
 	done
 
-Route32Pokecenter1FFishingGuruText_After:
+.DoneText:
 	text "Yo, kid. How are"
 	line "they biting?"
 	done
 
-Route32Pokecenter1FCooltrainerFText:
-	text "What should I make"
-	line "my #MON hold?"
+Route32PokeCenter1FPokefanMScript:
+	checkevent EVENT_GOT_LURE_BALL_FROM_FRENCHMAN
+	iftrue_jumptextfaceplayer .Text5
+	faceplayer
+	opentext
+	writetext .Text1
+	yesorno
+	iftruefwd .Yes
+	writetext .Text2
+	sjumpfwd .Continue
+.Yes:
+	writetext .Text3
+.Continue
+	promptbutton
+	verbosegiveitem LURE_BALL
+	iffalsefwd .NoRoom
+	setevent EVENT_GOT_LURE_BALL_FROM_FRENCHMAN
+	jumpthisopenedtext
 
-	para "Maybe an item that"
-	line "increases ATTACK"
-	cont "power…"
+	text "This Ball easily"
+	line "catches #mon"
+	cont "hooked on a Rod!"
+
+	para "Kurt of Azalea"
+	line "Town made it from"
+	cont "an Apricorn."
+
+	para "Apricorns,"
+	line "hourrah!"
 	done
 
-Route32Pokecenter1F_MapEvents:
-	db 0, 0 ; filler
+.NoRoom
+	endtext
 
-	def_warp_events
-	warp_event  3,  7, ROUTE_32, 1
-	warp_event  4,  7, ROUTE_32, 1
-	warp_event  0,  7, POKECENTER_2F, 1
+.Text1:
+	text "Bonjour. How are"
+	line "you? Do you know"
+	cont "about Apricorns?"
+	done
 
-	def_coord_events
+.Text2:
+	text "Non? What a waste!"
+	line "I will show you"
 
-	def_bg_events
+	para "how great Apri-"
+	line "corns are!"
+	done
 
-	def_object_events
-	object_event  3,  1, SPRITE_NURSE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, Route32Pokecenter1FNurseScript, -1
-	object_event  1,  4, SPRITE_FISHING_GURU, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, Route32Pokecenter1FFishingGuruScript, -1
-	object_event  6,  2, SPRITE_COOLTRAINER_F, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, Route32Pokecenter1FCooltrainerFScript, -1
+.Text3:
+	text "Youpi! Way to go!"
+	line "I feel so great,"
+
+	para "I want to give you"
+	line "this!"
+	done
+
+.Text5:
+	text "Kurt is the hero"
+	line "of every Apricorn"
+	cont "collector."
+
+	para "Apricorns,"
+	line "hourrah!"
+	done
+
+Route32Pokecenter1FCooltrainerFText:
+	text "What should I make"
+	line "my #mon hold?"
+
+	para "Maybe an item that"
+	line "increases Attack"
+	cont "power…"
+	done

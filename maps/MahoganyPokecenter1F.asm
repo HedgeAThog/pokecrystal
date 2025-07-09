@@ -1,38 +1,60 @@
-	object_const_def
-	const MAHOGANYPOKECENTER1F_NURSE
-	const MAHOGANYPOKECENTER1F_POKEFAN_M
-	const MAHOGANYPOKECENTER1F_YOUNGSTER
-	const MAHOGANYPOKECENTER1F_COOLTRAINER_F
-
-MahoganyPokecenter1F_MapScripts:
+MahoganyPokeCenter1F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-MahoganyPokecenter1FNurseScript:
-	jumpstd PokecenterNurseScript
+	def_warp_events
+	warp_event  5,  7, MAHOGANY_TOWN, 4
+	warp_event  6,  7, MAHOGANY_TOWN, 4
+	warp_event  0,  7, POKECENTER_2F, 1
 
-MahoganyPokecenter1FPokefanMScript:
-	jumptextfaceplayer MahoganyPokecenter1FPokefanMText
+	def_coord_events
 
-MahoganyPokecenter1FYoungsterScript:
-	jumptextfaceplayer MahoganyPokecenter1FYoungsterText
+	def_bg_events
+	bg_event 10,  1, BGEVENT_READ, PokemonJournalPryceScript
 
-MahoganyPokecenter1FCooltrainerFScript:
-	jumptextfaceplayer MahoganyPokecenter1FCooltrainerFText
+	def_object_events
+	pc_nurse_event  5, 1
+	object_event  9,  4, SPRITE_POKEFAN_M, SPRITEMOVEDATA_WANDER, 1, 1, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, MahoganyPokeCenter1FPokefanmText, -1
+	object_event  1,  3, SPRITE_CAMPER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, MahoganyPokeCenter1FYoungsterText, -1
+	object_event  2,  3, SPRITE_ACE_TRAINER_F, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, MahoganyPokeCenter1FCooltrainerfText, -1
 
-MahoganyPokecenter1FPokefanMText:
-	text "What's this? TEAM"
-	line "ROCKET has come"
+PokemonJournalPryceScript:
+	setflag ENGINE_READ_PRYCE_JOURNAL
+	jumpthistext
+
+	text "#mon Journal"
+
+	para "Special Feature:"
+	line "Leader Pryce!"
+
+	para "Pryce's middle name"
+	line "is Willow."
+
+	para "His fighting style"
+	line "is said to be as"
+
+	para "flexible as a"
+	line "willow tree in"
+	cont "winter, which has"
+
+	para "earned him the"
+	line "nickname “the"
+	cont "winter trainer”."
+	done
+
+MahoganyPokeCenter1FPokefanmText:
+	text "What's this? Team"
+	line "Rocket has come"
 	cont "back?"
 
 	para "I saw some men in"
-	line "black at LAKE OF"
-	cont "RAGE…"
+	line "black at Lake of"
+	cont "Rage…"
 	done
 
-MahoganyPokecenter1FYoungsterText:
-	text "I stop my #MON"
+MahoganyPokeCenter1FYoungsterText:
+	text "I stop my #mon"
 	line "from evolving too"
 	cont "early."
 
@@ -42,29 +64,11 @@ MahoganyPokecenter1FYoungsterText:
 	cont "evolve."
 	done
 
-MahoganyPokecenter1FCooltrainerFText:
-	text "#MON do become"
+MahoganyPokeCenter1FCooltrainerfText:
+	text "#mon do become"
 	line "stronger when they"
 
 	para "evolve, but they"
 	line "also learn moves"
 	cont "more slowly."
 	done
-
-MahoganyPokecenter1F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  3,  7, MAHOGANY_TOWN, 4
-	warp_event  4,  7, MAHOGANY_TOWN, 4
-	warp_event  0,  7, POKECENTER_2F, 1
-
-	def_coord_events
-
-	def_bg_events
-
-	def_object_events
-	object_event  3,  1, SPRITE_NURSE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, MahoganyPokecenter1FNurseScript, -1
-	object_event  7,  2, SPRITE_POKEFAN_M, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, MahoganyPokecenter1FPokefanMScript, -1
-	object_event  1,  3, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, MahoganyPokecenter1FYoungsterScript, -1
-	object_event  2,  3, SPRITE_COOLTRAINER_F, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, MahoganyPokecenter1FCooltrainerFScript, -1

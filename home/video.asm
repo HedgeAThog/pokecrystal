@@ -1,5 +1,34 @@
 ; Functions dealing with VRAM.
 
+PushOAM::
+	ldh a, [hOAMUpdate]
+	and a
+	ret nz
+ForcePushOAM:
+	lb bc, 40 + 1, LOW(rDMA)
+	ld a, HIGH(wShadowOAM)
+	jmp hPushOAM
+
+ContinueGDMACopy:
+	push hl
+	ld hl, rVDMA_DEST_HIGH
+	jr _GDMACopy
+GDMACopy:
+; Copy a+1 tiles from de to bc. Preserves all registers. Assumes GDMA is valid.
+	push hl
+	ld hl, rVDMA_SRC_HIGH
+	ld [hl], d ; no-optimize *hl++|*hl-- = b|c|d|e
+	inc hl
+	ld [hl], e ; no-optimize *hl++|*hl-- = b|c|d|e
+	inc hl
+_GDMACopy:
+	ld [hl], b ; no-optimize *hl++|*hl-- = b|c|d|e
+	inc hl
+	ld [hl], c
+	ldh [rVDMA_LEN], a
+	pop hl
+	ret
+
 DMATransfer::
 ; Return carry if the transfer is completed.
 
@@ -19,7 +48,7 @@ DMATransfer::
 
 UpdateBGMapBuffer::
 ; Copy [hBGMapTileCount] 16x8 tiles from wBGMapBuffer
-; to bg map addresses in wBGMapBufferPointers.
+; to bg map addresses in wBGMapBufferPtrs.
 
 ; [hBGMapTileCount] must be even since this is done in pairs.
 
@@ -31,46 +60,49 @@ UpdateBGMapBuffer::
 
 	ldh a, [rVBK]
 	push af
-
-; Relocate the stack pointer to wBGMapBufferPointers
 	ld [hSPBuffer], sp
-	ld hl, wBGMapBufferPointers
+
+	ld hl, wBGMapBufferPtrs
 	ld sp, hl
 
 ; We can now pop the addresses of affected spots on the BG Map
 
-	ld hl, wBGMapPalBuffer
+	ld bc, wBGMapPalBuffer
 	ld de, wBGMapBuffer
+
+; We increment the low byte of a pointer, so ensure these buffers
+; dont cross a 256 byte boundary
+assert HIGH(wBGMapBuffer) == HIGH(wBGMapBufferEnd)
+assert HIGH(wBGMapPalBuffer) == HIGH(wBGMapPalBufferEnd)
 
 .next
 ; Copy a pair of 16x8 blocks (one 16x16 block)
 
 rept 2
 ; Get our BG Map address
-	pop bc
+	pop hl
 
 ; Palettes
 	ld a, 1
 	ldh [rVBK], a
 
-	ld a, [hli]
-	ld [bc], a
+	ld a, [bc]
+	ld [hli], a
 	inc c
-	ld a, [hli]
-	ld [bc], a
-	dec c
+	ld a, [bc]
+	ld [hld], a
+	inc c
 
 ; Tiles
-	ld a, 0
+	xor a
 	ldh [rVBK], a
 
 	ld a, [de]
-	inc de
-	ld [bc], a
-	inc c
+	ld [hli], a
+	inc e
 	ld a, [de]
-	inc de
-	ld [bc], a
+	ld [hl], a
+	inc e
 endr
 
 ; We've done 2 16x8 blocks
@@ -81,11 +113,8 @@ endr
 
 	jr nz, .next
 
-; Restore the stack pointer
-	ldh a, [hSPBuffer]
-	ld l, a
-	ldh a, [hSPBuffer + 1]
-	ld h, a
+	ld sp, hSPBuffer
+	pop hl
 	ld sp, hl
 
 	pop af
@@ -97,151 +126,156 @@ endr
 	ret
 
 WaitTop::
-; Wait until the top third of the BG Map is being updated.
+; Wait until the top half of the BG Map is being updated.
 
 	ldh a, [hBGMapMode]
 	and a
-	ret z
-
-	ldh a, [hBGMapThird]
-	and a
-	jr z, .done
-
+	jr nz, .handleLoop
+	ret
+.loop
 	call DelayFrame
-	jr WaitTop
+.handleLoop
+	ldh a, [hBGMapHalf]
+	and a
+	jr nz, .loop
 
-.done
 	xor a
 	ldh [hBGMapMode], a
 	ret
 
+DEF HALF_HEIGHT EQU SCREEN_HEIGHT / 2
+
 UpdateBGMap::
-; Update the BG Map, in thirds, from wTilemap and wAttrmap.
+; Update the BG Map, in halves, from wTilemap and wAttrmap.
 
 	ldh a, [hBGMapMode]
-	and a ; 0
+	and $7f
 	ret z
 
 ; BG Map 0
 	dec a ; 1
-	jr z, .Tiles
+	jr z, .DoTiles
 	dec a ; 2
-	jr z, .Attr
+	jr z, .DoAttributes
 
 ; BG Map 1
-	dec a ; useless
-
-	ldh a, [hBGMapAddress]
-	ld l, a
-	ldh a, [hBGMapAddress + 1]
-	ld h, a
-	push hl
-
-	xor a ; LOW(vBGMap1)
-	ldh [hBGMapAddress], a
-	ld a, HIGH(vBGMap1)
-	ldh [hBGMapAddress + 1], a
-
-	ldh a, [hBGMapMode]
-	push af
-	cp 3
-	call z, .Tiles
-	pop af
-	cp 4
-	call z, .Attr
-
-	pop hl
-	ld a, l
-	ldh [hBGMapAddress], a
-	ld a, h
-	ldh [hBGMapAddress + 1], a
-	ret
-
-.Attr:
+	ld hl, vBGMap1
+	dec a
+	jr z, .DoBGMap1Tiles
+	dec a
+	jr z, .DoBGMap1Attributes
+; Update from a specific row
+; does not update hBGMapHalf
+	dec a
+	bccoord 0, 0
+	jr z, .DoCustomSourceTiles
+	dec a
+	ret nz
+	bccoord 0, 0, wAttrmap
 	ld a, 1
 	ldh [rVBK], a
-
-	hlcoord 0, 0, wAttrmap
-	call .update
-
-	ld a, 0
+	call .DoCustomSourceTiles
+	xor a
 	ldh [rVBK], a
 	ret
 
-.Tiles:
-	hlcoord 0, 0
+.DoCustomSourceTiles
+	ld [hSPBuffer], sp
+	xor a
+	ld h, a
+	ld d, a
+	ldh a, [hBGMapHalf] ; multiply by 20 to get the tilemap offset
+	ld l, a
+	ld e, a
+	add hl, hl ; hl = hl * 2
+	add hl, hl ; hl = hl * 4
+	add hl, de ; hl = (hl*4) + de
+	add hl, hl ; hl = (5*hl)*2
+	add hl, hl ; hl = (5*hl)*4
+	add hl, bc
+	ld sp, hl
+	ldh a, [hBGMapHalf] ; multiply by 32 to get the bg map offset
+	; assumes [hBGMapHalf] < 16
+	swap a
+	add a
+	ld l, a
+	ld h, 0
+	ldh a, [hBGMapAddress]
+	add l
+	ld l, a
+	ldh a, [hBGMapAddress + 1]
+	adc h
+	ld h, a
+	ldh a, [hTilesPerCycle]
+	jr .startCustomCopy
 
-.update
+.DoAttributes
+	ldh a, [hBGMapAddress + 1]
+	ld h, a
+	ldh a, [hBGMapAddress]
+	ld l, a
+.DoBGMap1Attributes
+	ld a, 1
+	ldh [rVBK], a
+	call .CopyAttributes
+	xor a
+	ldh [rVBK], a
+	ret
+
+.CopyAttributes
 	ld [hSPBuffer], sp
 
-; Which third?
-	ldh a, [hBGMapThird]
+; Which half?
+	ldh a, [hBGMapHalf]
 	and a ; 0
-	jr z, .top
-	dec a ; 1
-	jr z, .middle
-	; 2
-
-DEF THIRD_HEIGHT EQU SCREEN_HEIGHT / 3
-
-; bottom
-	ld de, 2 * THIRD_HEIGHT * SCREEN_WIDTH
+	jr z, .AttributeMapTop
+; bottom row
+	coord sp, 0, 9, wAttrmap
+	ld de, HALF_HEIGHT * TILEMAP_WIDTH
 	add hl, de
-	ld sp, hl
-
-	ldh a, [hBGMapAddress + 1]
-	ld h, a
-	ldh a, [hBGMapAddress]
-	ld l, a
-
-	ld de, 2 * THIRD_HEIGHT * TILEMAP_WIDTH
-	add hl, de
-
-; Next time: top third
+; Next time: top half
 	xor a
-	jr .start
+	jr .startCopy
+.AttributeMapTop
+	coord sp, 0, 0, wAttrmap
+; Next time: bottom half
+	jr .AttributeMapTopContinue
 
-.middle
-	ld de, THIRD_HEIGHT * SCREEN_WIDTH
-	add hl, de
-	ld sp, hl
-
+.DoTiles
 	ldh a, [hBGMapAddress + 1]
 	ld h, a
 	ldh a, [hBGMapAddress]
 	ld l, a
 
-	ld de, THIRD_HEIGHT * TILEMAP_WIDTH
+.DoBGMap1Tiles
+	ld [hSPBuffer], sp
+; Which half?
+	ldh a, [hBGMapHalf]
+	and a ; 0
+	jr z, .TileMapTop
+; bottom row
+	coord sp, 0, 9
+	ld de, HALF_HEIGHT * TILEMAP_WIDTH
 	add hl, de
-
-; Next time: bottom third
-	ld a, 2
-	jr .start
-
-.top
-	ld sp, hl
-
-	ldh a, [hBGMapAddress + 1]
-	ld h, a
-	ldh a, [hBGMapAddress]
-	ld l, a
-
-; Next time: middle third
-	ld a, 1
-
-.start
-; Which third to update next time
-	ldh [hBGMapThird], a
-
-; Rows of tiles in a third
-	ld a, THIRD_HEIGHT
-
+; Next time: top half
+	xor a
+	jr .startCopy
+.TileMapTop
+	coord sp, 0, 0
+; Next time: bottom half
+.AttributeMapTopContinue
+	inc a
+.startCopy
+; Which half to update next time
+	ldh [hBGMapHalf], a
+; Rows of tiles in a half
+	ld a, SCREEN_HEIGHT / 2
+.startCustomCopy
 ; Discrepancy between wTilemap and BGMap
 	ld bc, TILEMAP_WIDTH - (SCREEN_WIDTH - 1)
-
 .row
 ; Copy a row of 20 tiles
-rept SCREEN_WIDTH / 2 - 1
+rept (SCREEN_WIDTH / 2) - 1
 	pop de
 	ld [hl], e
 	inc l
@@ -257,203 +291,175 @@ endr
 	dec a
 	jr nz, .row
 
-	ldh a, [hSPBuffer]
-	ld l, a
-	ldh a, [hSPBuffer + 1]
-	ld h, a
+	ld sp, hSPBuffer
+	pop hl
 	ld sp, hl
 	ret
 
 Serve1bppRequest::
 ; Only call during the first fifth of VBlank
 
-	ld a, [wRequested1bppSize]
+	ldh a, [hRequested1bpp]
 	and a
 	ret z
 
+	ld b, a
 ; Back out if we're too far into VBlank
 	ldh a, [rLY]
-	cp LY_VBLANK
+	cp 144
 	ret c
-	cp LY_VBLANK + 2
+	cp 146
 	ret nc
 
-; Copy [wRequested1bppSize] 1bpp tiles from [wRequested1bppSource] to [wRequested1bppDest]
+	xor a
+	ldh [hRequested1bpp], a
 
+_Serve1bppRequest::
+; Copy [hRequested1bpp] 1bpp tiles from [hRequestedVTileSource] to [hRequestedVTileDest]
 	ld [hSPBuffer], sp
-
-; Source
-	ld hl, wRequested1bppSource
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	ld sp, hl
-
 ; Destination
-	ld hl, wRequested1bppDest
+	ld hl, hRequestedVTileDest
 	ld a, [hli]
-	ld h, [hl]
-	ld l, a
+	ld e, a
+	ld a, [hli]
+	ld d, a
+; Source
+	ld sp, hl
+	pop hl
+	ld sp, hl
+	ld h, d
+	ld l, e
+	ldh a, [hRequestOpaque1bpp]
+	dec a
+	jr z, .nextopaque
 
 ; # tiles to copy
-	ld a, [wRequested1bppSize]
-	ld b, a
-
-	xor a
-	ld [wRequested1bppSize], a
-
 .next
-
-rept 3
+rept 4
 	pop de
-	ld [hl], e
-	inc l
-	ld [hl], e
-	inc l
-	ld [hl], d
-	inc l
-	ld [hl], d
-	inc l
+	ld a, e
+	ld [hli], a
+	ld [hli], a
+	ld a, d
+	ld [hli], a
+	ld [hli], a
 endr
-	pop de
-	ld [hl], e
-	inc l
-	ld [hl], e
-	inc l
-	ld [hl], d
-	inc l
-	ld [hl], d
-
-	inc hl
 	dec b
 	jr nz, .next
+	jmp WriteVTileSourceAndDestinationAndReturn
 
-	ld a, l
-	ld [wRequested1bppDest], a
-	ld a, h
-	ld [wRequested1bppDest + 1], a
+.nextopaque
+rept 4
+	pop de
+	ld a, $ff
+	ld [hli], a
+	ld a, e
+	ld [hli], a
+	ld a, $ff
+	ld [hli], a
+	ld a, d
+	ld [hli], a
+endr
+	dec b
+	jr nz, .nextopaque
+	jr WriteVTileSourceAndDestinationAndReturn
 
-	ld [wRequested1bppSource], sp
-
-	ldh a, [hSPBuffer]
-	ld l, a
-	ldh a, [hSPBuffer + 1]
-	ld h, a
-	ld sp, hl
-	ret
+LYOverrideStackCopy::
+	ldh a, [hLYOverrideStackCopyAmount]
+	and a
+	ret z
+	ld b, a
+	xor a
+	ldh [hLYOverrideStackCopyAmount], a
+	jr _Serve2bppRequest
 
 Serve2bppRequest::
 ; Only call during the first fifth of VBlank
 
-	ld a, [wRequested2bppSize]
+	ldh a, [hRequested2bpp]
 	and a
 	ret z
+
+	ld b, a ; save tile count for later
 
 ; Back out if we're too far into VBlank
 	ldh a, [rLY]
-	cp LY_VBLANK
+	cp 144
 	ret c
-	cp LY_VBLANK + 2
+	cp 146
 	ret nc
-	jr _Serve2bppRequest
-
-Serve2bppRequest_VBlank::
-	ld a, [wRequested2bppSize]
-	and a
-	ret z
-
-_Serve2bppRequest::
-; Copy [wRequested2bppSize] 2bpp tiles from [wRequested2bppSource] to [wRequested2bppDest]
-
-	ld [hSPBuffer], sp
-
-; Source
-	ld hl, wRequested2bppSource
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	ld sp, hl
-
-; Destination
-	ld hl, wRequested2bppDest
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-
-; # tiles to copy
-	ld a, [wRequested2bppSize]
-	ld b, a
 
 	xor a
-	ld [wRequested2bppSize], a
+	ldh [hRequested2bpp], a
+
+_Serve2bppRequest::
+; Copy [hRequested2bpp] 2bpp tiles from [hRequestedVTileSource] to [hRequestedVTileDest]
+
+	ld [hSPBuffer], sp
+; Destination
+	ld hl, hRequestedVTileDest
+	ld a, [hli]
+	ld e, a
+	ld a, [hli]
+	ld d, a
+; Source
+	ld sp, hl
+	pop hl
+	ld sp, hl
+	ld h, d
+	ld l, e
 
 .next
-
-rept 7
+rept 8
 	pop de
-	ld [hl], e
-	inc l
-	ld [hl], d
-	inc l
+	ld a, e
+	ld [hli], a
+	ld a, d
+	ld [hli], a
 endr
-	pop de
-	ld [hl], e
-	inc l
-	ld [hl], d
-
-	inc hl
 	dec b
 	jr nz, .next
 
-	ld a, l
-	ld [wRequested2bppDest], a
-	ld a, h
-	ld [wRequested2bppDest + 1], a
+WriteVTileSourceAndDestinationAndReturn:
+	ld [hRequestedVTileSource], sp
+	ld sp, hl
+	ld [hRequestedVTileDest], sp
 
-	ld [wRequested2bppSource], sp
-
-	ldh a, [hSPBuffer]
-	ld l, a
-	ldh a, [hSPBuffer + 1]
-	ld h, a
+	ld sp, hSPBuffer
+	pop hl
 	ld sp, hl
 	ret
 
 AnimateTileset::
 ; Only call during the first fifth of VBlank
-
 	ldh a, [hMapAnims]
 	and a
 	ret z
 
-; Back out if we're too far into VBlank
-	ldh a, [rLY]
-	cp LY_VBLANK
-	ret c
-	cp LY_VBLANK + 7
-	ret nc
-
-	ldh a, [hROMBank]
-	push af
-	ld a, BANK(_AnimateTileset)
-	rst Bankswitch
+;; Back out if we're too far into VBlank
+;	ldh a, [rLY]
+;	cp 144
+;	ret c
+;	cp 151
+;	ret nc
 
 	ldh a, [rWBK]
 	push af
-	ld a, BANK(wTilesetAnim)
-	ldh [rWBK], a
 
 	ldh a, [rVBK]
 	push af
-	ld a, 0
+	xor a
 	ldh [rVBK], a
+	inc a
+	ldh [rWBK], a
 
-	call _AnimateTileset
+	ld a, BANK(_AnimateTileset)
+	rst Bankswitch
+
+	call _AnimateTileset ; far-ok
 
 	pop af
 	ldh [rVBK], a
 	pop af
 	ldh [rWBK], a
-	pop af
-	rst Bankswitch
 	ret

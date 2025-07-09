@@ -1,40 +1,55 @@
-	object_const_def
-	const MAHOGANYGYM_PRYCE
-	const MAHOGANYGYM_BEAUTY1
-	const MAHOGANYGYM_ROCKER1
-	const MAHOGANYGYM_BEAUTY2
-	const MAHOGANYGYM_ROCKER2
-	const MAHOGANYGYM_ROCKER3
-	const MAHOGANYGYM_GYM_GUIDE
-
-MahoganyGym_MapScripts:
+MahoganyGym_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
+
+	def_warp_events
+	warp_event  4, 17, MAHOGANY_TOWN, 3
+	warp_event  5, 17, MAHOGANY_TOWN, 3
+
+	def_coord_events
+
+	def_bg_events
+	bg_event  3, 15, BGEVENT_READ, MahoganyGymStatue
+	bg_event  6, 15, BGEVENT_READ, MahoganyGymStatue
+
+	def_object_events
+	object_event  5,  3, SPRITE_PRYCE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, MahoganyGymPryceScript, -1
+	object_event  4,  6, SPRITE_SKIER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerSkierRoxanne, -1
+	object_event  0, 17, SPRITE_BOARDER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerBoarderRonald, -1
+	object_event  9, 17, SPRITE_SKIER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerSkierClarissa, -1
+	object_event  5,  9, SPRITE_BOARDER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerBoarderBrad, -1
+	object_event  2,  4, SPRITE_BOARDER, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerBoarderDouglas, -1
+	object_event  7, 15, SPRITE_GYM_GUY, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, MahoganyGymGuyScript, -1
 
 MahoganyGymPryceScript:
 	faceplayer
 	opentext
 	checkevent EVENT_BEAT_PRYCE
-	iftrue .FightDone
+	iftruefwd .FightDone
 	writetext PryceText_Intro
 	waitbutton
 	closetext
 	winlosstext PryceText_Impressed, 0
-	loadtrainer PRYCE, PRYCE1
+	loadtrainer PRYCE, 1
 	startbattle
 	reloadmapafterbattle
 	setevent EVENT_BEAT_PRYCE
 	opentext
-	writetext Text_ReceivedGlacierBadge
-	playsound SFX_GET_BADGE
-	waitsfx
-	setflag ENGINE_GLACIERBADGE
-	readvar VAR_BADGES
-	scall MahoganyGymActivateRockets
+	givebadge GLACIERBADGE, JOHTO_REGION
+	; Begin Team Rocket takeover of Radio Tower
+	setflag ENGINE_ROCKETS_IN_RADIO_TOWER
+	setevent EVENT_GOLDENROD_CITY_CIVILIANS
+	setevent EVENT_RADIO_TOWER_BLACKBELT_BLOCKS_STAIRS
+	clearevent EVENT_GOLDENROD_CITY_ROCKET_SCOUT
+	clearevent EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+	clearevent EVENT_USED_THE_CARD_KEY_IN_THE_RADIO_TOWER
+	specialphonecall SPECIALCALL_WEIRDBROADCAST
+	setevent EVENT_MAHOGANY_TOWN_POKEFAN_M_BLOCKS_EAST
+	setmapscene MAHOGANY_TOWN, $1
 .FightDone:
-	checkevent EVENT_GOT_TM16_ICY_WIND
-	iftrue PryceScript_Defeat
+	checkevent EVENT_GOT_TM67_AVALANCHE
+	iftrue_jumpopenedtext PryceText_CherishYourPokemon
 	setevent EVENT_BEAT_SKIER_ROXANNE
 	setevent EVENT_BEAT_SKIER_CLARISSA
 	setevent EVENT_BEAT_BOARDER_RONALD
@@ -42,117 +57,94 @@ MahoganyGymPryceScript:
 	setevent EVENT_BEAT_BOARDER_DOUGLAS
 	writetext PryceText_GlacierBadgeSpeech
 	promptbutton
-	verbosegiveitem TM_ICY_WIND
-	iffalse MahoganyGym_NoRoomForIcyWind
-	setevent EVENT_GOT_TM16_ICY_WIND
-	writetext PryceText_IcyWindSpeech
-	waitbutton
-	closetext
-	end
+	verbosegivetmhm TM_AVALANCHE
+	setevent EVENT_GOT_TM67_AVALANCHE
+	jumpthisopenedtext
 
-PryceScript_Defeat:
-	writetext PryceText_CherishYourPokemon
-	waitbutton
-MahoganyGym_NoRoomForIcyWind:
-	closetext
-	end
+	text "That TM contains"
+	line "Avalanche."
 
-MahoganyGymActivateRockets:
-	ifequal 7, .RadioTowerRockets
-	ifequal 6, .GoldenrodRockets
-	end
+	para "It deals more"
+	line "damage if the user"
+	cont "was hurt first."
 
-.GoldenrodRockets:
-	jumpstd GoldenrodRocketsScript
+	para "It demonstrates"
+	line "the harshness of"
+	cont "winter."
+	done
 
-.RadioTowerRockets:
-	jumpstd RadioTowerRocketsScript
+GenericTrainerSkierRoxanne:
+	generictrainer SKIER, ROXANNE, EVENT_BEAT_SKIER_ROXANNE, SkierRoxanneSeenText, SkierRoxanneBeatenText
 
-TrainerSkierRoxanne:
-	trainer SKIER, ROXANNE, EVENT_BEAT_SKIER_ROXANNE, SkierRoxanneSeenText, SkierRoxanneBeatenText, 0, .Script
+	text "If you don't skate"
+	line "with precision,"
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SkierRoxanneAfterBattleText
-	waitbutton
-	closetext
-	end
+	para "you won't get far"
+	line "in this Gym."
+	done
 
-TrainerSkierClarissa:
-	trainer SKIER, CLARISSA, EVENT_BEAT_SKIER_CLARISSA, SkierClarissaSeenText, SkierClarissaBeatenText, 0, .Script
+GenericTrainerSkierClarissa:
+	generictrainer SKIER, CLARISSA, EVENT_BEAT_SKIER_CLARISSA, SkierClarissaSeenText, SkierClarissaBeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SkierClarissaAfterBattleText
-	waitbutton
-	closetext
-	end
+	text "I shouldn't have"
+	line "been bragging"
+	cont "about my skiing…"
+	done
 
-TrainerBoarderRonald:
-	trainer BOARDER, RONALD, EVENT_BEAT_BOARDER_RONALD, BoarderRonaldSeenText, BoarderRonaldBeatenText, 0, .Script
+GenericTrainerBoarderRonald:
+	generictrainer BOARDER, RONALD, EVENT_BEAT_BOARDER_RONALD, BoarderRonaldSeenText, BoarderRonaldBeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext BoarderRonaldAfterBattleText
-	waitbutton
-	closetext
-	end
+	text "I think there's a"
+	line "move a #mon"
 
-TrainerBoarderBrad:
-	trainer BOARDER, BRAD, EVENT_BEAT_BOARDER_BRAD, BoarderBradSeenText, BoarderBradBeatenText, 0, .Script
+	para "can use while it's"
+	line "frozen."
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext BoarderBradAfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerBoarderBrad:
+	generictrainer BOARDER, BRAD, EVENT_BEAT_BOARDER_BRAD, BoarderBradSeenText, BoarderBradBeatenText
 
-TrainerBoarderDouglas:
-	trainer BOARDER, DOUGLAS, EVENT_BEAT_BOARDER_DOUGLAS, BoarderDouglasSeenText, BoarderDouglasBeatenText, 0, .Script
+	text "This Gym is great."
+	line "I love boarding"
+	cont "with my #mon!"
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext BoarderDouglasAfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerBoarderDouglas:
+	generictrainer BOARDER, DOUGLAS, EVENT_BEAT_BOARDER_DOUGLAS, BoarderDouglasSeenText, BoarderDouglasBeatenText
 
-MahoganyGymGuideScript:
-	faceplayer
-	opentext
+	text "The secret behind"
+	line "Pryce's power…"
+
+	para "He meditates under"
+	line "a waterfall daily"
+
+	para "to strengthen his"
+	line "mind and body."
+	done
+
+MahoganyGymGuyScript:
 	checkevent EVENT_BEAT_PRYCE
-	iftrue .MahoganyGymGuideWinScript
-	writetext MahoganyGymGuideText
-	waitbutton
-	closetext
-	end
-
-.MahoganyGymGuideWinScript:
-	writetext MahoganyGymGuideWinText
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer MahoganyGymGuyWinText
+	jumptextfaceplayer MahoganyGymGuyText
 
 MahoganyGymStatue:
+	gettrainername PRYCE, 1, STRING_BUFFER_4
 	checkflag ENGINE_GLACIERBADGE
-	iftrue .Beaten
-	jumpstd GymStatue1Script
+	iftruefwd .Beaten
+	jumpstd gymstatue1
 .Beaten:
-	gettrainername STRING_BUFFER_4, PRYCE, PRYCE1
-	jumpstd GymStatue2Script
+	readvar VAR_BADGES
+	ifgreater 14, .LyraToo
+	jumpstd gymstatue2
+.LyraToo
+	jumpstd gymstatue3
 
 PryceText_Intro:
-	text "#MON have many"
+	text "#mon have many"
 	line "experiences in"
 
-	para "their lives, just "
-	line "like we do. "
+	para "their lives, just"
+	line "like we do."
 
 	para "I, too, have seen"
 	line "and suffered much"
@@ -163,7 +155,7 @@ PryceText_Intro:
 	cont "you what I mean."
 
 	para "I have been with"
-	line "#MON since"
+	line "#mon since"
 
 	para "before you were"
 	line "born."
@@ -171,7 +163,7 @@ PryceText_Intro:
 	para "I do not lose"
 	line "easily."
 
-	para "I, PRYCE--the"
+	para "I, Pryce--the"
 	line "winter trainer--"
 
 	para "shall demonstrate"
@@ -189,38 +181,18 @@ PryceText_Impressed:
 	line "life's obstacles."
 
 	para "You are worthy of"
-	line "this BADGE!"
-	done
-
-Text_ReceivedGlacierBadge:
-	text "<PLAYER> received"
-	line "GLACIERBADGE."
+	line "this Badge!"
 	done
 
 PryceText_GlacierBadgeSpeech:
-	text "That BADGE will"
-	line "raise the SPECIAL"
-	cont "stats of #MON."
+	text "That Badge will"
+	line "let your #mon"
 
-	para "It also lets your"
-	line "#MON use WHIRL-"
-	cont "POOL to get across"
-	cont "real whirlpools."
+	para "use Whirlpool to"
+	line "cross whirlpools."
 
 	para "And this… This is"
 	line "a gift from me!"
-	done
-
-PryceText_IcyWindSpeech:
-	text "That TM contains"
-	line "ICY WIND."
-
-	para "It inflicts damage"
-	line "and lowers speed."
-
-	para "It demonstrates"
-	line "the harshness of"
-	cont "winter."
 	done
 
 PryceText_CherishYourPokemon:
@@ -229,7 +201,7 @@ PryceText_CherishYourPokemon:
 	cont "arrives."
 
 	para "You and your #-"
-	line "MON will be to-"
+	line "mon will be to-"
 
 	para "gether for many"
 	line "years to come."
@@ -240,7 +212,7 @@ PryceText_CherishYourPokemon:
 
 BoarderRonaldSeenText:
 	text "I'll freeze your"
-	line "#MON, so you"
+	line "#mon, so you"
 	cont "can't do a thing!"
 	done
 
@@ -249,16 +221,8 @@ BoarderRonaldBeatenText:
 	line "do a thing."
 	done
 
-BoarderRonaldAfterBattleText:
-	text "I think there's a"
-	line "move a #MON"
-
-	para "can use while it's"
-	line "frozen."
-	done
-
 BoarderBradSeenText:
-	text "This GYM has a"
+	text "This Gym has a"
 	line "slippery floor."
 
 	para "It's fun, isn't"
@@ -274,36 +238,19 @@ BoarderBradBeatenText:
 	line "serious we are?"
 	done
 
-BoarderBradAfterBattleText:
-	text "This GYM is great."
-	line "I love boarding"
-	cont "with my #MON!"
-	done
-
 BoarderDouglasSeenText:
-	text "I know PRYCE's"
+	text "I know Pryce's"
 	line "secret."
 	done
 
 BoarderDouglasBeatenText:
 	text "OK. I'll tell you"
-	line "PRYCE's secret."
-	done
-
-BoarderDouglasAfterBattleText:
-	text "The secret behind"
-	line "PRYCE's power…"
-
-	para "He meditates under"
-	line "a waterfall daily"
-
-	para "to strengthen his"
-	line "mind and body."
+	line "Pryce's secret."
 	done
 
 SkierRoxanneSeenText:
-	text "To get to PRYCE,"
-	line "our GYM LEADER,"
+	text "To get to Pryce,"
+	line "our Gym Leader,"
 
 	para "you need to think"
 	line "before you skate."
@@ -312,14 +259,6 @@ SkierRoxanneSeenText:
 SkierRoxanneBeatenText:
 	text "I wouldn't lose to"
 	line "you in skiing!"
-	done
-
-SkierRoxanneAfterBattleText:
-	text "If you don't skate"
-	line "with precision,"
-
-	para "you won't get far"
-	line "in this GYM."
 	done
 
 SkierClarissaSeenText:
@@ -332,17 +271,11 @@ SkierClarissaBeatenText:
 	line "wipe out!"
 	done
 
-SkierClarissaAfterBattleText:
-	text "I shouldn't have"
-	line "been bragging"
-	cont "about my skiing…"
-	done
-
-MahoganyGymGuideText:
-	text "PRYCE is a veteran"
+MahoganyGymGuyText:
+	text "Pryce is a veteran"
 	line "who has trained"
 
-	para "#MON for some"
+	para "#mon for some"
 	line "50 years."
 
 	para "He's said to be"
@@ -358,8 +291,8 @@ MahoganyGymGuideText:
 	line "ambition!"
 	done
 
-MahoganyGymGuideWinText:
-	text "PRYCE is some-"
+MahoganyGymGuyWinText:
+	text "Pryce is some-"
 	line "thing, but you're"
 	cont "something else!"
 
@@ -369,25 +302,3 @@ MahoganyGymGuideWinText:
 	para "bridged the gen-"
 	line "eration gap!"
 	done
-
-MahoganyGym_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  4, 17, MAHOGANY_TOWN, 3
-	warp_event  5, 17, MAHOGANY_TOWN, 3
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  3, 15, BGEVENT_READ, MahoganyGymStatue
-	bg_event  6, 15, BGEVENT_READ, MahoganyGymStatue
-
-	def_object_events
-	object_event  5,  3, SPRITE_PRYCE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, MahoganyGymPryceScript, -1
-	object_event  4,  6, SPRITE_BEAUTY, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 1, TrainerSkierRoxanne, -1
-	object_event  0, 17, SPRITE_ROCKER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerBoarderRonald, -1
-	object_event  9, 17, SPRITE_BEAUTY, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 1, TrainerSkierClarissa, -1
-	object_event  5,  9, SPRITE_ROCKER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerBoarderBrad, -1
-	object_event  2,  4, SPRITE_ROCKER, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerBoarderDouglas, -1
-	object_event  7, 15, SPRITE_GYM_GUIDE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, MahoganyGymGuideScript, -1

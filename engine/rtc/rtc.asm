@@ -1,64 +1,13 @@
-StopRTC: ; unreferenced
-	ld a, RAMG_SRAM_ENABLE
-	ld [rRAMG], a
-	call LatchClock
-	ld a, RAMB_RTC_DH
-	ld [rRAMB], a
-	ld a, [rRTCREG]
-	set B_RAMB_RTC_DH_HALT, a
-	ld [rRTCREG], a
-	call CloseSRAM
-	ret
-
-StartRTC:
-	ld a, RAMG_SRAM_ENABLE
-	ld [rRAMG], a
-	call LatchClock
-	ld a, RAMB_RTC_DH
-	ld [rRAMB], a
-	ld a, [rRTCREG]
-	res B_RAMB_RTC_DH_HALT, a
-	ld [rRTCREG], a
-	call CloseSRAM
-	ret
-
-GetTimeOfDay::
 ; get time of day based on the current hour
-	ldh a, [hHours] ; hour
-	ld hl, TimesOfDay
-
-.check
-; if we're within the given time period,
-; get the corresponding time of day
-	cp [hl]
-	jr c, .match
-; else, get the next entry
-	inc hl
-	inc hl
-; try again
-	jr .check
-
-.match
-; get time of day
-	inc hl
-	ld a, [hl]
+GetTimeOfDay::
+	ld hl, .TimesOfDay
+	call GetValueByTimeOfDay
 	ld [wTimeOfDay], a
 	ret
 
-TimesOfDay:
 ; hours for the time of day
-; 0400-0959 morn | 1000-1759 day | 1800-0359 nite
-	db MORN_HOUR, NITE_F
-	db DAY_HOUR,  MORN_F
-	db NITE_HOUR, DAY_F
-	db MAX_HOUR,  NITE_F
-	db -1, MORN_F
-
-BetaTimesOfDay: ; unreferenced
-	db 20, NITE_F
-	db 40, MORN_F
-	db 60, DAY_F
-	db -1, MORN_F
+.TimesOfDay:
+	db MORN, DAY, EVE, NITE
 
 StageRTCTimeForSave:
 	call UpdateTime
@@ -74,75 +23,99 @@ StageRTCTimeForSave:
 	ret
 
 SaveRTC:
-	ld a, RAMG_SRAM_ENABLE
+	; enable SRAM/RTC hardware
+	ld a, $a
 	ld [rRAMG], a
+
+; do not talk to the RTC hardware in the no-RTC patch
+	ld a, [wInitialOptions2]
+	and 1 << RTC_OPT
+	jr z, .no_rtc
+	; pulse the RTC to get its value
 	call LatchClock
+	; set the MBC3 register to the RTC day high byte & status flags
 	ld hl, rRTCREG
-	ld a, RAMB_RTC_DH
+	ld a, $c
+	; read the value from the hardware
 	ld [rRAMB], a
-	res B_RAMB_RTC_DH_CARRY, [hl]
+	; clear clock overflow bit
+	res 7, [hl]
+.no_rtc
+
+	; select the SRAM bank for the saved RTC status flags
 	ld a, BANK(sRTCStatusFlags)
 	ld [rRAMB], a
+	; clear the SRAM RTC status flags
 	xor a
 	ld [sRTCStatusFlags], a
-	call CloseSRAM
-	ret
+	; clean up
+	jmp CloseSRAM
 
 StartClock::
+	; read the current clock time into the cache in HRAM
 	call GetClock
 	call _FixDays
 	call FixDays
-	jr nc, .skip_set
-	call RecordRTCStatus
+	; bit 5: Day count exceeds 139
+	; bit 6: Day count exceeds 255
+	call c, RecordRTCStatus
+	ld a, [wInitialOptions2]
+	and 1 << RTC_OPT
+	ret z
 
-.skip_set
-	call StartRTC
-	ret
+	; start the RTC hardware running
+	; it will continue to count time passing while the GameBoy is off
+	; turn on the SRAM, where the RTC hardware is also located
+	ld a, RAMG_SRAM_ENABLE
+	ld [rRAMG], a
+	; enable the RTC hardware
+	call LatchClock
+	; the control flags for the RTC hardware are in the top bits of the
+	; topmost value (the high-byte of the day count);
+	; tell the MBC3 mapper to select this value for read/write
+	ld a, RAMB_RTC_DH
+	ld [rRAMB], a
+	; read the value of the days count high byte
+	ld a, [rRTCREG]
+	; activate the clock hardware by setting bit 6 to zero
+	res 6, a
+	ld [rRTCREG], a
+	; remember to switch off the SRAM
+	jmp CloseSRAM
 
 _FixDays:
-	ld hl, hRTCDayHi
-	bit B_RAMB_RTC_DH_CARRY, [hl]
-	jr nz, .reset_rtc
-	bit B_RAMB_RTC_DH_HALT, [hl]
-	jr nz, .reset_rtc
+	ld hl, wRTCDayHi
+	bit 7, [hl]
+	jr nz, .set_bit_7
+	bit 6, [hl]
+	jr nz, .set_bit_7
 	xor a
 	ret
 
-.reset_rtc
-	ld a, RTC_RESET
-	call RecordRTCStatus
-	ret
+.set_bit_7
+	; Day count exceeds 16383
+	ld a, %10000000
+	jmp RecordRTCStatus ; set bit 7 on sRTCStatusFlags
 
 ClockContinue:
 	call CheckRTCStatus
 	ld c, a
-	and RTC_RESET | RTC_DAYS_EXCEED_255
+	and %11000000 ; Day count exceeded 255 or 16383
 	jr nz, .time_overflow
 
 	ld a, c
-	and RTC_DAYS_EXCEED_139
+	and %00100000 ; Day count exceeded 139
 	jr z, .dont_update
 
 	call UpdateTime
-	ld a, [wRTC + 0]
+	ld a, [wRTC]
 	ld b, a
 	ld a, [wCurDay]
 	cp b
 	jr c, .dont_update
 
 .time_overflow
-	farcall ClearDailyTimers
-	farcall Function170923
-	ld a, BANK(s5_aa8c) ; aka BANK(s5_b2fa)
-	call OpenSRAM
-	ld a, [s5_aa8c]
-	inc a
-	ld [s5_aa8c], a
-	ld a, [s5_b2fa]
-	inc a
-	ld [s5_b2fa], a
-	call CloseSRAM
-	ret
+	farjp ClearDailyTimers
 
 .dont_update
 	xor a
@@ -151,44 +124,47 @@ ClockContinue:
 _InitTime::
 	call GetClock
 	call FixDays
-	ld hl, hRTCSeconds
+	ld hl, wRTCSeconds
 	ld de, wStartSecond
-
-	ld a, [wStringBuffer2 + 3]
+	ld bc, wStringBuffer2 + 3
+; seconds
+	ld a, [bc]
 	sub [hl]
 	dec hl
-	jr nc, .okay_secs
+	jr nc, .ok_secs
 	add 60
-.okay_secs
+.ok_secs
 	ld [de], a
 	dec de
-
-	ld a, [wStringBuffer2 + 2]
+	dec bc
+; minutes
+	ld a, [bc]
 	sbc [hl]
 	dec hl
-	jr nc, .okay_mins
+	jr nc, .ok_mins
 	add 60
-.okay_mins
+.ok_mins
 	ld [de], a
 	dec de
-
-	ld a, [wStringBuffer2 + 1]
+	dec bc
+; hours
+	ld a, [bc]
 	sbc [hl]
 	dec hl
-	jr nc, .okay_hrs
+	jr nc, .ok_hrs
 	add 24
-.okay_hrs
+.ok_hrs
 	ld [de], a
 	dec de
-
-	ld a, [wStringBuffer2]
+	dec bc
+; days
+	ld a, [bc]
 	sbc [hl]
 	dec hl
-	jr nc, .okay_days
+	jr nc, .ok_days
 	add 140
 	ld c, 7
 	call SimpleDivide
-
-.okay_days
+.ok_days
 	ld [de], a
 	ret

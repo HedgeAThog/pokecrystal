@@ -15,7 +15,7 @@ Music_SproutTower_Ch1:
 	note_type 12, 10, 3
 	rest 16
 	rest 16
-.mainloop:
+Music_SproutTower_branch_f6994:
 	rest 6
 	octave 3
 	note F_, 2
@@ -60,7 +60,7 @@ Music_SproutTower_Ch1:
 	note F_, 4
 	note D#, 4
 	note D#, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_SproutTower_branch_f6994
 
 Music_SproutTower_Ch2:
 	duty_cycle 3
@@ -76,7 +76,7 @@ Music_SproutTower_Ch2:
 	note F_, 4
 	note D#, 4
 	note D#, 4
-.mainloop:
+Music_SproutTower_branch_f69dc:
 	volume_envelope 11, 5
 	octave 4
 	note C_, 4
@@ -137,7 +137,7 @@ Music_SproutTower_Ch2:
 	octave 4
 	note C_, 16
 	rest 16
-	sound_loop 0, .mainloop
+	sound_jump Music_SproutTower_branch_f69dc
 
 Music_SproutTower_Ch3:
 	vibrato 20, 14, 8
@@ -160,7 +160,7 @@ Music_SproutTower_Ch3:
 	rest 2
 	note F#, 2
 	stereo_panning TRUE, FALSE
-.mainloop:
+Music_SproutTower_branch_f6a3e:
 	rest 4
 	note C_, 2
 	note F_, 2
@@ -217,13 +217,13 @@ Music_SproutTower_Ch3:
 	note D#, 2
 	rest 2
 	note F_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_SproutTower_branch_f6a3e
 
 Music_SproutTower_Ch4:
 	toggle_noise 0
 	drum_speed 12
 	rest 4
-.mainloop:
+Music_SproutTower_branch_f6a7f:
 	drum_note 7, 4
 	stereo_panning TRUE, FALSE
 	drum_note 4, 4
@@ -240,4 +240,4 @@ Music_SproutTower_Ch4:
 	drum_note 4, 2
 	stereo_panning TRUE, TRUE
 	drum_note 7, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_SproutTower_branch_f6a7f

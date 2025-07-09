@@ -1,33 +1,7 @@
 ; Value macros
 
-; Many arbitrary percentages are simple base-10 or base-16 values:
-; -  10 = 4 percent
-; -  15 = 6 percent
-; - $10 = 6 percent + 1 = 7 percent - 1
-; -  20 = 8 percent
-; -  25 = 10 percent
-; -  30 = 12 percent
-; -  40 = 16 percent
-; -  50 = 20 percent - 1
-; -  60 = 24 percent - 1
-; -  70 = 28 percent - 1
-; -  80 = 31 percent + 1 = 32 percent - 1
-; -  85 = 33 percent + 1 = 34 percent - 1
-; - 100 = 39 percent + 1 = 40 percent - 2
-; - 120 = 47 percent + 1
-; - 123 = 49 percent - 1
-; - 160 = 63 percent
-; - 180 = 71 percent - 1 = 70 percent + 2
-; - 200 = 79 percent - 1
-; - 230 = 90 percent + 1
 DEF percent EQUS "* $ff / 100"
 
-; e.g. 1 out_of 2 == 50 percent + 1 == $80
-DEF out_of EQUS "* $100 /"
-
-MACRO assert_power_of_2
-	assert (\1) & ((\1) - 1) == 0, "\1 must be a power of 2"
-ENDM
 
 ; Constant data (db, dw, dl) macros
 
@@ -41,9 +15,9 @@ MACRO dbw
 	dw \2
 ENDM
 
-MACRO dn ; nybbles
+MACRO dn ; "nybbles"
 	rept _NARG / 2
-		db ((\1) << 4) | (\2)
+		db (\1) << 4 + (\2)
 		shift 2
 	endr
 ENDM
@@ -55,69 +29,136 @@ MACRO dc ; "crumbs"
 	endr
 ENDM
 
+MACRO dx ; x-byte (big-endian)
+	for x, 8 * ((\1) - 1), -1, -8
+		db LOW((\2) >> x)
+	endr
+ENDM
+
+MACRO dt ; three-byte (big-endian)
+	dx 3, \1
+ENDM
+
+MACRO dd ; four-byte (big-endian)
+	dx 4, \1
+ENDM
+
 MACRO bigdw ; big-endian word
-	rept _NARG
-		db HIGH(\1), LOW(\1)
-		shift
-	endr
-ENDM
-
-MACRO bigdt ; big-endian "tribyte"
-	rept _NARG
-		db LOW((\1) >> 16), HIGH(\1), LOW(\1)
-		shift
-	endr
-ENDM
-
-MACRO bigdd ; big-endian "double word"
-	rept _NARG
-		db HIGH((\1) >> 16), LOW((\1) >> 16), HIGH(\1), LOW(\1)
-		shift
-	endr
+	dx 2, \1
 ENDM
 
 MACRO dba ; dbw bank, address
-	rept _NARG
-		dbw BANK(\1), \1
-		shift
+	for i, 1, _NARG + 1
+		dbw BANK(\<i>), \<i>
 	endr
 ENDM
 
 MACRO dab ; dwb address, bank
-	rept _NARG
-		dwb \1, BANK(\1)
-		shift
+	for i, 1, _NARG + 1
+		dwb \<i>, BANK(\<i>)
 	endr
 ENDM
 
-MACRO dba_pic ; dbw bank, address
-	db BANK(\1) - PICS_FIX
-	dw \1
+MACRO dr ; relative offset
+	db \1 - @
 ENDM
 
-MACRO dba_pics ; front, back
-	if _NARG == 2
-		dba_pic \1 ; front
-		dba_pic \2 ; back
-	elif _NARG == 1
-		dba_pic \1 ; front
-		dbw -1, -1 ; unused
+MACRO dbpixel
+	if _NARG >= 4
+		db \1 * 8 + \3, \2 * 8 + \4
 	else
-		dbw -1, -1 ; unused
-		dbw -1, -1 ; unused
+		db \1 * 8, \2 * 8
 	endc
 ENDM
 
+MACRO dbsprite
+; x tile, y tile, x pixel, y pixel, vtile offset, attributes
+	db (\2 * TILE_WIDTH) % $100 + \4, (\1 * TILE_WIDTH) % $100 + \3, \5, \6
+ENDM
+
+MACRO dsprite
+	db LOW(\1 * 8) + \2, LOW(\3 * 8) + \4, \5, \6
+ENDM
+
 MACRO bcd
-	rept _NARG
-		dn ((\1) % 100) / 10, (\1) % 10
-		shift
+	for i, 1, _NARG + 1
+		dn ((\<i>) % 100) / 10, (\<i>) % 10
 	endr
 ENDM
 
-MACRO sine_table
-; \1 samples of sin(x) from x=0 to x<0.5 turns (pi radians)
-	for x, \1
-		dw sin(x * 0.5 / (\1))
+MACRO dp ; db species, extspecies | form
+	if _NARG == 2
+		db LOW(\1), HIGH(\1) << MON_EXTSPECIES_F | \2
+	else
+		db LOW(\1), HIGH(\1) << MON_EXTSPECIES_F
+	endc
+ENDM
+
+MACRO genders
+; eight arguments, all MALE or FEMALE
+	def x = 0
+	def y = 1
+	for i, 1, _NARG + 1
+		if !STRCMP("\<i>", "FEMALE")
+			def x |= y
+		else
+			static_assert !STRCMP("\<i>", "MALE")
+		endc
+		def y <<= 1
 	endr
+	db x
+ENDM
+
+MACRO with_each
+	for _with_each_i, 1, _NARG
+		redef _with_each_str EQUS STRRPL(\<_NARG>, "?", "\<_with_each_i>")
+		{_with_each_str}
+	endr
+ENDM
+
+; _all is used in macros when we want to allow "All" to cover all 6 stats.
+DEF with_each_stat EQUS "with_each HP, ATK, DEF, SPE, SAT, SDF,"
+DEF with_each_stat_all EQUS "with_each ALL, HP, ATK, DEF, SPE, SAT, SDF,"
+
+MACRO def_dvs
+; each arg: 0-15 All/HP/Atk/Def/Spe/SAt/SDf (All sets all 6 stats).
+; based on showdown importable syntax
+	with_each_stat "def EV_? = 15"
+	def EV_ALL = 0
+	def_dvs_or_evs \#
+ENDM
+
+MACRO def_evs
+; each arg: 0-252 All/HP/Atk/Def/Spe/SAt/SDf (All sets all 6 stats).
+; based on showdown importable syntax
+	with_each_stat_all "def EV_? = 0"
+	def_dvs_or_evs \#
+ENDM
+
+MACRO def_dvs_or_evs
+	def EV_TOTAL = 0
+	rept _NARG
+		def _got_ev = 0
+		with_each_stat_all """
+			def x = STRRFIND(STRUPR("\1"), " ?")
+			if !_got_ev && x != -1
+				redef _EV_VALUE EQUS STRSLICE("\1", 0, x)
+				def EV_? = \{_EV_VALUE}
+				def EV_TOTAL += EV_?
+				def _got_ev = 1
+			endc
+			"""
+		if !_got_ev
+			fail "invalid EV \1"
+		endc
+		if EV_ALL != 0
+			def EV_TOTAL = EV_ALL
+			with_each_stat "def EV_? = {EV_TOTAL}"
+			def EV_TOTAL *= 6
+		endc
+		shift
+	endr
+	if EV_TOTAL > MODERN_EV_LIMIT
+		warn "too many EVs: {d:EV_TOTAL} > {d:MODERN_EV_LIMIT}"
+	endc
 ENDM

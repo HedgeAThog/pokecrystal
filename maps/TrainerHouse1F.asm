@@ -1,45 +1,33 @@
-	object_const_def
-	const TRAINERHOUSE1F_RECEPTIONIST
-	const TRAINERHOUSE1F_COOLTRAINER_M
-	const TRAINERHOUSE1F_COOLTRAINER_F
-	const TRAINERHOUSE1F_YOUNGSTER
-	const TRAINERHOUSE1F_GENTLEMAN
-
-TrainerHouse1F_MapScripts:
+TrainerHouse1F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-TrainerHouse1FReceptionistScript:
-	jumptextfaceplayer TrainerHouse1FReceptionistText
+	def_warp_events
+	warp_event  4, 11, VIRIDIAN_CITY, 3
+	warp_event  5, 11, VIRIDIAN_CITY, 3
+	warp_event  8,  2, TRAINER_HOUSE_B1F, 1
 
-TrainerHouse1FCooltrainerMScript:
-	jumptextfaceplayer TrainerHouse1FCooltrainerMText
+	def_coord_events
 
-TrainerHouse1FCooltrainerFScript:
-	jumptextfaceplayer TrainerHouse1FCooltrainerFText
+	def_bg_events
+	bg_event  7,  0, BGEVENT_JUMPTEXT, TrainerHouseSign1Text
+	bg_event  9,  0, BGEVENT_JUMPTEXT, TrainerHouseSign2Text
+	bg_event  4,  6, BGEVENT_JUMPTEXT, TrainerHouseIllegibleText
 
-TrainerHouse1FYoungsterScript:
-	jumptextfaceplayer TrainerHouse1FYoungsterText
-
-TrainerHouse1FGentlemanScript:
-	jumptextfaceplayer TrainerHouse1FGentlemanText
-
-TrainerHouseSign1:
-	jumptext TrainerHouseSign1Text
-
-TrainerHouseSign2:
-	jumptext TrainerHouseSign2Text
-
-TrainerHouseIllegibleBook:
-	jumptext TrainerHouseIllegibleText
+	def_object_events
+	object_event  0, 10, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_COMMAND, jumptextfaceplayer, TrainerHouse1FReceptionistText, -1
+	object_event  8, 10, SPRITE_ACE_TRAINER_M, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, TrainerHouse1FCooltrainerMText, -1
+	object_event  6,  2, SPRITE_ACE_TRAINER_F, SPRITEMOVEDATA_STANDING_DOWN, 0, 2, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, TrainerHouse1FCooltrainerFText, -1
+	object_event  7,  7, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, PAL_NPC_RED, OBJECTTYPE_COMMAND, jumptextfaceplayer, TrainerHouse1FYoungsterText, -1
+	object_event  2,  4, SPRITE_GENTLEMAN, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, TrainerHouse1FGentlemanText, -1
 
 TrainerHouse1FReceptionistText:
-	text "Welcome to TRAINER"
-	line "HOUSE, the newest"
+	text "Welcome to Trainer"
+	line "House, the newest"
 
 	para "and most happening"
-	line "place in VIRIDIAN."
+	line "place in Viridian."
 
 	para "We're open to"
 	line "trainers only."
@@ -52,9 +40,13 @@ TrainerHouse1FReceptionistText:
 	done
 
 TrainerHouse1FCooltrainerMText:
-	text "VIRIDIAN is the"
+	text "Viridian is the"
 	line "town closest to"
-	cont "INDIGO PLATEAU."
+	cont "Indigo Plateau."
+
+	para "It's known as the"
+	line "gateway to Indigo"
+	cont "Plateau!"
 
 	para "They built this"
 	line "place because so"
@@ -62,8 +54,8 @@ TrainerHouse1FCooltrainerMText:
 	para "many trainers pass"
 	line "through on their"
 
-	para "way up to INDIGO"
-	line "PLATEAU."
+	para "way up to the"
+	line "#mon League."
 	done
 
 TrainerHouse1FCooltrainerFText:
@@ -74,13 +66,13 @@ TrainerHouse1FCooltrainerFText:
 	para "I would love to"
 	line "see how well a"
 
-	para "trainer from JOHTO"
+	para "trainer from Johto"
 	line "battles."
 	done
 
 TrainerHouse1FYoungsterText:
 	text "I guess you can't"
-	line "become the CHAMP"
+	line "become the Champ"
 
 	para "unless you go all"
 	line "over the place and"
@@ -88,16 +80,16 @@ TrainerHouse1FYoungsterText:
 	para "battle all kinds"
 	line "of people."
 
-	para "The CHAMPION from"
-	line "PALLET traveled to"
+	para "The Champion from"
+	line "Pallet traveled to"
 
 	para "all the cities and"
-	line "towns in KANTO."
+	line "towns in Kanto."
 	done
 
 TrainerHouse1FGentlemanText:
 	text "Whew… I'm taking a"
-	line "rest from #MON"
+	line "rest from #mon"
 	cont "battles."
 	done
 
@@ -105,7 +97,7 @@ TrainerHouseSign1Text:
 	text "Practice battles"
 	line "are held in the"
 
-	para "TRAINING HALL"
+	para "Training Hall"
 	line "downstairs."
 
 	para "Skilled trainers"
@@ -129,30 +121,8 @@ TrainerHouseIllegibleText:
 	line "A strategy memo?"
 
 	para "This writing looks"
-	line "like ONIX tracks…"
+	line "like Onix tracks…"
 
 	para "It's completely"
 	line "illegible…"
 	done
-
-TrainerHouse1F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2, 13, VIRIDIAN_CITY, 3
-	warp_event  3, 13, VIRIDIAN_CITY, 3
-	warp_event  8,  2, TRAINER_HOUSE_B1F, 1
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  5,  0, BGEVENT_READ, TrainerHouseSign1
-	bg_event  7,  0, BGEVENT_READ, TrainerHouseSign2
-	bg_event  7, 10, BGEVENT_READ, TrainerHouseIllegibleBook
-
-	def_object_events
-	object_event  0, 11, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, TrainerHouse1FReceptionistScript, -1
-	object_event  7, 11, SPRITE_COOLTRAINER_M, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, TrainerHouse1FCooltrainerMScript, -1
-	object_event  6,  2, SPRITE_COOLTRAINER_F, SPRITEMOVEDATA_STANDING_DOWN, 2, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, TrainerHouse1FCooltrainerFScript, -1
-	object_event  4,  8, SPRITE_YOUNGSTER, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 2, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, TrainerHouse1FYoungsterScript, -1
-	object_event  2,  4, SPRITE_GENTLEMAN, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, TrainerHouse1FGentlemanScript, -1

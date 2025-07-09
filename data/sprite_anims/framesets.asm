@@ -8,12 +8,11 @@ SpriteAnimFrameData:
 	dw .Frameset_PartyMonFast
 	dw .Frameset_PartyMonWithMailFast
 	dw .Frameset_PartyMonWithItemFast
-	dw .Frameset_GSTitleTrail
 	dw .Frameset_TextEntryCursor
 	dw .Frameset_TextEntryCursorBig
+	dw .Frameset_TextEntryCursorBlue
+	dw .Frameset_TextEntryCursorBlueBig
 	dw .Frameset_GameFreakLogo
-	dw .Frameset_GSGameFreakLogoStar
-	dw .Frameset_GSGameFreakLogoSparkle
 	dw .Frameset_SlotsGolem
 	dw .Frameset_SlotsChansey
 	dw .Frameset_SlotsChansey2
@@ -28,8 +27,7 @@ SpriteAnimFrameData:
 	dw .Frameset_TrademonBubble
 	dw .Frameset_EvolutionBallOfLight
 	dw .Frameset_RadioTuningKnob
-	dw .Frameset_MagnetTrainRed
-	dw .Frameset_Unused1C
+	dw .Frameset_MagnetTrain
 	dw .Frameset_Leaf
 	dw .Frameset_CutTree
 	dw .Frameset_EggCrack
@@ -37,23 +35,8 @@ SpriteAnimFrameData:
 	dw .Frameset_EggHatch2
 	dw .Frameset_EggHatch3
 	dw .Frameset_EggHatch4
-	dw .Frameset_GSIntroHoOhLugia
 	dw .Frameset_HeadbuttTree
-	dw .Frameset_EZChatCursor1
-	dw .Frameset_EZChatCursor2
-	dw .Frameset_EZChatCursor3
-	dw .Frameset_EZChatCursor4
-	dw .Frameset_EZChatCursor5
-	dw .Frameset_EZChatCursor6
-	dw .Frameset_EZChatCursor7
 	dw .Frameset_BlueWalk
-	dw .Frameset_MagnetTrainBlue
-	dw .Frameset_MobileTradeSentBall
-	dw .Frameset_MobileTradeOTBall
-	dw .Frameset_MobileTradeCableBulge
-	dw .Frameset_MobileTradeSentPulse
-	dw .Frameset_MobileTradeOTPulse
-	dw .Frameset_MobileTradePing
 	dw .Frameset_IntroSuicune
 	dw .Frameset_IntroSuicune2
 	dw .Frameset_IntroPichu
@@ -67,15 +50,29 @@ SpriteAnimFrameData:
 	dw .Frameset_IntroUnownF
 	dw .Frameset_CelebiLeft
 	dw .Frameset_CelebiRight
+	dw .Frameset_MaxStatSparkle
+	dw .Frameset_HyperTrainedStat
+	dw .Frameset_PcCursor
+	dw .Frameset_PcCursorItem
+	dw .Frameset_PcQuick
+	dw .Frameset_PcMode
+	dw .Frameset_PcMode2
+	dw .Frameset_PcPack
+	dw .Frameset_DexCursor
+	dw .Frameset_DexUnownCursor
+	dw .Frameset_DexSlowpoke
+	dw .Frameset_TownMapFly
+	dw .Frameset_GreenWalk
+	dw .Frameset_FlyMon
 	assert_table_length NUM_SPRITE_ANIM_FRAMESETS
 
 .Frameset_00:
-	oamframe SPRITE_ANIM_OAMSET_RED_WALK_1, 32
+	oamframe SPRITE_ANIM_OAMSET_PARTY_MON_1, 32
 	oamend
 
 .Frameset_PartyMon:
-	oamframe SPRITE_ANIM_OAMSET_RED_WALK_1,  8
-	oamframe SPRITE_ANIM_OAMSET_RED_WALK_2,  8
+	oamframe SPRITE_ANIM_OAMSET_PARTY_MON_1,  8
+	oamframe SPRITE_ANIM_OAMSET_PARTY_MON_2,  8
 	oamrestart
 
 .Frameset_PartyMonWithMail:
@@ -89,8 +86,8 @@ SpriteAnimFrameData:
 	oamrestart
 
 .Frameset_PartyMonFast:
-	oamframe SPRITE_ANIM_OAMSET_RED_WALK_1,  4
-	oamframe SPRITE_ANIM_OAMSET_RED_WALK_2,  4
+	oamframe SPRITE_ANIM_OAMSET_PARTY_MON_1,  4
+	oamframe SPRITE_ANIM_OAMSET_PARTY_MON_2,  4
 	oamrestart
 
 .Frameset_PartyMonWithMailFast:
@@ -117,57 +114,50 @@ SpriteAnimFrameData:
 	oamframe SPRITE_ANIM_OAMSET_BLUE_WALK_2,  8, B_OAM_XFLIP
 	oamrestart
 
-.Frameset_MagnetTrainBlue:
-	oamframe SPRITE_ANIM_OAMSET_MAGNET_TRAIN_BLUE_1,  8
-	oamframe SPRITE_ANIM_OAMSET_MAGNET_TRAIN_BLUE_2,  8
-	oamframe SPRITE_ANIM_OAMSET_MAGNET_TRAIN_BLUE_1,  8
-	oamframe SPRITE_ANIM_OAMSET_MAGNET_TRAIN_BLUE_2,  8, B_OAM_XFLIP
-	oamrestart
-
-.Frameset_GSTitleTrail:
-	oamframe SPRITE_ANIM_OAMSET_GS_TITLE_TRAIL_1,  1
-	oamframe SPRITE_ANIM_OAMSET_GS_TITLE_TRAIL_2,  1
+.Frameset_GreenWalk:
+	oamframe SPRITE_ANIM_OAMSET_GREEN_WALK_1,  8
+	oamframe SPRITE_ANIM_OAMSET_GREEN_WALK_2,  8
+	oamframe SPRITE_ANIM_OAMSET_GREEN_WALK_1,  8
+	oamframe SPRITE_ANIM_OAMSET_GREEN_WALK_2,  8, B_OAM_XFLIP
 	oamrestart
 
 .Frameset_TextEntryCursor:
 	oamframe SPRITE_ANIM_OAMSET_TEXT_ENTRY_CURSOR,  1
-	oamwait 1
+	dorepeat  1
 	oamrestart
 
 .Frameset_TextEntryCursorBig:
 	oamframe SPRITE_ANIM_OAMSET_TEXT_ENTRY_CURSOR_BIG,  1
-	oamwait 1
+	dorepeat  1
+	oamrestart
+
+.Frameset_TextEntryCursorBlue:
+	oamframe SPRITE_ANIM_OAMSET_TEXT_ENTRY_CURSOR_BLUE,  1
+	dorepeat  1
+	oamrestart
+
+.Frameset_TextEntryCursorBlueBig:
+	oamframe SPRITE_ANIM_OAMSET_TEXT_ENTRY_CURSOR_BLUE_BIG,  1
+	dorepeat  1
 	oamrestart
 
 .Frameset_GameFreakLogo:
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_1,  12
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_2,   1
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_3,   1
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_2,   4
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_1,  12
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_2,  12
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_3,   4
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_4,  32
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_5,   3
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_6,   3
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_7,   4
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_8,   4
-	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_9,   4
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_1, 12
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_2,  1
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_3,  1
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_2,  4
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_1, 12
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_2, 12
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_3,  4
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_4, 32
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_5,  3
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_6,  3
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_7,  4
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_8,  4
+	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_9,  4
 	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_10, 10
 	oamframe SPRITE_ANIM_OAMSET_GAMEFREAK_LOGO_11,  7
 	oamend
-
-.Frameset_GSGameFreakLogoStar:
-	oamframe SPRITE_ANIM_OAMSET_GS_GAMEFREAK_LOGO_STAR,  3
-	oamframe SPRITE_ANIM_OAMSET_GS_GAMEFREAK_LOGO_STAR,  3, B_OAM_YFLIP
-	oamrestart
-
-.Frameset_GSGameFreakLogoSparkle:
-	oamframe SPRITE_ANIM_OAMSET_GS_GAMEFREAK_LOGO_SPARKLE_1,  2
-	oamframe SPRITE_ANIM_OAMSET_GS_GAMEFREAK_LOGO_SPARKLE_2,  2
-	oamframe SPRITE_ANIM_OAMSET_GS_GAMEFREAK_LOGO_SPARKLE_3,  2
-	oamframe SPRITE_ANIM_OAMSET_GS_GAMEFREAK_LOGO_SPARKLE_2,  2
-	oamrestart
 
 .Frameset_SlotsGolem:
 	oamframe SPRITE_ANIM_OAMSET_SLOTS_GOLEM_1,  7
@@ -240,70 +230,23 @@ SpriteAnimFrameData:
 	oamframe SPRITE_ANIM_OAMSET_RADIO_TUNING_KNOB, 32
 	oamend
 
-.Frameset_MagnetTrainRed:
-	oamframe SPRITE_ANIM_OAMSET_MAGNET_TRAIN_RED_1,  8
-	oamframe SPRITE_ANIM_OAMSET_MAGNET_TRAIN_RED_2,  8
-	oamframe SPRITE_ANIM_OAMSET_MAGNET_TRAIN_RED_1,  8
-	oamframe SPRITE_ANIM_OAMSET_MAGNET_TRAIN_RED_2,  8, B_OAM_XFLIP
+.Frameset_MagnetTrain:
+	oamframe SPRITE_ANIM_OAMSET_MAGNET_TRAIN_1,  8
+	oamframe SPRITE_ANIM_OAMSET_MAGNET_TRAIN_2,  8
+	oamframe SPRITE_ANIM_OAMSET_MAGNET_TRAIN_1,  8
+	oamframe SPRITE_ANIM_OAMSET_MAGNET_TRAIN_2,  8, B_OAM_XFLIP
 	oamrestart
-
-.Frameset_Unknown1: ; unreferenced
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_43,  8
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_44,  8
-	oamrestart
-
-.Frameset_Unknown2: ; unreferenced
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_45,  8
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_46,  8
-	oamrestart
-
-.Frameset_Unknown3: ; unreferenced
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_47,  8
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_48,  8
-	oamrestart
-
-.Frameset_Unknown4: ; unreferenced
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_49,  1
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_49,  1, B_OAM_XFLIP
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_49,  1, B_OAM_XFLIP, B_OAM_YFLIP
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_49,  1, B_OAM_YFLIP
-	oamrestart
-
-.Frameset_Unknown5: ; unreferenced
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_4A, 32
-	oamend
-
-.Frameset_Unknown6: ; unreferenced
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_4B, 32
-	oamend
-
-.Frameset_Unknown7: ; unreferenced
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_4C, 32
-	oamend
-
-.Frameset_Unknown8: ; unreferenced
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_4D, 32
-	oamend
-
-.Frameset_Unknown9: ; unreferenced
-	oamframe SPRITE_ANIM_OAMSET_UNUSED_4E,  3
-	oamwait 3
-	oamrestart
-
-.Frameset_Unused1C:
-	oamwait 32
-	oamend
 
 .Frameset_Leaf:
 	oamframe SPRITE_ANIM_OAMSET_LEAF, 32
 	oamend
 
 .Frameset_CutTree:
-	oamframe SPRITE_ANIM_OAMSET_TREE_1,      2
+	oamframe SPRITE_ANIM_OAMSET_TREE_1,  2
 	oamframe SPRITE_ANIM_OAMSET_CUT_TREE_2, 16
-	oamwait 1
+	dorepeat  1
 	oamframe SPRITE_ANIM_OAMSET_CUT_TREE_3,  1
-	oamwait 1
+	dorepeat  1
 	oamframe SPRITE_ANIM_OAMSET_CUT_TREE_4,  1
 	oamdelete
 
@@ -327,104 +270,12 @@ SpriteAnimFrameData:
 	oamframe SPRITE_ANIM_OAMSET_EGG_HATCH, 32, B_OAM_XFLIP, B_OAM_YFLIP
 	oamend
 
-.Frameset_GSIntroHoOhLugia:
-	oamframe SPRITE_ANIM_OAMSET_GS_INTRO_HO_OH_LUGIA_1, 10
-	oamframe SPRITE_ANIM_OAMSET_GS_INTRO_HO_OH_LUGIA_2,  9
-	oamframe SPRITE_ANIM_OAMSET_GS_INTRO_HO_OH_LUGIA_3, 10
-	oamframe SPRITE_ANIM_OAMSET_GS_INTRO_HO_OH_LUGIA_4, 10
-	oamframe SPRITE_ANIM_OAMSET_GS_INTRO_HO_OH_LUGIA_3,  9
-	oamframe SPRITE_ANIM_OAMSET_GS_INTRO_HO_OH_LUGIA_5, 10
-	oamrestart
-
 .Frameset_HeadbuttTree:
-	oamframe SPRITE_ANIM_OAMSET_TREE_1,           2
+	oamframe SPRITE_ANIM_OAMSET_TREE_1,  2
 	oamframe SPRITE_ANIM_OAMSET_HEADBUTT_TREE_2,  2
-	oamframe SPRITE_ANIM_OAMSET_TREE_1,           2
-	oamframe SPRITE_ANIM_OAMSET_HEADBUTT_TREE_2,  2, B_OAM_XFLIP
+	oamframe SPRITE_ANIM_OAMSET_TREE_1,  2
+	oamframe SPRITE_ANIM_OAMSET_HEADBUTT_TREE_3,  2
 	oamrestart
-
-.Frameset_EZChatCursor1:
-	oamframe SPRITE_ANIM_OAMSET_EZCHAT_CURSOR_1,  2
-	oamend
-
-.Frameset_EZChatCursor2:
-	oamframe SPRITE_ANIM_OAMSET_EZCHAT_CURSOR_2,  2
-	oamend
-
-.Frameset_EZChatCursor3:
-	oamframe SPRITE_ANIM_OAMSET_EZCHAT_CURSOR_3,  2
-	oamend
-
-.Frameset_EZChatCursor4:
-	oamframe SPRITE_ANIM_OAMSET_EZCHAT_CURSOR_4,  2
-	oamend
-
-.Frameset_EZChatCursor5:
-	oamframe SPRITE_ANIM_OAMSET_EZCHAT_CURSOR_5,  2
-	oamend
-
-.Frameset_EZChatCursor6:
-	oamframe SPRITE_ANIM_OAMSET_EZCHAT_CURSOR_6,  2
-	oamend
-
-.Frameset_EZChatCursor7:
-	oamframe SPRITE_ANIM_OAMSET_EZCHAT_CURSOR_7,  2
-	oamend
-
-.Frameset_MobileTradeSentBall:
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POOF_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POOF_2,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POOF_3,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_2,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_2,  3, B_OAM_XFLIP
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_2,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_2,  3, B_OAM_XFLIP
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_2,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_2,  3, B_OAM_XFLIP
-	oamend
-
-.Frameset_MobileTradeOTBall:
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_2,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_2,  3, B_OAM_XFLIP
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_2,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_2,  3, B_OAM_XFLIP
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_2,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POKE_BALL_2,  3, B_OAM_XFLIP
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POOF_1,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POOF_2,  3
-	oamframe SPRITE_ANIM_OAMSET_TRADE_POOF_3,  3
-	oamdelete
-
-.Frameset_MobileTradeCableBulge:
-	oamframe SPRITE_ANIM_OAMSET_MOBILE_TRADE_CABLE_BULGE_1,  3
-	oamframe SPRITE_ANIM_OAMSET_MOBILE_TRADE_CABLE_BULGE_2,  3
-	oamrestart
-
-.Frameset_MobileTradeSentPulse:
-	oamframe SPRITE_ANIM_OAMSET_MOBILE_TRADE_SENT_PULSE,  3
-	oamend
-
-.Frameset_MobileTradeOTPulse:
-	oamframe SPRITE_ANIM_OAMSET_MOBILE_TRADE_OT_PULSE,  3
-	oamend
-
-.Frameset_MobileTradePing:
-	oamframe SPRITE_ANIM_OAMSET_MOBILE_TRADE_PING_1,  2
-	oamframe SPRITE_ANIM_OAMSET_MOBILE_TRADE_PING_2,  2
-	oamframe SPRITE_ANIM_OAMSET_MOBILE_TRADE_PING_3,  2
-	oamdelete
 
 .Frameset_IntroSuicune:
 	oamframe SPRITE_ANIM_OAMSET_INTRO_SUICUNE_1,  3
@@ -485,7 +336,7 @@ SpriteAnimFrameData:
 	oamend
 
 .Frameset_IntroUnownF:
-	oamwait 0
+	dorepeat 0
 	oamend
 
 .Frameset_CelebiLeft:
@@ -497,3 +348,63 @@ SpriteAnimFrameData:
 	oamframe SPRITE_ANIM_OAMSET_CELEBI_1,  8, B_OAM_XFLIP
 	oamframe SPRITE_ANIM_OAMSET_CELEBI_2,  8, B_OAM_XFLIP
 	oamend
+
+.Frameset_MaxStatSparkle:
+	oamframe SPRITE_ANIM_OAMSET_MAX_STAT_SPARKLE, 32
+	oamrestart
+
+.Frameset_HyperTrainedStat:
+	oamframe SPRITE_ANIM_OAMSET_HYPER_TRAINED_STAT, 32
+	oamrestart
+
+.Frameset_PcCursor:
+	oamframe SPRITE_ANIM_OAMSET_PC_CURSOR, 32
+	oamrestart
+
+.Frameset_PcCursorItem:
+	; Conditionally switched to when dealing with items
+	oamframe SPRITE_ANIM_OAMSET_PC_CURSOR_ITEM, 32
+	oamrestart
+
+.Frameset_PcQuick:
+	oamframe SPRITE_ANIM_OAMSET_PC_QUICK, 8
+	oamdelete
+
+.Frameset_PcMode:
+	oamframe SPRITE_ANIM_OAMSET_PC_MODE, 32
+	oamrestart
+
+.Frameset_PcMode2:
+	oamframe SPRITE_ANIM_OAMSET_PC_MODE2, 32
+	oamrestart
+
+.Frameset_PcPack:
+	oamframe SPRITE_ANIM_OAMSET_PC_PACK, 32
+	oamrestart
+
+.Frameset_DexCursor:
+	oamframe SPRITE_ANIM_OAMSET_DEX_CURSOR, 32
+	oamrestart
+
+.Frameset_DexUnownCursor:
+	oamframe SPRITE_ANIM_OAMSET_DEX_UNOWN_CURSOR, 32
+	oamrestart
+
+.Frameset_DexSlowpoke:
+	oamframe SPRITE_ANIM_OAMSET_DEX_SLOWPOKE_1, 3
+	oamframe SPRITE_ANIM_OAMSET_DEX_SLOWPOKE_2, 3
+	oamframe SPRITE_ANIM_OAMSET_DEX_SLOWPOKE_3, 3
+	oamframe SPRITE_ANIM_OAMSET_DEX_SLOWPOKE_4, 3
+	oamframe SPRITE_ANIM_OAMSET_DEX_SLOWPOKE_5, 3
+	oamrestart
+
+.Frameset_TownMapFly:
+	oamframe SPRITE_ANIM_OAMSET_TOWN_MAP_FLY, 32
+	oamrestart
+
+.Frameset_FlyMon:
+	oamframe SPRITE_ANIM_OAMSET_FLY_MON_1,  8
+	oamframe SPRITE_ANIM_OAMSET_FLY_MON_2,  8
+	oamframe SPRITE_ANIM_OAMSET_FLY_MON_1,  8
+	oamframe SPRITE_ANIM_OAMSET_FLY_MON_3,  8, B_OAM_XFLIP
+	oamrestart

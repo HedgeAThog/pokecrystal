@@ -1,7 +1,6 @@
-BattleCommand_PayDay:
-	xor a
-	ld hl, wStringBuffer1
-	ld [hli], a
+BattleCommand_payday:
+	call CheckSubstituteOpp
+	ret nz
 
 	ldh a, [hBattleTurn]
 	and a
@@ -9,9 +8,13 @@ BattleCommand_PayDay:
 	jr z, .ok
 	ld a, [wEnemyMonLevel]
 .ok
-
-	add a
+	; I don't think this can be written more efficiently space-wise.
+	push bc
+	ld c, a
+	ld b, 5
+.loop
 	ld hl, wPayDayMoney + 2
+	ld a, c
 	add [hl]
 	ld [hld], a
 	jr nc, .done
@@ -20,5 +23,9 @@ BattleCommand_PayDay:
 	jr nz, .done
 	inc [hl]
 .done
+	dec b
+	jr nz, .loop
+	pop bc
+
 	ld hl, CoinsScatteredText
-	jp StdBattleTextbox
+	jmp StdBattleTextbox

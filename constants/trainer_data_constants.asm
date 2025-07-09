@@ -24,17 +24,39 @@ DEF NO_AI EQU 0
 
 ; TRNATTR_AI_ITEM_SWITCH bit flags
 	const_def
-	shift_const SWITCH_OFTEN     ; 0
-	shift_const SWITCH_RARELY    ; 1
-	shift_const SWITCH_SOMETIMES ; 2
-	const_skip
-	shift_const ALWAYS_USE       ; 4
-	shift_const UNKNOWN_USE      ; 5
-	shift_const CONTEXT_USE      ; 6
+	const SWITCH_OFTEN_F     ; 0
+	const SWITCH_RARELY_F    ; 1
+	const SWITCH_SOMETIMES_F ; 2
+	const_skip               ; 3
+	const ALWAYS_USE_F       ; 4
+	const UNKNOWN_USE_F      ; 5
+	const CONTEXT_USE_F      ; 6
 
-; TrainerTypes indexes (see engine/battle/read_trainer_party.asm)
+DEF CONTEXT_USE        EQU 1 << CONTEXT_USE_F
+DEF UNKNOWN_USE        EQU 1 << UNKNOWN_USE_F
+DEF ALWAYS_USE         EQU 1 << ALWAYS_USE_F
+DEF SWITCH_SOMETIMES   EQU 1 << SWITCH_SOMETIMES_F
+DEF SWITCH_RARELY      EQU 1 << SWITCH_RARELY_F
+DEF SWITCH_OFTEN       EQU 1 << SWITCH_OFTEN_F
+
+; trainer types (see engine/battle/read_trainer_party.asm)
 	const_def
-	const TRAINERTYPE_NORMAL
-	const TRAINERTYPE_MOVES
-	const TRAINERTYPE_ITEM
-	const TRAINERTYPE_ITEM_MOVES
+	const TRNTYPE_NORMAL
+	const TRNTYPE_ITEM
+	const TRNTYPE_EVS
+	const TRNTYPE_DVS
+	const TRNTYPE_PERSONALITY
+	const TRNTYPE_NICKNAME
+	const TRNTYPE_MOVES
+
+; see data/trainers/parties.asm
+DEF TRAINERTYPE_NORMAL      EQU TRNTYPE_NORMAL
+DEF TRAINERTYPE_ITEM        EQU 1 << TRNTYPE_ITEM
+DEF TRAINERTYPE_EVS         EQU 1 << TRNTYPE_EVS
+DEF TRAINERTYPE_DVS         EQU 1 << TRNTYPE_DVS
+DEF TRAINERTYPE_PERSONALITY EQU 1 << TRNTYPE_PERSONALITY
+DEF TRAINERTYPE_NICKNAME    EQU 1 << TRNTYPE_NICKNAME
+DEF TRAINERTYPE_MOVES       EQU 1 << TRNTYPE_MOVES
+
+; PsychicInverMons size (see data/trainers/psychic_inver.asm)
+DEF NUM_INVER_MONS EQU 7

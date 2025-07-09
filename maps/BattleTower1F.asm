@@ -1,767 +1,368 @@
-	object_const_def
-	const BATTLETOWER1F_RECEPTIONIST
-	const BATTLETOWER1F_YOUNGSTER
-	const BATTLETOWER1F_COOLTRAINER_F
-	const BATTLETOWER1F_BUG_CATCHER
-	const BATTLETOWER1F_GRANNY
-
-BattleTower1F_MapScripts:
+BattleTower1F_MapScriptHeader:
 	def_scene_scripts
-	scene_script BattleTower1FCheckStateScene, SCENE_BATTLETOWER1F_CHECKSTATE
-	scene_script BattleTower1FNoopScene,       SCENE_BATTLETOWER1F_NOOP
+	scene_script BattleTower1FContinueChallenge
 
 	def_callbacks
 
-BattleTower1FCheckStateScene:
-	setval BATTLETOWERACTION_CHECKSAVEFILEISYOURS
-	special BattleTowerAction
-	iffalse .SkipEverything
-	setval BATTLETOWERACTION_GET_CHALLENGE_STATE ; readmem sBattleTowerChallengeState
-	special BattleTowerAction
-	ifequal $0, .SkipEverything
-	ifequal $2, .LeftWithoutSaving
-	ifequal $3, .SkipEverything
-	ifequal $4, .SkipEverything
-	opentext
-	writetext Text_WeveBeenWaitingForYou
-	waitbutton
-	closetext
-	sdefer Script_ResumeBattleTowerChallenge
+	def_warp_events
+	warp_event 10, 15, BATTLE_TOWER_OUTSIDE, 3
+	warp_event 11, 15, BATTLE_TOWER_OUTSIDE, 4
+	warp_event 10,  0, BATTLE_TOWER_ELEVATOR, 1
+	warp_event  0,  7, BATTLE_TOWER_2F, 1
+
+	def_coord_events
+
+	def_bg_events
+	bg_event 11,  7, BGEVENT_READ, BattleTower1FRulesScript
+	bg_event  9,  7, BGEVENT_JUMPTEXT, BattleTower1FStreakText
+	bg_event 21,  8, BGEVENT_READ, PokemonJournalPalmerScript
+
+	def_object_events
+	object_event 10,  7, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, BattleTower1FReceptionistScript, -1
+	pc_nurse_event  6,  8
+	object_event 14,  8, SPRITE_CLERK, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_COMMAND, pokemart, MARTTYPE_BP, MART_BATTLETOWER_1, -1
+	object_event 16,  8, SPRITE_CLERK, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_COMMAND, pokemart, MARTTYPE_BP, MART_BATTLETOWER_2, -1
+	object_event 18,  8, SPRITE_CLERK, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_COMMAND, pokemart, MARTTYPE_BP, MART_BATTLETOWER_3, -1
+	object_event  6, 14, SPRITE_BURGLAR, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, BattleTowerPharmacistScript, -1
+	object_event 16, 13, SPRITE_ACE_TRAINER_F, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, Text_BattleTowerCooltrainerF, -1
+	object_event  2, 12, SPRITE_BUG_CATCHER, SPRITEMOVEDATA_WANDER, 1, 1, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, Text_BattleTowerBugCatcher, -1
+	object_event 20, 11, SPRITE_GRANNY, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, Text_BattleTowerGranny, -1
+
+	object_const_def
+	const BATTLETOWER1F_RECEPTIONIST
+
+BattleTower1FContinueChallenge:
+; Triggers (usefully) if we're in an ongoing Battle Tower run.
+	; Only trigger this once.
+	setscene 1
+
+	; Check current battle status to see if we need to resume or reset winstreak
+	special Special_BattleTower_GetChallengeState
+	ifequalfwd BATTLETOWER_CHALLENGE_IN_PROGRESS, .LeftWithoutSaving
+	ifequalfwd BATTLETOWER_SAVED_AND_LEFT, .ResumeChallenge
+	ifequalfwd BATTLETOWER_LOST_CHALLENGE, .LostChallenge
+	ifequalfwd BATTLETOWER_WON_CHALLENGE, .WonChallenge
 	end
 
-.LeftWithoutSaving
-	sdefer BattleTower_LeftWithoutSaving
-	setval BATTLETOWERACTION_CHALLENGECANCELED
-	special BattleTowerAction
-	setval BATTLETOWERACTION_06
-	special BattleTowerAction
-.SkipEverything:
-	setscene SCENE_BATTLETOWER1F_NOOP
+.ResumeChallenge:
+	; We saved in-between rounds. Resume Battle Tower challenge.
+	opentext
+	writethistext
+		text "We've been waiting"
+		line "for you."
+		prompt
+
+	sdefer Script_ReturnToBattleTowerChallenge
+	end
+
+.LeftWithoutSaving:
+	; The player reset the game in the middle of a battle.
+	; This counts as a battle loss, and will reset the winstreak.
+	sdefer .LeftWithoutSaving2
+	end
+
+.LeftWithoutSaving2:
+	opentext
+	writethistext
+		text "Excuse me!"
+		line "You didn't save"
+
+		para "before exiting"
+		line "the Battle Room."
+
+		para "I'm awfully sorry,"
+		line "but your challenge"
+
+		para "will be declared"
+		line "invalid."
+		done
+	waitbutton
+	sjumpfwd Script_CommitBattleTowerResult
+
+.LostChallenge:
+	opentext
+	sdefer Script_CommitBattleTowerResult
+	end
+
+.WonChallenge:
+	sdefer .WonChallenge2
+	end
+
+.WonChallenge2:
+	opentext
+	writethistext
+		text "Congratulations!"
+
+		para "You've beaten all"
+		line "the trainers!"
+
+		para "For that, you get"
+		line "this great prize!"
+		prompt
+	verbosegiveitem ABILITYPATCH
 	; fallthrough
-BattleTower1FNoopScene:
-	end
-
-BattleTower1FRulesSign:
-	opentext
-	writetext Text_ReadBattleTowerRules
-	yesorno
-	iffalse .skip
-	writetext Text_BattleTowerRules
+Script_CommitBattleTowerResult:
+	special Special_BattleTower_CommitChallengeResult
+	iffalsefwd .WeHopeToServeYouAgain
+	setevent EVENT_BEAT_PALMER
+.WeHopeToServeYouAgain:
+	writethistext
+		text "We hope to serve"
+		line "you again."
+		done
 	waitbutton
-.skip:
-	closetext
-	end
+	endtext
+
+BattleTower1FRulesScript:
+	opentext
+	writethistext
+		text "Battle Tower rules"
+		line "are written here."
+
+		para "Read the rules?"
+		done
+	yesorno
+	iffalse_endtext
+	jumpthisopenedtext
+		text "Three #mon may"
+		line "enter battles."
+
+		para "All three must be"
+		line "different."
+
+		para "The items they"
+		line "hold must also be"
+		cont "different."
+
+		para "Eggs or certain"
+		line "Legendary #mon"
+		cont "aren't eligible"
+		cont "to battle."
+		done
+
+BattleTower1FStreakText:
+	text "Streak: "
+	text_decimal wBattleTowerCurStreak, 2, 5
+	text " wins"
+	line "Record: "
+	text_decimal wBattleTowerTopStreak, 2, 5
+	text " wins"
+	done
 
 BattleTower1FReceptionistScript:
-	setval BATTLETOWERACTION_GET_CHALLENGE_STATE ; readmem sBattleTowerChallengeState
-	special BattleTowerAction
-	ifequal $3, Script_BeatenAllTrainers2 ; maps/BattleTowerBattleRoom.asm
 	opentext
-	writetext Text_BattleTowerWelcomesYou
+	writethistext
+		text "Battle Tower"
+		line "welcomes you!"
+
+		para "I could show you"
+		line "to a Battle Room."
+		done
 	promptbutton
-	setval BATTLETOWERACTION_CHECK_EXPLANATION_READ ; if new save file: bit 1, [sBattleTowerSaveFileFlags]
-	special BattleTowerAction
-	ifnotequal $0, Script_Menu_ChallengeExplanationCancel
-	sjump Script_BattleTowerIntroductionYesNo
+	checkevent EVENT_BATTLE_TOWER_INTRO
+	iftruefwd .BattleTowerMenu
 
-Script_Menu_ChallengeExplanationCancel:
-	writetext Text_WantToGoIntoABattleRoom
-	setval TRUE
-	special Menu_ChallengeExplanationCancel
-	ifequal 1, Script_ChooseChallenge
-	ifequal 2, Script_BattleTowerExplanation
-	sjump Script_BattleTowerHopeToServeYouAgain
-
-Script_ChooseChallenge:
-	setval BATTLETOWERACTION_RESETDATA ; ResetBattleTowerTrainerSRAM
-	special BattleTowerAction
-	special CheckForBattleTowerRules
-	ifnotequal FALSE, Script_WaitButton
-	writetext Text_SaveBeforeEnteringBattleRoom
+	; only ask once, so set the flag regardless
+	setevent EVENT_BATTLE_TOWER_INTRO
+	writethistext
+		text "Would you like to"
+		line "hear about the"
+		cont "Battle Tower?"
+		done
 	yesorno
-	iffalse Script_Menu_ChallengeExplanationCancel
-	setscene SCENE_BATTLETOWER1F_CHECKSTATE
-	special TryQuickSave
-	iffalse Script_Menu_ChallengeExplanationCancel
-	setscene SCENE_BATTLETOWER1F_NOOP
-	setval BATTLETOWERACTION_SET_EXPLANATION_READ ; set 1, [sBattleTowerSaveFileFlags]
-	special BattleTowerAction
-	special BattleTowerRoomMenu
-	ifequal $a, Script_Menu_ChallengeExplanationCancel
-	ifnotequal $0, Script_MobileError
-	setval BATTLETOWERACTION_11
-	special BattleTowerAction
-	writetext Text_RightThisWayToYourBattleRoom
+	iffalsefwd .BattleTowerMenu
+
+.Explanation:
+	writethistext
+		text "Battle Tower is a"
+		line "facility made for"
+		cont "#mon battles."
+
+		para "Countless #mon"
+		line "trainers gather"
+
+		para "from all over to"
+		line "hold battles in"
+
+		para "specially designed"
+		line "Battle Rooms."
+
+		para "There are many"
+		line "Battle Rooms in"
+		cont "the Battle Tower."
+
+		para "Each Room holds"
+		line "seven trainers."
+
+		para "Beat them all to"
+		line "get Battle Points."
+
+		para "To interrupt a"
+		line "session, you must"
+
+		para "save. If not, you"
+		line "won't be able to"
+
+		para "resume your Room"
+		line "challenge."
+		prompt
+	; fallthrough
+.BattleTowerMenu:
+	; Setscene here in case the player aborted a quicksave prompted by challenge
+	setscene 1
+	writethistext
+		text "Want to go into a"
+		line "Battle Room?"
+		done
+	loadmenu MenuDataHeader_BattleInfoCancel
+	verticalmenu
+	closewindow
+	ifequalfwd $1, .Challenge
+	ifequal $2, .Explanation
+	writethistext
+		text "We hope to serve"
+		line "you again."
+		prompt
+	endtext
+
+.Challenge:
+	writethistext
+		text "Choose #mon"
+		line "to enter."
+		prompt
+	special Special_BattleTower_SelectParticipants
+	iffalse .BattleTowerMenu
+	writethistext
+		text "Before entering"
+		line "the Battle Room,"
+
+		para "your progress will"
+		line "be saved."
+		done
+	yesorno
+	iffalse .BattleTowerMenu
+	; Done here to ensure it's saved in case the player resets later.
+	; The scene script running after the player saves but before the
+	; challenge starts is harmless since there's no challenge prepared.
+	setscene 0
+	special Special_TryQuickSave
+	iffalse .BattleTowerMenu
+
+	; Initializes opponent trainers and stores player mon choices in SRAM
+	special Special_BattleTower_BeginChallenge
+	; fallthrough
+Script_ReturnToBattleTowerChallenge:
+	; From this point onwards, resetting the game should count as a streak loss
+	setscene 0
+	setval BATTLETOWER_CHALLENGE_IN_PROGRESS
+	special Special_BattleTower_SetChallengeState
+
+	; Everything ready to go for challenge start
+	writethistext
+		text "Right this way to"
+		line "your Battle Room."
+		done
 	waitbutton
 	closetext
-	setval BATTLETOWERACTION_CHOOSEREWARD
-	special BattleTowerAction
-	sjump Script_WalkToBattleTowerElevator
 
-Script_ResumeBattleTowerChallenge:
-	closetext
-	setval BATTLETOWERACTION_LOADLEVELGROUP ; load choice of level group
-	special BattleTowerAction
-Script_WalkToBattleTowerElevator:
 	musicfadeout MUSIC_NONE, 8
-	setmapscene BATTLE_TOWER_BATTLE_ROOM, SCENE_BATTLETOWERBATTLEROOM_ENTER
-	setmapscene BATTLE_TOWER_ELEVATOR, SCENE_BATTLETOWERELEVATOR_ENTER
-	setmapscene BATTLE_TOWER_HALLWAY, SCENE_BATTLETOWERHALLWAY_ENTER
 	follow BATTLETOWER1F_RECEPTIONIST, PLAYER
-	applymovement BATTLETOWER1F_RECEPTIONIST, MovementData_BattleTower1FWalkToElevator
-	setval BATTLETOWERACTION_0A
-	special BattleTowerAction
+	applymovement BATTLETOWER1F_RECEPTIONIST, .WalkToElevator
+	stopfollow
+	special Special_BattleTower_MaxVolume
 	warpsound
 	disappear BATTLETOWER1F_RECEPTIONIST
-	stopfollow
-	applymovement PLAYER, MovementData_BattleTowerHallwayPlayerEntersBattleRoom
+	applyonemovement PLAYER, step_up
 	warpcheck
 	end
 
-Script_GivePlayerHisPrize:
-	setval BATTLETOWERACTION_1C
-	special BattleTowerAction
-	setval BATTLETOWERACTION_GIVEREWARD
-	special BattleTowerAction
-	ifequal POTION, Script_YourPackIsStuffedFull
-	getitemname STRING_BUFFER_4, USE_SCRIPT_VAR
-	giveitem ITEM_FROM_MEM, 5
-	writetext Text_PlayerGotFive
-	setval BATTLETOWERACTION_1D
-	special BattleTowerAction
-	closetext
-	end
+.WalkToElevator:
+	step_up
+	step_up
+	step_up
+	step_up
+	step_up
+	step_up
+	step_up
+	step_end
 
-Script_YourPackIsStuffedFull:
-	writetext Text_YourPackIsStuffedFull
-	waitbutton
-	closetext
-	end
+MenuDataHeader_BattleInfoCancel:
+	db MENU_BACKUP_TILES
+	menu_coords 11, 4, 19, 11
+	dw MenuData2_BattleInfoCancel
+	db 1 ; default option
 
-Script_BattleTowerIntroductionYesNo:
-	writetext Text_WouldYouLikeToHearAboutTheBattleTower
-	yesorno
-	iffalse Script_BattleTowerSkipExplanation
-Script_BattleTowerExplanation:
-	writetext Text_BattleTowerIntroduction_2
-Script_BattleTowerSkipExplanation:
-	setval BATTLETOWERACTION_SET_EXPLANATION_READ
-	special BattleTowerAction
-	sjump Script_Menu_ChallengeExplanationCancel
+MenuData2_BattleInfoCancel:
+	db $a0 ; flags
+	db 3
+	db "Battle@"
+	db "Info@"
+	db "Cancel@"
 
-Script_BattleTowerHopeToServeYouAgain:
-	writetext Text_WeHopeToServeYouAgain
-	waitbutton
-	closetext
-	end
-
-Script_MobileError2: ; unreferenced
-	special BattleTowerMobileError
-	closetext
-	end
-
-Script_WaitButton:
-	waitbutton
-	closetext
-	end
-
-Script_ChooseChallenge2: ; unreferenced
-	writetext Text_SaveBeforeEnteringBattleRoom
-	yesorno
-	iffalse Script_Menu_ChallengeExplanationCancel
-	special TryQuickSave
-	iffalse Script_Menu_ChallengeExplanationCancel
-	setval BATTLETOWERACTION_SET_EXPLANATION_READ
-	special BattleTowerAction
-	special Function1700ba
-	ifequal $a, Script_Menu_ChallengeExplanationCancel
-	ifnotequal $0, Script_MobileError
-	writetext Text_ReceivedAListOfLeadersOnTheHonorRoll
-	turnobject BATTLETOWER1F_RECEPTIONIST, LEFT
-	writetext Text_PleaseConfirmOnThisMonitor
-	waitbutton
-	turnobject BATTLETOWER1F_RECEPTIONIST, DOWN
-	closetext
-	end
-
-Script_StartChallenge: ; unreferenced
-	setval BATTLETOWERACTION_LEVEL_CHECK
-	special BattleTowerAction
-	ifnotequal $0, Script_AMonLevelExceeds
-	setval BATTLETOWERACTION_UBERS_CHECK
-	special BattleTowerAction
-	ifnotequal $0, Script_MayNotEnterABattleRoomUnderL70
-	special CheckForBattleTowerRules
-	ifnotequal FALSE, Script_WaitButton
-	setval BATTLETOWERACTION_05
-	special BattleTowerAction
-	ifequal $0, .zero
-	writetext Text_CantBeRegistered_PreviousRecordDeleted
-	sjump .continue
-
-.zero
-	writetext Text_CantBeRegistered
-.continue
-	yesorno
-	iffalse Script_Menu_ChallengeExplanationCancel
-	writetext Text_SaveBeforeReentry
-	yesorno
-	iffalse Script_Menu_ChallengeExplanationCancel
-	setscene SCENE_BATTLETOWER1F_CHECKSTATE
-	special TryQuickSave
-	iffalse Script_Menu_ChallengeExplanationCancel
-	setscene SCENE_BATTLETOWER1F_NOOP
-	setval BATTLETOWERACTION_06
-	special BattleTowerAction
-	setval BATTLETOWERACTION_12
-	special BattleTowerAction
-	writetext Text_RightThisWayToYourBattleRoom
-	waitbutton
-	sjump Script_ResumeBattleTowerChallenge
-
-Script_ReachedBattleLimit: ; unreferenced
-	writetext Text_FiveDayBattleLimit_Mobile
-	waitbutton
-	sjump Script_BattleTowerHopeToServeYouAgain
-
-Script_AMonLevelExceeds:
-	writetext Text_AMonLevelExceeds
-	waitbutton
-	sjump Script_Menu_ChallengeExplanationCancel
-
-Script_MayNotEnterABattleRoomUnderL70:
-	writetext Text_MayNotEnterABattleRoomUnderL70
-	waitbutton
-	sjump Script_Menu_ChallengeExplanationCancel
-
-Script_MobileError:
-	special BattleTowerMobileError
-	closetext
-	end
-
-BattleTower_LeftWithoutSaving:
-	opentext
-	writetext Text_BattleTower_LeftWithoutSaving
-	waitbutton
-	sjump Script_BattleTowerHopeToServeYouAgain
-
-BattleTower1FYoungsterScript:
+BattleTowerPharmacistScript:
 	faceplayer
 	opentext
-	writetext Text_BattleTowerYoungster
+	checkevent EVENT_LISTENED_TO_TRICK_INTRO
+	iftruefwd BattleTowerTutorTrickScript
+	writethistext
+		text "The trainers here"
+		line "strategically use"
+		cont "held items."
+
+		para "But I've got a"
+		line "trick up my"
+		cont "sleeve--I'll swap"
+
+		para "their items for"
+		line "mine with Trick!"
+		done
 	waitbutton
-	closetext
-	turnobject BATTLETOWER1F_YOUNGSTER, RIGHT
-	end
-
-BattleTower1FCooltrainerFScript:
-	jumptextfaceplayer Text_BattleTowerCooltrainerF
-
-BattleTower1FBugCatcherScript:
-	jumptextfaceplayer Text_BattleTowerBugCatcher
-
-BattleTower1FGrannyScript:
-	jumptextfaceplayer Text_BattleTowerGranny
-
-MovementData_BattleTower1FWalkToElevator:
-	step UP
-	step UP
-	step UP
-	step UP
-	step UP
-MovementData_BattleTowerHallwayPlayerEntersBattleRoom:
-	step UP
-	step_end
-
-MovementData_BattleTowerElevatorExitElevator:
-	step DOWN
-	step_end
-
-MovementData_BattleTowerHallwayWalkTo1020Room:
-	step RIGHT
-	step RIGHT
-MovementData_BattleTowerHallwayWalkTo3040Room:
-	step RIGHT
-	step RIGHT
-	step UP
-	step RIGHT
-	turn_head LEFT
-	step_end
-
-MovementData_BattleTowerHallwayWalkTo90100Room:
-	step LEFT
-	step LEFT
-MovementData_BattleTowerHallwayWalkTo7080Room:
-	step LEFT
-	step LEFT
-MovementData_BattleTowerHallwayWalkTo5060Room:
-	step LEFT
-	step LEFT
-	step UP
-	step LEFT
-	turn_head RIGHT
-	step_end
-
-MovementData_BattleTowerBattleRoomPlayerWalksIn:
-	step UP
-	step UP
-	step UP
-	step UP
-	turn_head RIGHT
-	step_end
-
-MovementData_BattleTowerBattleRoomOpponentWalksIn:
-	slow_step DOWN
-	slow_step DOWN
-	slow_step DOWN
-	turn_head LEFT
-	step_end
-
-MovementData_BattleTowerBattleRoomOpponentWalksOut:
-	turn_head UP
-	slow_step UP
-	slow_step UP
-	slow_step UP
-	step_end
-
-MovementData_BattleTowerBattleRoomReceptionistWalksToPlayer:
-	slow_step RIGHT
-	slow_step RIGHT
-	slow_step UP
-	slow_step UP
-	step_end
-
-MovementData_BattleTowerBattleRoomReceptionistWalksAway:
-	slow_step DOWN
-	slow_step DOWN
-	slow_step LEFT
-	slow_step LEFT
-	turn_head RIGHT
-	step_end
-
-MovementData_BattleTowerBattleRoomPlayerTurnsToFaceReceptionist:
-	turn_head DOWN
-	step_end
-
-MovementData_BattleTowerBattleRoomPlayerTurnsToFaceNextOpponent:
-	turn_head RIGHT
-	step_end
-
-Text_BattleTowerWelcomesYou:
-	text "BATTLE TOWER"
-	line "welcomes you!"
-
-	para "I could show you"
-	line "to a BATTLE ROOM."
-	done
-
-Text_WantToGoIntoABattleRoom:
-	text "Want to go into a"
-	line "BATTLE ROOM?"
-	done
-
-Text_RightThisWayToYourBattleRoom:
-	text "Right this way to"
-	line "your BATTLE ROOM."
-	done
-
-Text_BattleTowerIntroduction_1: ; unreferenced
-	text "BATTLE TOWER is a"
-	line "facility made for"
-	cont "#MON battles."
-
-	para "Countless #MON"
-	line "trainers gather"
-
-	para "from all over to"
-	line "hold battles in"
-
-	para "specially designed"
-	line "BATTLE ROOMS."
-
-	para "There are many"
-	line "BATTLE ROOMS in"
-	cont "the BATTLE TOWER."
-
-	para "Each ROOM holds"
-	line "seven trainers."
-
-	para "If you defeat the"
-	line "seven in a ROOM,"
-
-	para "and you have a"
-	line "good record, you"
-
-	para "could become the"
-	line "ROOM's LEADER."
-
-	para "All LEADERS will"
-	line "be recorded in the"
-
-	para "HONOR ROLL for"
-	line "posterity."
-
-	para "You may challenge"
-	line "in up to five"
-
-	para "BATTLE ROOMS each"
-	line "day."
-
-	para "However, you may"
-	line "battle only once a"
-
-	para "day in any given"
-	line "ROOM."
-
-	para "To interrupt a"
-	line "session, you must"
-
-	para "SAVE. If not, you"
-	line "won't be able to"
-
-	para "resume your ROOM"
-	line "challenge."
-
-	para ""
-	done
-
-Text_BattleTowerIntroduction_2:
-	text "BATTLE TOWER is a"
-	line "facility made for"
-	cont "#MON battles."
-
-	para "Countless #MON"
-	line "trainers gather"
-
-	para "from all over to"
-	line "hold battles in"
-
-	para "specially designed"
-	line "BATTLE ROOMS."
-
-	para "There are many"
-	line "BATTLE ROOMS in"
-	cont "the BATTLE TOWER."
-
-	para "Each ROOM holds"
-	line "seven trainers."
-
-	para "Beat them all, and"
-	line "win a prize."
-
-	para "To interrupt a"
-	line "session, you must"
-
-	para "SAVE. If not, you"
-	line "won't be able to"
-
-	para "resume your ROOM"
-	line "challenge."
-
-	para ""
-	done
-
-Text_ReceivedAListOfLeadersOnTheHonorRoll:
-	text "Received a list of"
-	line "LEADERS on the"
-	cont "HONOR ROLL."
-
-	para ""
-	done
-
-Text_PleaseConfirmOnThisMonitor:
-	text "Please confirm on"
-	line "this monitor."
-	done
-
-Text_ThankYou: ; unreferenced
-	text "Thank you!"
-
-	para ""
-	done
-
-Text_ThanksForVisiting:
-	text "Thanks for"
-	line "visiting!"
-	done
-
-Text_BeatenAllTheTrainers_Mobile: ; unreferenced
-	text "Congratulations!"
-
-	para "You've beaten all"
-	line "the trainers!"
-
-	para "Your feat may be"
-	line "worth registering,"
-
-	para "<PLAYER>. With your"
-	line "results, you may"
-
-	para "be chosen as a"
-	line "ROOM LEADER."
-
-	para ""
-	done
-
-Text_CongratulationsYouveBeatenAllTheTrainers:
-	text "Congratulations!"
-
-	para "You've beaten all"
-	line "the trainers!"
-
-	para "For that, you get"
-	line "this great prize!"
-
-	para ""
-	done
-
-Text_AskRegisterRecord_Mobile: ; unreferenced
-	text "Would you like to"
-	line "register your"
-
-	para "record with the"
-	line "CENTER?"
-	done
-
-Text_PlayerGotFive:
-	text "<PLAYER> got five"
-	line "@"
-	text_ram wStringBuffer4
-	text "!@"
-	sound_item
-	text_promptbutton
-	text_end
-
-Text_YourPackIsStuffedFull:
-	text "Oops, your PACK is"
-	line "stuffed full."
-
-	para "Please make room"
-	line "and come back."
-	done
-
-Text_YourRegistrationIsComplete: ; unreferenced
-	text "Your registration"
-	line "is complete."
-
-	para "Please come again!"
-	done
-
-Text_WeHopeToServeYouAgain:
-	text "We hope to serve"
-	line "you again."
-	done
-
-Text_PleaseStepThisWay:
-	text "Please step this"
-	line "way."
-	done
-
-Text_WouldYouLikeToHearAboutTheBattleTower:
-	text "Would you like to"
-	line "hear about the"
-	cont "BATTLE TOWER?"
-	done
-
-Text_CantBeRegistered:
-	text "Your record from"
-	line "the previous"
-
-	para "BATTLE ROOM can't"
-	line "be registered. OK?"
-	done
-
-Text_CantBeRegistered_PreviousRecordDeleted:
-	text "Your record from"
-	line "the previous"
-
-	para "BATTLE ROOM can't"
-	line "be registered."
-
-	para "Also, the existing"
-	line "record will be"
-	cont "deleted. OK?"
-	done
-
-Text_CheckTheLeaderHonorRoll: ; unreferenced
-	text "Check the LEADER"
-	line "HONOR ROLL?"
-	done
-
-Text_ReadBattleTowerRules:
-	text "BATTLE TOWER rules"
-	line "are written here."
-
-	para "Read the rules?"
-	done
-
-Text_BattleTowerRules:
-	text "Three #MON may"
-	line "enter battles."
-
-	para "All three must be"
-	line "different."
-
-	para "The items they"
-	line "hold must also be"
-	cont "different."
-
-	para "Certain #MON"
-	line "may also have"
-
-	para "level restrictions"
-	line "placed on them."
-	done
-
-Text_BattleTower_LeftWithoutSaving:
-	text "Excuse me!"
-	line "You didn't SAVE"
-
-	para "before exiting"
-	line "the BATTLE ROOM."
-
-	para "I'm awfully sorry,"
-	line "but your challenge"
-
-	para "will be declared"
-	line "invalid."
-	done
-
-Text_YourMonWillBeHealedToFullHealth:
-	text "Your #MON will"
-	line "be healed to full"
-	cont "health."
-	done
-
-Text_NextUpOpponentNo:
-	text "Next up, opponent"
-	line "no.@"
-	text_ram wStringBuffer3
-	text ". Ready?"
-	done
-
-Text_SaveBeforeConnecting_Mobile: ; unreferenced
-	text "Your session will"
-	line "be SAVED before"
-
-	para "connecting with"
-	line "the CENTER."
-	done
-
-Text_SaveBeforeEnteringBattleRoom:
-	text "Before entering"
-	line "the BATTLE ROOM,"
-
-	para "your progress will"
-	line "be saved."
-	done
-
-Text_SaveAndEndTheSession:
-	text "SAVE and end the"
-	line "session?"
-	done
-
-Text_SaveBeforeReentry:
-	text "Your record will"
-	line "be SAVED before"
-
-	para "you go back into"
-	line "the previous ROOM."
-	done
-
-Text_CancelYourBattleRoomChallenge:
-	text "Cancel your BATTLE"
-	line "ROOM challenge?"
-	done
-
-Text_RegisterRecordOnFile_Mobile: ; unreferenced
-	text "We have your"
-	line "previous record on"
-
-	para "file. Would you"
-	line "like to register"
-	cont "it at the CENTER?"
-	done
-
-Text_WeveBeenWaitingForYou:
-	text "We've been waiting"
-	line "for you. This way"
-
-	para "to a BATTLE ROOM,"
-	line "please."
-	done
-
-Text_FiveDayBattleLimit_Mobile:
-	text "You may enter only"
-	line "five BATTLE ROOMS"
-	cont "each day."
-
-	para "Please come back"
-	line "tomorrow."
-	done
-
-Text_TooMuchTimeElapsedNoRegister:
-	text "Sorry, but it's"
-	line "not possible to"
-
-	para "register your"
-	line "current record at"
-
-	para "the CENTER because"
-	line "too much time has"
-
-	para "elapsed since the"
-	line "start of your"
-	cont "challenge."
-	done
-
-Text_RegisterRecordTimedOut_Mobile: ; unreferenced
-; duplicate of Text_TooMuchTimeElapsedNoRegister
-	text "Sorry, but it's"
-	line "not possible to"
-
-	para "register your most"
-	line "recent record at"
-
-	para "the CENTER because"
-	line "too much time has"
-
-	para "elapsed since the"
-	line "start of your"
-	cont "challenge."
-	done
-
-Text_AMonLevelExceeds:
-	text "One or more of"
-	line "your #MON's"
-	cont "levels exceeds @"
-	text_decimal wScriptVar, 1, 3
-	text "."
-	done
-
-Text_MayNotEnterABattleRoomUnderL70:
-	text_ram wcd49
-	text " may not"
-	line "enter a BATTLE"
-	cont "ROOM under L70."
-
-	para "This BATTLE ROOM"
-	line "is for L@"
-	text_decimal wScriptVar, 1, 3
-	text "."
-	done
-
-Text_BattleTowerYoungster:
-	text "Destroyed by the"
-	line "first opponent in"
-
-	para "no time at all…"
-	line "I'm no good…"
-	done
+	setevent EVENT_LISTENED_TO_TRICK_INTRO
+BattleTowerTutorTrickScript:
+	writethistext
+		text "I'll teach your"
+		line "#mon how to"
+
+		para "use Trick…"
+		line "for a Silver Leaf."
+		done
+	waitbutton
+	checkitem SILVER_LEAF
+	iffalsefwd .NoSilverLeaf
+	writethistext
+		text "Should I teach"
+		line "your #mon"
+		cont "Trick?"
+		done
+	yesorno
+	iffalsefwd .TutorRefused
+	setval TRICK
+	writetext ClearText
+	special Special_MoveTutor
+	ifequalfwd $0, .TeachMove
+.TutorRefused
+	jumpthisopenedtext
+		text "Talk to me if you"
+		line "change your mind."
+		done
+
+.NoSilverLeaf
+	jumpthisopenedtext
+		text "Tch. You don't have"
+		line "a Silver Leaf…"
+		done
+
+.TeachMove
+	takeitem SILVER_LEAF
+	jumpthisopenedtext
+		text "Now your #mon"
+		line "can use Trick too!"
+		cont "Isn't it devious?"
+		done
 
 Text_BattleTowerCooltrainerF:
 	text "There are lots of"
-	line "BATTLE ROOMS, but"
+	line "Battle Rooms, but"
 
 	para "I'm going to win"
 	line "them all!"
@@ -775,7 +376,7 @@ Text_BattleTowerGranny:
 	line "in battle."
 
 	para "Making your"
-	line "#MON hold items"
+	line "#mon hold items"
 
 	para "is the key to"
 	line "winning battles."
@@ -786,28 +387,26 @@ Text_BattleTowerBugCatcher:
 	line "how far I can go"
 
 	para "using just bug"
-	line "#MON."
+	line "#mon."
 
 	para "Don't let there be"
-	line "any fire #MON…"
+	line "any fire #mon…"
 	done
 
-BattleTower1F_MapEvents:
-	db 0, 0 ; filler
+PokemonJournalPalmerScript:
+	setflag ENGINE_READ_PALMER_JOURNAL
+	jumpthistext
 
-	def_warp_events
-	warp_event  7,  9, BATTLE_TOWER_OUTSIDE, 3
-	warp_event  8,  9, BATTLE_TOWER_OUTSIDE, 4
-	warp_event  7,  0, BATTLE_TOWER_ELEVATOR, 1
+	text "#mon Journal"
 
-	def_coord_events
+	para "Special Feature:"
+	line "Tower Tycoon"
+	cont "Palmer!"
 
-	def_bg_events
-	bg_event  6,  6, BGEVENT_READ, BattleTower1FRulesSign
+	para "Palmer is reported"
+	line "to have a son in"
 
-	def_object_events
-	object_event  7,  6, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, BattleTower1FReceptionistScript, -1
-	object_event 14,  9, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, BattleTower1FYoungsterScript, -1
-	object_event  4,  9, SPRITE_COOLTRAINER_F, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 1, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, BattleTower1FCooltrainerFScript, -1
-	object_event  1,  3, SPRITE_BUG_CATCHER, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, BattleTower1FBugCatcherScript, -1
-	object_event 14,  3, SPRITE_GRANNY, SPRITEMOVEDATA_WALK_UP_DOWN, 0, 1, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, BattleTower1FGrannyScript, -1
+	para "the Sinnoh region"
+	line "who wants to be a"
+	cont "trainer like him."
+	done

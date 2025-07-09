@@ -1,5 +1,5 @@
 DanaTakingPhotosText:
-	text "My @"
+	text "My "
 	text_ram wStringBuffer4
 	text " is"
 	line "getting prettier!"
@@ -11,7 +11,7 @@ DanaTakingPhotosText:
 DanaDefeatedMonText:
 	text "It took only an"
 	line "instant to KO a"
-	cont "wild @"
+	cont "wild "
 	text_ram wStringBuffer4
 	text "."
 
@@ -24,9 +24,9 @@ DanaDefeatedMonText:
 
 DanaLostAMonText:
 	text "You know what?"
-	line "A wild @"
+	line "A wild "
 	text_ram wStringBuffer4
-	text_start
+
 	para "got away from me"
 	line "again."
 
@@ -39,7 +39,7 @@ DanaLostAMonText:
 
 DanaBattleRematchText:
 	text "Right now, I'm on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 
@@ -65,7 +65,7 @@ DanaFoundItemText:
 	line "like it. Come get"
 
 	para "it! I'm waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done
@@ -89,7 +89,7 @@ DanaReminderText:
 	line "battle me?"
 
 	para "I'm waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done
@@ -104,7 +104,7 @@ DanaComePickUpText:
 	line "to someone else."
 
 	para "I'm waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done

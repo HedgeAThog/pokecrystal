@@ -1,43 +1,39 @@
-	object_const_def
-	const CELADONDEPTSTORE1F_RECEPTIONIST
-	const CELADONDEPTSTORE1F_GENTLEMAN
-	const CELADONDEPTSTORE1F_TEACHER
-
-CeladonDeptStore1F_MapScripts:
+CeladonDeptStore1F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-CeladonDeptStore1FReceptionistScript:
-	jumptextfaceplayer CeladonDeptStore1FReceptionistText
+	def_warp_events
+	warp_event  7,  7, CELADON_CITY, 1
+	warp_event  8,  7, CELADON_CITY, 1
+	warp_event 15,  0, CELADON_DEPT_STORE_2F, 2
+	warp_event  2,  0, CELADON_DEPT_STORE_ELEVATOR, 1
 
-CeladonDeptStore1FGentlemanScript:
-	jumptextfaceplayer CeladonDeptStore1FGentlemanText
+	def_coord_events
 
-CeladonDeptStore1FTeacherScript:
-	jumptextfaceplayer CeladonDeptStore1FTeacherText
+	def_bg_events
+	bg_event 14,  0, BGEVENT_JUMPTEXT, CeladonDeptStore1FDirectoryText
 
-CeladonDeptStore1FDirectory:
-	jumptext CeladonDeptStore1FDirectoryText
-
-CeladonDeptStore1FElevatorButton:
-	jumpstd ElevatorButtonScript
+	def_object_events
+	object_event 10,  1, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_COMMAND, jumptextfaceplayer, CeladonDeptStore1FReceptionistText, -1
+	object_event 11,  4, SPRITE_GENTLEMAN, SPRITEMOVEDATA_WANDER, 1, 1, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, CeladonDeptStore1FGentlemanText, -1
+	object_event  5,  3, SPRITE_POKEFAN_F, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, PAL_NPC_GREEN, OBJECTTYPE_COMMAND, jumptextfaceplayer, CeladonDeptStore1FTeacherText, -1
 
 CeladonDeptStore1FReceptionistText:
 	text "Hello! Welcome to"
-	line "CELADON DEPT."
-	cont "STORE!"
+	line "Celadon Dept."
+	cont "Store!"
 
 	para "The directory is"
 	line "on the wall."
 	done
 
 CeladonDeptStore1FGentlemanText:
-	text "This DEPT.STORE is"
+	text "This Dept.Store is"
 	line "part of the same"
 
 	para "chain as the one"
-	line "in GOLDENROD CITY."
+	line "in Goldenrod City."
 
 	para "They were both"
 	line "renovated at the"
@@ -55,38 +51,18 @@ CeladonDeptStore1FTeacherText:
 	done
 
 CeladonDeptStore1FDirectoryText:
-	text "1F: SERVICE"
-	line "    COUNTER"
+	text "1F: Service"
+	line "    Counter"
 
-	para "2F: TRAINER'S"
-	line "    MARKET"
+	para "2F: Trainer's"
+	line "    Market"
 
-	para "3F: TM SHOP"
+	para "3F: Tech Shop"
 
-	para "4F: WISEMAN GIFTS"
+	para "4F: Wiseman Gifts"
 
-	para "5F: DRUG STORE"
+	para "5F: Drug Store"
 
-	para "6F: ROOFTOP"
-	line "    SQUARE"
+	para "6F: Rooftop"
+	line "    Atrium"
 	done
-
-CeladonDeptStore1F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  7,  7, CELADON_CITY, 1
-	warp_event  8,  7, CELADON_CITY, 1
-	warp_event 15,  0, CELADON_DEPT_STORE_2F, 2
-	warp_event  2,  0, CELADON_DEPT_STORE_ELEVATOR, 1
-
-	def_coord_events
-
-	def_bg_events
-	bg_event 14,  0, BGEVENT_READ, CeladonDeptStore1FDirectory
-	bg_event  3,  0, BGEVENT_READ, CeladonDeptStore1FElevatorButton
-
-	def_object_events
-	object_event 10,  1, SPRITE_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, CeladonDeptStore1FReceptionistScript, -1
-	object_event 11,  4, SPRITE_GENTLEMAN, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CeladonDeptStore1FGentlemanScript, -1
-	object_event  5,  3, SPRITE_TEACHER, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 1, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, CeladonDeptStore1FTeacherScript, -1

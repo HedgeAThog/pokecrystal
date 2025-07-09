@@ -6,18 +6,15 @@ DEF ITEMATTR_PRICE_LO    rb
 DEF ITEMATTR_PRICE_HI    rb
 DEF ITEMATTR_EFFECT      rb
 DEF ITEMATTR_PARAM       rb
-DEF ITEMATTR_PERMISSIONS rb
 DEF ITEMATTR_POCKET      rb
 DEF ITEMATTR_HELP        rb
 DEF ITEMATTR_STRUCT_LENGTH EQU _RS
 
-; item types
-	const_def 1
-	const ITEM     ; 1
-	const KEY_ITEM ; 2
-	const BALL     ; 3
-	const TM_HM    ; 4
-DEF NUM_ITEM_TYPES EQU const_value - 1
+; key_item_attribute struct members (see data/items/attributes.asm)
+rsreset
+DEF KEYITEMATTR_PERMISSIONS rb
+DEF KEYITEMATTR_HELP        rb
+DEF KEYITEMATTR_STRUCT_LENGTH EQU _RS
 
 ; item menu types
 ; UseItem.dw indexes (see engine/items/pack.asm)
@@ -29,115 +26,132 @@ DEF NUM_ITEM_TYPES EQU const_value - 1
 	const ITEMMENU_PARTY   ; 5
 	const ITEMMENU_CLOSE   ; 6
 
-; item actions
-	const_def 6
-	shift_const CANT_SELECT ; 6
-	shift_const CANT_TOSS   ; 7
+; item types / pack pockets
+	const_def 1
+	const ITEM     ; 1
+	const MEDICINE ; 2
+	const BALL     ; 3
+	const TM_HM    ; 4
+	const BERRIES  ; 5
+	const KEY_ITEM ; 6
+DEF NUM_POCKETS EQU const_value - 1
 
-DEF NO_LIMITS EQU 0
-
-; pack pockets
-	const_def
-	const ITEM_POCKET     ; 0
-	const BALL_POCKET     ; 1
-	const KEY_ITEM_POCKET ; 2
-	const TM_HM_POCKET    ; 3
-DEF NUM_POCKETS EQU const_value
-
-DEF MAX_ITEMS     EQU 20
-DEF MAX_BALLS     EQU 12
-DEF MAX_KEY_ITEMS EQU 25
-DEF MAX_PC_ITEMS  EQU 50
+DEF MAX_ITEMS     EQU 75
+DEF MAX_MEDICINE  EQU 37
+DEF MAX_BALLS     EQU 25
+DEF MAX_BERRIES   EQU 31
+DEF MAX_PC_ITEMS  EQU 40
 
 DEF MAX_ITEM_STACK EQU 99
 
 ; mail
-DEF MAIL_LINE_LENGTH      EQU $10
-DEF MAIL_MSG_LENGTH       EQU $20
-DEF MAILBOX_CAPACITY      EQU 10
-DEF MAIL_STRUCT_LENGTH    EQU $2f ; mailmsg struct
-DEF MAIL_STRUCT_LENGTH_JP EQU $2a ; mailmsg_jp struct
-
-; mail languages
-	const_def
-	const MAIL_LANG_ENGLISH
-	const MAIL_LANG_FRENCH
-	const MAIL_LANG_GERMAN
-	const MAIL_LANG_ITALIAN
-	const MAIL_LANG_SPANISH
+DEF MAIL_LINE_LENGTH   EQU $10
+DEF MAIL_MSG_LENGTH    EQU $20
+DEF MAILBOX_CAPACITY   EQU 10
+DEF MAIL_STRUCT_LENGTH EQU $2f ; mailmsg struct
 
 ; held item effects
 	const_def
+
 	const HELD_NONE
 	const HELD_BERRY
-	const HELD_2
 	const HELD_LEFTOVERS
-	const_skip
-	const HELD_5
 	const HELD_RESTORE_PP
-	const_skip
 	const HELD_CLEANSE_TAG
 
-	const_next 10
-	const HELD_HEAL_POISON
-	const HELD_HEAL_FREEZE
-	const HELD_HEAL_BURN
-	const HELD_HEAL_SLEEP
-	const HELD_HEAL_PARALYZE
 	const HELD_HEAL_STATUS
-	const HELD_HEAL_CONFUSION
+	const HELD_HEAL_CONFUSE
 
-	const_next 20
 	const HELD_PREVENT_POISON
 	const HELD_PREVENT_BURN
-	const HELD_PREVENT_FREEZE
-	const HELD_PREVENT_SLEEP
 	const HELD_PREVENT_PARALYZE
+	const HELD_PREVENT_SLEEP
+	const HELD_PREVENT_FREEZE
 	const HELD_PREVENT_CONFUSE
 
-	const_next 30
-	const HELD_30
-	const HELD_ATTACK_UP
-	const HELD_DEFENSE_UP
-	const HELD_SPEED_UP
-	const HELD_SP_ATTACK_UP
-	const HELD_SP_DEFENSE_UP
-	const HELD_ACCURACY_UP
-	const HELD_EVASION_UP
-	const HELD_38
-
-	const_next 40
-	const_skip
-	const_skip
 	const HELD_METAL_POWDER
+	const HELD_QUICK_POWDER
+	const HELD_EVIOLITE
 
-	const_next 50
-	const HELD_NORMAL_BOOST
-	const HELD_FIGHTING_BOOST
-	const HELD_FLYING_BOOST
-	const HELD_POISON_BOOST
-	const HELD_GROUND_BOOST
-	const HELD_ROCK_BOOST
-	const HELD_BUG_BOOST
-	const HELD_GHOST_BOOST
-	const HELD_FIRE_BOOST
-	const HELD_WATER_BOOST
-	const HELD_GRASS_BOOST
-	const HELD_ELECTRIC_BOOST
-	const HELD_PSYCHIC_BOOST
-	const HELD_ICE_BOOST
-	const HELD_DRAGON_BOOST
-	const HELD_DARK_BOOST
-	const HELD_STEEL_BOOST
+	const HELD_TYPE_BOOST
+	const HELD_CATEGORY_BOOST
+	const HELD_ACCURACY_BOOST
 
-	const_next 70
-	const HELD_CATCH_CHANCE
-	const HELD_71
 	const HELD_ESCAPE
 	const HELD_CRITICAL_UP
+	const HELD_FLINCH_UP
 	const HELD_QUICK_CLAW
-	const HELD_FLINCH
 	const HELD_AMULET_COIN
 	const HELD_BRIGHTPOWDER
-	const_skip
 	const HELD_FOCUS_BAND
+
+	const HELD_EV_DOUBLE
+	const HELD_EV_HP_UP
+	const HELD_EV_ATK_UP
+	const HELD_EV_DEF_UP
+	const HELD_EV_SPE_UP
+	const HELD_EV_SAT_UP
+	const HELD_EV_SDF_UP
+
+	const HELD_CHOICE
+
+	const HELD_SELF_PSN
+	const HELD_SELF_BRN
+
+	const HELD_PROLONG_WRAP
+	const HELD_PROLONG_SCREENS
+	const HELD_PROLONG_RAIN
+	const HELD_PROLONG_SUN
+	const HELD_PROLONG_SANDSTORM
+	const HELD_PROLONG_HAIL
+
+	const HELD_AIR_BALLOON
+	const HELD_ASSAULT_VEST
+	const HELD_BIG_ROOT
+	const HELD_BINDING_BAND
+	const HELD_DESTINY_KNOT
+	const HELD_EXPERT_BELT
+	const HELD_FOCUS_SASH
+	const HELD_HEAVY_BOOTS
+	const HELD_LIFE_ORB
+	const HELD_METRONOME
+	const HELD_PROTECTIVE_PADS
+	const HELD_RING_TARGET
+	const HELD_ROCKY_HELMET
+	const HELD_ROOM_SERVICE
+	const HELD_SAFETY_GOGGLES
+	const HELD_SHED_SHELL
+	const HELD_SHELL_BELL
+	const HELD_WEAKNESS_POLICY
+	const HELD_ZOOM_LENS
+
+	const HELD_MENTAL_HERB
+	const HELD_POWER_HERB
+	const HELD_WHITE_HERB
+
+	const HELD_BLACK_SLUDGE
+
+	const HELD_RAISE_STAT
+	const HELD_RAISE_CRIT
+	const HELD_OFFEND_HIT
+	const HELD_DEFEND_HIT
+	const HELD_HIT_RAISE_ATK
+	const HELD_HIT_RAISE_SAT
+	const HELD_HIT_RAISE_SDF
+	const HELD_SWITCH
+	const HELD_SWITCH_TARGET
+	const HELD_EJECT_PACK
+	const HELD_LAGGING_TAIL
+	const HELD_IRON_BALL
+	const HELD_ENIGMA_BERRY
+	const HELD_CUSTAP_BERRY
+	const HELD_THROAT_SPRAY
+	const HELD_BLUNDER_POLICY
+	const HELD_UTILITY_UMBRELLA
+	const HELD_BERSERK_GENE
+	const HELD_NO_BUG_BITE
+	const HELD_CLEAR_AMULET
+	const HELD_MIRROR_HERB
+	const HELD_PUNCHING_GLOVE
+	const HELD_COVERT_CLOAK
+	const HELD_LOADED_DICE

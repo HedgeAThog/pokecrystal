@@ -1,72 +1,72 @@
-WiltonPhoneCalleeScript:
-	gettrainername STRING_BUFFER_3, FISHER, WILTON1
+WiltonPhoneScript1:
+	gettrainername FISHER, WILTON1, STRING_BUFFER_3
 	checkflag ENGINE_WILTON_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	farscall PhoneScript_AnswerPhone_Male
-	checkflag ENGINE_WILTON_THURSDAY_MORNING
-	iftrue .NotThursday
+	checkflag ENGINE_WILTON_THRUSDAY_MORNING
+	iftruefwd .NotThursday
 	checkflag ENGINE_WILTON_HAS_ITEM
-	iftrue .HasItem
+	iftruefwd .HasItem
 	readvar VAR_WEEKDAY
 	ifnotequal THURSDAY, .NotThursday
-	checktime MORN
-	iftrue WiltonThursdayMorning
+	checktime 1 << MORN
+	iftruefwd WiltonThursdayMorning
 
 .NotThursday:
 	farsjump WiltonHaventFoundAnythingScript
 
 .WantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_44
+	getlandmarkname ROUTE_44, STRING_BUFFER_5
 	farsjump WiltonNotBitingScript
 
 .HasItem:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_44
+	getlandmarkname ROUTE_44, STRING_BUFFER_5
 	farsjump WiltonWantThisScript
 
-WiltonPhoneCallerScript:
-	gettrainername STRING_BUFFER_3, FISHER, WILTON1
+WiltonPhoneScript2:
+	gettrainername FISHER, WILTON1, STRING_BUFFER_3
 	farscall PhoneScript_GreetPhone_Male
 	checkflag ENGINE_WILTON_READY_FOR_REMATCH
-	iftrue .GenericCall
-	checkflag ENGINE_WILTON_THURSDAY_MORNING
-	iftrue .GenericCall
+	iftruefwd .GenericCall
+	checkflag ENGINE_WILTON_THRUSDAY_MORNING
+	iftruefwd .GenericCall
 	checkflag ENGINE_WILTON_HAS_ITEM
-	iftrue .GenericCall
+	iftruefwd .GenericCall
 	farscall PhoneScript_Random2
-	ifequal 0, WiltonWantsBattle
+	ifequalfwd $0, WiltonWantsBattle
 	farscall PhoneScript_Random2
-	ifequal 0, WiltonHasItem
+	ifequalfwd $0, WiltonHasItem
 
 .GenericCall:
 	farsjump Phone_GenericCall_Male
 
 WiltonThursdayMorning:
-	setflag ENGINE_WILTON_THURSDAY_MORNING
+	setflag ENGINE_WILTON_THRUSDAY_MORNING
 
 WiltonWantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_44
+	getlandmarkname ROUTE_44, STRING_BUFFER_5
 	setflag ENGINE_WILTON_READY_FOR_REMATCH
 	farsjump PhoneScript_WantsToBattle_Male
 
 WiltonHasItem:
 	setflag ENGINE_WILTON_HAS_ITEM
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_44
+	getlandmarkname ROUTE_44, STRING_BUFFER_5
 	clearevent EVENT_WILTON_HAS_ULTRA_BALL
 	clearevent EVENT_WILTON_HAS_GREAT_BALL
 	clearevent EVENT_WILTON_HAS_POKE_BALL
-	random 5
-	ifequal 0, .UltraBall
-	random 3
-	ifequal 0, .GreatBall
-	sjump .PokeBall
+	random $5
+	ifequalfwd $0, .UltraBall
+	random $3
+	ifequalfwd $0, .GreatBall
+	sjumpfwd .PokeBall
 
 .UltraBall:
 	setevent EVENT_WILTON_HAS_ULTRA_BALL
-	sjump .FoundItem
+	sjumpfwd .FoundItem
 
 .GreatBall:
 	setevent EVENT_WILTON_HAS_GREAT_BALL
-	sjump .FoundItem
+	sjumpfwd .FoundItem
 
 .PokeBall:
 	setevent EVENT_WILTON_HAS_POKE_BALL

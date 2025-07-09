@@ -1,38 +1,46 @@
-OpenSRAM::
+GetSRAMBank::
+; load sram bank a
 ; if invalid bank, sram is disabled
 	cp NUM_SRAM_BANKS
-	jr c, .valid
-if DEF(_DEBUG)
-	push af
-	push bc
-	ld b, 1
-.loop
-	sla b
-	dec a
-	jr nz, .loop
-	ld a, BANK(sOpenedInvalidSRAM)
-	call OpenSRAM
-	ld a, [sOpenedInvalidSRAM]
-	or b
-	ld [sOpenedInvalidSRAM], a
-	pop bc
-	pop af
-endc
-	jr CloseSRAM
+	jr nc, CloseSRAM
 
-.valid:
-; switch to sram bank a
+	; switch to sram bank a
 	push af
-; latch clock data
+
+	; latch clock data
 	ld a, 1
 	ld [rRTCLATCH], a
-; enable sram/clock write
+
+	; enable sram/clock write
 	ld a, RAMG_SRAM_ENABLE
 	ld [rRAMG], a
-; select sram bank
+
+	; verify integrity of sram
+	; if wSRAMAccessCount != sSRAMAccessCount + 1,
+	; crash the game
+	ld a, BANK(sSRAMAccessCount)
+	ld [rRAMB], a
+	push hl
+	ld hl, sSRAMAccessCount
+	inc [hl]
+	ld a, [wSRAMAccessCount]
+	cp [hl]
+	pop hl
+	jr nz, .crash
+	inc a
+	ld [wSRAMAccessCount], a
+
+	; select sram bank
 	pop af
 	ld [rRAMB], a
 	ret
+
+.crash
+	pop af
+	call CloseSRAM
+	ld a, ERR_CORRUPTED_SAVESTATE
+	di
+	jmp Crash
 
 CloseSRAM::
 	push af

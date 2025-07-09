@@ -1,70 +1,111 @@
 DoItemEffect::
-	farcall _DoItemEffect
-	ret
-
-CheckTossableItem::
-	push hl
-	push de
-	push bc
-	farcall _CheckTossableItem
-	pop bc
-	pop de
-	pop hl
-	ret
+	farjp _DoItemEffect
 
 TossItem::
 	push hl
 	push de
 	push bc
-	ldh a, [hROMBank]
-	push af
-	ld a, BANK(_TossItem)
-	rst Bankswitch
-
-	call _TossItem
-
-	pop bc
-	ld a, b
-	rst Bankswitch
-	pop bc
-	pop de
-	pop hl
-	ret
+	farcall _TossItem
+	jmp PopBCDEHL
 
 ReceiveItem::
-	push bc
-	ldh a, [hROMBank]
-	push af
-	ld a, BANK(_ReceiveItem)
-	rst Bankswitch
 	push hl
 	push de
+	push bc
+	farcall _ReceiveItem
+	jmp PopBCDEHL
 
-	call _ReceiveItem
-
-	pop de
-	pop hl
-	pop bc
-	ld a, b
-	rst Bankswitch
-	pop bc
+ReceiveTMHM::
+	ld a, [wCurTMHM]
+	ld e, a
+	ld d, 0
+	ld b, SET_FLAG
+	ld hl, wTMsHMs
+	call FlagAction
+	scf
 	ret
 
 CheckItem::
 	push hl
 	push de
 	push bc
-	ldh a, [hROMBank]
-	push af
-	ld a, BANK(_CheckItem)
-	rst Bankswitch
+	farcall _CheckItem
+	jmp PopBCDEHL
 
-	call _CheckItem
+CheckTMHM::
+	ld a, [wCurTMHM]
+	ld e, a
+	ld d, 0
+	ld b, CHECK_FLAG
+	ld hl, wTMsHMs
+	call FlagAction
+	ret z
+	scf
+	ret
 
-	pop bc
+CountItem::
+	push bc
+	push hl
+	push de
+	farcall _CountItem
 	ld a, b
-	rst Bankswitch
-	pop bc
-	pop de
-	pop hl
+	ld [wBuffer1], a
+	ld a, c
+	ld [wBuffer2], a
+	jmp PopBCDEHL
+
+ReceiveKeyItem::
+; Adds the key item if not already obtained, and shifts the terminator.
+	; This also leaves registers in such a way that we can append it directly.
+	call CheckKeyItem
+	ccf
+	ret nc
+	ld [hld], a
+	ld [hl], e
+	scf
+	ret
+
+TossKeyItem::
+; Tosses the key item if found and shifts everything backwards.
+	ld a, [wCurKeyItem]
+	ld e, a
+	ld hl, wKeyItems
+.loop
+	ld d, h
+	ld a, [hli]
+	and a
+	ret z
+	cp e
+	jr nz, .loop
+	ld e, l
+	dec e
+.loop2
+	ld a, [hli]
+	ld [de], a
+	inc de
+	and a
+	jr nz, .loop2
+	scf
+	ret
+
+CheckKeyItem::
+; Returns carry if we found the key item.
+	ld a, [wCurKeyItem]
+_CheckKeyItem::
+	ld e, a
+	ld hl, wKeyItems
+.loop
+	ld a, [hli]
+	cp e
+	scf
+	ret z
+	and a
+	jr nz, .loop
+	ret
+
+CheckUniqueItemPocket::
+	ld a, [wCurPocket]
+	cp TM_HM - 1
+	ret z
+	cp KEY_ITEM - 1
 	ret

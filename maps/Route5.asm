@@ -1,56 +1,50 @@
-	object_const_def
-	const ROUTE5_POKEFAN_M
-
-Route5_MapScripts:
+Route5_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-Route5PokefanMScript:
-	jumptextfaceplayer Route5PokefanMText
+	def_warp_events
+	warp_event 17, 27, ROUTE_5_UNDERGROUND_ENTRANCE, 1
+	warp_event  8, 31, ROUTE_5_SAFFRON_CITY_GATE, 1
+	warp_event  9, 31, ROUTE_5_SAFFRON_CITY_GATE, 2
+	warp_event 10, 21, ROUTE_5_CLEANSE_TAG_SPEECH_HOUSE, 1
 
-Route5UndergroundPathSign:
-	jumptext Route5UndergroundPathSignText
+	def_coord_events
 
-HouseForSaleSign:
-	jumptext HouseForSaleSignText
+	def_bg_events
+	bg_event 17, 29, BGEVENT_JUMPTEXT, Route5UndergroundPathSignText
+	bg_event  5, 27, BGEVENT_JUMPTEXT, Route5AdvancedTipsSignText
+
+	def_object_events
+	object_event 17, 28, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BROWN, OBJECTTYPE_COMMAND, jumptextfaceplayer, Route5PokefanMText, EVENT_ROUTE_5_6_POKEFAN_M_BLOCKS_UNDERGROUND_PATH
 
 Route5PokefanMText:
 	text "The road is closed"
 	line "until the problem"
 
-	para "at the POWER PLANT"
+	para "at the Power Plant"
 	line "is solved."
 	done
 
 Route5UndergroundPathSignText:
-	text "UNDERGROUND PATH"
+	text "Underground Path"
 
-	para "CERULEAN CITY -"
-	line "VERMILION CITY"
+	para "Cerulean City -"
+	line "Vermilion City"
 	done
 
-HouseForSaleSignText:
-	text "What's this?"
+Route5AdvancedTipsSignText:
+	text "Advanced Tips!"
 
-	para "House for Sale…"
-	line "Nobody lives here."
+	para "Berserk Gene is"
+	line "a powerful held"
+
+	para "item, but it"
+	line "causes confusion."
+
+	para "But a #mon"
+	line "with the Own Tempo"
+
+	para "Ability won't"
+	line "get confused!"
 	done
-
-Route5_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event 17, 15, ROUTE_5_UNDERGROUND_PATH_ENTRANCE, 1
-	warp_event  8, 17, ROUTE_5_SAFFRON_GATE, 1
-	warp_event  9, 17, ROUTE_5_SAFFRON_GATE, 2
-	warp_event 10, 11, ROUTE_5_CLEANSE_TAG_HOUSE, 1
-
-	def_coord_events
-
-	def_bg_events
-	bg_event 17, 17, BGEVENT_READ, Route5UndergroundPathSign
-	bg_event 10, 11, BGEVENT_READ, HouseForSaleSign
-
-	def_object_events
-	object_event 17, 16, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, Route5PokefanMScript, EVENT_ROUTE_5_6_POKEFAN_M_BLOCKS_UNDERGROUND_PATH

@@ -1,21 +1,21 @@
 FieldMoveJumptableReset:
 	xor a
-	ld hl, wFieldMoveData
-	ld bc, wFieldMoveDataEnd - wFieldMoveData
-	call ByteFill
+	ld hl, wBuffer1
+	ld bc, 7
+	rst ByteFill
 	ret
 
 FieldMoveJumptable:
-	ld a, [wFieldMoveJumptableIndex]
-	rst JumpTable
-	ld [wFieldMoveJumptableIndex], a
-	bit JUMPTABLE_EXIT_F, a
+	ld a, [wBuffer1]
+	call JumpTable
+	ld [wBuffer1], a
+	bit 7, a
 	jr nz, .okay
 	and a
 	ret
 
 .okay
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	scf
 	ret
 
@@ -30,8 +30,7 @@ GetPartyNickname:
 ; copy text from wStringBuffer2 to wStringBuffer3
 	ld de, wStringBuffer2
 	ld hl, wStringBuffer3
-	call CopyName2
-	ret
+	jmp CopyName2
 
 CheckEngineFlag:
 ; Check engine flag de
@@ -58,59 +57,125 @@ CheckBadge:
 	ret
 
 .BadgeRequiredText:
+	; Sorry! A new BADGE
+	; is required.
 	text_far _BadgeRequiredText
 	text_end
 
 CheckPartyMove:
-; Check if a monster in your party has move d.
+; Check if a monster in your party has move d, or
+; can have move d and you have TM/HM e.
 
-	ld e, 0
 	xor a
 	ld [wCurPartyMon], a
-.loop
-	ld c, e
-	ld b, 0
-	ld hl, wPartySpecies
-	add hl, bc
-	ld a, [hl]
-	and a
-	jr z, .no
-	cp -1
-	jr z, .no
-	cp EGG
-	jr z, .next
 
-	ld bc, PARTYMON_STRUCT_LENGTH
-	ld hl, wPartyMon1Moves
 	ld a, e
-	call AddNTimes
+	ld [wCurTMHM], a
+
+	ld e, 0
+.loop1
+	ld a, [wPartyCount]
+	cp e
+	jr z, .maybe
+	ld hl, wPartyMon1IsEgg
+	ld a, e
+	call GetPartyLocation
+	bit MON_IS_EGG_F, [hl]
+	jr nz, .next1
+	ld bc, MON_MOVES - MON_FORM
+	add hl, bc
 	ld b, NUM_MOVES
-.check
+.check1
 	ld a, [hli]
 	cp d
 	jr z, .yes
 	dec b
-	jr nz, .check
-
-.next
+	jr nz, .check1
+.next1
 	inc e
-	jr .loop
+	jr .loop1
+
+.maybe
+	ld a, d
+	ld [wPutativeTMHMMove], a
+	ld a, [wCurTMHM]
+	inc a
+	jr z, .no
+	call CheckTMHM
+	jr nc, .no
+	ld e, 0
+.loop2
+	ld a, [wPartyCount]
+	cp e
+	jr z, .no
+	ld hl, wPartyMon1IsEgg
+	ld a, e
+	call GetPartyLocation
+	bit MON_IS_EGG_F, [hl]
+	jr nz, .next2
+	ld a, [hl]
+	and SPECIESFORM_MASK
+	ld [wCurForm], a
+	ld bc, MON_SPECIES - MON_FORM
+	add hl, bc
+	ld a, [hl]
+	ld [wCurPartySpecies], a
+	predef CanLearnTMHMMove
+	ld a, c
+	and a
+	jr nz, .yes
+.next2
+	inc e
+	jr .loop2
 
 .yes
 	ld a, e
 	ld [wCurPartyMon], a ; which mon has the move
 	xor a
 	ret
+
 .no
 	scf
 	ret
 
-FieldMoveFailed:
-	ld hl, .CantUseItemText
-	call MenuTextboxBackup
+CheckForSurfingPikachu:
+	lb de, SURF, HM_SURF
+	call CheckPartyMove
+	jr c, .no
+	ld a, MON_SPECIES
+	call GetPartyParamLocationAndValue
+	cp LOW(PIKACHU)
+	jr nz, .no
+	assert !HIGH(PIKACHU)
+	ld de, MON_EXTSPECIES - MON_SPECIES
+	add hl, de
+	ld a, [hl]
+	and 1 << MON_EXTSPECIES_F
+	jr nz, .no
+	ld a, TRUE
+	ldh [hScriptVar], a
 	ret
 
-.CantUseItemText:
+.no:
+	xor a ; FALSE
+	ldh [hScriptVar], a
+	ret
+
+FieldMovePokepicScript:
+	reanchormap
+	pokepic 0
+	cry 0
+	waitsfx
+	closepokepic
+	refreshmap
+	end
+
+FieldMoveFailed:
+	ld hl, .CantUseHere
+	jmp MenuTextboxBackup
+
+.CantUseHere:
+	; Can't use that here.
 	text_far _CantUseItemText
 	text_end
 
@@ -120,11 +185,12 @@ CutFunction:
 	ld hl, .Jumptable
 	call FieldMoveJumptable
 	jr nc, .loop
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
 .Jumptable:
+
 	dw .CheckAble
 	dw .DoCut
 	dw .FailCut
@@ -139,7 +205,7 @@ CutFunction:
 	ret
 
 .nohivebadge
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 
 .nothingtocut
@@ -149,24 +215,27 @@ CutFunction:
 .DoCut:
 	ld hl, Script_CutFromMenu
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .FailCut:
-	ld hl, CutNothingText
+	ld hl, Text_NothingToCut
 	call MenuTextboxBackup
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 
-UseCutText:
-	text_far _UseCutText
-	text_end
-
-CutNothingText:
+Text_NothingToCut:
+	; There's nothing to CUT here.
 	text_far _CutNothingText
 	text_end
 
 CheckMapForSomethingToCut:
+	call GetFacingObject
+	jr c, .no_tree
+	ld a, d
+	cp SPRITEMOVEDATA_CUTTABLE_TREE
+	jr z, .tree
+.no_tree
 	; Does the collision data of the facing tile permit cutting?
 	call GetFacingTileCoord
 	ld c, a
@@ -179,20 +248,27 @@ CheckMapForSomethingToCut:
 	ld c, [hl]
 	; See if that block contains something that can be cut.
 	push hl
-	ld hl, CutTreeBlockPointers
+	ld hl, CutGrassBlockPointers
 	call CheckOverworldTileArrays
 	pop hl
 	jr nc, .fail
-	; Save the Cut field move data
+	; Back up the wOverworldMapBlocks address to wBuffer3
 	ld a, l
-	ld [wCutWhirlpoolOverworldBlockAddr], a
+	ld [wBuffer3], a
 	ld a, h
-	ld [wCutWhirlpoolOverworldBlockAddr + 1], a
+	ld [wBuffer4], a
+	; Back up the replacement tile to wBuffer5
 	ld a, b
-	ld [wCutWhirlpoolReplacementBlock], a
-	ld a, c
-	ld [wCutWhirlpoolAnimationType], a
+	ld [wBuffer5], a
+	; Back up the animation index to wBuffer6
+	ld a, $1
+	ld [wBuffer6], a
 	xor a
+	ret
+
+.tree
+	xor a
+	ld [wBuffer6], a
 	ret
 
 .fail
@@ -202,36 +278,45 @@ CheckMapForSomethingToCut:
 Script_CutFromMenu:
 	refreshmap
 	special UpdateTimePals
-
-Script_Cut:
-	callasm GetPartyNickname
-	writetext UseCutText
-	refreshmap
-	callasm CutDownTreeOrGrass
+	callasm GetBuffer6
+	ifequal $0, Script_CutTree
+;Script_CutGrass:
+	callasm PrepareOverworldMove
+	farwritetext _UseCutText
 	closetext
-	end
+	scall FieldMovePokepicScript
+	callasm CutDownGrass
+	endtext
 
-CutDownTreeOrGrass:
-	ld hl, wCutWhirlpoolOverworldBlockAddr
+GetBuffer6:
+	ld a, [wBuffer6]
+	ldh [hScriptVar], a
+	ret
+
+CutDownGrass:
+	ld hl, wWeatherFlags
+	set OW_WEATHER_LIGHTNING_DISABLED_F, [hl]
+	farcall CancelOWFadePalettes
+	farcall CopyBGGreenToOBPal7
+	ld hl, wBuffer3 ; OverworldMapTile
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	ld a, [wCutWhirlpoolReplacementBlock]
+	ld a, [wBuffer5] ; ReplacementTile
 	ld [hl], a
 	xor a
 	ldh [hBGMapMode], a
-	call LoadOverworldTilemapAndAttrmapPals
+	call LoadMapPart
 	call UpdateSprites
 	call DelayFrame
-	ld a, [wCutWhirlpoolAnimationType]
-	ld e, a
+	ld a, 1 ; Animation type
 	farcall OWCutAnimation
+	ld hl, wWeatherFlags
+	res OW_WEATHER_LIGHTNING_DISABLED_F, [hl]
 	call BufferScreen
 	call GetMovementPermissions
 	call UpdateSprites
-	call DelayFrame
-	call LoadStandardFont
-	ret
+	jmp DelayFrame
 
 CheckOverworldTileArrays:
 	; Input: c contains the tile you're facing
@@ -252,16 +337,13 @@ CheckOverworldTileArrays:
 	ld h, [hl]
 	ld l, a
 	; Look up the tile you're facing
-	ld de, 3
 	ld a, c
+	dec de ; ld de, 2
 	call IsInArray
 	jr nc, .nope
 	; Load the replacement to b
 	inc hl
 	ld b, [hl]
-	; Load the animation type parameter to c
-	inc hl
-	ld c, [hl]
 	scf
 	ret
 
@@ -271,16 +353,76 @@ CheckOverworldTileArrays:
 
 INCLUDE "data/collision/field_move_blocks.asm"
 
-FlashFunction:
+Script_CutTree:
+	callasm PrepareOverworldMove
+	farwritetext _UseCutText
+	closetext
+	waitsfx
+	scall FieldMovePokepicScript
+	setflag ENGINE_AUTOCUT_ACTIVE
+	disappear -2
+	callasm CutDownTree
+	endtext
+
+AutoCutTreeScript:
+	callasm RefreshScreenFast
+	disappear -2
+	callasm CutDownTree
+	endtext
+
+CutDownTree:
+	ld hl, wWeatherFlags
+	set OW_WEATHER_LIGHTNING_DISABLED_F, [hl]
+	farcall CancelOWFadePalettes
+	farcall CopyBGGreenToOBPal7
+	xor a
+	ldh [hBGMapMode], a
+	call LoadMapPart
+	call UpdateSprites
+	call DelayFrame
+	xor a ; Animation type
+	farcall OWCutAnimation
+	ld hl, wWeatherFlags
+	res OW_WEATHER_LIGHTNING_DISABLED_F, [hl]
+	call BufferScreen
+	call GetMovementPermissions
+	call UpdateSprites
+	call DelayFrame
+	jmp LoadStandardFont
+
+TryFlashOW::
+	ld a, [wTimeOfDayPalset]
+	cp DARKNESS_PALSET
+	jr nz, .quit
+	lb de, FLASH, TM_FLASH
+	call CheckPartyMove
+	jr c, .quit
+	call GetPartyNickname
+	ld a, BANK(AskFlashScript)
+	ld hl, AskFlashScript
+	call CallScript
+	scf
+	ret
+
+.quit
+	xor a
+	ret
+
+AskFlashScript:
+	opentext
+	farwritetext _AskFlashText
+	yesorno
+	iftruefwd Script_UseFlash
+	endtext
+
+OWFlash:
 	call .CheckUseFlash
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
 .CheckUseFlash:
-	ld de, ENGINE_ZEPHYRBADGE
-	farcall CheckBadge
-	jr c, .nozephyrbadge
+; Flash
 	push hl
 	farcall SpecialAerodactylChamber
 	pop hl
@@ -290,29 +432,27 @@ FlashFunction:
 	jr nz, .notadarkcave
 .useflash
 	call UseFlash
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .notadarkcave
 	call FieldMoveFailed
-	ld a, JUMPTABLE_EXIT
-	ret
-
-.nozephyrbadge
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 
 UseFlash:
 	ld hl, Script_UseFlash
-	jp QueueScript
+	jmp QueueScript
 
 Script_UseFlash:
 	refreshmap
 	special UpdateTimePals
+	callasm PrepareOverworldMove
+	scall FieldMovePokepicScript
+	opentext
 	writetext UseFlashTextScript
 	callasm BlindingFlash
-	closetext
-	end
+	endtext
 
 UseFlashTextScript:
 	text_far _BlindingFlashText
@@ -321,11 +461,8 @@ UseFlashTextScript:
 	ld de, SFX_FLASH
 	call PlaySFX
 	call WaitSFX
-	ld hl, .BlankText
+	ld hl, EmptyString
 	ret
-
-.BlankText:
-	text_end
 
 SurfFunction:
 	call FieldMoveJumptableReset
@@ -333,7 +470,7 @@ SurfFunction:
 	ld hl, .Jumptable
 	call FieldMoveJumptable
 	jr nc, .loop
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
@@ -347,8 +484,8 @@ SurfFunction:
 	ld de, ENGINE_FOGBADGE
 	call CheckBadge
 	jr c, .nofogbadge
-	ld hl, wBikeFlags
-	bit BIKEFLAGS_ALWAYS_ON_BIKE_F, [hl]
+	ld hl, wOWState
+	bit OWSTATE_BIKING_FORCED, [hl]
 	jr nz, .cannotsurf
 	ld a, [wPlayerState]
 	cp PLAYER_SURF
@@ -357,7 +494,7 @@ SurfFunction:
 	jr z, .alreadyfail
 	call GetFacingTileCoord
 	call GetTilePermission
-	cp WATER_TILE
+	dec a ; cp WATER_TILE
 	jr nz, .cannotsurf
 	call CheckDirection
 	jr c, .cannotsurf
@@ -366,7 +503,7 @@ SurfFunction:
 	ld a, $1
 	ret
 .nofogbadge
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 .alreadyfail
 	ld a, $3
@@ -377,53 +514,47 @@ SurfFunction:
 
 .DoSurf:
 	call GetSurfType
-	ld [wSurfingPlayerState], a
+	ld [wBuffer2], a
 	call GetPartyNickname
 	ld hl, SurfFromMenuScript
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .FailSurf:
 	ld hl, CantSurfText
 	call MenuTextboxBackup
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 
 .AlreadySurfing:
 	ld hl, AlreadySurfingText
 	call MenuTextboxBackup
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 
 SurfFromMenuScript:
 	special UpdateTimePals
 
 UsedSurfScript:
-; BUG: Surfing directly across a map connection does not load the new map (see docs/bugs_and_glitches.md)
-	writetext UsedSurfText ; "used SURF!"
+	callasm PrepareOverworldMove
+	farwritetext _UsedSurfText
 	waitbutton
 	closetext
 
-	callasm .stubbed_fn
+	setflag ENGINE_AUTOSURF_ACTIVE
+	scall FieldMovePokepicScript
 
-	readmem wSurfingPlayerState
+AutoSurfScript:
+	readmem wBuffer2
 	writevar VAR_MOVEMENT
 
 	special UpdatePlayerSprite
-	special PlayMapMusic
-; step into the water (slow_step DIR, step_end)
-	special SurfStartStep
-	applymovement PLAYER, wMovementBuffer
+	playmapmusic
+; step into the water
+	special Special_SurfStartStep ; (slow_step_x, step_end)
+	applymovement PLAYER, wMovementBuffer ; PLAYER, MovementBuffer
 	end
-
-.stubbed_fn
-	farcall StubbedTrainerRankings_Surf
-	ret
-
-UsedSurfText:
-	text_far _UsedSurfText
-	text_end
 
 CantSurfText:
 	text_far _CantSurfText
@@ -437,16 +568,18 @@ GetSurfType:
 ; Surfing on Pikachu uses an alternate sprite.
 ; This is done by using a separate movement type.
 
-	ld a, [wCurPartyMon]
-	ld e, a
-	ld d, 0
-	ld hl, wPartySpecies
+	ld a, MON_SPECIES
+	call GetPartyParamLocationAndValue
+	cp LOW(PIKACHU)
+	jr nz, .not_pikachu
+	assert !HIGH(PIKACHU)
+	ld de, MON_EXTSPECIES - MON_SPECIES
 	add hl, de
-
 	ld a, [hl]
-	cp PIKACHU
+	and 1 << MON_EXTSPECIES_F
 	ld a, PLAYER_SURF_PIKA
 	ret z
+.not_pikachu
 	ld a, PLAYER_SURF
 	ret
 
@@ -495,7 +628,7 @@ TrySurfOW::
 ; Must be facing water.
 	ld a, [wFacingTileID]
 	call GetTilePermission
-	cp WATER_TILE
+	dec a ; cp WATER_TILE
 	jr nz, .quit
 
 ; Check tile permissions.
@@ -506,16 +639,16 @@ TrySurfOW::
 	call CheckEngineFlag
 	jr c, .quit
 
-	ld d, SURF
+	lb de, SURF, HM_SURF
 	call CheckPartyMove
 	jr c, .quit
 
-	ld hl, wBikeFlags
-	bit BIKEFLAGS_ALWAYS_ON_BIKE_F, [hl]
+	ld hl, wOWState
+	bit OWSTATE_BIKING_FORCED, [hl]
 	jr nz, .quit
 
 	call GetSurfType
-	ld [wSurfingPlayerState], a
+	ld [wBuffer2], a
 	call GetPartyNickname
 
 	ld a, BANK(AskSurfScript)
@@ -530,16 +663,51 @@ TrySurfOW::
 	ret
 
 AskSurfScript:
+	checkflag ENGINE_AUTOSURF_ACTIVE
+	iftrue AutoSurfScript
 	opentext
-	writetext AskSurfText
+	farwritetext _AskSurfText
 	yesorno
 	iftrue UsedSurfScript
-	closetext
-	end
+	endtext
 
-AskSurfText:
-	text_far _AskSurfText
-	text_end
+CheckFlyAllowedOnMap:
+; returns z is fly is allowed
+	call RegionCheck
+	ld a, e
+	cp ORANGE_REGION
+	jr nz, .not_orange
+	ld a, [wVisitedSpawns + SPAWN_SHAMOUTI / 8]
+	bit SPAWN_SHAMOUTI % 8, a
+	jr z, .no_fly
+.not_orange
+	call GetMapEnvironment
+	call CheckOutdoorMap
+	ret z
+	ld a, [wMapGroup]
+	ld d, a
+	ld a, [wMapNumber]
+	ld e, a
+	ld hl, IndoorFlyMaps
+.loop
+	ld a, [hli]
+	and a
+	jr z, .no_fly
+	cp d
+	jr nz, .skip
+	ld a, [hli]
+	cp e
+	ret z
+	jr .loop
+.skip
+	inc hl
+	jr .loop
+.no_fly
+	inc a
+	and a ; nz
+	ret
+
+INCLUDE "data/maps/indoor_fly_maps.asm"
 
 FlyFunction:
 	call FieldMoveJumptableReset
@@ -547,7 +715,7 @@ FlyFunction:
 	ld hl, .Jumptable
 	call FieldMoveJumptable
 	jr nc, .loop
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
@@ -557,15 +725,13 @@ FlyFunction:
 	dw .FailFly
 
 .TryFly:
+; Fly
 	ld de, ENGINE_STORMBADGE
 	call CheckBadge
 	jr c, .nostormbadge
-	call GetMapEnvironment
-	call CheckOutdoorMap
-	jr z, .outdoors
-	jr .indoors
+	call CheckFlyAllowedOnMap
+	jr nz, .indoors
 
-.outdoors
 	xor a
 	ldh [hMapAnims], a
 	call LoadStandardMenuHeader
@@ -583,7 +749,7 @@ FlyFunction:
 	ret
 
 .nostormbadge
-	ld a, JUMPTABLE_EXIT | $2
+	ld a, $82
 	ret
 
 .indoors
@@ -592,73 +758,108 @@ FlyFunction:
 
 .illegal
 	call CloseWindow
-	call WaitBGMap
-	ld a, JUMPTABLE_EXIT
+	call ApplyTilemapInVBlank
+	ld a, $80
 	ret
 
 .DoFly:
 	ld hl, .FlyScript
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .FailFly:
 	call FieldMoveFailed
-	ld a, JUMPTABLE_EXIT | $2
+	ld a, $82
 	ret
 
 .FlyScript:
 	refreshmap
-	callasm HideSprites
+	callasm .StopPalFading
+	callasm ClearSavedObjPals
+	callasm CopyBGGreenToOBPal7
+	callasm LoadWeatherPal
 	special UpdateTimePals
+	callasm PrepareOverworldMove
+	scall FieldMovePokepicScript
+	callasm .SetWeatherFlyFlag
 	callasm FlyFromAnim
 	farscall Script_AbortBugContest
 	special WarpToSpawnPoint
 	callasm SkipUpdateMapSprites
 	loadvar VAR_MOVEMENT, PLAYER_NORMAL
 	newloadmap MAPSETUP_FLY
+	callasm CopyBGGreenToOBPal7
 	callasm FlyToAnim
+	callasm .ClearWeatherFlyFlag
 	special WaitSFX
 	callasm .ReturnFromFly
 	end
 
 .ReturnFromFly:
-	farcall RespawnPlayer
+	farcall ReturnFromFly_SpawnOnlyPlayer
+	farcall ClearSavedObjPals
+	farcall CheckForUsedObjPals
 	call DelayFrame
-	call UpdatePlayerSprite
-	farcall LoadOverworldFont
+	jmp UpdatePlayerSprite
+
+.SetWeatherFlyFlag:
+	ld hl, wWeatherFlags
+	set OW_WEATHER_DO_FLY_F, [hl]
+	ret
+
+.ClearWeatherFlyFlag:
+	ld hl, wWeatherFlags
+	res OW_WEATHER_DO_FLY_F, [hl]
+	ret
+
+.StopPalFading:
+	ldh a, [rWBK]
+	push af
+	ld a, BANK(wPalFadeDelayFrames)
+	ldh [rWBK], a
+	xor a
+	ld [wPalFadeDelayFrames], a
+	pop af
+	ldh [rWBK], a
+	ld hl, wPalFlags
+	res NO_DYN_PAL_APPLY_UNTIL_RESET_F, [hl]
 	ret
 
 WaterfallFunction:
 	call .TryWaterfall
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
 .TryWaterfall:
+; Waterfall
 	ld de, ENGINE_RISINGBADGE
-	farcall CheckBadge
-	ld a, JUMPTABLE_EXIT
+	call CheckBadge
+	ld a, $80
 	ret c
 	call CheckMapCanWaterfall
 	jr c, .failed
 	ld hl, Script_WaterfallFromMenu
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .failed
 	call FieldMoveFailed
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 
 CheckMapCanWaterfall:
 	ld a, [wPlayerDirection]
-	and $c
+	and FACE_UP | FACE_DOWN
 	cp FACE_UP
 	jr nz, .failed
+	ld a, [wTilePermissions]
+	and FACE_UP
+	jr nz, .failed
 	ld a, [wTileUp]
-	call CheckWaterfallTile
+	cp COLL_WATERFALL
 	jr nz, .failed
 	xor a
 	ret
@@ -672,11 +873,14 @@ Script_WaterfallFromMenu:
 	special UpdateTimePals
 
 Script_UsedWaterfall:
-	callasm GetPartyNickname
-	writetext .UseWaterfallText
+	callasm PrepareOverworldMove
+	farwritetext _UseWaterfallText
 	waitbutton
 	closetext
-	playsound SFX_BUBBLEBEAM
+	scall FieldMovePokepicScript
+	setflag ENGINE_AUTOWATERFALL_ACTIVE
+Script_AutoWaterfall:
+	playsound SFX_BUBBLE_BEAM
 .loop
 	applymovement PLAYER, .WaterfallStep
 	callasm .CheckContinueWaterfall
@@ -685,25 +889,20 @@ Script_UsedWaterfall:
 
 .CheckContinueWaterfall:
 	xor a
-	ld [wScriptVar], a
+	ldh [hScriptVar], a
 	ld a, [wPlayerTileCollision]
-	call CheckWaterfallTile
+	cp COLL_WATERFALL
 	ret z
-	farcall StubbedTrainerRankings_Waterfall
 	ld a, $1
-	ld [wScriptVar], a
+	ldh [hScriptVar], a
 	ret
 
 .WaterfallStep:
-	turn_waterfall UP
+	turn_waterfall_up
 	step_end
 
-.UseWaterfallText:
-	text_far _UseWaterfallText
-	text_end
-
 TryWaterfallOW::
-	ld d, WATERFALL
+	lb de, WATERFALL, HM_WATERFALL
 	call CheckPartyMove
 	jr c, .failed
 	ld de, ENGINE_RISINGBADGE
@@ -725,23 +924,16 @@ TryWaterfallOW::
 	ret
 
 Script_CantDoWaterfall:
-	jumptext .HugeWaterfallText
-
-.HugeWaterfallText:
-	text_far _HugeWaterfallText
-	text_end
+	farjumptext _HugeWaterfallText
 
 Script_AskWaterfall:
+	checkflag ENGINE_AUTOWATERFALL_ACTIVE
+	iftrue Script_AutoWaterfall
 	opentext
-	writetext .AskWaterfallText
+	farwritetext _AskWaterfallText
 	yesorno
 	iftrue Script_UsedWaterfall
-	closetext
-	end
-
-.AskWaterfallText:
-	text_far _AskWaterfallText
-	text_end
+	endtext
 
 EscapeRopeFunction:
 	call FieldMoveJumptableReset
@@ -753,12 +945,12 @@ DigFunction:
 	ld a, $2
 
 EscapeRopeOrDig:
-	ld [wEscapeRopeOrDigType], a
+	ld [wBuffer2], a
 .loop
 	ld hl, .DigTable
 	call FieldMoveJumptable
 	jr nc, .loop
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
@@ -795,62 +987,59 @@ EscapeRopeOrDig:
 	ld hl, wDigWarpNumber
 	ld de, wNextWarp
 	ld bc, 3
-	call CopyBytes
-	call GetPartyNickname
-	ld a, [wEscapeRopeOrDigType]
+	rst CopyBytes
+	ld a, [wBuffer2]
 	cp $2
 	jr nz, .escaperope
+	call GetPartyNickname
 	ld hl, .UsedDigScript
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .escaperope
 	farcall SpecialKabutoChamber
 	ld hl, .UsedEscapeRopeScript
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .FailDig:
-	ld a, [wEscapeRopeOrDigType]
+	ld a, [wBuffer2]
 	cp $2
 	jr nz, .failescaperope
-	ld hl, .CantUseDigText
+	ld hl, .Text_CantUseHere
 	call MenuTextbox
 	call WaitPressAorB_BlinkCursor
 	call CloseWindow
 
 .failescaperope
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 
-.UseDigText:
-	text_far _UseDigText
-	text_end
-
-.UseEscapeRopeText:
-	text_far _UseEscapeRopeText
-	text_end
-
-.CantUseDigText:
+.Text_CantUseHere:
+	; Can't use that here.
 	text_far _CantUseDigText
 	text_end
 
 .UsedEscapeRopeScript:
 	refreshmap
 	special UpdateTimePals
-	writetext .UseEscapeRopeText
-	sjump .UsedDigOrEscapeRopeScript
+	farwritetext _UseEscapeRopeText
+	waitbutton
+	closetext
+	sjumpfwd .UsedDigOrEscapeRopeScript
 
 .UsedDigScript:
 	refreshmap
 	special UpdateTimePals
-	writetext .UseDigText
-
-.UsedDigOrEscapeRopeScript:
+	callasm PrepareOverworldMove
+	farwritetext _UseDigText
 	waitbutton
 	closetext
+	scall FieldMovePokepicScript
+
+.UsedDigOrEscapeRopeScript:
 	playsound SFX_WARP_TO
 	applymovement PLAYER, .DigOut
 	farscall Script_AbortBugContest
@@ -877,7 +1066,7 @@ TeleportFunction:
 	ld hl, .Jumptable
 	call FieldMoveJumptable
 	jr nc, .loop
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
@@ -887,12 +1076,8 @@ TeleportFunction:
 	dw .FailTeleport
 
 .TryTeleport:
-	call GetMapEnvironment
-	call CheckOutdoorMap
-	jr z, .CheckIfSpawnPoint
-	jr .nope
-
-.CheckIfSpawnPoint:
+	call CheckFlyAllowedOnMap
+	jr nz, .nope
 	ld a, [wLastSpawnMapGroup]
 	ld d, a
 	ld a, [wLastSpawnMapNumber]
@@ -912,30 +1097,23 @@ TeleportFunction:
 	call GetPartyNickname
 	ld hl, .TeleportScript
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .FailTeleport:
-	ld hl, .CantUseTeleportText
+	ld hl, .Text_CantUseHere
 	call MenuTextboxBackup
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 
-.TeleportReturnText:
-	text_far _TeleportReturnText
-	text_end
-
-.CantUseTeleportText:
+.Text_CantUseHere:
+	; Can't use that here.
 	text_far _CantUseTeleportText
 	text_end
 
 .TeleportScript:
 	refreshmap
 	special UpdateTimePals
-	writetext .TeleportReturnText
-	pause 60
-	refreshmap
-	closetext
 	playsound SFX_WARP_TO
 	applymovement PLAYER, .TeleportFrom
 	farscall Script_AbortBugContest
@@ -956,48 +1134,38 @@ TeleportFunction:
 
 StrengthFunction:
 	call .TryStrength
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
 .TryStrength:
+; Strength
 	ld de, ENGINE_PLAINBADGE
 	call CheckBadge
-	jr c, .Failed
-	jr .UseStrength
-
-.AlreadyUsingStrength: ; unreferenced
-	ld hl, .AlreadyUsingStrengthText
-	call MenuTextboxBackup
-	ld a, JUMPTABLE_EXIT
-	ret
-
-.AlreadyUsingStrengthText:
-	text_far _AlreadyUsingStrengthText
-	text_end
+	jr nc, .UseStrength
 
 .Failed:
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 
 .UseStrength:
 	ld hl, Script_StrengthFromMenu
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 SetStrengthFlag:
-	ld hl, wBikeFlags
-	set BIKEFLAGS_STRENGTH_ACTIVE_F, [hl]
-	ld a, [wCurPartyMon]
-	ld e, a
-	ld d, 0
-	ld hl, wPartySpecies
-	add hl, de
-	ld a, [hl]
-	ld [wStrengthSpecies], a
-	call GetPartyNickname
-	ret
+	ld hl, wOWState
+	set OWSTATE_STRENGTH, [hl]
+PrepareOverworldMove:
+	; ld a, [wCurPartyMon]
+	; ld e, a
+	; ld d, 0
+	; ld hl, wPartySpecies
+	; add hl, de
+	; ld a, [hl]
+	; ld [wBuffer6], a
+	jmp GetPartyNickname
 
 Script_StrengthFromMenu:
 	refreshmap
@@ -1005,56 +1173,35 @@ Script_StrengthFromMenu:
 
 Script_UsedStrength:
 	callasm SetStrengthFlag
-	writetext .UseStrengthText
-	readmem wStrengthSpecies
-	cry 0 ; plays [wStrengthSpecies] cry
-	pause 3
-	writetext .MoveBoulderText
+	farwritetext _UseStrengthText
+	waitbutton
 	closetext
-	end
-
-.UseStrengthText:
-	text_far _UseStrengthText
-	text_end
-
-.MoveBoulderText:
-	text_far _MoveBoulderText
-	text_end
+	scall FieldMovePokepicScript
+	opentext
+	farwritetext _MoveBoulderText
+	endtext
 
 AskStrengthScript:
 	callasm TryStrengthOW
-	iffalse .AskStrength
-	ifequal $1, .DontMeetRequirements
-	sjump .AlreadyUsedStrength
+	iffalsefwd .AskStrength
+	ifequalfwd $1, .DontMeetRequirements
+	sjumpfwd .AlreadyUsedStrength
 
 .DontMeetRequirements:
-	jumptext BouldersMayMoveText
+	farjumptext _BouldersMayMoveText
 
 .AlreadyUsedStrength:
-	jumptext BouldersMoveText
+	farjumptext _BouldersMoveText
 
 .AskStrength:
 	opentext
-	writetext AskStrengthText
+	farwritetext _AskStrengthText
 	yesorno
 	iftrue Script_UsedStrength
-	closetext
-	end
-
-AskStrengthText:
-	text_far _AskStrengthText
-	text_end
-
-BouldersMoveText:
-	text_far _BouldersMoveText
-	text_end
-
-BouldersMayMoveText:
-	text_far _BouldersMayMoveText
-	text_end
+	endtext
 
 TryStrengthOW:
-	ld d, STRENGTH
+	lb de, STRENGTH, HM_STRENGTH
 	call CheckPartyMove
 	jr c, .nope
 
@@ -1062,8 +1209,8 @@ TryStrengthOW:
 	call CheckEngineFlag
 	jr c, .nope
 
-	ld hl, wBikeFlags
-	bit BIKEFLAGS_STRENGTH_ACTIVE_F, [hl]
+	ld hl, wOWState
+	bit OWSTATE_STRENGTH, [hl]
 	jr z, .already_using
 
 	ld a, 2
@@ -1075,23 +1222,23 @@ TryStrengthOW:
 
 .already_using
 	xor a
-	jr .done
+	; fallthrough
 
 .done
-	ld [wScriptVar], a
+	ldh [hScriptVar], a
 	ret
 
 WhirlpoolFunction:
 	call FieldMoveJumptableReset
 .loop
-	ld hl, .Jumptable
+	ld hl, Jumptable_cdae
 	call FieldMoveJumptable
 	jr nc, .loop
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
-.Jumptable:
+Jumptable_cdae:
 	dw .TryWhirlpool
 	dw .DoWhirlpool
 	dw .FailWhirlpool
@@ -1110,31 +1257,25 @@ WhirlpoolFunction:
 	ret
 
 .noglacierbadge
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 
 .DoWhirlpool:
 	ld hl, Script_WhirlpoolFromMenu
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .FailWhirlpool:
 	call FieldMoveFailed
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
-
-UseWhirlpoolText:
-	text_far _UseWhirlpoolText
-	text_end
 
 TryWhirlpoolMenu:
 	call GetFacingTileCoord
 	ld c, a
-	push de
-	call CheckWhirlpoolTile
-	pop de
-	jr c, .failed
+	cp COLL_WHIRLPOOL
+	jr nz, .failed
 	call GetBlockLocation
 	ld c, [hl]
 	push hl
@@ -1142,16 +1283,14 @@ TryWhirlpoolMenu:
 	call CheckOverworldTileArrays
 	pop hl
 	jr nc, .failed
-	; Save the Whirlpool field move data
 	ld a, l
-	ld [wCutWhirlpoolOverworldBlockAddr], a
+	ld [wBuffer3], a
 	ld a, h
-	ld [wCutWhirlpoolOverworldBlockAddr + 1], a
+	ld [wBuffer4], a
 	ld a, b
-	ld [wCutWhirlpoolReplacementBlock], a
-	ld a, c
-	ld [wCutWhirlpoolAnimationType], a
+	ld [wBuffer5], a
 	xor a
+	ld [wBuffer6], a
 	ret
 
 .failed
@@ -1163,32 +1302,56 @@ Script_WhirlpoolFromMenu:
 	special UpdateTimePals
 
 Script_UsedWhirlpool:
-	callasm GetPartyNickname
-	writetext UseWhirlpoolText
-	refreshmap
-	callasm DisappearWhirlpool
+	callasm PrepareOverworldMove
+	farwritetext _UseWhirlpoolText
 	closetext
+	scall FieldMovePokepicScript
+	setflag ENGINE_AUTOWHIRLPOOL_ACTIVE
+	waitsfx
+
+Script_AutoWhirlpool:
+	playsound SFX_SURF
+	readvar VAR_FACING
+	ifequalfwd UP, .Up
+	ifequalfwd DOWN, .Down
+	ifequalfwd RIGHT, .Right
+	applymovement PLAYER, .LeftMovementData
 	end
 
-DisappearWhirlpool:
-	ld hl, wCutWhirlpoolOverworldBlockAddr
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	ld a, [wCutWhirlpoolReplacementBlock]
-	ld [hl], a
-	xor a
-	ldh [hBGMapMode], a
-	call LoadOverworldTilemapAndAttrmapPals
-	ld a, [wCutWhirlpoolAnimationType]
-	ld e, a
-	farcall PlayWhirlpoolSound
-	call BufferScreen
-	call GetMovementPermissions
-	ret
+.Up:
+	applymovement PLAYER, .UpMovementData
+	end
+
+.Right:
+	applymovement PLAYER, .RightMovementData
+	end
+
+.Down:
+	applymovement PLAYER, .DownMovementData
+	end
+
+.UpMovementData:
+	slow_step_up
+	slow_step_up
+	step_end
+
+.RightMovementData:
+	slow_step_right
+	slow_step_right
+	step_end
+
+.DownMovementData:
+	slow_step_down
+	slow_step_down
+	step_end
+
+.LeftMovementData:
+	slow_step_left
+	slow_step_left
+	step_end
 
 TryWhirlpoolOW::
-	ld d, WHIRLPOOL
+	lb de, WHIRLPOOL, HM_WHIRLPOOL
 	call CheckPartyMove
 	jr c, .failed
 	ld de, ENGINE_GLACIERBADGE
@@ -1210,80 +1373,90 @@ TryWhirlpoolOW::
 	ret
 
 Script_MightyWhirlpool:
-	jumptext .MayPassWhirlpoolText
-
-.MayPassWhirlpoolText:
-	text_far _MayPassWhirlpoolText
-	text_end
+	farjumptext _MayPassWhirlpoolText
 
 Script_AskWhirlpoolOW:
+	checkflag ENGINE_AUTOWHIRLPOOL_ACTIVE
+	iftrue Script_AutoWhirlpool
 	opentext
-	writetext AskWhirlpoolText
+	farwritetext _AskWhirlpoolText
 	yesorno
 	iftrue Script_UsedWhirlpool
-	closetext
-	end
-
-AskWhirlpoolText:
-	text_far _AskWhirlpoolText
-	text_end
+	endtext
 
 HeadbuttFunction:
 	call TryHeadbuttFromMenu
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
 TryHeadbuttFromMenu:
 	call GetFacingTileCoord
-	call CheckHeadbuttTreeTile
+	cp COLL_HEADBUTT_TREE
 	jr nz, .no_tree
 
 	ld hl, HeadbuttFromMenuScript
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .no_tree
 	call FieldMoveFailed
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
-
-UseHeadbuttText:
-	text_far _UseHeadbuttText
-	text_end
-
-HeadbuttNothingText:
-	text_far _HeadbuttNothingText
-	text_end
 
 HeadbuttFromMenuScript:
 	refreshmap
 	special UpdateTimePals
 
 HeadbuttScript:
-	callasm GetPartyNickname
-	writetext UseHeadbuttText
+	callasm PrepareOverworldMove
+	farwritetext _UseHeadbuttText
+	closetext
 
-	refreshmap
+	scall FieldMovePokepicScript
+	setflag ENGINE_HEADBUTT_ACTIVE
+
+AutoHeadbuttScript:
+	reanchormap
 	callasm ShakeHeadbuttTree
 
 	callasm TreeMonEncounter
-	iffalse .no_battle
-	closetext
+	; if there's no possibility of a encounter,
+	; then donn't allow farming for items.
+	ifequalfwd TREEMON_NO_ENCOUNTER_SET, .no_item
+	iffalsefwd .no_battle
 	randomwildmon
 	startbattle
 	reloadmapafterbattle
 	end
 
 .no_battle
-	writetext HeadbuttNothingText
+	callasm TreeItemEncounter
+	iffalsefwd .no_item
+	opentext
+	farwritetext _FoundWingsText
+	callasm .ShowWingIcon
+	specialsound
 	waitbutton
-	closetext
-	end
+	endtext
+
+.no_item
+	farjumptext _HeadbuttNothingText
+
+.ShowWingIcon:
+	ld a, [wCurWing]
+	push af
+	ld hl, WingIcon
+	lb bc, BANK(WingIcon), 9
+	farcall DecompressItemIconForOverworld
+	pop af
+	ld bc, WingIconPalettes
+	farcall LoadIconPalette
+	farjp PrintOverworldItemIcon
 
 TryHeadbuttOW::
-	ld d, HEADBUTT
+	lb de, HEADBUTT, -1 ; you need the tutor for Headbutt
 	call CheckPartyMove
 	jr c, .no
 
@@ -1298,20 +1471,17 @@ TryHeadbuttOW::
 	ret
 
 AskHeadbuttScript:
+	checkflag ENGINE_HEADBUTT_ACTIVE
+	iftrue AutoHeadbuttScript
 	opentext
-	writetext AskHeadbuttText
+	farwritetext _AskHeadbuttText
 	yesorno
 	iftrue HeadbuttScript
-	closetext
-	end
-
-AskHeadbuttText:
-	text_far _AskHeadbuttText
-	text_end
+	endtext
 
 RockSmashFunction:
 	call TryRockSmashFromMenu
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
@@ -1324,19 +1494,19 @@ TryRockSmashFromMenu:
 
 	ld hl, RockSmashFromMenuScript
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .no_rock
 	call FieldMoveFailed
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 
 GetFacingObject:
 	farcall CheckFacingObject
 	jr nc, .fail
 
-	ldh a, [hObjectStructIndex]
+	ldh a, [hObjectStructIndexBuffer]
 	call GetObjectStruct
 	ld hl, OBJECT_MAP_OBJECT_INDEX
 	add hl, bc
@@ -1359,10 +1529,13 @@ RockSmashFromMenuScript:
 	special UpdateTimePals
 
 RockSmashScript:
-	callasm GetPartyNickname
-	writetext UseRockSmashText
+	callasm PrepareOverworldMove
+	farwritetext _UseRockSmashText
 	closetext
-	special WaitSFX
+	waitsfx
+	scall FieldMovePokepicScript
+	setflag ENGINE_ROCK_SMASH_ACTIVE
+AutoRockSmashScript:
 	playsound SFX_STRENGTH
 	earthquake 84
 	applymovementlasttalked MovementData_RockSmash
@@ -1370,54 +1543,47 @@ RockSmashScript:
 
 	callasm RockMonEncounter
 	readmem wTempWildMonSpecies
-	iffalse .done
+	iffalsefwd .no_battle
 	randomwildmon
 	startbattle
 	reloadmapafterbattle
-.done
+	end
+
+.no_battle
+	callasm RockItemEncounter
+	iffalsefwd .no_item
+	opentext
+	verbosegiveitem ITEM_FROM_MEM
+	closetext
+.no_item
 	end
 
 MovementData_RockSmash:
 	rock_smash 10
 	step_end
 
-UseRockSmashText:
-	text_far _UseRockSmashText
-	text_end
-
 AskRockSmashScript:
 	callasm HasRockSmash
-	ifequal 1, .no
+	ifequalfwd 1, .no
 
+	checkflag ENGINE_ROCK_SMASH_ACTIVE
+	iftrue AutoRockSmashScript
 	opentext
-	writetext AskRockSmashText
+	farwritetext _AskRockSmashText
 	yesorno
 	iftrue RockSmashScript
-	closetext
-	end
+	endtext
+
 .no
-	jumptext MaySmashText
-
-MaySmashText:
-	text_far _MaySmashText
-	text_end
-
-AskRockSmashText:
-	text_far _AskRockSmashText
-	text_end
+	farjumptext _MaySmashText
 
 HasRockSmash:
-	ld d, ROCK_SMASH
+	lb de, ROCK_SMASH, TM_ROCK_SMASH
 	call CheckPartyMove
-	jr nc, .yes
-; no
-	ld a, 1
-	jr .done
-.yes
-	xor a
-	jr .done
-.done
-	ld [wScriptVar], a
+	; a = carry ? 1 : 0
+	sbc a
+	and 1
+	ldh [hScriptVar], a
 	ret
 
 FishFunction:
@@ -1425,12 +1591,12 @@ FishFunction:
 	push af
 	call FieldMoveJumptableReset
 	pop af
-	ld [wFishingRodUsed], a
+	ld [wBuffer2], a
 .loop
 	ld hl, .FishTable
 	call FieldMoveJumptable
 	jr nc, .loop
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
@@ -1440,40 +1606,72 @@ FishFunction:
 	dw .FishGotSomething
 	dw .FailFish
 	dw .FishNoFish
+	dw .FishGotItem
 
 .TryFish:
-; BUG: You can fish on top of NPCs (see docs/bugs_and_glitches.md)
 	ld a, [wPlayerState]
-	cp PLAYER_SURF
-	jr z, .fail
 	cp PLAYER_SURF_PIKA
 	jr z, .fail
 	call GetFacingTileCoord
 	call GetTilePermission
-	cp WATER_TILE
-	jr z, .facingwater
+	dec a ; cp WATER_TILE
+	jr nz, .fail
+	farcall CheckFacingObject
+	jr nc, .facingwater
 .fail
 	ld a, $3
 	ret
 
 .facingwater
-	call GetFishingGroup
-	and a
-	jr nz, .goodtofish
+	farcall GetFishingGroup
+	jr c, .goodtofish
 	ld a, $4
 	ret
 
 .goodtofish
 	ld d, a
-	ld a, [wFishingRodUsed]
+	ld a, [wBuffer2]
 	ld e, a
+
+	; Suction Cups and Sticky Hold boost bite rate. This is done
+	; by having these abilities result in 2 attempts being made
+	; for getting an encounter.
+	call GetLeadAbility
+	cp SUCTION_CUPS
+	jr z, .fish_attempt1
+	cp STICKY_HOLD
+	jr nz, .fish_attempt2
+.fish_attempt1
+	push bc
+	push de
 	farcall Fish
 	ld a, d
 	and a
+	pop de
+	jr nz, .gotabite1
+	pop bc
+.fish_attempt2
+	farcall Fish
+	ld a, d
+	and a
+	jr nz, .gotabite2
+	ld a, b
+	or c
 	jr z, .nonibble
-	ld [wTempWildMonSpecies], a
-	ld a, e
+.gotanitem
+	ld a, c
+	ld [wCurItem], a
+	ld a, $5
+	ret
+
+.gotabite1
+	pop de ; we no longer care about d
+.gotabite2
 	ld [wCurPartyLevel], a
+	ld a, c
+	ld [wTempWildMonSpecies], a
+	ld a, b
+	ld [wWildMonForm], a
 	ld a, BATTLETYPE_FISH
 	ld [wBattleType], a
 	ld a, $2
@@ -1484,87 +1682,104 @@ FishFunction:
 	ret
 
 .FailFish:
-	ld a, JUMPTABLE_EXIT
+	ld a, $80
 	ret
 
 .FishGotSomething:
 	ld a, $1
-	ld [wFishingResult], a
+	ld [wBuffer6], a
 	ld hl, Script_GotABite
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .FishNoBite:
 	ld a, $2
-	ld [wFishingResult], a
+	ld [wBuffer6], a
 	ld hl, Script_NotEvenANibble
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
 	ret
 
 .FishNoFish:
-	ld a, $0
-	ld [wFishingResult], a
-	ld hl, Script_NotEvenANibble2
+	xor a
+	ld [wBuffer6], a
+	ld hl, Script_NotEvenANibble
 	call QueueScript
-	ld a, JUMPTABLE_EXIT | $1
+	ld a, $81
+	ret
+
+.FishGotItem:
+	ld a, $1
+	ld [wBuffer6], a
+	ld hl, Script_GotAnItem
+	call QueueScript
+	ld a, $81
 	ret
 
 Script_NotEvenANibble:
 	scall Script_FishCastRod
-	writetext RodNothingText
-	sjump Script_NotEvenANibble_FallThrough
-
-Script_NotEvenANibble2:
-	scall Script_FishCastRod
-	writetext RodNothingText
-
-Script_NotEvenANibble_FallThrough:
-	loademote EMOTE_SHADOW
-	callasm PutTheRodAway
+	farwritetext _RodNothingText
 	closetext
+	callasm PutTheRodAway
 	end
+
+Script_GotAnItem:
+	scall Script_FishCastRod
+	callasm Fishing_CheckFacingUp
+	iffalsefwd .NotFacingUp
+	applymovement PLAYER, Movement_HookedItemFacingUp
+	sjumpfwd .GetTheHookedItem
+.NotFacingUp:
+	applymovement PLAYER, Movement_HookedItemNotFacingUp
+.GetTheHookedItem:
+	pause 40
+	applymovement PLAYER, Movement_RestoreRod
+	callasm PutTheRodAway
+	callasm CurItemToScriptVar
+	opentext
+	verbosegiveitem ITEM_FROM_MEM
+	endtext
 
 Script_GotABite:
 	scall Script_FishCastRod
 	callasm Fishing_CheckFacingUp
-	iffalse .NotFacingUp
-	applymovement PLAYER, .Movement_FacingUp
-	sjump .FightTheHookedPokemon
-
+	iffalsefwd .NotFacingUp
+	applymovement PLAYER, Movement_BiteFacingUp
+	sjumpfwd .FightTheHookedPokemon
 .NotFacingUp:
-	applymovement PLAYER, .Movement_NotFacingUp
-
+	applymovement PLAYER, Movement_BiteNotFacingUp
 .FightTheHookedPokemon:
 	pause 40
-	applymovement PLAYER, .Movement_RestoreRod
-	writetext RodBiteText
-	callasm PutTheRodAway
+	applymovement PLAYER, Movement_RestoreRod
+	farwritetext _RodBiteText
 	closetext
+	callasm PutTheRodAway
 	randomwildmon
 	startbattle
 	reloadmapafterbattle
 	end
 
-.Movement_NotFacingUp:
+Movement_BiteNotFacingUp:
 	fish_got_bite
 	fish_got_bite
 	fish_got_bite
+Movement_HookedItemNotFacingUp:
 	fish_got_bite
 	show_emote
 	step_end
 
-.Movement_FacingUp:
+Movement_BiteFacingUp:
 	fish_got_bite
 	fish_got_bite
 	fish_got_bite
+Movement_HookedItemFacingUp:
 	fish_got_bite
-	step_sleep 1
+	step_sleep_1
 	show_emote
 	step_end
 
-.Movement_RestoreRod:
+Movement_RestoreRod:
 	hide_emote
 	fish_cast_rod
 	step_end
@@ -1578,14 +1793,13 @@ Fishing_CheckFacingUp:
 	xor a
 
 .up
-	ld [wScriptVar], a
+	ldh [hScriptVar], a
 	ret
 
 Script_FishCastRod:
 	refreshmap
 	loadmem hBGMapMode, $0
 	special UpdateTimePals
-	loademote EMOTE_ROD
 	callasm LoadFishingGFX
 	loademote EMOTE_SHOCK
 	applymovement PLAYER, MovementData_CastRod
@@ -1602,24 +1816,16 @@ PutTheRodAway:
 	ld a, $1
 	ld [wPlayerAction], a
 	call UpdateSprites
-	call UpdatePlayerSprite
+	jmp UpdatePlayerSprite
+
+CurItemToScriptVar:
+	ld a, [wCurItem]
+	ldh [hScriptVar], a
 	ret
-
-RodBiteText:
-	text_far _RodBiteText
-	text_end
-
-RodNothingText:
-	text_far _RodNothingText
-	text_end
-
-UnusedNothingHereText: ; unreferenced
-	text_far _UnusedNothingHereText
-	text_end
 
 BikeFunction:
 	call .TryBike
-	and JUMPTABLE_INDEX_MASK
+	and $7f
 	ld [wFieldMoveSucceeded], a
 	ret
 
@@ -1627,38 +1833,26 @@ BikeFunction:
 	call .CheckEnvironment
 	jr c, .CannotUseBike
 	ld a, [wPlayerState]
-	cp PLAYER_NORMAL
+	and a ; cp PLAYER_NORMAL
 	jr z, .GetOnBike
 	cp PLAYER_BIKE
 	jr z, .GetOffBike
 	jr .CannotUseBike
 
 .GetOnBike:
+	call PlayBikeMusic
 	ld hl, Script_GetOnBike
 	ld de, Script_GetOnBike_Register
 	call .CheckIfRegistered
-	call QueueScript
-	xor a
-	ld [wMusicFade], a
-	ld de, MUSIC_NONE
-	call PlayMusic
-	call DelayFrame
-	call MaxVolume
-	ld de, MUSIC_BICYCLE
-	ld a, e
-	ld [wMapMusic], a
-	call PlayMusic
-	ld a, $1
-	ret
+	jr .done
 
 .GetOffBike:
-	ld hl, wBikeFlags
-	bit BIKEFLAGS_ALWAYS_ON_BIKE_F, [hl]
+	ld hl, wOWState
+	bit OWSTATE_BIKING_FORCED, [hl]
 	jr nz, .CantGetOffBike
 	ld hl, Script_GetOffBike
 	ld de, Script_GetOffBike_Register
 	call .CheckIfRegistered
-	ld a, BANK(Script_GetOffBike)
 	jr .done
 
 .CantGetOffBike:
@@ -1666,7 +1860,7 @@ BikeFunction:
 	jr .done
 
 .CannotUseBike:
-	ld a, $0
+	xor a
 	ret
 
 .done
@@ -1690,12 +1884,13 @@ BikeFunction:
 	jr z, .ok
 	cp GATE
 	jr z, .ok
-	jr .nope
+	cp ISOLATED
+	jr nz, .nope
 
 .ok
-	call GetPlayerTilePermission
-	and $f ; lo nybble only
-	jr nz, .nope ; not FLOOR_TILE
+	call GetPlayerStandingTile
+	and a ; LAND_TILE (can't use our bike except on land)
+	jr nz, .nope
 	xor a
 	ret
 
@@ -1703,110 +1898,71 @@ BikeFunction:
 	scf
 	ret
 
+Script_GetOnBike_Register:
+	loadvar VAR_MOVEMENT, PLAYER_BIKE
+	sjumpfwd FinishGettingOnBike
+
 Script_GetOnBike:
 	refreshmap
 	special UpdateTimePals
 	loadvar VAR_MOVEMENT, PLAYER_BIKE
-	writetext GotOnBikeText
+	farwritetext _GotOnBikeText
 	waitbutton
+FinishGettingOnBike:
 	closetext
 	special UpdatePlayerSprite
 	end
 
-Script_GetOnBike_Register:
-	loadvar VAR_MOVEMENT, PLAYER_BIKE
-	closetext
-	special UpdatePlayerSprite
-	end
-
-Overworld_DummyFunction: ; unreferenced
-	nop
-	ret
+Script_GetOffBike_Register:
+	loadvar VAR_MOVEMENT, PLAYER_NORMAL
+	sjumpfwd FinishGettingOffBike
 
 Script_GetOffBike:
 	refreshmap
 	special UpdateTimePals
 	loadvar VAR_MOVEMENT, PLAYER_NORMAL
-	writetext GotOffBikeText
+	farwritetext _GotOffBikeText
 	waitbutton
-
 FinishGettingOffBike:
 	closetext
 	special UpdatePlayerSprite
-	special PlayMapMusic
+	playmapmusic
 	end
-
-Script_GetOffBike_Register:
-	loadvar VAR_MOVEMENT, PLAYER_NORMAL
-	sjump FinishGettingOffBike
 
 Script_CantGetOffBike:
-	writetext .CantGetOffBikeText
-	waitbutton
-	closetext
-	end
+	farwritetext _CantGetOffBikeText
+	waitendtext
 
-.CantGetOffBikeText:
-	text_far _CantGetOffBikeText
-	text_end
-
-GotOnBikeText:
-	text_far _GotOnBikeText
-	text_end
-
-GotOffBikeText:
-	text_far _GotOffBikeText
-	text_end
-
-TryCutOW::
-	ld d, CUT
+HasCutAvailable::
+	lb de, CUT, HM_CUT
 	call CheckPartyMove
-	jr c, .cant_cut
+	jr c, .no
 
 	ld de, ENGINE_HIVEBADGE
 	call CheckEngineFlag
-	jr c, .cant_cut
+	jr c, .no
 
-	ld a, BANK(AskCutScript)
-	ld hl, AskCutScript
-	call CallScript
-	scf
-	ret
-
-.cant_cut
-	ld a, BANK(CantCutScript)
-	ld hl, CantCutScript
-	call CallScript
-	scf
-	ret
-
-AskCutScript:
-	opentext
-	writetext AskCutText
-	yesorno
-	iffalse .declined
-	callasm .CheckMap
-	iftrue Script_Cut
-.declined
-	closetext
-	end
-
-.CheckMap:
+.yes
 	xor a
-	ld [wScriptVar], a
-	call CheckMapForSomethingToCut
-	ret c
-	ld a, TRUE
-	ld [wScriptVar], a
+	jr .done
+
+.no
+	ld a, 1
+.done
+	ldh [hScriptVar], a
 	ret
 
-AskCutText:
-	text_far _AskCutText
-	text_end
+AskCutTreeScript:
+	callasm HasCutAvailable
+	ifequalfwd 1, .no
 
-CantCutScript:
-	jumptext CanCutText
+	checkflag ENGINE_AUTOCUT_ACTIVE
+	iftrue AutoCutTreeScript
+	opentext
+	farwritetext _AskCutText
+	yesorno
+	iftrue Script_CutTree
+	endtext
 
-CanCutText:
-	text_far _CanCutText
-	text_end
+.no
+	farjumptext _CanCutText

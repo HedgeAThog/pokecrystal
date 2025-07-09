@@ -1,11 +1,11 @@
 DoPoisonStep::
 	ld a, [wPartyCount]
 	and a
-	jr z, .no_faint
+	jr z, .no_recovery
 
 	xor a
 	ld c, wPoisonStepDataEnd - wPoisonStepData
-	ld hl, wPoisonStepData
+	ld hl, wPoisonStepFlagSum
 .loop_clearPoisonStepData
 	ld [hli], a
 	dec c
@@ -37,62 +37,86 @@ DoPoisonStep::
 
 	ld a, [wPoisonStepFlagSum]
 	and %10
-	jr nz, .someone_has_fainted
+	jr nz, .someone_has_recovered
 	ld a, [wPoisonStepFlagSum]
 	and %01
-	jr z, .no_faint
+	jr z, .no_recovery
 	call .PlayPoisonSFX
 	xor a
 	ret
 
-.someone_has_fainted
-	ld a, BANK(.Script_MonFaintedToPoison)
-	ld hl, .Script_MonFaintedToPoison
+.someone_has_recovered
+	ld a, BANK(.Script_MonRecoveredFromPoison)
+	ld hl, .Script_MonRecoveredFromPoison
 	call CallScript
 	scf
 	ret
 
-.no_faint
+.no_recovery
 	xor a
 	ret
 
 .DamageMonIfPoisoned:
 ; check if mon is poisoned, return if not
 	ld a, MON_STATUS
-	call GetPartyParamLocation
-	ld a, [hl]
+	call GetPartyParamLocationAndValue
 	and 1 << PSN
 	ret z
 
-; check if mon is already fainted, return if so
+; check if mon is fainted, return if so
 	ld a, MON_HP
-	call GetPartyParamLocation
-	ld a, [hli]
+	call GetPartyParamLocationAndValue
+	inc hl
 	ld b, a
 	ld c, [hl]
 	or c
 	ret z
 
-; do 1 HP damage
-	dec bc
-	ld [hl], c
-	dec hl
-	ld [hl], b
-
-; check if mon has fainted as a result of poison damage
+; check for immunity, pastel veil, or poison heal
+	push hl
+	push bc
+	ld a, MON_SPECIES
+	call GetPartyParamLocationAndValue
+	ld c, a
+	ld a, MON_ABILITY
+	call GetPartyParamLocationAndValue
+	call GetAbility
 	ld a, b
-	or c
-	jr nz, .not_fainted
+	pop bc
+	pop hl
+	cp IMMUNITY
+	jr z, .heal_poison
+	cp PASTEL_VEIL
+	jr z, .heal_poison
+	cp POISON_HEAL
+	ret z ; keep poison, but don't deal damage for it
+	cp MAGIC_GUARD
+	ret z
 
-; the mon has fainted, reset its status, set carry, and return %10
+; check if 1 HP
+	ld a, b
+	or a
+	jr nz, .DoPoisonDamage
+	ld a, c
+	dec a
+	jr nz, .DoPoisonDamage
+
+; if 1 HP, heal poison
+.heal_poison
 	ld a, MON_STATUS
-	call GetPartyParamLocation
+	call GetPartyParamLocationAndValue
 	ld [hl], 0
+; set carry and return %10
 	ld c, %10
 	scf
 	ret
 
-.not_fainted
+.DoPoisonDamage
+; do 1 HP damage
+	dec bc
+	ld a, c
+	ld [hld], a
+	ld [hl], b
 ; set carry and return %01
 	ld c, %01
 	scf
@@ -102,20 +126,19 @@ DoPoisonStep::
 	ld de, SFX_POISON
 	call PlaySFX
 	ld b, $2
-	predef LoadPoisonBGPals
-	call DelayFrame
-	ret
+	call LoadPoisonBGPals
+	jmp DelayFrame
 
-.Script_MonFaintedToPoison:
+.Script_MonRecoveredFromPoison:
 	callasm .PlayPoisonSFX
 	opentext
 	callasm .CheckWhitedOut
-	iffalse .whiteout
+	iffalsefwd .whiteout
 	closetext
 	end
 
 .whiteout
-	farsjump OverworldWhiteoutScript
+	farsjump Script_OverworldWhiteout
 
 .CheckWhitedOut:
 	xor a
@@ -127,9 +150,9 @@ DoPoisonStep::
 	and %10
 	jr z, .mon_not_fainted
 	ld c, HAPPINESS_POISONFAINT
-	farcall ChangeHappiness
+	predef ChangeHappiness
 	farcall GetPartyNickname
-	ld hl, .PoisonFaintText
+	ld hl, .PoisonRecoveryText
 	call PrintText
 
 .mon_not_fainted
@@ -140,15 +163,18 @@ DoPoisonStep::
 	ld a, [wPartyCount]
 	cp [hl]
 	jr nz, .party_loop
-	predef CheckPlayerPartyForFitMon
+	farcall CheckPlayerPartyForFitPkmn
 	ld a, d
-	ld [wScriptVar], a
+	ldh [hScriptVar], a
 	ret
 
-.PoisonFaintText:
+.PoisonRecoveryText:
 	text_far _PoisonFaintText
 	text_end
 
-.PoisonWhiteoutText: ; unreferenced
-	text_far _PoisonWhiteoutText
-	text_end
+LoadPoisonBGPals:
+	ld c, 6
+	farcall UpdatePalFromC
+	ld c, 4
+	call DelayFrames
+	farjp _UpdateTimePals

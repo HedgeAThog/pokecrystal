@@ -1,21 +1,18 @@
-	db MANTINE ; 226
-
-	db  65,  40,  70,  70,  80, 140
-	;   hp  atk  def  spd  sat  sdf
+	db  85,  40,  70,  70,  80, 140 ; 485 BST
+	;   hp  atk  def  spe  sat  sdf
 
 	db WATER, FLYING ; type
 	db 25 ; catch rate
 	db 168 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_F50 ; gender ratio
-	db 100 ; unknown 1
-	db 25 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/mantine/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db NO_ITEM, NO_ITEM ; held items
+	dn GENDER_F50, HATCH_MEDIUM_SLOW ; gender ratio, step cycles to hatch
+
+	abilities_for MANTINE, SWIFT_SWIM, WATER_ABSORB, WATER_VEIL
 	db GROWTH_SLOW ; growth rate
 	dn EGG_WATER_1, EGG_WATER_1 ; egg groups
 
+	ev_yield 2 SDf
+
 	; tm/hm learnset
-	tmhm HEADBUTT, CURSE, TOXIC, HIDDEN_POWER, SNORE, BLIZZARD, ICY_WIND, PROTECT, RAIN_DANCE, ENDURE, FRUSTRATION, RETURN, MUD_SLAP, DOUBLE_TEAM, SWAGGER, SLEEP_TALK, SWIFT, REST, ATTRACT, SURF, WHIRLPOOL, WATERFALL, ICE_BEAM
+	tmhm CURSE, TOXIC, HAIL, HIDDEN_POWER, ICE_BEAM, BLIZZARD, HYPER_BEAM, PROTECT, RAIN_DANCE, BULLDOZE, EARTHQUAKE, RETURN, DOUBLE_TEAM, SWIFT, AERIAL_ACE, SUBSTITUTE, FACADE, REST, ATTRACT, ROCK_SLIDE, ROOST, SCALD, ACROBATICS, WATER_PULSE, GIGA_IMPACT, FLY, SURF, WHIRLPOOL, WATERFALL, AGILITY, AQUA_TAIL, BODY_SLAM, DOUBLE_EDGE, ENDURE, HEADBUTT, ICY_WIND, IRON_HEAD, SEED_BOMB, SLEEP_TALK, SWAGGER
 	; end

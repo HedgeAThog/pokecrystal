@@ -1,33 +1,43 @@
+BurnedTowerB1F_MapScriptHeader:
+	def_scene_scripts
+
+	def_callbacks
+	callback MAPCALLBACK_TILES, BurnedTowerB1FLadderCallback
+
+	def_warp_events
+	warp_event 10,  9, BURNED_TOWER_1F, 3 ; hole
+	warp_event  7, 15, BURNED_TOWER_1F, 4
+
+	def_coord_events
+	coord_event 10,  6, 0, ReleaseTheBeasts
+
+	def_bg_events
+
+	def_object_events
+	pokemon_event  7,  3, RAIKOU, SPRITEMOVEDATA_POKEMON, -1, PAL_NPC_BROWN, ClearText, EVENT_BURNED_TOWER_B1F_BEASTS_1
+	pokemon_event 12,  3, ENTEI, SPRITEMOVEDATA_POKEMON, -1, PAL_NPC_RED, ClearText, EVENT_BURNED_TOWER_B1F_BEASTS_1
+	pokemon_event 10,  4, SUICUNE, SPRITEMOVEDATA_POKEMON, -1, PAL_NPC_BLUE, ClearText, EVENT_BURNED_TOWER_B1F_BEASTS_1
+	pokemon_event  7,  3, RAIKOU, SPRITEMOVEDATA_STILL, -1, PAL_NPC_WHITE, ClearText, EVENT_BURNED_TOWER_B1F_BEASTS_2
+	pokemon_event 12,  3, ENTEI, SPRITEMOVEDATA_STILL, -1, PAL_NPC_WHITE, ClearText, EVENT_BURNED_TOWER_B1F_BEASTS_2
+	pokemon_event 10,  4, SUICUNE, SPRITEMOVEDATA_STILL, -1, PAL_NPC_WHITE, ClearText, EVENT_BURNED_TOWER_B1F_BEASTS_2
+	object_event 10, 12, SPRITE_EUSINE, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, BurnedTowerB1FEusine, EVENT_EUSINE_IN_BURNED_TOWER
+	strengthboulder_event 17, 8
+	tmhmball_event 16,  4, TM_FLAME_CHARGE, EVENT_BURNED_TOWER_B1F_TM_FLAME_CHARGE
+
 	object_const_def
-	const BURNEDTOWERB1F_BOULDER
 	const BURNEDTOWERB1F_RAIKOU1
 	const BURNEDTOWERB1F_ENTEI1
 	const BURNEDTOWERB1F_SUICUNE1
 	const BURNEDTOWERB1F_RAIKOU2
 	const BURNEDTOWERB1F_ENTEI2
 	const BURNEDTOWERB1F_SUICUNE2
-	const BURNEDTOWERB1F_POKE_BALL
 	const BURNEDTOWERB1F_EUSINE
-
-BurnedTowerB1F_MapScripts:
-	def_scene_scripts
-	scene_script BurnedTowerB1FNoop1Scene, SCENE_BURNEDTOWERB1F_RELEASE_THE_BEASTS
-	scene_script BurnedTowerB1FNoop2Scene, SCENE_BURNEDTOWERB1F_NOOP
-
-	def_callbacks
-	callback MAPCALLBACK_TILES, BurnedTowerB1FLadderCallback
-
-BurnedTowerB1FNoop1Scene:
-	end
-
-BurnedTowerB1FNoop2Scene:
-	end
 
 BurnedTowerB1FLadderCallback:
 	checkevent EVENT_RELEASED_THE_BEASTS
-	iftrue .HideLadder
-	changeblock 6, 14, $02 ; floor
-.HideLadder:
+	iftruefwd .NoChange
+	changeblock 6, 14, $2
+.NoChange:
 	endcallback
 
 ReleaseTheBeasts:
@@ -79,11 +89,11 @@ ReleaseTheBeasts:
 	disappear BURNEDTOWERB1F_SUICUNE1
 	waitsfx
 	special RestartMapMusic
-	setscene SCENE_BURNEDTOWERB1F_NOOP
+	setscene $1
 	setevent EVENT_RELEASED_THE_BEASTS
 	special InitRoamMons
-	setmapscene ECRUTEAK_GYM, SCENE_ECRUTEAKGYM_NOOP
-	setmapscene CIANWOOD_CITY, SCENE_CIANWOODCITY_SUICUNE_AND_EUSINE
+	setmapscene ECRUTEAK_GYM, $1
+	setmapscene CIANWOOD_CITY, $1
 	clearevent EVENT_SAW_SUICUNE_AT_CIANWOOD_CITY
 	setevent EVENT_ECRUTEAK_GYM_GRAMPS
 	clearevent EVENT_ECRUTEAK_CITY_GRAMPS
@@ -91,24 +101,20 @@ ReleaseTheBeasts:
 	setevent EVENT_BURNED_TOWER_1F_EUSINE
 	appear BURNEDTOWERB1F_EUSINE
 	reanchormap
-	changeblock 6, 14, $1b ; ladder
+	changeblock 6, 14, $1b
 	refreshmap
 	closetext
-	setscene SCENE_BURNEDTOWERB1F_NOOP
+	setscene $1
 	end
 
 BurnedTowerB1FEusine:
-	faceplayer
-	opentext
-	writetext BurnedTowerB1FEusineText
-	waitbutton
-	closetext
+	showtextfaceplayer BurnedTowerB1FEusineText
 	readvar VAR_FACING
-	ifequal UP, .Movement2
+	ifequalfwd $1, .Movement
 	applymovement BURNEDTOWERB1F_EUSINE, BurnedTowerB1FEusineMovement1
-	sjump .Finish
+	sjumpfwd .Finish
 
-.Movement2:
+.Movement:
 	applymovement BURNEDTOWERB1F_EUSINE, BurnedTowerB1FEusineMovement2
 .Finish:
 	disappear BURNEDTOWERB1F_EUSINE
@@ -116,94 +122,77 @@ BurnedTowerB1FEusine:
 	waitsfx
 	end
 
-BurnedTowerB1FTMEndure:
-	itemball TM_ENDURE
-
-BurnedTowerB1FBoulder:
-	jumpstd StrengthBoulderScript
-
 BurnedTowerRaikouMovement:
-	set_sliding
-	fast_jump_step DOWN
-	fast_jump_step LEFT
-	remove_sliding
+	fix_facing
+	fast_jump_step_down
+	fast_jump_step_left
 	step_end
 
 BurnedTowerEnteiMovement:
-	set_sliding
-	fast_jump_step RIGHT
-	fast_jump_step DOWN
-	fast_jump_step RIGHT
-	remove_sliding
+	fix_facing
+	fast_jump_step_right
+	fast_jump_step_down
+	fast_jump_step_right
 	step_end
 
 BurnedTowerSuicuneMovement1:
-	set_sliding
-	fast_jump_step RIGHT
-	fast_jump_step DOWN
-	fast_jump_step DOWN
-	fast_jump_step LEFT
-	remove_sliding
+	fix_facing
+	fast_jump_step_right
+	fast_jump_step_down
+	fast_jump_step_down
+	fast_jump_step_left
 	step_end
 
 BurnedTowerSuicuneMovement2:
-	set_sliding
-	fast_jump_step LEFT
-	fast_jump_step UP
-	big_step UP
-	fast_jump_step RIGHT
-	remove_sliding
-	step_end
-
-BurnedTowerUnusedMovement: ; unreferenced
-	set_sliding
-	big_step DOWN
-	remove_sliding
+	fix_facing
+	fast_jump_step_left
+	fast_jump_step_up
+	run_step_up
+	fast_jump_step_right
 	step_end
 
 BurnedTowerSuicuneMovement3:
-	set_sliding
-	big_step UP
-	fast_jump_step RIGHT
-	fast_jump_step DOWN
-	fast_jump_step DOWN
-	fast_jump_step DOWN
-	fast_jump_step DOWN
-	remove_sliding
+	fix_facing
+	run_step_up
+	fast_jump_step_right
+	fast_jump_step_down
+	fast_jump_step_down
+	fast_jump_step_down
+	fast_jump_step_down
 	step_end
 
 BurnedTowerB1FEusineMovement2:
-	step LEFT
-	step LEFT
-	step DOWN
-	step DOWN
-	step LEFT
-	step DOWN
+	step_left
+	step_left
+	step_down
+	step_down
+	step_left
+	step_down
 	step_end
 
 BurnedTowerB1FEusineMovement1:
-	step DOWN
-	step LEFT
-	step LEFT
-	step LEFT
-	step DOWN
-	step DOWN
+	step_down
+	step_left
+	step_left
+	step_left
+	step_down
+	step_down
 	step_end
 
 BurnedTowerB1FEusineText:
-	text "EUSINE: I dug a"
+	text "Eusine: I dug a"
 	line "hole here, too…"
 
 	para "I was shocked!"
 
-	para "SUICUNE raced by"
+	para "Suicune raced by"
 	line "like a blur, right"
 
 	para "in front of my"
 	line "eyes!"
 
 	para "For ten years I"
-	line "chased SUICUNE,"
+	line "chased Suicune,"
 
 	para "and I finally got"
 	line "to see it."
@@ -216,46 +205,19 @@ BurnedTowerB1FEusineText:
 	para "Thank you!"
 
 	para "I heard that the"
-	line "legendary #MON"
+	line "legendary #mon"
 
-	para "of ECRUTEAK test"
+	para "of Ecruteak test"
 	line "chosen humans by"
 
 	para "allowing them to"
 	line "get close."
 
 	para "I'm going to track"
-	line "SUICUNE."
+	line "Suicune."
 
 	para "<PLAYER>, let's"
 	line "meet again!"
 
 	para "Farewell!"
 	done
-
-BurnedTowerB1F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event 10,  9, BURNED_TOWER_1F, 3
-	warp_event 17,  7, BURNED_TOWER_1F, 7
-	warp_event 10,  8, BURNED_TOWER_1F, 9
-	warp_event  3, 13, BURNED_TOWER_1F, 10
-	warp_event 17, 14, BURNED_TOWER_1F, 12
-	warp_event  7, 15, BURNED_TOWER_1F, 14
-
-	def_coord_events
-	coord_event 10,  6, SCENE_BURNEDTOWERB1F_RELEASE_THE_BEASTS, ReleaseTheBeasts
-
-	def_bg_events
-
-	def_object_events
-	object_event 17,  8, SPRITE_BOULDER, SPRITEMOVEDATA_STRENGTH_BOULDER, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, BurnedTowerB1FBoulder, -1
-	object_event  7,  3, SPRITE_RAIKOU, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_BURNED_TOWER_B1F_BEASTS_1
-	object_event 12,  3, SPRITE_ENTEI, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_BURNED_TOWER_B1F_BEASTS_1
-	object_event 10,  4, SPRITE_SUICUNE, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_BURNED_TOWER_B1F_BEASTS_1
-	object_event  7,  3, SPRITE_RAIKOU, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_EMOTE, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_BURNED_TOWER_B1F_BEASTS_2
-	object_event 12,  3, SPRITE_ENTEI, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_EMOTE, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_BURNED_TOWER_B1F_BEASTS_2
-	object_event 10,  4, SPRITE_SUICUNE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_EMOTE, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_BURNED_TOWER_B1F_BEASTS_2
-	object_event 16,  4, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, BurnedTowerB1FTMEndure, EVENT_BURNED_TOWER_B1F_TM_ENDURE
-	object_event 10, 12, SPRITE_SUPER_NERD, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, BurnedTowerB1FEusine, EVENT_EUSINE_IN_BURNED_TOWER

@@ -3,7 +3,6 @@ _CardKey:
 	ld a, [wMapGroup]
 	cp GROUP_RADIO_TOWER_3F
 	jr nz, .nope
-
 	ld a, [wMapNumber]
 	cp MAP_RADIO_TOWER_3F
 	jr nz, .nope
@@ -12,13 +11,12 @@ _CardKey:
 	and %1100
 	cp OW_UP
 	jr nz, .nope
-
 	call GetFacingTileCoord
-	ld a, d
-	cp 18
+	ld a, d ; x
+	cp 14 + 4
 	jr nz, .nope
-	ld a, e
-	cp 6
+	ld a, e ; y
+	cp 2 + 4
 	jr nz, .nope
 ; Let's use the Card Key.
 	ld hl, .CardKeyScript
@@ -28,7 +26,7 @@ _CardKey:
 	ret
 
 .nope
-	ld a, FALSE
+	xor a ; FALSE
 	ld [wItemEffectSucceeded], a
 	ret
 

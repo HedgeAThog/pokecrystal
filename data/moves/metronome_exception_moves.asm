@@ -1,17 +1,15 @@
-; Metronome cannot turn into these moves.
+; Metronome cannot turn into these moves (nor Struggle).
 
 MetronomeExcepts:
 	db NO_MOVE
-	db METRONOME
-	db STRUGGLE
-	db SKETCH
-	db MIMIC
 	db COUNTER
+	db DESTINY_BOND
+	db ENDURE
+	db METRONOME
 	db MIRROR_COAT
 	db PROTECT
-	db DETECT
-	db ENDURE
-	db DESTINY_BOND
+	db SKETCH
 	db SLEEP_TALK
 	db THIEF
-	db -1
+	db TRANSFORM
+	db STRUGGLE ; -1

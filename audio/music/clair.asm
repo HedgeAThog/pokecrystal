@@ -13,7 +13,7 @@ Music_Clair_Ch1:
 	stereo_panning FALSE, TRUE
 	note_type 12, 9, 3
 	duty_cycle 3
-.loop1:
+Music_Clair_branch_1faab:
 	octave 4
 	note F_, 1
 	note F#, 1
@@ -21,7 +21,7 @@ Music_Clair_Ch1:
 	rest 1
 	note C#, 1
 	rest 1
-	sound_loop 2, .loop1
+	sound_loop 2, Music_Clair_branch_1faab
 	octave 3
 	note B_, 1
 	rest 1
@@ -37,9 +37,9 @@ Music_Clair_Ch1:
 	note D#, 4
 	note F_, 4
 	note G_, 4
-.mainloop:
+Music_Clair_branch_1fac9:
 	volume_envelope 9, 3
-	sound_call .sub1
+	sound_call Music_Clair_branch_1fb12
 	octave 2
 	note B_, 1
 	octave 3
@@ -53,7 +53,7 @@ Music_Clair_Ch1:
 	octave 2
 	note A#, 1
 	note G_, 1
-	sound_call .sub1
+	sound_call Music_Clair_branch_1fb12
 	note D#, 1
 	note C#, 1
 	note D#, 2
@@ -65,7 +65,7 @@ Music_Clair_Ch1:
 	note A#, 1
 	octave 5
 	note D#, 1
-	sound_call .sub2
+	sound_call Music_Clair_branch_1fb2e
 	duty_cycle 3
 	note G#, 3
 	note F_, 2
@@ -79,7 +79,7 @@ Music_Clair_Ch1:
 	note A#, 1
 	octave 5
 	note D#, 1
-	sound_call .sub2
+	sound_call Music_Clair_branch_1fb2e
 	duty_cycle 3
 	note D#, 3
 	note C#, 2
@@ -94,9 +94,9 @@ Music_Clair_Ch1:
 	note B_, 1
 	octave 4
 	note D#, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_Clair_branch_1fac9
 
-.sub1:
+Music_Clair_branch_1fb12:
 	duty_cycle 3
 	stereo_panning TRUE, TRUE
 	octave 3
@@ -122,7 +122,7 @@ Music_Clair_Ch1:
 	rest 1
 	sound_ret
 
-.sub2:
+Music_Clair_branch_1fb2e:
 	octave 4
 	note F#, 1
 	note D#, 1
@@ -147,7 +147,7 @@ Music_Clair_Ch2:
 	duty_cycle 3
 	vibrato 18, 3, 4
 	note_type 6, 11, 7
-.loop1:
+Music_Clair_branch_1fb49:
 	octave 3
 	note A#, 2
 	note B_, 2
@@ -155,7 +155,7 @@ Music_Clair_Ch2:
 	rest 2
 	note G#, 2
 	rest 2
-	sound_loop 2, .loop1
+	sound_loop 2, Music_Clair_branch_1fb49
 	note F_, 2
 	rest 2
 	note C#, 2
@@ -186,8 +186,8 @@ Music_Clair_Ch2:
 	note G_, 2
 	note A#, 2
 	volume_envelope 11, 7
-.mainloop:
-	sound_call .sub1
+Music_Clair_branch_1fb77:
+	sound_call Music_Clair_branch_1fba6
 	note F#, 2
 	rest 4
 	note D#, 12
@@ -205,7 +205,7 @@ Music_Clair_Ch2:
 	note A#, 16
 	rest 4
 	transpose 0, 12
-	sound_call .sub1
+	sound_call Music_Clair_branch_1fba6
 	transpose 0, 0
 	octave 5
 	note F#, 2
@@ -224,9 +224,9 @@ Music_Clair_Ch2:
 	rest 2
 	note G#, 16
 	rest 4
-	sound_loop 0, .mainloop
+	sound_jump Music_Clair_branch_1fb77
 
-.sub1:
+Music_Clair_branch_1fba6:
 	octave 4
 	note F#, 2
 	rest 4
@@ -269,8 +269,8 @@ Music_Clair_Ch3:
 	note A#, 4
 	note G#, 4
 	note G_, 4
-.mainloop:
-	sound_call .sub1
+Music_Clair_branch_1fbd1:
+	sound_call Music_Clair_branch_1fc3c
 	octave 2
 	note C#, 2
 	rest 1
@@ -281,7 +281,7 @@ Music_Clair_Ch3:
 	note D#, 2
 	note A#, 2
 	note D#, 2
-	sound_call .sub1
+	sound_call Music_Clair_branch_1fc3c
 	octave 2
 	note G#, 2
 	rest 1
@@ -369,9 +369,9 @@ Music_Clair_Ch3:
 	note G#, 1
 	octave 1
 	note G#, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_Clair_branch_1fbd1
 
-.sub1:
+Music_Clair_branch_1fc3c:
 	octave 1
 	note G#, 2
 	rest 1
@@ -404,16 +404,16 @@ Music_Clair_Ch4:
 	drum_note 3, 2
 	drum_note 3, 1
 	drum_note 3, 1
-.mainloop:
+Music_Clair_branch_1fc5e:
 	stereo_panning TRUE, TRUE
-	sound_call .sub1
+	sound_call Music_Clair_branch_1fc6e
 	drum_note 8, 1
 	stereo_panning TRUE, TRUE
-	sound_call .sub1
+	sound_call Music_Clair_branch_1fc6e
 	drum_note 7, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_Clair_branch_1fc5e
 
-.sub1:
+Music_Clair_branch_1fc6e:
 	drum_note 4, 2
 	stereo_panning TRUE, FALSE
 	drum_note 8, 2

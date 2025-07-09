@@ -1,88 +1,87 @@
-	object_const_def
-	const KOGASROOM_KOGA
-
-KogasRoom_MapScripts:
+KogasRoom_MapScriptHeader:
 	def_scene_scripts
-	scene_script KogasRoomLockDoorScene, SCENE_KOGASROOM_LOCK_DOOR
-	scene_script KogasRoomNoopScene,     SCENE_KOGASROOM_NOOP
+	scene_script KogasRoomEntranceTrigger
 
 	def_callbacks
-	callback MAPCALLBACK_TILES, KogasRoomDoorsCallback
+	callback MAPCALLBACK_TILES, KogasRoomDoorCallback
 
-KogasRoomLockDoorScene:
-	sdefer KogasRoomDoorLocksBehindYouScript
+	def_warp_events
+	warp_event  4, 17, WILLS_ROOM, 2
+	warp_event  5, 17, WILLS_ROOM, 3
+	warp_event  4,  2, BRUNOS_ROOM, 1
+	warp_event  5,  2, BRUNOS_ROOM, 2
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event  5,  7, SPRITE_KOGA, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, KogaScript, -1
+
+KogasRoomEntranceTrigger:
+	sdefer .Script
 	end
 
-KogasRoomNoopScene:
-	end
-
-KogasRoomDoorsCallback:
-	checkevent EVENT_KOGAS_ROOM_ENTRANCE_CLOSED
-	iffalse .KeepEntranceOpen
-	changeblock 4, 14, $2a ; wall
-.KeepEntranceOpen:
-	checkevent EVENT_KOGAS_ROOM_EXIT_OPEN
-	iffalse .KeepExitClosed
-	changeblock 4, 2, $16 ; open door
-.KeepExitClosed:
-	endcallback
-
-KogasRoomDoorLocksBehindYouScript:
-	applymovement PLAYER, KogasRoom_EnterMovement
-	reanchormap $86
+.Script:
+	applymovement PLAYER, WalkIntoEliteFourRoomMovement
+	reanchormap
 	playsound SFX_STRENGTH
 	earthquake 80
-	changeblock 4, 14, $2a ; wall
+	changeblock 4, 14, $2a
 	refreshmap
 	closetext
-	setscene SCENE_KOGASROOM_NOOP
+	setscene $1
 	setevent EVENT_KOGAS_ROOM_ENTRANCE_CLOSED
 	waitsfx
 	end
 
-KogaScript_Battle:
-	faceplayer
-	opentext
+KogasRoomDoorCallback:
+	checkevent EVENT_KOGAS_ROOM_ENTRANCE_CLOSED
+	iffalsefwd .KeepDoorClosed
+	changeblock 4, 14, $2a
+.KeepDoorClosed:
+	checkevent EVENT_KOGAS_ROOM_EXIT_OPEN
+	iffalsefwd .OpenDoor
+	changeblock 4, 2, $16
+.OpenDoor:
+	endcallback
+
+KogaScript:
+	readvar VAR_BADGES
+	ifequalfwd 16, .Rematch
 	checkevent EVENT_BEAT_ELITE_4_KOGA
-	iftrue KogaScript_AfterBattle
-	writetext KogaScript_KogaBeforeText
-	waitbutton
-	closetext
-	winlosstext KogaScript_KogaBeatenText, 0
-	loadtrainer KOGA, KOGA1
+	iftrue_jumptextfaceplayer .AfterText
+	showtextfaceplayer .SeenText
+	winlosstext .BeatenText, 0
+	loadtrainer KOGA, 1
 	startbattle
 	reloadmapafterbattle
-	setevent EVENT_BEAT_ELITE_4_KOGA
-	opentext
-	writetext KogaScript_KogaDefeatText
-	waitbutton
-	closetext
+	showtext .AfterText
+	sjumpfwd .EndBattle
+
+.Rematch:
+	checkevent EVENT_BEAT_ELITE_4_KOGA
+	iftrue_jumptextfaceplayer .AfterRematchText
+	showtextfaceplayer .SeenRematchText
+	winlosstext .BeatenText, 0
+	loadtrainer KOGA, 2
+	startbattle
+	reloadmapafterbattle
+	showtext .AfterRematchText
+.EndBattle:
 	playsound SFX_ENTER_DOOR
-	changeblock 4, 2, $16 ; open door
+	changeblock 4, 2, $16
 	refreshmap
-	closetext
 	setevent EVENT_KOGAS_ROOM_EXIT_OPEN
+	setevent EVENT_BEAT_ELITE_4_KOGA
 	waitsfx
 	end
 
-KogaScript_AfterBattle:
-	writetext KogaScript_KogaDefeatText
-	waitbutton
-	closetext
-	end
-
-KogasRoom_EnterMovement:
-	step UP
-	step UP
-	step UP
-	step UP
-	step_end
-
-KogaScript_KogaBeforeText:
+.SeenText:
 	text "Fwahahahaha!"
 
-	para "I am KOGA of the"
-	line "ELITE FOUR."
+	para "I am Koga of the"
+	line "Elite Four."
 
 	para "I live in shadows,"
 	line "a ninja!"
@@ -100,20 +99,20 @@ KogaScript_KogaBeforeText:
 
 	para "Fwahahahaha!"
 
-	para "#MON is not"
+	para "#mon is not"
 	line "merely about brute"
 
 	para "force--you shall"
 	line "see soon enough!"
 	done
 
-KogaScript_KogaBeatenText:
+.BeatenText:
 	text "Ah!"
 	line "You have proven"
 	cont "your worth!"
 	done
 
-KogaScript_KogaDefeatText:
+.AfterText:
 	text "I subjected you to"
 	line "everything I could"
 	cont "muster."
@@ -127,18 +126,26 @@ KogaScript_KogaDefeatText:
 	cont "abilities to test!"
 	done
 
-KogasRoom_MapEvents:
-	db 0, 0 ; filler
+.SeenRematchText:
+	text "Your arrival is"
+	line "indeed impressive,"
+	cont "as is your look of"
+	cont "resolve."
 
-	def_warp_events
-	warp_event  4, 17, WILLS_ROOM, 2
-	warp_event  5, 17, WILLS_ROOM, 3
-	warp_event  4,  2, BRUNOS_ROOM, 1
-	warp_event  5,  2, BRUNOS_ROOM, 2
+	para "Fwahahahaha!"
 
-	def_coord_events
+	para "My skill will be"
+	line "hard to overcome!"
 
-	def_bg_events
+	para "Let me show you"
+	line "what I mean!"
+	done
 
-	def_object_events
-	object_event  5,  7, SPRITE_KOGA, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, KogaScript_Battle, -1
+.AfterRematchText:
+	text "Never have I met"
+	line "the likes of you."
+
+	para "I must devote"
+	line "myself to my"
+	cont "training."
+	done

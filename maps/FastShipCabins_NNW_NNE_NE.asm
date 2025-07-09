@@ -1,104 +1,123 @@
-	object_const_def
-	const FASTSHIPCABINS_NNW_NNE_NE_COOLTRAINER_M
-	const FASTSHIPCABINS_NNW_NNE_NE_COOLTRAINER_F
-	const FASTSHIPCABINS_NNW_NNE_NE_SUPER_NERD
-	const FASTSHIPCABINS_NNW_NNE_NE_POKEFAN_M
-	const FASTSHIPCABINS_NNW_NNE_NE_SAILOR
-	const FASTSHIPCABINS_NNW_NNE_NE_GENTLEMAN
-	const FASTSHIPCABINS_NNW_NNE_NE_PHARMACIST
-
-FastShipCabins_NNW_NNE_NE_MapScripts:
+FastShipCabins_NNW_NNE_NE_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-TrainerCooltrainermSean:
-	trainer COOLTRAINERM, SEAN, EVENT_BEAT_COOLTRAINERM_SEAN, CooltrainermSeanSeenText, CooltrainermSeanBeatenText, 0, .Script
+	def_warp_events
+	warp_event  2,  0, FAST_SHIP_1F, 2
+	warp_event  2, 12, FAST_SHIP_1F, 3
+	warp_event  2, 24, FAST_SHIP_1F, 4
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext CooltrainermSeanAfterBattleText
-	waitbutton
-	closetext
-	end
+	def_coord_events
 
-TrainerCooltrainerfCarol:
-	trainer COOLTRAINERF, CAROL, EVENT_BEAT_COOLTRAINERF_CAROL, CooltrainerfCarolSeenText, CooltrainerfCarolBeatenText, 0, .Script
+	def_bg_events
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext CooltrainerfCarolAfterBattleText
-	waitbutton
-	closetext
-	end
+	def_object_events
+	object_event  4, 26, SPRITE_SAILOR, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, FastShipLazySailorScript, EVENT_FAST_SHIP_CABINS_NNW_NNE_NE_SAILOR
+	object_event  4,  5, SPRITE_PI, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerPILooker, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
+	object_event  4,  3, SPRITE_ACE_TRAINER_M, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 2, GenericTrainerCooltrainermSean, EVENT_FAST_SHIP_PASSENGERS_EASTBOUND
+	object_event  1,  5, SPRITE_ACE_TRAINER_F, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerCooltrainerfCarol, EVENT_FAST_SHIP_PASSENGERS_EASTBOUND
+	object_event  1,  5, SPRITE_POKEMANIAC, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerPokemaniacEthan, EVENT_FAST_SHIP_PASSENGERS_WESTBOUND
+	object_event  4, 17, SPRITE_HIKER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerHikerNoland, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
+	object_event  7, 30, SPRITE_GENTLEMAN, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerGentlemanEdward, EVENT_FAST_SHIP_PASSENGERS_EASTBOUND
+	object_event  2, 30, SPRITE_BURGLAR, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 4, GenericTrainerBurglarCorey, EVENT_FAST_SHIP_PASSENGERS_WESTBOUND
 
-TrainerPokemaniacEthan:
-	trainer POKEMANIAC, ETHAN, EVENT_BEAT_POKEMANIAC_ETHAN, PokemaniacEthanSeenText, PokemaniacEthanBeatenText, 0, .Script
+	object_const_def
+	const FASTSHIPCABINS_NNW_NNE_NE_SAILOR
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext PokemaniacEthanAfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerPILooker:
+	generictrainer PI, LOOKER, EVENT_BEAT_PI_LOOKER, PILookerSeenText, PILookerBeatenText
 
-TrainerHikerNoland:
-	trainer HIKER, NOLAND, EVENT_BEAT_HIKER_NOLAND, HikerNolandSeenText, HikerNolandBeatenText, 0, .Script
+	text "My code name,"
+	line "it is Looker."
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext HikerNolandAfterBattleText
-	waitbutton
-	closetext
-	end
+	para "It is what they"
+	line "all call me."
 
-TrainerGentlemanEdward:
-	trainer GENTLEMAN, EDWARD, EVENT_BEAT_GENTLEMAN_EDWARD, GentlemanEdwardSeenText, GentlemanEdwardBeatenText, 0, .Script
+	para "I am on the look-"
+	line "out for members"
+	cont "of Team Rocket."
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext GentlemanEdwardAfterBattleText
-	waitbutton
-	closetext
-	end
+	para "What?! You defeat-"
+	line "ed them?"
 
-TrainerBurglarCorey:
-	trainer BURGLAR, COREY, EVENT_BEAT_BURGLAR_COREY, BurglarCoreySeenText, BurglarCoreyBeatenText, 0, .Script
+	para "Bravo!"
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext BurglarCoreyAfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerCooltrainermSean:
+	generictrainer COOLTRAINERM, SEAN, EVENT_BEAT_COOLTRAINERM_SEAN, CooltrainermSeanSeenText, CooltrainermSeanBeatenText
+
+	text "Trainers from"
+	line "Johto can battle"
+
+	para "with Kanto Gym"
+	line "Leaders."
+	done
+
+GenericTrainerCooltrainerfCarol:
+	generictrainer COOLTRAINERF, CAROL, EVENT_BEAT_COOLTRAINERF_CAROL, CooltrainerfCarolSeenText, CooltrainerfCarolBeatenText
+
+	text "I'm going to beat"
+	line "you someday!"
+	done
+
+GenericTrainerPokemaniacEthan:
+	generictrainer POKEMANIAC, ETHAN, EVENT_BEAT_POKEMANIAC_ETHAN, PokemaniacEthanSeenText, PokemaniacEthanBeatenText
+
+	text "Lily's nice, but"
+	line "Mary's the best!"
+
+	para "I want to check"
+	line "out Johto's radio"
+	cont "programs!"
+	done
+
+GenericTrainerHikerNoland:
+	generictrainer HIKER, NOLAND, EVENT_BEAT_HIKER_NOLAND, HikerNolandSeenText, HikerNolandBeatenText
+
+	text "I wonder if there"
+	line "are any mountains"
+
+	para "worth climbing in"
+	line "Kanto?"
+	done
+
+GenericTrainerGentlemanEdward:
+	generictrainer GENTLEMAN, EDWARD, EVENT_BEAT_GENTLEMAN_EDWARD, GentlemanEdwardSeenText, GentlemanEdwardBeatenText
+
+	text "I give up."
+	line "You don't have to"
+
+	para "look. Just forget"
+	line "about it!"
+	done
+
+GenericTrainerBurglarCorey:
+	generictrainer BURGLAR, COREY, EVENT_BEAT_BURGLAR_COREY, BurglarCoreySeenText, BurglarCoreyBeatenText
+
+	text "I found a pretty"
+	line "coin here."
+
+	para "Someone must have"
+	line "lost it…"
+	done
 
 FastShipLazySailorScript:
+	special SaveMusic
 	playmusic MUSIC_HIKER_ENCOUNTER
-	faceplayer
-	opentext
-	writetext SailorStanlySeenText
-	waitbutton
-	closetext
-	winlosstext SailorStanlyBeatenText, 0
+	showtextfaceplayer SailorStanlySeenText
+	winlosstext SailorStanlyBeatenText, SailorStanlyBeatenText
 	loadtrainer SAILOR, STANLY
+	loadvar VAR_BATTLETYPE, BATTLETYPE_CANLOSE
 	startbattle
 	reloadmap
 	special HealParty
 	setevent EVENT_BEAT_SAILOR_STANLY
-	opentext
-	writetext SailorStanlyAfterBattleText
-	waitbutton
-	closetext
+	showtext SailorStanlyAfterBattleText
 	setevent EVENT_FAST_SHIP_LAZY_SAILOR
-	setmapscene FAST_SHIP_B1F, SCENE_FASTSHIPB1F_NOOP
+	setmapscene FAST_SHIP_B1F, $1
 	readvar VAR_FACING
-	ifequal RIGHT, .Movement2
+	ifequalfwd $3, .Movement2
 	applymovement FASTSHIPCABINS_NNW_NNE_NE_SAILOR, FastShipLazySailorLeavesMovement1
 	playsound SFX_EXIT_BUILDING
 	disappear FASTSHIPCABINS_NNW_NNE_NE_SAILOR
@@ -112,27 +131,40 @@ FastShipLazySailorScript:
 	waitsfx
 	end
 
-FastShipCabins_NNW_NNE_NETrashcan:
-	jumpstd TrashCanScript
-
 FastShipLazySailorLeavesMovement1:
-	step LEFT
-	step LEFT
-	step UP
-	step UP
+	step_left
+	step_left
+	step_up
+	step_up
 	step_end
 
 FastShipLazySailorLeavesMovement2:
-	step DOWN
-	step LEFT
-	step LEFT
-	step UP
-	step UP
-	step UP
+	step_down
+	step_left
+	step_left
+	step_up
+	step_up
+	step_up
 	step_end
 
+PILookerSeenText:
+	text "WHAAAT?!"
+
+	para "…How did you know?"
+	line "How did you unmask"
+
+	para "me as a member of"
+	line "the International"
+	cont "Police?!"
+	done
+
+PILookerBeatenText:
+	text "Quite admirable,"
+	line "you are!"
+	done
+
 CooltrainermSeanSeenText:
-	text "I'm going to KANTO"
+	text "I'm going to Kanto"
 	line "to test my skills."
 	done
 
@@ -140,17 +172,9 @@ CooltrainermSeanBeatenText:
 	text "I wanted to win!"
 	done
 
-CooltrainermSeanAfterBattleText:
-	text "Trainers from"
-	line "JOHTO can battle"
-
-	para "with KANTO GYM"
-	line "LEADERS."
-	done
-
 CooltrainerfCarolSeenText:
 	text "I'm training to"
-	line "become the CHAMP!"
+	line "become the Champ!"
 	done
 
 CooltrainerfCarolBeatenText:
@@ -158,28 +182,14 @@ CooltrainerfCarolBeatenText:
 	line "ent between us?"
 	done
 
-CooltrainerfCarolAfterBattleText:
-	text "I'm going to beat"
-	line "you someday!"
-	done
-
 PokemaniacEthanSeenText:
-	text "Do you know LILY?"
+	text "Do you know Lily?"
 	line "She's a hot DJ in"
-	cont "KANTO."
+	cont "Kanto."
 	done
 
 PokemaniacEthanBeatenText:
 	text "Gyaaaah!"
-	done
-
-PokemaniacEthanAfterBattleText:
-	text "LILY's nice, but"
-	line "MARY's the best!"
-
-	para "I want to check"
-	line "out JOHTO's radio"
-	cont "programs!"
 	done
 
 HikerNolandSeenText:
@@ -190,14 +200,6 @@ HikerNolandSeenText:
 HikerNolandBeatenText:
 	text "That's too much to"
 	line "handle!"
-	done
-
-HikerNolandAfterBattleText:
-	text "I wonder if there"
-	line "are any mountains"
-
-	para "worth climbing in"
-	line "KANTO?"
 	done
 
 SailorStanlySeenText:
@@ -238,14 +240,6 @@ GentlemanEdwardBeatenText:
 	line "it…"
 	done
 
-GentlemanEdwardAfterBattleText:
-	text "I give up."
-	line "You don't have to"
-
-	para "look. Just forget"
-	line "about it!"
-	done
-
 BurglarCoreySeenText:
 	text "Yeehaw!"
 	line "Lucky!"
@@ -256,34 +250,3 @@ BurglarCoreyBeatenText:
 	line "I lost!"
 	done
 
-BurglarCoreyAfterBattleText:
-	text "I found a pretty"
-	line "coin here."
-
-	para "Someone must have"
-	line "lost it…"
-	done
-
-FastShipCabins_NNW_NNE_NE_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2,  0, FAST_SHIP_1F, 2
-	warp_event  2, 12, FAST_SHIP_1F, 3
-	warp_event  2, 24, FAST_SHIP_1F, 4
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  6, 13, BGEVENT_READ, FastShipCabins_NNW_NNE_NETrashcan
-	bg_event  7, 19, BGEVENT_READ, FastShipCabins_NNW_NNE_NETrashcan
-	bg_event  7, 31, BGEVENT_READ, FastShipCabins_NNW_NNE_NETrashcan
-
-	def_object_events
-	object_event  4,  3, SPRITE_COOLTRAINER_M, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 2, TrainerCooltrainermSean, EVENT_FAST_SHIP_PASSENGERS_EASTBOUND
-	object_event  1,  5, SPRITE_COOLTRAINER_F, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 3, TrainerCooltrainerfCarol, EVENT_FAST_SHIP_PASSENGERS_EASTBOUND
-	object_event  1,  5, SPRITE_SUPER_NERD, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 3, TrainerPokemaniacEthan, EVENT_FAST_SHIP_PASSENGERS_WESTBOUND
-	object_event  4, 17, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_TRAINER, 3, TrainerHikerNoland, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
-	object_event  4, 26, SPRITE_SAILOR, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, FastShipLazySailorScript, EVENT_FAST_SHIP_CABINS_NNW_NNE_NE_SAILOR
-	object_event  7, 30, SPRITE_GENTLEMAN, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerGentlemanEdward, EVENT_FAST_SHIP_PASSENGERS_EASTBOUND
-	object_event  2, 30, SPRITE_PHARMACIST, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_TRAINER, 4, TrainerBurglarCorey, EVENT_FAST_SHIP_PASSENGERS_WESTBOUND

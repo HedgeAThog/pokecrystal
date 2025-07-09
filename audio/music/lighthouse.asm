@@ -12,7 +12,7 @@ Music_Lighthouse_Ch1:
 	pitch_offset 4
 	vibrato 8, 4, 5
 	stereo_panning FALSE, TRUE
-.mainloop:
+Music_Lighthouse_branch_ee584:
 	note_type 12, 11, 3
 	octave 3
 	note C#, 8
@@ -127,13 +127,13 @@ Music_Lighthouse_Ch1:
 	note B_, 2
 	note A_, 2
 	note G#, 8
-	sound_loop 0, .mainloop
+	sound_jump Music_Lighthouse_branch_ee584
 
 Music_Lighthouse_Ch2:
 	duty_cycle 3
 	pitch_offset 2
 	vibrato 16, 4, 5
-.mainloop:
+Music_Lighthouse_branch_ee604:
 	note_type 12, 12, 5
 	octave 3
 	note G#, 12
@@ -209,12 +209,12 @@ Music_Lighthouse_Ch2:
 	note D#, 2
 	note C#, 2
 	note C_, 8
-	sound_loop 0, .mainloop
+	sound_jump Music_Lighthouse_branch_ee604
 
 Music_Lighthouse_Ch3:
 	note_type 12, 1, 9
 	stereo_panning TRUE, FALSE
-.mainloop:
+Music_Lighthouse_branch_ee65b:
 	octave 2
 	note G#, 2
 	rest 2
@@ -224,7 +224,7 @@ Music_Lighthouse_Ch3:
 	rest 2
 	note G_, 2
 	rest 2
-.loop1:
+Music_Lighthouse_branch_ee664:
 	note G#, 2
 	rest 2
 	note D#, 2
@@ -233,7 +233,7 @@ Music_Lighthouse_Ch3:
 	rest 2
 	note A_, 2
 	rest 2
-	sound_loop 2, .loop1
+	sound_loop 2, Music_Lighthouse_branch_ee664
 	note G#, 2
 	rest 2
 	note D#, 2
@@ -253,7 +253,7 @@ Music_Lighthouse_Ch3:
 	octave 3
 	note C_, 2
 	rest 2
-.loop2:
+Music_Lighthouse_branch_ee683:
 	note C#, 2
 	rest 2
 	octave 2
@@ -264,7 +264,7 @@ Music_Lighthouse_Ch3:
 	octave 3
 	note D_, 2
 	rest 2
-	sound_loop 2, .loop2
+	sound_loop 2, Music_Lighthouse_branch_ee683
 	note C#, 2
 	rest 2
 	octave 2
@@ -275,7 +275,7 @@ Music_Lighthouse_Ch3:
 	octave 3
 	note D#, 2
 	note F#, 2
-.loop3:
+Music_Lighthouse_branch_ee69b:
 	note E_, 2
 	rest 2
 	octave 2
@@ -286,13 +286,13 @@ Music_Lighthouse_Ch3:
 	rest 2
 	note F_, 2
 	rest 2
-	sound_loop 8, .loop3
-	sound_loop 0, .mainloop
+	sound_loop 8, Music_Lighthouse_branch_ee69b
+	sound_jump Music_Lighthouse_branch_ee65b
 
 Music_Lighthouse_Ch4:
 	toggle_noise 0
 	drum_speed 12
-.mainloop:
+Music_Lighthouse_branch_ee6b1:
 	stereo_panning FALSE, TRUE
 	drum_note 9, 4
 	drum_note 6, 2
@@ -307,4 +307,4 @@ Music_Lighthouse_Ch4:
 	drum_note 6, 4
 	drum_note 9, 2
 	drum_note 10, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_Lighthouse_branch_ee6b1

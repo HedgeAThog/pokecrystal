@@ -9,7 +9,7 @@ Music_ContestResults_Ch1:
 	tempo 144
 	volume 7, 7
 	note_type 12, 5, 1
-.mainloop:
+Music_ContestResults_branch_efb52:
 	rest 2
 	octave 2
 	note G_, 1
@@ -47,11 +47,11 @@ Music_ContestResults_Ch1:
 	rest 3
 	note G_, 1
 	rest 1
-	sound_loop 0, .mainloop
+	sound_jump Music_ContestResults_branch_efb52
 
 Music_ContestResults_Ch2:
 	note_type 12, 6, 1
-.mainloop:
+Music_ContestResults_branch_efb7e:
 	octave 2
 	note C_, 2
 	octave 3
@@ -92,7 +92,7 @@ Music_ContestResults_Ch2:
 	octave 3
 	note F_, 1
 	rest 1
-.loop1:
+Music_ContestResults_branch_efba6:
 	octave 2
 	note D_, 2
 	octave 3
@@ -103,7 +103,7 @@ Music_ContestResults_Ch2:
 	octave 3
 	note F_, 1
 	rest 1
-	sound_loop 2, .loop1
+	sound_loop 2, Music_ContestResults_branch_efba6
 	octave 2
 	note G_, 2
 	octave 3
@@ -124,12 +124,12 @@ Music_ContestResults_Ch2:
 	octave 3
 	note D_, 1
 	rest 1
-	sound_loop 0, .mainloop
+	sound_jump Music_ContestResults_branch_efb7e
 
 Music_ContestResults_Ch3:
 	vibrato 8, 2, 4
 	note_type 12, 2, 3
-.mainloop:
+Music_ContestResults_branch_efbd2:
 	octave 4
 	note E_, 5
 	rest 1
@@ -149,12 +149,12 @@ Music_ContestResults_Ch3:
 	note B_, 4
 	note A_, 8
 	note G_, 8
-	sound_loop 0, .mainloop
+	sound_jump Music_ContestResults_branch_efbd2
 
 Music_ContestResults_Ch4:
 	toggle_noise 4
 	drum_speed 6
-.mainloop:
+Music_ContestResults_branch_efbed:
 	drum_note 2, 4
 	drum_note 2, 4
 	drum_note 2, 2
@@ -171,4 +171,4 @@ Music_ContestResults_Ch4:
 	drum_note 8, 1
 	drum_note 8, 1
 	drum_note 8, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_ContestResults_branch_efbed

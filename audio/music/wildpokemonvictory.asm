@@ -17,32 +17,32 @@ Music_WildPokemonVictory_Ch1:
 	note F#, 1
 	volume_envelope 11, 6
 	note E_, 12
-.body:
+Music_SuccessfulCapture_branch_f4536:
 	stereo_panning FALSE, TRUE
-.mainloop:
-	sound_call .sub1
+Music_WildPokemonVictory_branch_f4538:
+	sound_call Music_WildPokemonVictory_branch_f455c
 	note F#, 2
 	note F#, 2
 	note F#, 4
-	sound_call .sub1
+	sound_call Music_WildPokemonVictory_branch_f455c
 	note G#, 4
 	volume_envelope 7, 8
 	octave 3
 	note G_, 4
 	transpose 0, 1
-	sound_call .sub1
+	sound_call Music_WildPokemonVictory_branch_f455c
 	note F#, 2
 	note F#, 2
 	note F#, 4
-	sound_call .sub1
+	sound_call Music_WildPokemonVictory_branch_f455c
 	note G#, 4
 	transpose 0, 0
 	volume_envelope 7, 8
 	octave 3
 	note F#, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_WildPokemonVictory_branch_f4538
 
-.sub1:
+Music_WildPokemonVictory_branch_f455c:
 	volume_envelope 7, 1
 	octave 3
 	note G#, 1
@@ -79,15 +79,15 @@ Music_WildPokemonVictory_Ch2:
 	note A_, 1
 	volume_envelope 13, 6
 	note B_, 12
-.body:
+Music_SuccessfulCapture_branch_f4585:
 	stereo_panning TRUE, FALSE
-.mainloop:
-	sound_call .sub1
+Music_WildPokemonVictory_branch_f4587:
+	sound_call Music_WildPokemonVictory_branch_f45b5
 	octave 4
 	note B_, 2
 	note B_, 2
 	note B_, 4
-	sound_call .sub1
+	sound_call Music_WildPokemonVictory_branch_f45b5
 	octave 4
 	note B_, 4
 	volume_envelope 8, 1
@@ -96,12 +96,12 @@ Music_WildPokemonVictory_Ch2:
 	note G_, 1
 	note A#, 1
 	transpose 0, 1
-	sound_call .sub1
+	sound_call Music_WildPokemonVictory_branch_f45b5
 	octave 4
 	note B_, 2
 	note B_, 2
 	note B_, 4
-	sound_call .sub1
+	sound_call Music_WildPokemonVictory_branch_f45b5
 	octave 4
 	note B_, 4
 	transpose 0, 0
@@ -112,9 +112,9 @@ Music_WildPokemonVictory_Ch2:
 	note D#, 1
 	note F#, 1
 	note A_, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_WildPokemonVictory_branch_f4587
 
-.sub1:
+Music_WildPokemonVictory_branch_f45b5:
 	volume_envelope 8, 1
 	octave 4
 	note B_, 2
@@ -140,34 +140,34 @@ Music_WildPokemonVictory_Ch3:
 	rest 3
 	note E_, 1
 	rest 3
-.body:
-.mainloop:
-	sound_call .sub1
+Music_SuccessfulCapture_branch_f45cf:
+Music_WildPokemonVictory_branch_f45cf:
+	sound_call Music_WildPokemonVictory_branch_f45f4
 	note D#, 2
 	note C#, 2
 	octave 2
 	note B_, 2
 	rest 2
-	sound_call .sub1
+	sound_call Music_WildPokemonVictory_branch_f45f4
 	note E_, 2
 	rest 2
 	note C_, 4
 	transpose 0, 1
-	sound_call .sub1
+	sound_call Music_WildPokemonVictory_branch_f45f4
 	note D#, 2
 	note C#, 2
 	octave 2
 	note B_, 2
 	rest 2
-	sound_call .sub1
+	sound_call Music_WildPokemonVictory_branch_f45f4
 	note E_, 2
 	rest 2
 	transpose 0, 0
 	octave 2
 	note B_, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_WildPokemonVictory_branch_f45cf
 
-.sub1:
+Music_WildPokemonVictory_branch_f45f4:
 	volume_envelope 2, 5
 	octave 3
 	note E_, 2

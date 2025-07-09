@@ -12,8 +12,8 @@ CheckTime::
 	ret
 
 .TimeOfDayTable:
-	db MORN_F, MORN
-	db DAY_F,  DAY
-	db NITE_F, NITE
-	db NITE_F, NITE
+	db MORN, 1 << MORN
+	db DAY,  1 << DAY
+	db EVE,  1 << EVE
+	db NITE, 1 << NITE
 	db -1

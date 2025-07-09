@@ -42,13 +42,13 @@ Music_ViridianCity_Ch1:
 	rest 4
 	note G_, 8
 	rest 4
-.mainloop:
-	sound_call .sub1
+Music_ViridianCity_branch_f4039:
+	sound_call Music_ViridianCity_branch_f40c5
 	rest 4
-	sound_call .sub1
+	sound_call Music_ViridianCity_branch_f40c5
 	octave 4
 	note C_, 4
-	sound_call .sub2
+	sound_call Music_ViridianCity_branch_f410f
 	octave 4
 	note B_, 2
 	note G_, 2
@@ -118,7 +118,7 @@ Music_ViridianCity_Ch1:
 	octave 3
 	note B_, 2
 	note A_, 2
-	sound_call .sub2
+	sound_call Music_ViridianCity_branch_f410f
 	octave 4
 	note A_, 2
 	note G_, 2
@@ -169,9 +169,9 @@ Music_ViridianCity_Ch1:
 	rest 3
 	note G_, 8
 	note A#, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_ViridianCity_branch_f4039
 
-.sub1:
+Music_ViridianCity_branch_f40c5:
 	octave 3
 	note A_, 1
 	rest 3
@@ -247,7 +247,7 @@ Music_ViridianCity_Ch1:
 	note G_, 8
 	sound_ret
 
-.sub2:
+Music_ViridianCity_branch_f410f:
 	octave 3
 	note B_, 2
 	note D_, 2
@@ -305,13 +305,13 @@ Music_ViridianCity_Ch2:
 	rest 4
 	note E_, 8
 	rest 4
-.mainloop:
-	sound_call .sub1
+Music_ViridianCity_branch_f414c:
+	sound_call Music_ViridianCity_branch_f41c0
 	rest 4
-	sound_call .sub1
+	sound_call Music_ViridianCity_branch_f41c0
 	octave 2
 	note F#, 4
-	sound_call .sub2
+	sound_call Music_ViridianCity_branch_f4201
 	note G_, 4
 	rest 2
 	octave 3
@@ -324,7 +324,7 @@ Music_ViridianCity_Ch2:
 	note D_, 4
 	octave 2
 	note B_, 2
-	sound_call .sub3
+	sound_call Music_ViridianCity_branch_f420b
 	rest 2
 	note F#, 2
 	rest 2
@@ -333,7 +333,7 @@ Music_ViridianCity_Ch2:
 	rest 1
 	note C#, 4
 	note C_, 4
-	sound_call .sub4
+	sound_call Music_ViridianCity_branch_f4215
 	note E_, 4
 	rest 2
 	note B_, 1
@@ -360,7 +360,7 @@ Music_ViridianCity_Ch2:
 	octave 2
 	note A_, 2
 	note F#, 2
-	sound_call .sub2
+	sound_call Music_ViridianCity_branch_f4201
 	note G_, 4
 	rest 2
 	note B_, 1
@@ -369,7 +369,7 @@ Music_ViridianCity_Ch2:
 	rest 1
 	note B_, 4
 	note G_, 2
-	sound_call .sub3
+	sound_call Music_ViridianCity_branch_f420b
 	rest 2
 	note F#, 2
 	rest 2
@@ -380,7 +380,7 @@ Music_ViridianCity_Ch2:
 	rest 2
 	octave 2
 	note D#, 2
-	sound_call .sub4
+	sound_call Music_ViridianCity_branch_f4215
 	note E_, 4
 	rest 2
 	note A#, 1
@@ -402,9 +402,9 @@ Music_ViridianCity_Ch2:
 	note E_, 8
 	octave 1
 	note A_, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_ViridianCity_branch_f414c
 
-.sub1:
+Music_ViridianCity_branch_f41c0:
 	octave 2
 	note D_, 4
 	rest 2
@@ -471,7 +471,7 @@ Music_ViridianCity_Ch2:
 	note E_, 8
 	sound_ret
 
-.sub2:
+Music_ViridianCity_branch_f4201:
 	note G_, 4
 	rest 2
 	octave 3
@@ -483,7 +483,7 @@ Music_ViridianCity_Ch2:
 	note F#, 2
 	sound_ret
 
-.sub3:
+Music_ViridianCity_branch_f420b:
 	note F#, 4
 	rest 2
 	octave 3
@@ -495,7 +495,7 @@ Music_ViridianCity_Ch2:
 	note F_, 2
 	sound_ret
 
-.sub4:
+Music_ViridianCity_branch_f4215:
 	octave 2
 	note E_, 4
 	rest 2
@@ -542,13 +542,13 @@ Music_ViridianCity_Ch3:
 	note D_, 8
 	note F#, 2
 	note G_, 2
-.mainloop:
+Music_ViridianCity_branch_f4246:
 	volume_envelope 1, 3
-	sound_call .sub1
+	sound_call Music_ViridianCity_branch_f42a2
 	octave 5
 	note F#, 2
 	note G_, 2
-	sound_call .sub1
+	sound_call Music_ViridianCity_branch_f42a2
 	note E_, 4
 	vibrato 24, 2, 5
 	volume_envelope 2, 5
@@ -623,9 +623,9 @@ Music_ViridianCity_Ch3:
 	rest 3
 	note D_, 8
 	note E_, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_ViridianCity_branch_f4246
 
-.sub1:
+Music_ViridianCity_branch_f42a2:
 	octave 5
 	note A_, 2
 	rest 2
@@ -691,28 +691,28 @@ Music_ViridianCity_Ch3:
 Music_ViridianCity_Ch4:
 	toggle_noise 3
 	drum_speed 12
-	sound_call .sub1
-	sound_call .sub2
-.mainloop:
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub3
-	sound_call .sub4
-	sound_call .sub3
-	sound_call .sub3
-	sound_call .sub3
-	sound_call .sub4
-	sound_call .sub3
-	sound_call .sub3
-	sound_loop 0, .mainloop
+	sound_call Music_ViridianCity_branch_f431d
+	sound_call Music_ViridianCity_branch_f432c
+Music_ViridianCity_branch_f42e9:
+	sound_call Music_ViridianCity_branch_f431d
+	sound_call Music_ViridianCity_branch_f431d
+	sound_call Music_ViridianCity_branch_f431d
+	sound_call Music_ViridianCity_branch_f432c
+	sound_call Music_ViridianCity_branch_f431d
+	sound_call Music_ViridianCity_branch_f431d
+	sound_call Music_ViridianCity_branch_f431d
+	sound_call Music_ViridianCity_branch_f432c
+	sound_call Music_ViridianCity_branch_f433b
+	sound_call Music_ViridianCity_branch_f434b
+	sound_call Music_ViridianCity_branch_f433b
+	sound_call Music_ViridianCity_branch_f433b
+	sound_call Music_ViridianCity_branch_f433b
+	sound_call Music_ViridianCity_branch_f434b
+	sound_call Music_ViridianCity_branch_f433b
+	sound_call Music_ViridianCity_branch_f433b
+	sound_jump Music_ViridianCity_branch_f42e9
 
-.sub1:
+Music_ViridianCity_branch_f431d:
 	drum_note 5, 2
 	drum_note 5, 2
 	drum_note 3, 2
@@ -729,7 +729,7 @@ Music_ViridianCity_Ch4:
 	drum_note 7, 2
 	sound_ret
 
-.sub2:
+Music_ViridianCity_branch_f432c:
 	drum_note 5, 2
 	drum_note 5, 2
 	drum_note 3, 2
@@ -746,7 +746,7 @@ Music_ViridianCity_Ch4:
 	drum_note 11, 2
 	sound_ret
 
-.sub3:
+Music_ViridianCity_branch_f433b:
 	drum_note 4, 2
 	drum_note 7, 2
 	drum_note 3, 2
@@ -764,7 +764,7 @@ Music_ViridianCity_Ch4:
 	drum_note 4, 2
 	sound_ret
 
-.sub4:
+Music_ViridianCity_branch_f434b:
 	drum_note 4, 2
 	drum_note 7, 2
 	drum_note 3, 2

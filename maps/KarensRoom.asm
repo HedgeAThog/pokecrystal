@@ -1,92 +1,91 @@
-	object_const_def
-	const KARENSROOM_KAREN
-
-KarensRoom_MapScripts:
+KarensRoom_MapScriptHeader:
 	def_scene_scripts
-	scene_script KarensRoomLockDoorScene, SCENE_KARENSROOM_LOCK_DOOR
-	scene_script KarensRoomNoopScene,     SCENE_KARENSROOM_NOOP
+	scene_script KarensRoomEntranceTrigger
 
 	def_callbacks
-	callback MAPCALLBACK_TILES, KarensRoomDoorsCallback
+	callback MAPCALLBACK_TILES, KarensRoomDoorCallback
 
-KarensRoomLockDoorScene:
-	sdefer KarensRoomDoorLocksBehindYouScript
+	def_warp_events
+	warp_event  4, 17, BRUNOS_ROOM, 3
+	warp_event  5, 17, BRUNOS_ROOM, 4
+	warp_event  4,  2, LANCES_ROOM, 1
+	warp_event  5,  2, LANCES_ROOM, 2
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event  5,  7, SPRITE_KAREN, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, KarenScript, -1
+
+KarensRoomEntranceTrigger:
+	sdefer .Script
 	end
 
-KarensRoomNoopScene:
-	end
-
-KarensRoomDoorsCallback:
-	checkevent EVENT_KARENS_ROOM_ENTRANCE_CLOSED
-	iffalse .KeepEntranceOpen
-	changeblock 4, 14, $2a ; wall
-.KeepEntranceOpen:
-	checkevent EVENT_KARENS_ROOM_EXIT_OPEN
-	iffalse .KeepExitClosed
-	changeblock 4, 2, $16 ; open door
-.KeepExitClosed:
-	endcallback
-
-KarensRoomDoorLocksBehindYouScript:
-	applymovement PLAYER, KarensRoom_EnterMovement
-	reanchormap $86
+.Script:
+	applymovement PLAYER, WalkIntoEliteFourRoomMovement
+	reanchormap
 	playsound SFX_STRENGTH
 	earthquake 80
-	changeblock 4, 14, $2a ; wall
+	changeblock 4, 14, $2a
 	refreshmap
 	closetext
-	setscene SCENE_KARENSROOM_NOOP
+	setscene $1
 	setevent EVENT_KARENS_ROOM_ENTRANCE_CLOSED
 	waitsfx
 	end
 
-KarenScript_Battle:
-	faceplayer
-	opentext
+KarensRoomDoorCallback:
+	checkevent EVENT_KARENS_ROOM_ENTRANCE_CLOSED
+	iffalsefwd .KeepDoorClosed
+	changeblock 4, 14, $2a
+.KeepDoorClosed:
+	checkevent EVENT_KARENS_ROOM_EXIT_OPEN
+	iffalsefwd .OpenDoor
+	changeblock 4, 2, $16
+.OpenDoor:
+	endcallback
+
+KarenScript:
+	readvar VAR_BADGES
+	ifequalfwd 16, .Rematch
 	checkevent EVENT_BEAT_ELITE_4_KAREN
-	iftrue KarenScript_AfterBattle
-	writetext KarenScript_KarenBeforeText
-	waitbutton
-	closetext
-	winlosstext KarenScript_KarenBeatenText, 0
-	loadtrainer KAREN, KAREN1
+	iftrue_jumptextfaceplayer .AfterText
+	showtextfaceplayer .SeenText
+	winlosstext .BeatenText, 0
+	loadtrainer KAREN, 1
 	startbattle
 	reloadmapafterbattle
-	setevent EVENT_BEAT_ELITE_4_KAREN
-	opentext
-	writetext KarenScript_KarenDefeatText
-	waitbutton
-	closetext
+	showtext .AfterText
+	sjumpfwd .EndBattle
+
+.Rematch:
+	checkevent EVENT_BEAT_ELITE_4_KAREN
+	iftrue_jumptextfaceplayer .AfterRematchText
+	showtextfaceplayer .SeenRematchText
+	winlosstext .BeatenText, 0
+	loadtrainer KAREN, 2
+	startbattle
+	reloadmapafterbattle
+	showtext .AfterRematchText
+.EndBattle:
 	playsound SFX_ENTER_DOOR
-	changeblock 4, 2, $16 ; open door
+	changeblock 4, 2, $16
 	refreshmap
-	closetext
 	setevent EVENT_KARENS_ROOM_EXIT_OPEN
+	setevent EVENT_BEAT_ELITE_4_KAREN
 	waitsfx
 	end
 
-KarenScript_AfterBattle:
-	writetext KarenScript_KarenDefeatText
-	waitbutton
-	closetext
-	end
-
-KarensRoom_EnterMovement:
-	step UP
-	step UP
-	step UP
-	step UP
-	step_end
-
-KarenScript_KarenBeforeText:
-	text "I am KAREN of the"
-	line "ELITE FOUR."
+.SeenText:
+	text "I am Karen of the"
+	line "Elite Four."
 
 	para "You're <PLAYER>?"
 	line "How amusing."
 
-	para "I love dark-type"
-	line "#MON."
+	para "I love Dark-type"
+	line "#mon."
 
 	para "I find their wild,"
 	line "tough image to be"
@@ -101,16 +100,16 @@ KarenScript_KarenBeforeText:
 	para "Let's go."
 	done
 
-KarenScript_KarenBeatenText:
+.BeatenText:
 	text "Well, aren't you"
 	line "good. I like that"
 	cont "in a trainer."
 	done
 
-KarenScript_KarenDefeatText:
-	text "Strong #MON."
+.AfterText:
+	text "Strong #mon."
 
-	para "Weak #MON."
+	para "Weak #mon."
 
 	para "That is only the"
 	line "selfish perception"
@@ -126,22 +125,30 @@ KarenScript_KarenDefeatText:
 	line "You understand"
 	cont "what's important."
 
-	para "Go on--the CHAM-"
-	line "PION is waiting."
+	para "Go on--the Cham-"
+	line "pion is waiting."
 	done
 
-KarensRoom_MapEvents:
-	db 0, 0 ; filler
+.SeenRematchText:
+	text "You fought through"
+	line "the ranks to reach"
+	cont "me. I'm impressed."
 
-	def_warp_events
-	warp_event  4, 17, BRUNOS_ROOM, 3
-	warp_event  5, 17, BRUNOS_ROOM, 4
-	warp_event  4,  2, LANCES_ROOM, 1
-	warp_event  5,  2, LANCES_ROOM, 2
+	para "You've assembled a"
+	line "charming team."
 
-	def_coord_events
+	para "Our battle should"
+	line "be a good one."
 
-	def_bg_events
+	para "Let's begin!"
+	done
 
-	def_object_events
-	object_event  5,  7, SPRITE_KAREN, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, KarenScript_Battle, -1
+.AfterRematchText:
+	text "I will not stray"
+	line "from my chosen"
+	cont "path."
+
+	para "Lance is looking"
+	line "forward to meeting"
+	cont "you again."
+	done

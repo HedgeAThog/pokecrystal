@@ -15,8 +15,7 @@ Music_MainMenu_Ch1:
 	note_type 12, 0, -7
 	octave 3
 	note D_, 8
-.mainloop:
-.loop1:
+Music_MainMenu_branch_f791d:
 	note_type 12, 9, 2
 	octave 3
 	note C#, 6
@@ -25,7 +24,7 @@ Music_MainMenu_Ch1:
 	note C#, 2
 	note C#, 2
 	note C#, 4
-	sound_loop 2, .loop1
+	sound_loop 2, Music_MainMenu_branch_f791d
 	note D#, 6
 	note D#, 1
 	note D#, 1
@@ -41,7 +40,7 @@ Music_MainMenu_Ch1:
 	note_type 12, 9, 4
 	octave 3
 	note C_, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_MainMenu_branch_f791d
 
 Music_MainMenu_Ch2:
 	duty_cycle 3
@@ -49,8 +48,7 @@ Music_MainMenu_Ch2:
 	note_type 12, 0, -7
 	octave 3
 	note G_, 8
-.mainloop:
-.loop1:
+Music_MainMenu_branch_f7949:
 	note_type 12, 10, 2
 	note F#, 6
 	note F#, 1
@@ -58,7 +56,7 @@ Music_MainMenu_Ch2:
 	note F#, 2
 	note F#, 2
 	note F#, 4
-	sound_loop 2, .loop1
+	sound_loop 2, Music_MainMenu_branch_f7949
 	note G#, 6
 	note G#, 1
 	note G#, 1
@@ -72,14 +70,13 @@ Music_MainMenu_Ch2:
 	note E_, 2
 	note_type 12, 10, 4
 	note F_, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_MainMenu_branch_f7949
 
 Music_MainMenu_Ch3:
 	stereo_panning TRUE, FALSE
 	note_type 12, 2, 5
 	rest 8
-.mainloop:
-.loop1:
+Music_MainMenu_branch_f796f:
 	octave 2
 	note F#, 1
 	rest 5
@@ -91,7 +88,7 @@ Music_MainMenu_Ch3:
 	rest 1
 	note F#, 1
 	rest 3
-	sound_loop 2, .loop1
+	sound_loop 2, Music_MainMenu_branch_f796f
 	note G#, 1
 	rest 5
 	note G#, 1
@@ -112,7 +109,7 @@ Music_MainMenu_Ch3:
 	rest 1
 	note F_, 1
 	rest 3
-	sound_loop 0, .mainloop
+	sound_jump Music_MainMenu_branch_f796f
 
 Music_MainMenu_Ch4:
 	stereo_panning FALSE, TRUE
@@ -127,7 +124,7 @@ Music_MainMenu_Ch4:
 	drum_note 3, 1
 	drum_note 3, 1
 	drum_note 3, 1
-.mainloop:
+Music_MainMenu_branch_f79a5:
 	drum_note 3, 6
 	drum_note 3, 1
 	drum_note 3, 1
@@ -143,4 +140,4 @@ Music_MainMenu_Ch4:
 	drum_note 4, 1
 	drum_note 3, 1
 	drum_note 3, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_MainMenu_branch_f79a5

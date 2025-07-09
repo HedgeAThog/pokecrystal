@@ -1,51 +1,67 @@
-	object_const_def
-	const CIANWOODPOKECENTER1F_NURSE
-	const CIANWOODPOKECENTER1F_LASS
-	const CIANWOODPOKECENTER1F_GYM_GUIDE
-	const CIANWOODPOKECENTER1F_SUPER_NERD
-
-CianwoodPokecenter1F_MapScripts:
+CianwoodPokeCenter1F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-CianwoodPokecenter1FNurseScript:
-	jumpstd PokecenterNurseScript
+	def_warp_events
+	warp_event  5,  7, CIANWOOD_CITY, 3
+	warp_event  6,  7, CIANWOOD_CITY, 3
+	warp_event  0,  7, POKECENTER_2F, 1
 
-CianwoodPokecenter1FLassScript:
-	jumptextfaceplayer CianwoodPokecenter1FLassText
+	def_coord_events
 
-CianwoodGymGuideScript:
-	faceplayer
-	checkevent EVENT_BEAT_CHUCK
-	iftrue .CianwoodGymGuideWinScript
-	opentext
-	writetext CianwoodGymGuideText
-	waitbutton
-	closetext
-	end
+	def_bg_events
+	bg_event 10,  1, BGEVENT_READ, PokemonJournalChuckScript
 
-.CianwoodGymGuideWinScript:
-	opentext
-	writetext CianwoodGymGuideWinText
-	waitbutton
-	closetext
-	end
+	def_object_events
+	pc_nurse_event  5, 1
+	object_event  6,  3, SPRITE_GYM_GUY, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, CianwoodGymGuyScript, -1
+	object_event  1,  5, SPRITE_PICNICKER, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, CianwoodPokeCenter1FLassText, -1
+	object_event  9,  7, SPRITE_JUGGLER, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, CianwoodPokeCenter1FSuperNerdText, -1
+	object_event 11,  5, SPRITE_RICH_BOY, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_COMMAND, jumptextfaceplayer, CianwoodPokeCenter1FRichBoyText, -1
 
-CianwoodPokecenter1FSuperNerdScript:
-	jumptextfaceplayer CianwoodPokecenter1FSuperNerdText
+PokemonJournalChuckScript:
+	setflag ENGINE_READ_CHUCK_JOURNAL
+	jumpthistext
 
-CianwoodPokecenter1FLassText:
-	text "Did you meet the"
-	line "#MANIAC?"
+	text "#mon Journal"
 
-	para "He's always brag-"
-	line "ging about his"
-	cont "rare #MON."
+	para "Special Feature:"
+	line "Leader Chuck!"
+
+	para "Chuck is said to"
+	line "really like sweet"
+	cont "desserts."
+
+	para "However, he has"
+	line "also been seen"
+
+	para "training under a"
+	line "heavy waterfall"
+	cont "to work them off."
 	done
 
-CianwoodGymGuideText:
-	text "The #MON GYM"
+CianwoodGymGuyScript:
+	checkevent EVENT_GOT_HM04_STRENGTH
+	iffalsefwd .no_strength
+	checkevent EVENT_BEAT_CHUCK
+	iftrue_jumptextfaceplayer .WinText
+	jumptextfaceplayer .Text
+
+.no_strength
+	faceplayer
+	opentext
+	writetext .Text
+	waitbutton
+	writetext .StrengthText1
+	promptbutton
+	verbosegivetmhm HM_STRENGTH
+	setevent EVENT_GOT_HM04_STRENGTH
+	writetext .StrengthText2
+	waitendtext
+
+.Text:
+	text "The #mon Gym"
 	line "trainers here are"
 	cont "macho bullies."
 
@@ -54,70 +70,66 @@ CianwoodGymGuideText:
 	cont "after me."
 
 	para "Here's some ad-"
-	line "vice: the GYM"
+	line "vice: the Gym"
 
-	para "LEADER uses the"
-	line "fighting-type."
+	para "Leader uses the"
+	line "Fighting-type."
 
 	para "So you should"
 	line "confound him with"
-	cont "psychic #MON."
+	cont "Psychic #mon."
 
 	para "Wipe out his #-"
-	line "MON before they"
+	line "mon before they"
 
 	para "can use their"
 	line "physical strength."
 
 	para "And those boulders"
 	line "in the middle of"
-	cont "the GYM?"
+	cont "the Gym?"
 
 	para "If you don't move"
 	line "them correctly,"
 
 	para "you won't reach"
-	line "the GYM LEADER."
+	line "the Gym Leader."
 
 	para "If you get stuck,"
 	line "go outside."
 	done
 
-CianwoodGymGuideWinText:
+.StrengthText1:
+	text "You can't move the"
+	line "boulders aside?"
+
+	para "Here, use this"
+	line "and teach your"
+	cont "#mon Strength!"
+	done
+
+.StrengthText2:
+	text "Good luck!"
+	done
+
+.WinText:
 	text "<PLAYER>! You won!"
 	line "I could tell by"
 	cont "looking at you!"
 	done
 
-CianwoodPokecenter1FUnusedText1: ; unreferenced
-	text "Don't you get the"
-	line "urge to show off"
+CianwoodPokeCenter1FLassText:
+	text "Did you meet the"
+	line "#Maniac?"
 
-	para "your #MON to"
-	line "friends?"
-
-	para "I wish I could"
-	line "show the #MON I"
-
-	para "raised to my pal"
-	line "in VIOLET."
+	para "He's always brag-"
+	line "ging about his"
+	cont "rare #mon."
 	done
 
-CianwoodPokecenter1FUnusedText2: ; unreferenced
-	text "I've been battling"
-	line "my pal in VIOLET"
-
-	para "using a MOBILE"
-	line "ADAPTER link."
-
-	para "I'm down 5-7"
-	line "against him. I've"
-	cont "gotta crank it up!"
-	done
-
-CianwoodPokecenter1FSuperNerdText:
+CianwoodPokeCenter1FSuperNerdText:
 	text "I love showing off"
-	line "the #MON that"
+	line "the #mon that"
 
 	para "I've raised."
 	line "Don't you?"
@@ -126,23 +138,14 @@ CianwoodPokecenter1FSuperNerdText:
 	line "into a bunch of"
 
 	para "battles, and show"
-	line "off my #MON!"
+	line "off my #mon!"
 	done
 
-CianwoodPokecenter1F_MapEvents:
-	db 0, 0 ; filler
+CianwoodPokeCenter1FRichBoyText:
+	text "There's no #"
+	line "Mart in this town,"
 
-	def_warp_events
-	warp_event  3,  7, CIANWOOD_CITY, 3
-	warp_event  4,  7, CIANWOOD_CITY, 3
-	warp_event  0,  7, POKECENTER_2F, 1
-
-	def_coord_events
-
-	def_bg_events
-
-	def_object_events
-	object_event  3,  1, SPRITE_NURSE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CianwoodPokecenter1FNurseScript, -1
-	object_event  1,  5, SPRITE_LASS, SPRITEMOVEDATA_WALK_UP_DOWN, 0, 1, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, CianwoodPokecenter1FLassScript, -1
-	object_event  5,  3, SPRITE_GYM_GUIDE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, CianwoodGymGuideScript, -1
-	object_event  8,  6, SPRITE_SUPER_NERD, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 1, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, CianwoodPokecenter1FSuperNerdScript, -1
+	para "so we have to im-"
+	line "port products from"
+	cont "across the sea."
+	done

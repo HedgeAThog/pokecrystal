@@ -1,46 +1,46 @@
 WadeAnswerPhoneText:
 	text "Hello? This is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text " speaking."
 
-	para "Oh. Hi, <PLAY_G>!"
+	para "Oh. Hi, <PLAYER>!"
 	line "Good morning!"
 	done
 
 WadeAnswerPhoneDayText:
 	text "Hello? This is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text " speaking."
 
-	para "Oh, hi, <PLAY_G>!"
+	para "Oh, hi, <PLAYER>!"
 	done
 
 WadeAnswerPhoneNiteText:
 	text "Hello? This is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text " speaking."
 
-	para "Oh, hi, <PLAY_G>!"
+	para "Oh, hi, <PLAYER>!"
 	line "Good evening!"
 	done
 
 WadeGreetText:
-	text "<PLAY_G>, good"
+	text "<PLAYER>, good"
 	line "morning!"
 
-	para "It's me, @"
+	para "It's me, "
 	text_ram wStringBuffer3
 	text "."
 	line "Isn't it nice out?"
 	done
 
 WadeGreetDayText:
-	text "<PLAY_G>, howdy!"
+	text "<PLAYER>, howdy!"
 
-	para "It's me, @"
+	para "It's me, "
 	text_ram wStringBuffer3
 	text "."
 	line "Isn't it nice out?"
@@ -48,9 +48,9 @@ WadeGreetDayText:
 
 WadeGreetNiteText:
 	text "Good evening,"
-	line "<PLAY_G>!"
+	line "<PLAYER>!"
 
-	para "It's me, @"
+	para "It's me, "
 	text_ram wStringBuffer3
 	text "."
 	line "Were you awake?"
@@ -58,16 +58,16 @@ WadeGreetNiteText:
 
 WadeGenericText:
 	text "How are your"
-	line "#MON doing?"
+	line "#mon doing?"
 
-	para "My #MON have"
+	para "My #mon have"
 	line "too much energy to"
 
 	para "burn. It gets to"
 	line "be a problem."
 
-	para "Of all my #MON,"
-	line "@"
+	para "Of all my #mon,"
+	line ""
 	text_ram wStringBuffer4
 	text " is the"
 	cont "hardest to handle."

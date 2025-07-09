@@ -1,24 +1,42 @@
-BattleCommand_Spikes:
-	ld hl, wEnemyScreens
+BattleCommand_spikes:
 	ldh a, [hBattleTurn]
 	and a
-	jr z, .got_screens
-	ld hl, wPlayerScreens
-.got_screens
-
-; Fails if spikes are already down!
-
-	bit SCREENS_SPIKES, [hl]
-	jr nz, .failed
-
-; Nothing else stops it from working.
-
-	set SCREENS_SPIKES, [hl]
+	ld hl, wEnemyHazards
+	jr z, .got_hazards
+	ld hl, wPlayerHazards
+.got_hazards
+	ld a, [hl]
+	or ~HAZARDS_SPIKES
+	inc a
+	jmp z, FailSpikes
+	ld a, HAZARDS_SPIKES / 3
+	add [hl]
+	ld [hl], a
 
 	call AnimateCurrentMove
 
 	ld hl, SpikesText
-	jp StdBattleTextbox
+	jmp StdBattleTextbox
+
+BattleCommand_toxicspikes:
+	ldh a, [hBattleTurn]
+	and a
+	ld hl, wEnemyHazards
+	jr z, .got_screens
+	ld hl, wPlayerHazards
+.got_screens
+	ld a, [hl]
+	and HAZARDS_TOXIC_SPIKES
+	cp (HAZARDS_TOXIC_SPIKES / 3) * 2
+	jmp z, FailSpikes
+	ld a, HAZARDS_TOXIC_SPIKES / 3
+	add [hl]
+	ld [hl], a
+
+	call AnimateCurrentMove
+
+	ld hl, ToxicSpikesText
+	jmp StdBattleTextbox
 
 .failed
-	jp FailMove
+	jmp FailSpikes

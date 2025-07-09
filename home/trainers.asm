@@ -15,11 +15,12 @@ _CheckTrainerBattle::
 
 ; Skip the player object.
 	ld a, 1
-	ld de, wMap1Object
+	ld de, wMapObjects + MAPOBJECT_LENGTH
 
 .loop
 
 ; Start a battle if the object:
+
 	push af
 	push de
 
@@ -34,15 +35,17 @@ _CheckTrainerBattle::
 	ld hl, MAPOBJECT_TYPE
 	add hl, de
 	ld a, [hl]
-	and MAPOBJECT_TYPE_MASK
 	cp OBJECTTYPE_TRAINER
+	jr z, .is_trainer
+	cp OBJECTTYPE_GENERICTRAINER
 	jr nz, .next
+.is_trainer
 
 ; Is visible on the map
 	ld hl, MAPOBJECT_OBJECT_STRUCT_ID
 	add hl, de
 	ld a, [hl]
-	cp -1
+	cp UNASSOCIATED_MAPOBJECT
 	jr z, .next
 
 ; Is facing the player...
@@ -65,15 +68,13 @@ _CheckTrainerBattle::
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	ld e, [hl]
-	inc hl
+	ld a, [hli]
 	ld d, [hl]
+	ld e, a
 	ld b, CHECK_FLAG
 	call EventFlagAction
-	ld a, c
 	pop de
 	pop bc
-	and a
 	jr z, .startbattle
 
 .next
@@ -107,24 +108,56 @@ TalkToTrainer::
 	ld [wSeenTrainerDirection], a
 
 LoadTrainer_continue::
-	call GetMapScriptsBank
+	ld a, [wMapScriptsBank]
 	ld [wSeenTrainerBank], a
 
 	ldh a, [hLastTalked]
 	call GetMapObject
 
+	ld hl, MAPOBJECT_TYPE
+	add hl, bc
+	ld a, [hl]
+	cp OBJECTTYPE_GENERICTRAINER
+	push af
 	ld hl, MAPOBJECT_SCRIPT_POINTER
 	add hl, bc
 	ld a, [wSeenTrainerBank]
 	call GetFarWord
 	ld de, wTempTrainer
+	pop af
+	push af
+	ld bc, wGenericTempTrainerHeaderEnd - wTempTrainer
+	jr z, .skipCopyingLossPtrAndScriptPtr
 	ld bc, wTempTrainerEnd - wTempTrainer
+.skipCopyingLossPtrAndScriptPtr
 	ld a, [wSeenTrainerBank]
 	call FarCopyBytes
+	pop af
+	jr nz, .notGenericTrainer
+	call SwapHLDE
+	; store 0 loss pointer
+	xor a
+	ld [hli], a
+	ld [hli], a
+	; store generic trainer script in script pointer
+	ld a, LOW(.generic_trainer_script)
+	ld [hli], a
+	ld [hl], HIGH(.generic_trainer_script)
+	; store after-battle text in wStashedTextPointer
+	ld hl, wStashedTextPointer
+	ld a, e
+	ld [hli], a
+	ld a, d
+	ld [hl], a
+.notGenericTrainer
 	xor a
 	ld [wRunningTrainerBattleScript], a
 	scf
 	ret
+
+.generic_trainer_script
+	endifjustbattled
+	jumpstashedtext
 
 FacingPlayerDistance_bc::
 	push de
@@ -136,7 +169,7 @@ FacingPlayerDistance_bc::
 
 FacingPlayerDistance::
 ; Return carry if the sprite at bc is facing the player,
-; its distance in d, and its direction in e.
+; and its distance in d.
 
 	ld hl, OBJECT_MAP_X ; x
 	add hl, bc
@@ -203,44 +236,10 @@ FacingPlayerDistance::
 	and a
 	ret
 
-CheckTrainerFlag:: ; unreferenced
-	push bc
-	ld hl, OBJECT_MAP_OBJECT_INDEX
-	add hl, bc
-	ld a, [hl]
-	call GetMapObject
-	ld hl, MAPOBJECT_SCRIPT_POINTER
-	add hl, bc
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	call GetMapScriptsBank
-	call GetFarWord
-	ld d, h
-	ld e, l
-	push de
-	ld b, CHECK_FLAG
-	call EventFlagAction
-	pop de
-	ld a, c
-	and a
-	pop bc
-	ret
-
 PrintWinLossText::
-	ld a, [wBattleType]
-	cp BATTLETYPE_CANLOSE
-	; code was probably dummied out here
-	jr .canlose
-
-; unused
-	ld hl, wWinTextPointer
-	jr .ok
-
-.canlose
 	ld a, [wBattleResult]
 	ld hl, wWinTextPointer
-	and $f ; WIN?
+	and $f
 	jr z, .ok
 	ld hl, wLossTextPointer
 
@@ -248,8 +247,7 @@ PrintWinLossText::
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	call GetMapScriptsBank
+	ld a, [wMapScriptsBank]
 	call FarPrintText
-	call WaitBGMap
-	call WaitPressAorB_BlinkCursor
-	ret
+	call ApplyTilemapInVBlank
+	jmp WaitPressAorB_BlinkCursor

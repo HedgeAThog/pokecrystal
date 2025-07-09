@@ -1,27 +1,23 @@
-	object_const_def
-	const OLIVINEPUNISHMENTSPEECHHOUSE_POKEFAN_M
-	const OLIVINEPUNISHMENTSPEECHHOUSE_LASS
-
-OlivinePunishmentSpeechHouse_MapScripts:
+OlivinePunishmentSpeechHouse_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-OlivinePunishmentSpeechHouseDad:
-	jumptextfaceplayer OlivinePunishmentSpeechHouseDadText
+	def_warp_events
+	warp_event  2,  7, OLIVINE_CITY, 4
+	warp_event  3,  7, OLIVINE_CITY, 4
 
-OlivinePunishmentSpeechHouseDaughter:
-	jumptextfaceplayer OlivinePunishmentSpeechHouseDaughterText
+	def_coord_events
 
-OlivinePunishmentSpeechHouseBookshelf2:
-	jumpstd PictureBookshelfScript
+	def_bg_events
 
-OlivinePunishmentSpeechHouseBookshelf1:
-	jumpstd MagazineBookshelfScript
+	def_object_events
+	object_event  1,  2, SPRITE_POKEFAN_M, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, PAL_NPC_BROWN, OBJECTTYPE_COMMAND, jumptextfaceplayer, OlivinePunishmentSpeechHouseDadText, -1
+	object_event  5,  5, SPRITE_CUTE_GIRL, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, PAL_NPC_RED, OBJECTTYPE_COMMAND, jumptextfaceplayer, OlivinePunishmentSpeechHouseDaughterText, -1
 
 OlivinePunishmentSpeechHouseDadText:
 	text "Along the way to"
-	line "CIANWOOD, there"
+	line "Cianwood, there"
 
 	para "are four deserted"
 	line "islands."
@@ -36,20 +32,3 @@ OlivinePunishmentSpeechHouseDaughterText:
 	line "trouble, Daddy"
 	cont "always scares me."
 	done
-
-OlivinePunishmentSpeechHouse_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2,  7, OLIVINE_CITY, 5
-	warp_event  3,  7, OLIVINE_CITY, 5
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  0,  1, BGEVENT_READ, OlivinePunishmentSpeechHouseBookshelf1
-	bg_event  1,  1, BGEVENT_READ, OlivinePunishmentSpeechHouseBookshelf2
-
-	def_object_events
-	object_event  1,  2, SPRITE_POKEFAN_M, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, OlivinePunishmentSpeechHouseDad, -1
-	object_event  5,  5, SPRITE_LASS, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 2, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, OlivinePunishmentSpeechHouseDaughter, -1

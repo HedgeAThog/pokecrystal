@@ -1,33 +1,32 @@
-	object_const_def
-	const ELMSHOUSE_ELMS_WIFE
-	const ELMSHOUSE_ELMS_SON
-
-ElmsHouse_MapScripts:
+ElmsHouse_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-ElmsWife:
-	jumptextfaceplayer ElmsWifeText
+	def_warp_events
+	warp_event  7,  4, NEW_BARK_TOWN, 5
+	warp_event  7,  5, NEW_BARK_TOWN, 5
 
-ElmsSon:
-	jumptextfaceplayer ElmsSonText
+	def_coord_events
 
-ElmsHousePC:
-	jumptext ElmsHousePCText
+	def_bg_events
+	bg_event  0,  1, BGEVENT_JUMPTEXT, ElmsHouseFridgeText
+	bg_event  6,  1, BGEVENT_JUMPTEXT, ElmsHousePCText
+	bg_event  7,  1, BGEVENT_JUMPSTD, difficultbookshelf
 
-ElmsHouseBookshelf:
-	jumpstd DifficultBookshelfScript
+	def_object_events
+	object_event  1,  5, SPRITE_POKEFAN_F, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_COMMAND, jumptextfaceplayer, ElmsWifeText, -1
+	object_event  4,  5, SPRITE_CHILD, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, PAL_NPC_BROWN, OBJECTTYPE_COMMAND, jumptextfaceplayer, ElmsSonText, -1
 
 ElmsWifeText:
-	text "Hi, <PLAY_G>! My"
+	text "Hi, <PLAYER>! My"
 	line "husband's always"
 
 	para "so busy--I hope"
 	line "he's OK."
 
 	para "When he's caught"
-	line "up in his #MON"
+	line "up in his #mon"
 
 	para "research, he even"
 	line "forgets to eat."
@@ -39,60 +38,36 @@ ElmsSonText:
 	cont "my dad!"
 
 	para "I'm going to be a"
-	line "great #MON"
+	line "great #mon"
 	cont "professor!"
 	done
 
-ElmsHouseLabFoodText: ; unreferenced
-	text "There's some food"
-	line "here. It must be"
-	cont "for the LAB."
-	done
-
-ElmsHousePokemonFoodText: ; unreferenced
+ElmsHouseFridgeText:
 	text "There's some food"
 	line "here. This must be"
-	cont "for #MON."
+	cont "for #mon."
 	done
 
 ElmsHousePCText:
-	text "#MON. Where do"
-	line "they come from? "
+	text "#mon. Where do"
+	line "they come from?"
 
 	para "Where are they"
 	line "going?"
 
 	para "Why has no one"
 	line "ever witnessed a"
-	cont "#MON's birth?"
+	cont "#mon's birth?"
 
 	para "I want to know! I"
 	line "will dedicate my"
 
 	para "life to the study"
-	line "of #MON!"
+	line "of #mon!"
 
 	para "…"
 
 	para "It's a part of"
-	line "PROF.ELM's re-"
+	line "Prof.Elm's re-"
 	cont "search papers."
 	done
-
-ElmsHouse_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2,  7, NEW_BARK_TOWN, 4
-	warp_event  3,  7, NEW_BARK_TOWN, 4
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  0,  1, BGEVENT_READ, ElmsHousePC
-	bg_event  6,  1, BGEVENT_READ, ElmsHouseBookshelf
-	bg_event  7,  1, BGEVENT_READ, ElmsHouseBookshelf
-
-	def_object_events
-	object_event  1,  5, SPRITE_TEACHER, SPRITEMOVEDATA_WALK_UP_DOWN, 0, 1, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, ElmsWife, -1
-	object_event  5,  4, SPRITE_BUG_CATCHER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, ElmsSon, -1

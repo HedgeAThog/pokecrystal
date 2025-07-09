@@ -1,77 +1,96 @@
-BattleCommand_CheckFutureSight:
-	ld hl, wPlayerFutureSightCount
-	ld de, wPlayerFutureSightDamage
-	ldh a, [hBattleTurn]
-	and a
-	jr z, .ok
-	ld hl, wEnemyFutureSightCount
-	ld de, wEnemyFutureSightDamage
-.ok
-
-	ld a, [hl]
-	and a
-	ret z
-	cp 1
-	ret nz
-
-	ld [hl], 0
-	ld a, [de]
-	inc de
-	ld [wCurDamage], a
-	ld a, [de]
-	ld [wCurDamage + 1], a
+BattleCommand_checkfuturesight:
+	call GetFutureSightUser
+	ret c
 	ld b, futuresight_command
-	jp SkipToBattleCommand
+	jmp SkipToBattleCommandAfter
 
-BattleCommand_FutureSight:
-	call CheckUserIsCharging
-	jr nz, .AlreadyChargingFutureSight
-	ld a, BATTLE_VARS_MOVE_ANIM
-	call GetBattleVar
-	ld b, a
-	ld a, BATTLE_VARS_LAST_COUNTER_MOVE
-	call GetBattleVarAddr
-	ld [hl], b
-	ld a, BATTLE_VARS_LAST_MOVE
-	call GetBattleVarAddr
-	ld [hl], b
-.AlreadyChargingFutureSight:
-	ld hl, wPlayerFutureSightCount
+BattleCommand_futuresight:
 	ldh a, [hBattleTurn]
 	and a
-	jr z, .GotFutureSightCount
+	ld hl, wPlayerFutureSightCount
+	ld bc, wCurBattleMon
+	jr z, .got_future
 	ld hl, wEnemyFutureSightCount
-.GotFutureSightCount:
+	ld bc, wCurOTMon
+.got_future
 	ld a, [hl]
 	and a
 	jr nz, .failed
-	ld a, 4
+
+	; end of turn 2 turns later (3 ticks)
+	ld a, [bc]
+	inc a
+	swap a
+	or $3
 	ld [hl], a
-	call BattleCommand_LowerSub
-	call BattleCommand_MoveDelay
+
+	call BattleCommand_movedelay
 	ld hl, ForesawAttackText
 	call StdBattleTextbox
-	call BattleCommand_RaiseSub
-	ld de, wPlayerFutureSightDamage
-	ldh a, [hBattleTurn]
-	and a
-	jr z, .StoreDamage
-	ld de, wEnemyFutureSightDamage
-.StoreDamage:
-	ld hl, wCurDamage
-	ld a, [hl]
-	ld [de], a
-	ld [hl], 0
-	inc hl
-	inc de
-	ld a, [hl]
-	ld [de], a
-	ld [hl], 0
-	jp EndMoveEffect
+	jmp EndMoveEffect
 
 .failed
-	pop bc
-	call ResetDamage
 	call AnimateFailedMove
 	call PrintButItFailed
-	jp EndMoveEffect
+	jmp EndMoveEffect
+
+GetFutureSightUser::
+; Returns:
+; c|z: Regular user in a (Future Sight not involved)
+; nc|z: Active user in a (Future Sight applying)
+; nc|nz: External user in a (or active fainted), future sight applying.
+	push hl
+	push de
+	push bc
+	ldh a, [hBattleTurn]
+	and a
+	ld hl, wPlayerFutureSightCount
+	ld bc, wCurBattleMon
+	jr z, .got_future
+	ld hl, wEnemyFutureSightCount
+	ld bc, wCurOTMon
+.got_future
+	ld a, [hl]
+	and a
+	jr z, .future_sight_offline
+	and $f
+	jr nz, .future_sight_offline
+	ld a, [hl]
+	swap a
+	dec a
+	and $f
+	ld d, a
+	ld a, [bc]
+	cp d
+	ld a, d
+	pop bc
+	pop de
+	pop hl
+	scf
+	ccf
+	ret nz
+
+	; If user is fainted, treat as non-active
+	push af
+	push hl
+	call HasUserFainted
+	pop hl
+	jr z, .active_fainted
+	pop af
+	ret
+
+.active_fainted
+	pop af
+	and a
+	ret nz
+	rrca
+	ret
+
+.future_sight_offline
+	xor a
+	ld a, [bc]
+	pop bc
+	pop de
+	pop hl
+	scf
+	ret

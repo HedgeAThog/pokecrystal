@@ -1,206 +1,86 @@
-	object_const_def
-	const COPYCATSHOUSE2F_COPYCAT1 ; if player is male
-	const COPYCATSHOUSE2F_DODRIO
-	const COPYCATSHOUSE2F_FAIRYDOLL ; lost item
-	const COPYCATSHOUSE2F_MONSTERDOLL
-	const COPYCATSHOUSE2F_BIRDDOLL
-	const COPYCATSHOUSE2F_COPYCAT2 ; if player is female
-
-CopycatsHouse2F_MapScripts:
+CopycatsHouse2F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
-	callback MAPCALLBACK_OBJECTS, CopycatsHouse2FWhichGenderCallback
+	callback MAPCALLBACK_OBJECTS, CopycatsHouse2FCallback
 
-CopycatsHouse2FWhichGenderCallback:
-	checkflag ENGINE_PLAYER_IS_FEMALE
-	iftrue .Female
-	disappear COPYCATSHOUSE2F_COPYCAT2
-	appear COPYCATSHOUSE2F_COPYCAT1
-	sjump .Done
-.Female:
+	def_warp_events
+	warp_event  3,  0, COPYCATS_HOUSE_1F, 3
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event  4,  3, SPRITE_COPYCAT, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_PURPLE, OBJECTTYPE_SCRIPT, 0, Copycat1Script, EVENT_COPYCAT_1
+	object_event  4,  3, SPRITE_COPYCAT, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_PURPLE, OBJECTTYPE_SCRIPT, 0, Copycat2Script, EVENT_COPYCAT_2
+	object_event  4,  3, SPRITE_COPYCAT, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_PURPLE, OBJECTTYPE_SCRIPT, 0, Copycat3Script, EVENT_COPYCAT_3
+	object_event  6,  4, SPRITE_MON_ICON, SPRITEMOVEDATA_POKEMON, 0, DODRIO, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, NO_FORM, CopycatsDodrioScript, -1
+	object_event  6,  1, SPRITE_MON_ICON, SPRITEMOVEDATA_STILL, 0, CLEFAIRY, -1, PAL_NPC_PINK, OBJECTTYPE_SCRIPT, NO_FORM, CopycatsHouse2FDollScript, EVENT_COPYCATS_HOUSE_2F_DOLL
+	object_event  2,  1, SPRITE_MON_ICON, SPRITEMOVEDATA_STILL, 0, GENGAR, -1, PAL_NPC_PURPLE, OBJECTTYPE_SCRIPT, NO_FORM, CopycatsHouse2FDollScript, -1
+	object_event  7,  1, SPRITE_MON_ICON, SPRITEMOVEDATA_STILL, 0, MURKROW, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, NO_FORM, CopycatsHouse2FDollScript, -1
+	pokemon_event  0,  4, DITTO, SPRITEMOVEDATA_POKEMON, -1, PAL_NPC_PURPLE, CopycatsHouse2FDittoText, -1
+
+	object_const_def
+	const COPYCATSHOUSE2F_COPYCAT1
+	const COPYCATSHOUSE2F_COPYCAT2
+	const COPYCATSHOUSE2F_COPYCAT3
+
+CopycatsHouse2FCallback:
 	disappear COPYCATSHOUSE2F_COPYCAT1
+	disappear COPYCATSHOUSE2F_COPYCAT2
+	disappear COPYCATSHOUSE2F_COPYCAT3
+	variablesprite SPRITE_COPYCAT, SPRITE_LASS
+	readvar VAR_PLAYERGENDER
+	ifequalfwd $1, .Female
+	ifequalfwd $2, .Enby
+; Male
+	appear COPYCATSHOUSE2F_COPYCAT1
+	endcallback
+.Female:
 	appear COPYCATSHOUSE2F_COPYCAT2
-.Done:
+	endcallback
+.Enby:
+	appear COPYCATSHOUSE2F_COPYCAT3
 	endcallback
 
-Copycat:
+Copycat1Script:
 	faceplayer
 	checkevent EVENT_GOT_PASS_FROM_COPYCAT
-	iftrue .GotPass
+	iftruefwd .GotPass
 	checkevent EVENT_RETURNED_LOST_ITEM_TO_COPYCAT
-	iftrue .TryGivePassAgain
-	checkitem LOST_ITEM
-	iftrue .ReturnLostItem
-	checkflag ENGINE_PLAYER_IS_FEMALE
-	iftrue .Default_Female_1
-	applymovement COPYCATSHOUSE2F_COPYCAT1, CopycatSpinAroundMovementData
+	iftrue CopycatReturnedLostItemScript
+	checkkeyitem LOST_ITEM
+	iftrue CopycatFoundLostItemScript
+	applymovement COPYCATSHOUSE2F_COPYCAT1, CopycatSpinMovement
 	faceplayer
+	loadmem wObject1Palette, 0
 	variablesprite SPRITE_COPYCAT, SPRITE_CHRIS
-	sjump .Default_Merge_1
+	special RefreshSprites
+	checkevent EVENT_RESTORED_POWER_TO_KANTO
+	iftruefwd .ReturnedMachinePart
+	showtext CopycatGreeting1Text
+	applymovement COPYCATSHOUSE2F_COPYCAT1, CopycatSpinMovement
+	sjump CopycatRetortScript
 
-.Default_Female_1:
-	applymovement COPYCATSHOUSE2F_COPYCAT2, CopycatSpinAroundMovementData
-	faceplayer
-	variablesprite SPRITE_COPYCAT, SPRITE_KRIS
-.Default_Merge_1:
-	special LoadUsedSpritesGFX
-	checkevent EVENT_RETURNED_MACHINE_PART
-	iftrue .TalkAboutLostItem
-	opentext
-	checkflag ENGINE_PLAYER_IS_FEMALE
-	iftrue .Default_Female_2a
-	writetext CopycatText_Male_1
-	sjump .Default_Merge_2a
-
-.Default_Female_2a:
-	writetext CopycatText_Female_1
-.Default_Merge_2a:
-	waitbutton
-	closetext
-	checkflag ENGINE_PLAYER_IS_FEMALE
-	iftrue .Default_Female_3a
-	applymovement COPYCATSHOUSE2F_COPYCAT1, CopycatSpinAroundMovementData
-	sjump .Default_Merge_3a
-
-.Default_Female_3a:
-	applymovement COPYCATSHOUSE2F_COPYCAT2, CopycatSpinAroundMovementData
-.Default_Merge_3a:
-	faceplayer
-	variablesprite SPRITE_COPYCAT, SPRITE_LASS
-	special LoadUsedSpritesGFX
-	opentext
-	writetext CopycatText_QuickMimicking
-	waitbutton
-	closetext
-	end
-
-.TalkAboutLostItem:
-	opentext
-	checkflag ENGINE_PLAYER_IS_FEMALE
-	iftrue .Default_Female_2b
-	writetext CopycatText_Male_2
-	sjump .Default_Merge_2b
-
-.Default_Female_2b:
-	writetext CopycatText_Female_2
-.Default_Merge_2b:
-	waitbutton
-	closetext
-	checkflag ENGINE_PLAYER_IS_FEMALE
-	iftrue .Default_Female_3b
-	applymovement COPYCATSHOUSE2F_COPYCAT1, CopycatSpinAroundMovementData
-	sjump .Default_Merge_3b
-
-.Default_Female_3b:
-	applymovement COPYCATSHOUSE2F_COPYCAT2, CopycatSpinAroundMovementData
-.Default_Merge_3b:
-	faceplayer
-	variablesprite SPRITE_COPYCAT, SPRITE_LASS
-	special LoadUsedSpritesGFX
-	opentext
-	writetext CopycatText_Worried
-	waitbutton
-	closetext
-	setevent EVENT_MET_COPYCAT_FOUND_OUT_ABOUT_LOST_ITEM
-	end
-
-.ReturnLostItem:
-	opentext
-	writetext CopycatText_GiveDoll
-	promptbutton
-	takeitem LOST_ITEM
-	setevent EVENT_RETURNED_LOST_ITEM_TO_COPYCAT
-	clearevent EVENT_COPYCATS_HOUSE_2F_DOLL
-	sjump .GivePass
-
-.TryGivePassAgain:
-	opentext
-.GivePass:
-	writetext CopycatText_GivePass
-	promptbutton
-	verbosegiveitem PASS
-	iffalse .Cancel
-	setevent EVENT_GOT_PASS_FROM_COPYCAT
-	writetext CopycatText_ExplainPass
-	waitbutton
-	closetext
-	end
+.ReturnedMachinePart:
+	showtext CopycatLostDoll1Text
+	applymovement COPYCATSHOUSE2F_COPYCAT1, CopycatSpinMovement
+	sjump CopycatWorriedScript
 
 .GotPass:
-	checkflag ENGINE_PLAYER_IS_FEMALE
-	iftrue .GotPass_Female_1
-	applymovement COPYCATSHOUSE2F_COPYCAT1, CopycatSpinAroundMovementData
+	applymovement COPYCATSHOUSE2F_COPYCAT1, CopycatSpinMovement
 	faceplayer
+	loadmem wObject1Palette, 0
 	variablesprite SPRITE_COPYCAT, SPRITE_CHRIS
-	sjump .GotPass_Merge_1
+	special RefreshSprites
+	showtext CopycatThanks1Text
+	applymovement COPYCATSHOUSE2F_COPYCAT1, CopycatSpinMovement
+	sjump CopycatFinalScript
 
-.GotPass_Female_1:
-	applymovement COPYCATSHOUSE2F_COPYCAT2, CopycatSpinAroundMovementData
-	faceplayer
-	variablesprite SPRITE_COPYCAT, SPRITE_KRIS
-.GotPass_Merge_1:
-	special LoadUsedSpritesGFX
-	opentext
-	checkflag ENGINE_PLAYER_IS_FEMALE
-	iftrue .GotPass_Female_2
-	writetext CopycatText_Male_3
-	sjump .GotPass_Merge_2
-
-.GotPass_Female_2:
-	writetext CopycatText_Female_3
-.GotPass_Merge_2:
-	waitbutton
-	closetext
-	checkflag ENGINE_PLAYER_IS_FEMALE
-	iftrue .GotPass_Female_3
-	applymovement COPYCATSHOUSE2F_COPYCAT1, CopycatSpinAroundMovementData
-	sjump .GotPass_Merge_3
-
-.GotPass_Female_3:
-	applymovement COPYCATSHOUSE2F_COPYCAT2, CopycatSpinAroundMovementData
-.GotPass_Merge_3:
-	faceplayer
-	variablesprite SPRITE_COPYCAT, SPRITE_LASS
-	special LoadUsedSpritesGFX
-	opentext
-	writetext CopycatText_ItsAScream
-	waitbutton
-.Cancel:
-	closetext
-	end
-
-CopycatsDodrio:
-	opentext
-	writetext CopycatsDodrioText1
-	cry DODRIO
-	promptbutton
-	writetext CopycatsDodrioText2
-	waitbutton
-	closetext
-	end
-
-CopycatsHouse2FDoll:
-	jumptext CopycatsHouse2FDollText
-
-CopycatsHouse2FBookshelf:
-	jumpstd PictureBookshelfScript
-
-CopycatSpinAroundMovementData:
-	turn_head DOWN
-	turn_head LEFT
-	turn_head UP
-	turn_head RIGHT
-	turn_head DOWN
-	turn_head LEFT
-	turn_head UP
-	turn_head RIGHT
-	turn_head DOWN
-	step_end
-
-CopycatText_Male_1:
+CopycatGreeting1Text:
 	text "<PLAYER>: Hi! Do"
-	line "you like #MON?"
+	line "you like #mon?"
 
 	para "<PLAYER>: Uh, no, I"
 	line "just asked you."
@@ -209,80 +89,29 @@ CopycatText_Male_1:
 	line "You're strange!"
 	done
 
-CopycatText_QuickMimicking:
-	text "COPYCAT: Hmm?"
-	line "Quit mimicking?"
-
-	para "But that's my"
-	line "favorite hobby!"
-	done
-
-CopycatText_Male_2:
+CopycatLostDoll1Text:
 	text "<PLAYER>: Hi!"
 	line "I heard that you"
 
 	para "lost your favorite"
-	line "# DOLL."
+	line "# Doll."
 
 	para "<PLAYER>: If I find"
 	line "it, you'll give me"
-	cont "a rail PASS?"
+	cont "a rail pass?"
 
 	para "<PLAYER>: I'll go"
 	line "find it for you."
 
 	para "You think you lost"
 	line "it when you went"
-	cont "to VERMILION CITY?"
+	cont "to Vermilion City?"
 	done
 
-CopycatText_Worried:
-	text "COPYCAT: Pardon?"
-
-	para "I shouldn't decide"
-	line "what you should"
-	cont "do?"
-
-	para "But I'm really"
-	line "worried… What if"
-	cont "someone finds it?"
-	done
-
-CopycatText_GiveDoll:
-	text "COPYCAT: Yay!"
-	line "That's my CLEFAIRY"
-	cont "# DOLL!"
-
-	para "See the tear where"
-	line "the right leg is"
-
-	para "sewn on? That's"
-	line "proof!"
-	done
-
-CopycatText_GivePass:
-	text "OK. Here's the"
-	line "MAGNET TRAIN PASS"
-	cont "like I promised!"
-	done
-
-CopycatText_ExplainPass:
-	text "COPYCAT: That's"
-	line "the PASS for the"
-	cont "MAGNET TRAIN."
-
-	para "The rail company"
-	line "man gave me that"
-
-	para "when they tore"
-	line "down our old house"
-	cont "for the STATION."
-	done
-
-CopycatText_Male_3:
+CopycatThanks1Text:
 	text "<PLAYER>: Hi!"
 	line "Thanks a lot for"
-	cont "the rail PASS!"
+	cont "the rail pass!"
 
 	para "<PLAYER>: Pardon?"
 
@@ -291,14 +120,43 @@ CopycatText_Male_3:
 	cont "my every move?"
 	done
 
-CopycatText_ItsAScream:
-	text "COPYCAT: You bet!"
-	line "It's a scream!"
-	done
+Copycat2Script:
+	faceplayer
+	checkevent EVENT_GOT_PASS_FROM_COPYCAT
+	iftruefwd .GotPass
+	checkevent EVENT_RETURNED_LOST_ITEM_TO_COPYCAT
+	iftrue CopycatReturnedLostItemScript
+	checkkeyitem LOST_ITEM
+	iftrue CopycatFoundLostItemScript
+	applymovement COPYCATSHOUSE2F_COPYCAT2, CopycatSpinMovement
+	faceplayer
+	loadmem wObject1Palette, 0
+	variablesprite SPRITE_COPYCAT, SPRITE_KRIS
+	special RefreshSprites
+	checkevent EVENT_RESTORED_POWER_TO_KANTO
+	iftruefwd .ReturnedMachinePart
+	showtext CopycatGreeting2Text
+	applymovement COPYCATSHOUSE2F_COPYCAT2, CopycatSpinMovement
+	sjump CopycatRetortScript
 
-CopycatText_Female_1:
+.ReturnedMachinePart:
+	showtext CopycatLostDoll2Text
+	applymovement COPYCATSHOUSE2F_COPYCAT2, CopycatSpinMovement
+	sjump CopycatWorriedScript
+
+.GotPass:
+	applymovement COPYCATSHOUSE2F_COPYCAT2, CopycatSpinMovement
+	faceplayer
+	loadmem wObject1Palette, 0
+	variablesprite SPRITE_COPYCAT, SPRITE_KRIS
+	special RefreshSprites
+	showtext CopycatThanks2Text
+	applymovement COPYCATSHOUSE2F_COPYCAT2, CopycatSpinMovement
+	sjump CopycatFinalScript
+
+CopycatGreeting2Text:
 	text "<PLAYER>: Hi. You"
-	line "must like #MON."
+	line "must like #mon."
 
 	para "<PLAYER>: No, not"
 	line "me. I asked you."
@@ -307,15 +165,15 @@ CopycatText_Female_1:
 	line "You're weird!"
 	done
 
-CopycatText_Female_2:
+CopycatLostDoll2Text:
 	text "<PLAYER>: Hi. Did"
 	line "you really lose"
-	cont "your # DOLL?"
+	cont "your # Doll?"
 
 	para "<PLAYER>: You'll"
 	line "really give me a"
 
-	para "rail PASS if I"
+	para "rail pass if I"
 	line "find it for you?"
 
 	para "<PLAYER>: Sure,"
@@ -323,12 +181,12 @@ CopycatText_Female_2:
 
 	para "You think you lost"
 	line "it when you were"
-	cont "in VERMILION?"
+	cont "in Vermilion?"
 	done
 
-CopycatText_Female_3:
+CopycatThanks2Text:
 	text "<PLAYER>: Thank you"
-	line "for the rail PASS!"
+	line "for the rail pass!"
 
 	para "<PLAYER>: …Pardon?"
 
@@ -339,41 +197,170 @@ CopycatText_Female_3:
 	line "and do?"
 	done
 
-CopycatsDodrioText1:
-	text "DODRIO: Gii giii!"
+Copycat3Script:
+	faceplayer
+	checkevent EVENT_GOT_PASS_FROM_COPYCAT
+	iftruefwd .GotPass
+	checkevent EVENT_RETURNED_LOST_ITEM_TO_COPYCAT
+	iftrue CopycatReturnedLostItemScript
+	checkkeyitem LOST_ITEM
+	iftruefwd CopycatFoundLostItemScript
+	applymovement COPYCATSHOUSE2F_COPYCAT3, CopycatSpinMovement
+	faceplayer
+	loadmem wObject1Palette, 0
+	variablesprite SPRITE_COPYCAT, SPRITE_CRYS
+	special RefreshSprites
+	checkevent EVENT_RESTORED_POWER_TO_KANTO
+	iftruefwd .ReturnedMachinePart
+	showtext CopycatGreeting2Text
+	applymovement COPYCATSHOUSE2F_COPYCAT3, CopycatSpinMovement
+	sjumpfwd CopycatRetortScript
+
+.ReturnedMachinePart:
+	showtext CopycatLostDoll2Text
+	applymovement COPYCATSHOUSE2F_COPYCAT3, CopycatSpinMovement
+	sjumpfwd CopycatWorriedScript
+
+.GotPass:
+	applymovement COPYCATSHOUSE2F_COPYCAT3, CopycatSpinMovement
+	faceplayer
+	loadmem wObject1Palette, 0
+	variablesprite SPRITE_COPYCAT, SPRITE_CRYS
+	special RefreshSprites
+	showtext CopycatThanks2Text
+	applymovement COPYCATSHOUSE2F_COPYCAT3, CopycatSpinMovement
+	sjump CopycatFinalScript
+
+CopycatRetortScript:
+	faceplayer
+	loadmem wObject1Palette, 1
+	variablesprite SPRITE_COPYCAT, SPRITE_LASS
+	special RefreshSprites
+	jumpthistext
+
+	text "Copycat: Hmm?"
+	line "Quit mimicking?"
+
+	para "But that's my"
+	line "favorite hobby!"
 	done
 
-CopycatsDodrioText2:
-	text "MIRROR, MIRROR ON"
-	line "THE WALL, WHO'S"
+CopycatWorriedScript:
+	faceplayer
+	loadmem wObject1Palette, 1
+	variablesprite SPRITE_COPYCAT, SPRITE_LASS
+	special RefreshSprites
+	setevent EVENT_MET_COPYCAT_FOUND_OUT_ABOUT_LOST_ITEM
+	jumpthistext
 
-	para "THE FAIREST ONE OF"
-	line "ALL?"
+	text "Copycat: Pardon?"
+
+	para "I shouldn't decide"
+	line "what you should"
+	cont "do?"
+
+	para "But I'm really"
+	line "worried… What if"
+	cont "someone finds it?"
 	done
 
-CopycatsHouse2FDollText:
+CopycatFoundLostItemScript:
+	opentext
+	writetext .FoundDollText
+	promptbutton
+	takekeyitem LOST_ITEM
+	setevent EVENT_RETURNED_LOST_ITEM_TO_COPYCAT
+	clearevent EVENT_COPYCATS_HOUSE_2F_DOLL
+	sjumpfwd CopycatGivePassScript
+
+.FoundDollText:
+	text "Copycat: Yay!"
+	line "That's my Clefairy"
+	cont "# Doll!"
+
+	para "See the tear where"
+	line "the right leg is"
+
+	para "sewn on? That's"
+	line "proof!"
+	done
+
+CopycatReturnedLostItemScript:
+	opentext
+CopycatGivePassScript:
+	writetext .GivePassText
+	promptbutton
+	verbosegivekeyitem PASS
+	iffalse_endtext
+	setevent EVENT_GOT_PASS_FROM_COPYCAT
+	jumpthisopenedtext
+
+	text "Copycat: That's"
+	line "the pass for the"
+	cont "Magnet Train."
+
+	para "The rail company"
+	line "man gave me that"
+
+	para "when they tore"
+	line "down our old house"
+	cont "for the station."
+	done
+
+.GivePassText:
+	text "OK. Here's the"
+	line "Magnet Train Pass"
+	cont "like I promised!"
+	done
+
+CopycatFinalScript:
+	faceplayer
+	loadmem wObject1Palette, 1
+	variablesprite SPRITE_COPYCAT, SPRITE_LASS
+	special RefreshSprites
+	jumpthistext
+
+	text "Copycat: You bet!"
+	line "It's a scream!"
+	done
+
+CopycatSpinMovement:
+rept 2
+	turn_head_down
+	turn_head_left
+	turn_head_up
+	turn_head_right
+endr
+	turn_head_down
+	step_end
+
+CopycatsDodrioScript:
+	opentext
+	writetext .Text1
+	cry DODRIO
+	promptbutton
+	jumpthisopenedtext
+
+	text "Mirror, mirror on"
+	line "the wall, who's"
+
+	para "the fairest one of"
+	line "all?"
+	done
+
+.Text1:
+	text "Dodrio: Gii giii!"
+	done
+
+CopycatsHouse2FDollScript:
+	jumpthistext
+
 	text "This is a rare"
-	line "#MON! Huh?"
+	line "#mon! Huh?"
 
 	para "It's only a doll…"
 	done
 
-CopycatsHouse2F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  3,  0, COPYCATS_HOUSE_1F, 3
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  0,  1, BGEVENT_READ, CopycatsHouse2FBookshelf
-	bg_event  1,  1, BGEVENT_READ, CopycatsHouse2FBookshelf
-
-	def_object_events
-	object_event  4,  3, SPRITE_COPYCAT, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, Copycat, EVENT_COPYCAT_1
-	object_event  6,  4, SPRITE_MOLTRES, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, CopycatsDodrio, -1
-	object_event  6,  1, SPRITE_FAIRY, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, CopycatsHouse2FDoll, EVENT_COPYCATS_HOUSE_2F_DOLL
-	object_event  2,  1, SPRITE_MONSTER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, CopycatsHouse2FDoll, -1
-	object_event  7,  1, SPRITE_BIRD, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, CopycatsHouse2FDoll, -1
-	object_event  4,  3, SPRITE_COPYCAT, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, Copycat, EVENT_COPYCAT_2
+CopycatsHouse2FDittoText:
+	text "Ditto: Dii…"
+	done

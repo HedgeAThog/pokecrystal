@@ -7,12 +7,26 @@ LoadMapGroupRoof::
 	ld a, [hl]
 	cp -1
 	ret z
-	ld hl, Roofs
-	ld bc, ROOF_LENGTH tiles
-	call AddNTimes
+	ld l, a
+	ld h, 0
+	add hl, hl
+	ld bc, MapGroupRoofGFX
+	add hl, bc
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
 	ld de, vTiles2 tile $0a
-	ld bc, ROOF_LENGTH tiles
-	call CopyBytes
-	ret
+	lb bc, BANK("Roof Graphics"), 9
+	jmp DecompressRequest2bpp
+
+MapGroupRoofGFX:
+	table_width 2
+	farbank "Roof Graphics"
+	fardw NewBarkRoofGFX
+	fardw VioletRoofGFX
+	fardw AzaleaRoofGFX
+	fardw OlivineRoofGFX
+	fardw StatueRoofGFX
+	assert_table_length NUM_ROOFS
 
 INCLUDE "data/maps/roofs.asm"

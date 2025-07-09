@@ -1,254 +1,133 @@
-	object_const_def
-	const AZALEATOWN_AZALEA_ROCKET1
-	const AZALEATOWN_GRAMPS
-	const AZALEATOWN_TEACHER
-	const AZALEATOWN_YOUNGSTER
-	const AZALEATOWN_SLOWPOKE1
-	const AZALEATOWN_SLOWPOKE2
-	const AZALEATOWN_SLOWPOKE3
-	const AZALEATOWN_SLOWPOKE4
-	const AZALEATOWN_FRUIT_TREE
-	const AZALEATOWN_RIVAL
-	const AZALEATOWN_AZALEA_ROCKET3
-	const AZALEATOWN_KURT_OUTSIDE
-
-AzaleaTown_MapScripts:
+AzaleaTown_MapScriptHeader:
 	def_scene_scripts
-	scene_script AzaleaTownNoop1Scene, SCENE_AZALEATOWN_NOOP
-	scene_script AzaleaTownNoop2Scene, SCENE_AZALEATOWN_RIVAL_BATTLE
-	scene_script AzaleaTownNoop3Scene, SCENE_AZALEATOWN_KURT_RETURNS_GS_BALL
 
 	def_callbacks
 	callback MAPCALLBACK_NEWMAP, AzaleaTownFlypointCallback
+	callback MAPCALLBACK_TILES, AzaleaTownRainScript
 
-AzaleaTownNoop1Scene:
-	end
+	def_warp_events
+	warp_event 15,  9, AZALEA_POKECENTER_1F, 1
+	warp_event 21, 13, CHARCOAL_KILN, 1
+	warp_event 21,  5, AZALEA_MART, 2
+	warp_event  9,  5, KURTS_HOUSE, 1
+	warp_event 10, 15, AZALEA_GYM, 1
+	warp_event 31,  7, SLOWPOKE_WELL_ENTRANCE, 1
+	warp_event  2, 10, ILEX_FOREST_AZALEA_GATE, 3
+	warp_event  2, 11, ILEX_FOREST_AZALEA_GATE, 4
 
-AzaleaTownNoop2Scene:
-	end
+	def_coord_events
+	coord_event  5, 10, 1, AzaleaTownRivalBattleTrigger1
+	coord_event  5, 11, 1, AzaleaTownRivalBattleTrigger2
+	coord_event  9,  6, 2, AzaleaTown_CelebiTrigger
 
-AzaleaTownNoop3Scene:
-	end
+	def_bg_events
+	bg_event 19,  9, BGEVENT_JUMPTEXT, AzaleaTownSignText
+	bg_event 10,  9, BGEVENT_JUMPTEXT, KurtsHouseSignText
+	bg_event 14, 15, BGEVENT_JUMPTEXT, AzaleaGymSignText
+	bg_event 29,  8, BGEVENT_JUMPTEXT, SlowpokeWellSignText
+	bg_event 19, 13, BGEVENT_JUMPTEXT, CharcoalKilnSignText
+	bg_event  3,  9, BGEVENT_JUMPTEXT, AzaleaTownIlexForestSignText
+	bg_event 29, 14, BGEVENT_JUMPTEXT, AzaleaTownAdvancedTipsSignText
+	bg_event 31,  6, BGEVENT_ITEM + FULL_HEAL, EVENT_AZALEA_TOWN_HIDDEN_FULL_HEAL
+
+	def_object_events
+	object_event 11, 10, SPRITE_RIVAL, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_RIVAL_AZALEA_TOWN
+	object_event  6,  5, SPRITE_KURT, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaTownKurtScript, EVENT_AZALEA_TOWN_KURT
+	object_event 21,  9, SPRITE_GRAMPS, SPRITEMOVEDATA_WANDER, 2, 1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaTownGrampsScript, -1
+	object_event 15, 13, SPRITE_POKEFAN_F, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, AzaleaTownTeacherScript, -1
+	object_event  7,  9, SPRITE_CAMPER, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, AzaleaTownYoungsterText, -1
+	object_event 31,  9, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, AzaleaTownRocket1Text, EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET
+	object_event 10, 16, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, AzaleaTownRocket2Text, EVENT_SLOWPOKE_WELL_ROCKETS
+	object_event  8, 17, SPRITE_MON_ICON, SPRITEMOVEDATA_POKEMON, 0, SLOWPOKE, -1, PAL_NPC_PINK, OBJECTTYPE_SCRIPT, PLAIN_FORM, AzaleaTownSlowpokeScript, EVENT_AZALEA_TOWN_SLOWPOKES
+	object_event 18,  9, SPRITE_MON_ICON, SPRITEMOVEDATA_POKEMON, 0, SLOWPOKE, -1, PAL_NPC_PINK, OBJECTTYPE_SCRIPT, PLAIN_FORM, AzaleaTownSlowpokeScript, EVENT_AZALEA_TOWN_SLOWPOKES
+	object_event 30,  9, SPRITE_MON_ICON, SPRITEMOVEDATA_POKEMON, 0, SLOWPOKE, -1, PAL_NPC_PINK, OBJECTTYPE_SCRIPT, PLAIN_FORM, AzaleaTownSlowpokeScript, EVENT_AZALEA_TOWN_SLOWPOKES
+	object_event 15, 15, SPRITE_MON_ICON, SPRITEMOVEDATA_POKEMON, 0, SLOWPOKE, -1, PAL_NPC_PINK, OBJECTTYPE_SCRIPT, PLAIN_FORM, AzaleaTownSlowpokeScript, EVENT_AZALEA_TOWN_SLOWPOKES
+	pokemon_event 14, 12, WOOPER, SPRITEMOVEDATA_POKEMON, -1, PAL_NPC_BLUE, AzaleaTownWoosterText, EVENT_SLOWPOKE_WELL_SLOWPOKES
+	pokemon_event 14, 12, QUAGSIRE, SPRITEMOVEDATA_POKEMON, -1, PAL_NPC_BLUE, AzaleaTownWoosterText, EVENT_AZALEA_TOWN_SLOWPOKES
+	fruittree_event  8,  2, FRUITTREE_AZALEA_TOWN, WHT_APRICORN, PAL_NPC_WHITE
+
+	object_const_def
+	const AZALEATOWN_RIVAL
+	const AZALEATOWN_KURT
 
 AzaleaTownFlypointCallback:
 	setflag ENGINE_FLYPOINT_AZALEA
 	endcallback
 
-AzaleaTownRivalBattleScene1:
-	moveobject AZALEATOWN_RIVAL, 11, 11
-	turnobject PLAYER, RIGHT
-	showemote EMOTE_SHOCK, PLAYER, 15
-	special FadeOutMusic
-	pause 15
-	appear AZALEATOWN_RIVAL
-	applymovement AZALEATOWN_RIVAL, AzaleaTownRivalBattleApproachMovement1
-	turnobject PLAYER, DOWN
-	sjump AzaleaTownRivalBattleScript
+AzaleaTownRainScript:
+	special Special_GetOvercastIndex
+	ifequalfwd AZALEA_OVERCAST, .rain
+	changemapblocks AzaleaTown_BlockData
+	endcallback
 
-AzaleaTownRivalBattleScene2:
+.rain
+	changemapblocks AzaleaTownRaining_BlockData
+	endcallback
+
+AzaleaTownRivalBattleTrigger1:
+	moveobject AZALEATOWN_RIVAL, 11, 11
+AzaleaTownRivalBattleTrigger2:
 	turnobject PLAYER, RIGHT
 	showemote EMOTE_SHOCK, PLAYER, 15
-	special FadeOutMusic
+	special Special_FadeOutMusic
 	pause 15
 	appear AZALEATOWN_RIVAL
-	applymovement AZALEATOWN_RIVAL, AzaleaTownRivalBattleApproachMovement2
-	turnobject PLAYER, UP
-AzaleaTownRivalBattleScript:
+	applymovement AZALEATOWN_RIVAL, .ApproachMovement
+	faceobject AZALEATOWN_RIVAL, PLAYER
+	faceobject PLAYER, AZALEATOWN_RIVAL
 	playmusic MUSIC_RIVAL_ENCOUNTER
-	opentext
-	writetext AzaleaTownRivalBeforeText
-	waitbutton
-	closetext
+	showtext .SeenText
 	setevent EVENT_RIVAL_AZALEA_TOWN
 	checkevent EVENT_GOT_TOTODILE_FROM_ELM
-	iftrue .Totodile
+	iftruefwd .Totodile
 	checkevent EVENT_GOT_CHIKORITA_FROM_ELM
-	iftrue .Chikorita
-	winlosstext AzaleaTownRivalWinText, AzaleaTownRivalLossText
+	iftruefwd .Chikorita
+	winlosstext .WinText, .LossText
 	setlasttalked AZALEATOWN_RIVAL
-	loadtrainer RIVAL1, RIVAL1_2_TOTODILE
+	loadtrainer RIVAL1, RIVAL1_6
 	startbattle
 	dontrestartmapmusic
 	reloadmapafterbattle
-	sjump .AfterBattle
+	sjumpfwd .AfterBattle
 
 .Totodile:
-	winlosstext AzaleaTownRivalWinText, AzaleaTownRivalLossText
+	winlosstext .WinText, .LossText
 	setlasttalked AZALEATOWN_RIVAL
-	loadtrainer RIVAL1, RIVAL1_2_CHIKORITA
+	loadtrainer RIVAL1, RIVAL1_4
 	startbattle
 	dontrestartmapmusic
 	reloadmapafterbattle
-	sjump .AfterBattle
+	sjumpfwd .AfterBattle
 
 .Chikorita:
-	winlosstext AzaleaTownRivalWinText, AzaleaTownRivalLossText
+	winlosstext .WinText, .LossText
 	setlasttalked AZALEATOWN_RIVAL
-	loadtrainer RIVAL1, RIVAL1_2_CYNDAQUIL
+	loadtrainer RIVAL1, RIVAL1_5
 	startbattle
 	dontrestartmapmusic
 	reloadmapafterbattle
-	sjump .AfterBattle
+	; fallthrough
 
 .AfterBattle:
+	special DeleteSavedMusic
 	playmusic MUSIC_RIVAL_AFTER
-	opentext
-	writetext AzaleaTownRivalAfterText
-	waitbutton
-	closetext
+	showtext .AfterText
 	turnobject PLAYER, LEFT
-	applymovement AZALEATOWN_RIVAL, AzaleaTownRivalBattleExitMovement
+	applymovement AZALEATOWN_RIVAL, .ExitMovement
 	playsound SFX_EXIT_BUILDING
 	disappear AZALEATOWN_RIVAL
-	setscene SCENE_AZALEATOWN_NOOP
+	setmapscene ROUTE_34, $1
+	setscene $0
 	waitsfx
 	playmapmusic
 	end
 
-AzaleaTownRocket1Script:
-	jumptextfaceplayer AzaleaTownRocket1Text
-
-AzaleaTownRocket2Script:
-	jumptextfaceplayer AzaleaTownRocket2Text
-
-AzaleaTownGrampsScript:
-	faceplayer
-	opentext
-	checkevent EVENT_CLEARED_SLOWPOKE_WELL
-	iftrue .ClearedWell
-	writetext AzaleaTownGrampsTextBefore
-	waitbutton
-	closetext
-	end
-
-.ClearedWell:
-	writetext AzaleaTownGrampsTextAfter
-	waitbutton
-	closetext
-	end
-
-AzaleaTownTeacherScript:
-	jumptextfaceplayer AzaleaTownTeacherText
-
-AzaleaTownYoungsterScript:
-	jumptextfaceplayer AzaleaTownYoungsterText
-
-AzaleaTownSlowpokeScript:
-	opentext
-	writetext AzaleaTownSlowpokeText1
-	pause 60
-	writetext AzaleaTownSlowpokeText2
-	cry SLOWPOKE
-	waitbutton
-	closetext
-	end
-
-UnusedWoosterScript: ; unreferenced
-	faceplayer
-	opentext
-	writetext WoosterText
-	cry QUAGSIRE
-	waitbutton
-	closetext
-	end
-
-AzaleaTownCelebiScene:
-	applymovement PLAYER, AzaleaTownPlayerLeavesKurtsHouseMovement
-	opentext
-	writetext AzaleaTownKurtText1
-	promptbutton
-	turnobject AZALEATOWN_KURT_OUTSIDE, RIGHT
-	writetext AzaleaTownKurtText2
-	promptbutton
-	writetext AzaleaTownKurtText3
-	waitbutton
-	verbosegiveitem GS_BALL
-	turnobject AZALEATOWN_KURT_OUTSIDE, LEFT
-	setflag ENGINE_FOREST_IS_RESTLESS
-	clearevent EVENT_ILEX_FOREST_LASS
-	setevent EVENT_ROUTE_34_ILEX_FOREST_GATE_LASS
-	setscene SCENE_AZALEATOWN_NOOP
-	closetext
-	end
-
-AzaleaTownKurtScript:
-	faceplayer
-	opentext
-	writetext AzaleaTownKurtText3
-	waitbutton
-	turnobject AZALEATOWN_KURT_OUTSIDE, LEFT
-	closetext
-	end
-
-AzaleaTownSign:
-	jumptext AzaleaTownSignText
-
-KurtsHouseSign:
-	jumptext KurtsHouseSignText
-
-AzaleaGymSign:
-	jumptext AzaleaGymSignText
-
-SlowpokeWellSign:
-	jumptext SlowpokeWellSignText
-
-CharcoalKilnSign:
-	jumptext CharcoalKilnSignText
-
-AzaleaTownIlextForestSign:
-	jumptext AzaleaTownIlexForestSignText
-
-AzaleaTownPokecenterSign:
-	jumpstd PokecenterSignScript
-
-AzaleaTownMartSign:
-	jumpstd MartSignScript
-
-WhiteApricornTree:
-	fruittree FRUITTREE_AZALEA_TOWN
-
-AzaleaTownHiddenFullHeal:
-	hiddenitem FULL_HEAL, EVENT_AZALEA_TOWN_HIDDEN_FULL_HEAL
-
-AzaleaTownRivalBattleApproachMovement1:
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	turn_head UP
-	step_end
-
-AzaleaTownRivalBattleApproachMovement2:
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	step LEFT
-	turn_head DOWN
-	step_end
-
-AzaleaTownRivalBattleExitMovement:
-	step LEFT
-	step LEFT
-	step LEFT
-	step_end
-
-AzaleaTownPlayerLeavesKurtsHouseMovement:
-	step LEFT
-	step LEFT
-	step UP
-	turn_head LEFT
-	step_end
-
-AzaleaTownRivalBeforeText:
+.SeenText:
 	text "…Tell me some-"
 	line "thing."
 
 	para "Is it true that"
-	line "TEAM ROCKET has"
+	line "Team Rocket has"
 	cont "returned?"
 
 	para "What? You beat"
@@ -260,21 +139,26 @@ AzaleaTownRivalBeforeText:
 	cont "good you are."
 	done
 
-AzaleaTownRivalWinText:
-	text "… Humph! Useless"
-	line "#MON!"
+.WinText:
+	text "…Humph! Useless"
+	line "#mon!"
 
 	para "Listen, you. You"
 	line "only won because"
 
-	para "my #MON were"
+	para "my #mon were"
 	line "weak."
 	done
 
-AzaleaTownRivalAfterText:
+.LossText:
+	text "…Humph! I knew"
+	line "you were lying."
+	done
+
+.AfterText:
 	text "I hate the weak."
 
-	para "#MON, trainers."
+	para "#mon, trainers."
 	line "It doesn't matter"
 	cont "who or what."
 
@@ -282,8 +166,8 @@ AzaleaTownRivalAfterText:
 	line "strong and wipe"
 	cont "out the weak."
 
-	para "That goes for TEAM"
-	line "ROCKET too."
+	para "That goes for Team"
+	line "Rocket too."
 
 	para "They act big and"
 	line "tough in a group."
@@ -301,9 +185,211 @@ AzaleaTownRivalAfterText:
 	line "distraction."
 	done
 
-AzaleaTownRivalLossText:
-	text "…Humph! I knew"
-	line "you were lying."
+.ApproachMovement:
+	step_left
+	step_left
+	step_left
+	step_left
+	step_left
+	step_left
+	step_end
+
+.ExitMovement:
+	step_left
+	step_left
+	step_left
+	step_end
+
+AzaleaTown_CelebiTrigger:
+	applymovement PLAYER, .WalkOutOfKurtsHouseMovement
+	opentext
+	writethistext
+		text "Ilex Forest is"
+		line "restless!"
+
+		para "What is going on?"
+		done
+	promptbutton
+	turnobject AZALEATOWN_KURT, RIGHT
+	writethistext
+		text "<PLAYER>, here's"
+		line "your GS Ball back!"
+		done
+	promptbutton
+	writetext AzaleaTownKurtText
+	waitbutton
+	verbosegivekeyitem GS_BALL
+	turnobject AZALEATOWN_KURT, LEFT
+	setflag ENGINE_HAVE_EXAMINED_GS_BALL
+	clearevent EVENT_ILEX_FOREST_LASS
+	setevent EVENT_ROUTE_34_ILEX_FOREST_GATE_LASS
+	setscene $0
+	endtext
+
+.WalkOutOfKurtsHouseMovement:
+	step_left
+	step_left
+	step_up
+	turn_head_left
+	step_end
+
+AzaleaTownSignText:
+	text "Azalea Town"
+	line "Where People and"
+
+	para "#mon Live in"
+	line "Happy Harmony"
+	done
+
+KurtsHouseSignText:
+	text "Kurt's House"
+	done
+
+AzaleaGymSignText:
+	text "Azalea Town"
+	line "#mon Gym"
+	cont "Leader: Bugsy"
+
+	para "The Walking"
+	line "Bug #mon"
+	cont "Encyclopedia"
+	done
+
+SlowpokeWellSignText:
+	text "Slowpoke Well"
+
+	para "Also known as the"
+	line "Rainmaker Well."
+
+	para "Locals believe"
+	line "that a Slowpoke's"
+	cont "yawn summons rain."
+
+	para "Records show that"
+	line "a Slowpoke's yawn"
+
+	para "ended a drought"
+	line "400 years ago."
+	done
+
+CharcoalKilnSignText:
+	text "Charcoal Kiln"
+	done
+
+AzaleaTownIlexForestSignText:
+	text "Ilex Forest"
+
+	para "Enter through the"
+	line "gate."
+	done
+
+AzaleaTownAdvancedTipsSignText:
+	text "Advanced Tips!"
+
+	para "The Switch battle"
+	line "style lets you"
+
+	para "know which #-"
+	line "mon an opponent is"
+	cont "about to send out,"
+
+	para "but the Predict"
+	line "style does not!"
+	done
+
+AzaleaTownGrampsScript:
+	checkevent EVENT_CLEARED_SLOWPOKE_WELL
+	iftrue_jumptextfaceplayer .Text2
+	jumpthistextfaceplayer
+
+	text "The Slowpoke have"
+	line "disappeared from"
+	cont "town…"
+
+	para "I heard their"
+	line "Tails are being"
+	cont "sold somewhere."
+	done
+
+.Text2:
+	text "The Slowpoke have"
+	line "returned."
+
+	para "Knowing them, they"
+	line "could've just been"
+
+	para "goofing off some-"
+	line "where."
+	done
+
+AzaleaTownTeacherScript:
+	checkevent EVENT_CLEARED_SLOWPOKE_WELL
+	iffalse_jumptextfaceplayer .Text1
+	checkevent EVENT_GOT_CLEAR_AMULET_IN_AZALEA
+	iftrue_jumptextfaceplayer .Text2
+	faceplayer
+	opentext
+	writetext .Text3
+	promptbutton
+	verbosegiveitem CLEAR_AMULET
+	iffalse_endtext
+	setevent EVENT_GOT_CLEAR_AMULET_IN_AZALEA
+	jumpthisopenedtext
+
+.Text2:
+	text "He has changed,"
+	line "but he'll always be"
+
+	para "my little Wooster"
+	line "to me."
+	done
+
+.Text1:
+	text "It hasn't rained"
+	line "since the Slow-"
+	cont "poke vanished."
+
+	para "My poor Wooster"
+	line "can't thrive in"
+	cont "this weather…"
+	done
+
+.Text3:
+	text "In a sudden down-"
+	line "pour, my Wooster"
+	cont "evolved!"
+
+	para "Oh? You brought"
+	line "the Slowpoke back?"
+
+	para "They brought the"
+	line "rain with them!"
+
+	para "Thank you so"
+	line "much!"
+
+	para "Please take this,"
+	line "you deserve it!"
+	done
+
+AzaleaTownWoosterText:
+	text "Wooster: Gugyoo…"
+	done
+
+AzaleaTownYoungsterText:
+	text "Cut through Azalea"
+	line "and you'll be in"
+	cont "Ilex Forest."
+
+	para "But these skinny"
+	line "trees make it"
+
+	para "impossible to get"
+	line "through."
+
+	para "The Charcoal Man's"
+	line "#mon can Cut"
+	cont "down trees."
 	done
 
 AzaleaTownRocket1Text:
@@ -317,180 +403,34 @@ AzaleaTownRocket1Text:
 
 AzaleaTownRocket2Text:
 	text "Do you know about"
-	line "SLOWPOKETAIL? I"
+	line "SlowpokeTail? I"
 	cont "heard it's tasty!"
 
 	para "Aren't you glad I"
 	line "told you that?"
 	done
 
-AzaleaTownGrampsTextBefore:
-	text "The SLOWPOKE have"
-	line "disappeared from"
-	cont "town…"
+AzaleaTownSlowpokeScript:
+	opentext
+	writethistext
+		text "Slowpoke: …"
 
-	para "I heard their"
-	line "TAILS are being"
-	cont "sold somewhere."
-	done
+		para "…… …… ……"
+		done
+	pause 60
+	writethistext
+		text "…… ……Yawn?"
+		done
+	cry SLOWPOKE
+	waitendtext
 
-AzaleaTownGrampsTextAfter:
-	text "The SLOWPOKE have"
-	line "returned."
+AzaleaTownKurtScript:
+	showtextfaceplayer AzaleaTownKurtText
+	turnobject LAST_TALKED, LEFT
+	end
 
-	para "Knowing them, they"
-	line "could've just been"
-
-	para "goofing off some-"
-	line "where."
-	done
-
-AzaleaTownTeacherText:
-	text "Did you come to"
-	line "get KURT to make"
-	cont "some BALLS?"
-
-	para "A lot of people do"
-	line "just that."
-	done
-
-AzaleaTownYoungsterText:
-	text "Cut through AZALEA"
-	line "and you'll be in"
-	cont "ILEX FOREST."
-
-	para "But these skinny"
-	line "trees make it"
-
-	para "impossible to get"
-	line "through."
-
-	para "The CHARCOAL MAN's"
-	line "#MON can CUT"
-	cont "down trees."
-	done
-
-AzaleaTownSlowpokeText1:
-	text "SLOWPOKE: …"
-
-	para "<……> <……> <……>"
-	done
-
-AzaleaTownSlowpokeText2:
-	text "<……> <……>Yawn?"
-	done
-
-WoosterText:
-	text "WOOSTER: Gugyoo…"
-	done
-
-AzaleaTownKurtText1:
-	text "ILEX FOREST is"
-	line "restless!"
-
-	para "What is going on?"
-	done
-
-AzaleaTownKurtText2:
-	text "<PLAYER>, here's"
-	line "your GS BALL back!"
-	done
-
-AzaleaTownKurtText3:
+AzaleaTownKurtText:
 	text "Could you go see"
-	line "why ILEX FOREST is"
+	line "why Ilex Forest is"
 	cont "so restless?"
 	done
-
-AzaleaTownSignText:
-	text "AZALEA TOWN"
-	line "Where People and"
-
-	para "#MON Live in"
-	line "Happy Harmony"
-	done
-
-KurtsHouseSignText:
-	text "KURT'S HOUSE"
-	done
-
-AzaleaGymSignText:
-	text "AZALEA TOWN"
-	line "#MON GYM"
-	cont "LEADER: BUGSY"
-
-	para "The Walking"
-	line "Bug #MON"
-	cont "Encyclopedia"
-	done
-
-SlowpokeWellSignText:
-	text "SLOWPOKE WELL"
-
-	para "Also known as the"
-	line "RAINMAKER WELL."
-
-	para "Locals believe"
-	line "that a SLOWPOKE's"
-	cont "yawn summons rain."
-
-	para "Records show that"
-	line "a SLOWPOKE's yawn"
-
-	para "ended a drought"
-	line "400 years ago."
-	done
-
-CharcoalKilnSignText:
-	text "CHARCOAL KILN"
-	done
-
-AzaleaTownIlexForestSignText:
-	text "ILEX FOREST"
-
-	para "Enter through the"
-	line "gate."
-	done
-
-AzaleaTown_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event 15,  9, AZALEA_POKECENTER_1F, 1
-	warp_event 21, 13, CHARCOAL_KILN, 1
-	warp_event 21,  5, AZALEA_MART, 2
-	warp_event  9,  5, KURTS_HOUSE, 1
-	warp_event 10, 15, AZALEA_GYM, 1
-	warp_event 31,  7, SLOWPOKE_WELL_B1F, 1
-	warp_event  2, 10, ILEX_FOREST_AZALEA_GATE, 3
-	warp_event  2, 11, ILEX_FOREST_AZALEA_GATE, 4
-
-	def_coord_events
-	coord_event  5, 10, SCENE_AZALEATOWN_RIVAL_BATTLE, AzaleaTownRivalBattleScene1
-	coord_event  5, 11, SCENE_AZALEATOWN_RIVAL_BATTLE, AzaleaTownRivalBattleScene2
-	coord_event  9,  6, SCENE_AZALEATOWN_KURT_RETURNS_GS_BALL, AzaleaTownCelebiScene
-
-	def_bg_events
-	bg_event 19,  9, BGEVENT_READ, AzaleaTownSign
-	bg_event 10,  9, BGEVENT_READ, KurtsHouseSign
-	bg_event 14, 15, BGEVENT_READ, AzaleaGymSign
-	bg_event 29,  7, BGEVENT_READ, SlowpokeWellSign
-	bg_event 19, 13, BGEVENT_READ, CharcoalKilnSign
-	bg_event 16,  9, BGEVENT_READ, AzaleaTownPokecenterSign
-	bg_event 22,  5, BGEVENT_READ, AzaleaTownMartSign
-	bg_event  3,  9, BGEVENT_READ, AzaleaTownIlextForestSign
-	bg_event 31,  6, BGEVENT_ITEM, AzaleaTownHiddenFullHeal
-
-	def_object_events
-	object_event 31,  9, SPRITE_AZALEA_ROCKET, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaTownRocket1Script, EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET
-	object_event 21,  9, SPRITE_GRAMPS, SPRITEMOVEDATA_WANDER, 1, 2, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaTownGrampsScript, -1
-	object_event 15, 13, SPRITE_TEACHER, SPRITEMOVEDATA_WALK_UP_DOWN, 0, 2, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, AzaleaTownTeacherScript, -1
-	object_event  7,  9, SPRITE_YOUNGSTER, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 1, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, AzaleaTownYoungsterScript, -1
-	object_event  8, 17, SPRITE_SLOWPOKE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaTownSlowpokeScript, EVENT_AZALEA_TOWN_SLOWPOKES
-	object_event 18,  9, SPRITE_SLOWPOKE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaTownSlowpokeScript, EVENT_AZALEA_TOWN_SLOWPOKES
-	object_event 29,  9, SPRITE_SLOWPOKE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaTownSlowpokeScript, EVENT_AZALEA_TOWN_SLOWPOKES
-	object_event 15, 15, SPRITE_SLOWPOKE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaTownSlowpokeScript, EVENT_AZALEA_TOWN_SLOWPOKES
-	object_event  8,  2, SPRITE_FRUIT_TREE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, WhiteApricornTree, -1
-	object_event 11, 10, SPRITE_AZALEA_ROCKET, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_RIVAL_AZALEA_TOWN
-	object_event 10, 16, SPRITE_AZALEA_ROCKET, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaTownRocket2Script, EVENT_SLOWPOKE_WELL_ROCKETS
-	object_event  6,  5, SPRITE_KURT_OUTSIDE, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaTownKurtScript, EVENT_AZALEA_TOWN_KURT

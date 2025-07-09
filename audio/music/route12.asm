@@ -29,12 +29,12 @@ Music_Route12_Ch1:
 	note E_, 1
 	volume_envelope 9, 7
 	note D#, 12
-.mainloop:
+Music_Route12_branch_ec535:
 	duty_cycle 2
 	volume_envelope 9, 6
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub1
+	sound_call Music_Route12_branch_ec5b1
+	sound_call Music_Route12_branch_ec5bf
+	sound_call Music_Route12_branch_ec5b1
 	note E_, 1
 	rest 2
 	note F#, 1
@@ -42,9 +42,9 @@ Music_Route12_Ch1:
 	note B_, 4
 	octave 4
 	note D#, 4
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub1
+	sound_call Music_Route12_branch_ec5b1
+	sound_call Music_Route12_branch_ec5bf
+	sound_call Music_Route12_branch_ec5b1
 	volume_envelope 9, 2
 	octave 4
 	note E_, 1
@@ -115,7 +115,7 @@ Music_Route12_Ch1:
 	note F#, 8
 	note D#, 4
 	note F#, 4
-.loop1:
+Music_Route12_branch_ec59b:
 	volume_envelope 9, 7
 	note G#, 1
 	note A_, 1
@@ -129,10 +129,10 @@ Music_Route12_Ch1:
 	note E_, 1
 	note F#, 1
 	note G#, 4
-	sound_loop 2, .loop1
-	sound_loop 0, .mainloop
+	sound_loop 2, Music_Route12_branch_ec59b
+	sound_jump Music_Route12_branch_ec535
 
-.sub1:
+Music_Route12_branch_ec5b1:
 	octave 3
 	note G#, 1
 	rest 1
@@ -148,7 +148,7 @@ Music_Route12_Ch1:
 	note G#, 4
 	sound_ret
 
-.sub2:
+Music_Route12_branch_ec5bf:
 	note A_, 1
 	rest 1
 	note F#, 1
@@ -183,10 +183,10 @@ Music_Route12_Ch2:
 	note B_, 1
 	octave 4
 	note D#, 1
-.mainloop:
+Music_Route12_branch_ec5e5:
 	duty_cycle 3
 	volume_envelope 11, 7
-	sound_call .sub1
+	sound_call Music_Route12_branch_ec647
 	note F#, 1
 	note A_, 1
 	note G#, 1
@@ -208,7 +208,7 @@ Music_Route12_Ch2:
 	note D#, 4
 	note F#, 4
 	duty_cycle 3
-	sound_call .sub1
+	sound_call Music_Route12_branch_ec647
 	note A_, 1
 	octave 5
 	note C#, 1
@@ -260,9 +260,9 @@ Music_Route12_Ch2:
 	note E_, 10
 	volume_envelope 10, 4
 	note E_, 6
-	sound_loop 0, .mainloop
+	sound_jump Music_Route12_branch_ec5e5
 
-.sub1:
+Music_Route12_branch_ec647:
 	octave 4
 	note E_, 6
 	volume_envelope 11, 1
@@ -296,8 +296,8 @@ Music_Route12_Ch3:
 	note F#, 2
 	rest 2
 	note D#, 4
-.mainloop:
-	sound_call .sub1
+Music_Route12_branch_ec66c:
+	sound_call Music_Route12_branch_ec6b4
 	note F#, 1
 	rest 1
 	note E_, 1
@@ -307,7 +307,7 @@ Music_Route12_Ch3:
 	note F#, 4
 	octave 2
 	note B_, 4
-	sound_call .sub1
+	sound_call Music_Route12_branch_ec6b4
 	note E_, 1
 	rest 1
 	note B_, 1
@@ -348,7 +348,7 @@ Music_Route12_Ch3:
 	note E_, 8
 	note F#, 4
 	note D#, 4
-.loop1:
+Music_Route12_branch_ec6a3:
 	note E_, 1
 	rest 1
 	note E_, 1
@@ -358,10 +358,10 @@ Music_Route12_Ch3:
 	note G#, 4
 	note E_, 3
 	rest 1
-	sound_loop 2, .loop1
-	sound_loop 0, .mainloop
+	sound_loop 2, Music_Route12_branch_ec6a3
+	sound_jump Music_Route12_branch_ec66c
 
-.sub1:
+Music_Route12_branch_ec6b4:
 	octave 3
 	note E_, 1
 	rest 1
@@ -402,17 +402,16 @@ Music_Route12_Ch4:
 	drum_note 2, 1
 	drum_note 3, 4
 	drum_speed 6
-	sound_call .sub1
-.mainloop:
-.loop1:
+	sound_call Music_Route12_branch_ec717
+Music_Route12_branch_ec6e1:
 	drum_note 3, 4
 	drum_note 3, 8
 	drum_note 2, 2
 	drum_note 2, 2
 	drum_note 3, 8
-	sound_call .sub1
-	sound_loop 8, .loop1
-.loop2:
+	sound_call Music_Route12_branch_ec717
+	sound_loop 8, Music_Route12_branch_ec6e1
+Music_Route12_branch_ec6ed:
 	drum_speed 12
 	drum_note 12, 10
 	drum_note 3, 1
@@ -424,23 +423,23 @@ Music_Route12_Ch4:
 	drum_note 2, 1
 	drum_note 2, 1
 	drum_note 3, 4
-	sound_loop 2, .loop2
+	sound_loop 2, Music_Route12_branch_ec6ed
 	drum_note 12, 16
 	drum_speed 6
-	sound_call .sub1
-	sound_call .sub1
+	sound_call Music_Route12_branch_ec717
+	sound_call Music_Route12_branch_ec717
 	drum_note 12, 16
-.loop3:
+Music_Route12_branch_ec707:
 	drum_note 3, 4
 	drum_note 3, 8
 	drum_note 2, 2
 	drum_note 2, 2
 	drum_note 3, 8
-	sound_call .sub1
-	sound_loop 2, .loop3
-	sound_loop 0, .mainloop
+	sound_call Music_Route12_branch_ec717
+	sound_loop 2, Music_Route12_branch_ec707
+	sound_jump Music_Route12_branch_ec6e1
 
-.sub1:
+Music_Route12_branch_ec717:
 	drum_note 2, 1
 	drum_note 2, 1
 	drum_note 2, 1

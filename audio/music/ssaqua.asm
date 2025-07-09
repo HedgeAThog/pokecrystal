@@ -18,7 +18,7 @@ Music_SSAqua_Ch1:
 	rest 1
 	note G_, 1
 	rest 1
-.mainloop:
+Music_SSAqua_branch_eadbc:
 	octave 2
 	note G_, 16
 	rest 8
@@ -43,7 +43,7 @@ Music_SSAqua_Ch1:
 	rest 8
 	duty_cycle 1
 	volume_envelope 6, 1
-	sound_call Music_SSAqua_Ch2.sub4
+	sound_call Music_SSAqua_branch_eaff5
 	octave 5
 	note G_, 1
 	octave 4
@@ -68,8 +68,8 @@ Music_SSAqua_Ch1:
 	note B_, 1
 	note A_, 1
 	note G_, 1
-	sound_call Music_SSAqua_Ch2.sub4
-	sound_call Music_SSAqua_Ch2.sub5
+	sound_call Music_SSAqua_branch_eaff5
+	sound_call Music_SSAqua_branch_eb03e
 	rest 16
 	rest 16
 	rest 16
@@ -247,7 +247,7 @@ Music_SSAqua_Ch1:
 	note D_, 2
 	note F#, 2
 	note A_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_SSAqua_branch_eadbc
 
 Music_SSAqua_Ch2:
 	stereo_panning TRUE, FALSE
@@ -255,15 +255,15 @@ Music_SSAqua_Ch2:
 	vibrato 8, 3, 3
 	note_type 12, 11, 7
 	rest 2
-.mainloop:
+Music_SSAqua_branch_eaed5:
 	note_type 12, 11, 7
 	duty_cycle 1
 	volume_envelope 6, 1
-	sound_call .sub4
-	sound_call .sub5
+	sound_call Music_SSAqua_branch_eaff5
+	sound_call Music_SSAqua_branch_eb03e
 	duty_cycle 2
 	volume_envelope 13, 7
-	sound_call .sub3
+	sound_call Music_SSAqua_branch_eafe0
 	note B_, 1
 	rest 1
 	note G_, 1
@@ -276,7 +276,7 @@ Music_SSAqua_Ch2:
 	note C#, 1
 	note E_, 1
 	transpose 0, 12
-	sound_call .sub3
+	sound_call Music_SSAqua_branch_eafe0
 	transpose 0, 0
 	octave 3
 	note B_, 1
@@ -292,7 +292,7 @@ Music_SSAqua_Ch2:
 	note B_, 1
 	octave 4
 	note C_, 1
-	sound_call .sub1
+	sound_call Music_SSAqua_branch_eaf88
 	note G_, 4
 	rest 4
 	note G_, 8
@@ -312,7 +312,7 @@ Music_SSAqua_Ch2:
 	note B_, 1
 	octave 4
 	note C_, 1
-	sound_call .sub1
+	sound_call Music_SSAqua_branch_eaf88
 	note G_, 4
 	rest 4
 	note G_, 8
@@ -337,7 +337,7 @@ Music_SSAqua_Ch2:
 	duty_cycle 0
 	note B_, 2
 	note A_, 2
-	sound_call .sub2
+	sound_call Music_SSAqua_branch_eafd5
 	note_type 6, 11, 7
 	note G#, 1
 	note A_, 11
@@ -364,7 +364,7 @@ Music_SSAqua_Ch2:
 	note A#, 12
 	note B_, 2
 	note A_, 2
-	sound_call .sub2
+	sound_call Music_SSAqua_branch_eafd5
 	note_type 6, 11, 7
 	note G#, 1
 	note A_, 11
@@ -390,9 +390,9 @@ Music_SSAqua_Ch2:
 	note G_, 8
 	note A_, 8
 	rest 8
-	sound_loop 0, .mainloop
+	sound_jump Music_SSAqua_branch_eaed5
 
-.sub1:
+Music_SSAqua_branch_eaf88:
 	note D_, 6
 	octave 3
 	note B_, 1
@@ -467,7 +467,7 @@ Music_SSAqua_Ch2:
 	note F#, 2
 	sound_ret
 
-.sub2:
+Music_SSAqua_branch_eafd5:
 	note_type 12, 11, 7
 	note B_, 10
 	note F#, 1
@@ -478,7 +478,7 @@ Music_SSAqua_Ch2:
 	rest 1
 	sound_ret
 
-.sub3:
+Music_SSAqua_branch_eafe0:
 	octave 3
 	note D_, 10
 	note E_, 1
@@ -501,7 +501,7 @@ Music_SSAqua_Ch2:
 	rest 1
 	sound_ret
 
-.sub4:
+Music_SSAqua_branch_eaff5:
 	octave 5
 	note G_, 1
 	note D_, 1
@@ -576,7 +576,7 @@ Music_SSAqua_Ch2:
 	note G_, 1
 	sound_ret
 
-.sub5:
+Music_SSAqua_branch_eb03e:
 	octave 5
 	note G_, 1
 	octave 4
@@ -611,7 +611,7 @@ Music_SSAqua_Ch3:
 	rest 1
 	note G_, 1
 	rest 1
-.mainloop:
+Music_SSAqua_branch_eb063:
 	note G_, 16
 	rest 8
 	note G_, 2
@@ -642,9 +642,9 @@ Music_SSAqua_Ch3:
 	note B_, 1
 	octave 4
 	note E_, 1
-	sound_call .sub1
-	sound_call .sub1
-.loop1:
+	sound_call Music_SSAqua_branch_eb14d
+	sound_call Music_SSAqua_branch_eb14d
+Music_SSAqua_branch_eb08d:
 	note G_, 2
 	rest 2
 	octave 3
@@ -671,10 +671,10 @@ Music_SSAqua_Ch3:
 	octave 2
 	note G_, 1
 	rest 1
-	sound_loop 4, .loop1
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub3
+	sound_loop 4, Music_SSAqua_branch_eb08d
+	sound_call Music_SSAqua_branch_eb172
+	sound_call Music_SSAqua_branch_eb172
+	sound_call Music_SSAqua_branch_eb230
 	octave 3
 	note E_, 2
 	rest 2
@@ -747,7 +747,7 @@ Music_SSAqua_Ch3:
 	octave 4
 	note F#, 1
 	rest 3
-	sound_call .sub3
+	sound_call Music_SSAqua_branch_eb230
 	octave 3
 	note E_, 2
 	rest 2
@@ -822,9 +822,9 @@ Music_SSAqua_Ch3:
 	rest 1
 	note G_, 1
 	rest 1
-	sound_loop 0, .mainloop
+	sound_jump Music_SSAqua_branch_eb063
 
-.sub1:
+Music_SSAqua_branch_eb14d:
 	note_type 6, 1, 5
 	octave 2
 	note G_, 2
@@ -861,7 +861,7 @@ Music_SSAqua_Ch3:
 	rest 1
 	sound_ret
 
-.sub2:
+Music_SSAqua_branch_eb172:
 	octave 2
 	note G_, 2
 	rest 2
@@ -1053,7 +1053,7 @@ Music_SSAqua_Ch3:
 	rest 3
 	sound_ret
 
-.sub3:
+Music_SSAqua_branch_eb230:
 	octave 2
 	note B_, 2
 	rest 2
@@ -1084,8 +1084,7 @@ Music_SSAqua_Ch4:
 	toggle_noise 3
 	drum_speed 12
 	rest 2
-.mainloop:
-.loop1:
+Music_SSAqua_branch_eb24e:
 	drum_note 9, 1
 	drum_note 8, 1
 	drum_note 8, 1
@@ -1102,34 +1101,34 @@ Music_SSAqua_Ch4:
 	drum_note 8, 1
 	drum_note 9, 1
 	drum_note 8, 1
-	sound_loop 12, .loop1
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub3
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub3
-	sound_loop 0, .mainloop
+	sound_loop 12, Music_SSAqua_branch_eb24e
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2bb
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2bb
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2bb
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2c7
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2bb
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2ae
+	sound_call Music_SSAqua_branch_eb2c7
+	sound_jump Music_SSAqua_branch_eb24e
 
-.sub1:
+Music_SSAqua_branch_eb2ae:
 	drum_note 11, 2
 	drum_note 8, 1
 	drum_note 8, 1
@@ -1144,7 +1143,7 @@ Music_SSAqua_Ch4:
 	drum_note 8, 1
 	sound_ret
 
-.sub2:
+Music_SSAqua_branch_eb2bb:
 	drum_note 11, 2
 	drum_note 8, 1
 	drum_note 8, 1
@@ -1158,7 +1157,7 @@ Music_SSAqua_Ch4:
 	drum_note 7, 2
 	sound_ret
 
-.sub3:
+Music_SSAqua_branch_eb2c7:
 	drum_note 11, 2
 	drum_note 8, 1
 	drum_note 8, 1

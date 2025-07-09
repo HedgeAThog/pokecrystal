@@ -1,144 +1,133 @@
 INCLUDE "gfx/font.asm"
 
-EnableHDMAForGraphics:
-	db FALSE
-
-Get1bppOptionalHDMA: ; unreferenced
-	ld a, [EnableHDMAForGraphics]
-	and a
-	jp nz, Get1bppViaHDMA
-	jp Get1bpp
-
-Get2bppOptionalHDMA: ; unreferenced
-	ld a, [EnableHDMAForGraphics]
-	and a
-	jp nz, Get2bppViaHDMA
-	jp Get2bpp
+_LoadStandardOpaqueFont::
+	ld a, TRUE
+	call _LoadStandardMaybeOpaqueFont
+	ld hl, vTiles2 tile " "
+	ld de, TextboxSpaceGFX
+	jmp GetOpaque1bppFontTile
 
 _LoadStandardFont::
-	ld de, Font
-	ld hl, vTiles1
-	lb bc, BANK(Font), 128 ; "A" to "9"
-	ldh a, [rLCDC]
-	bit B_LCDC_ENABLE, a
-	jp z, Copy1bpp
-
-	ld de, Font
-	ld hl, vTiles1
-	lb bc, BANK(Font), 32 ; "A" to "]"
-	call Get1bppViaHDMA
-	ld de, Font + 32 * TILE_1BPP_SIZE
-	ld hl, vTiles1 tile $20
-	lb bc, BANK(Font), 32 ; "a" to $bf
-	call Get1bppViaHDMA
-	ld de, Font + 64 * TILE_1BPP_SIZE
-	ld hl, vTiles1 tile $40
-	lb bc, BANK(Font), 32 ; "Ä" to "←"
-	call Get1bppViaHDMA
-	ld de, Font + 96 * TILE_1BPP_SIZE
-	ld hl, vTiles1 tile $60
-	lb bc, BANK(Font), 32 ; "'" to "9"
-	call Get1bppViaHDMA
-	ret
-
-_LoadFontsExtra1::
-	ld de, FontsExtra_SolidBlackGFX
-	ld hl, vTiles2 tile "■" ; $60
-	lb bc, BANK(FontsExtra_SolidBlackGFX), 1
-	call Get1bppViaHDMA
-	ld de, PokegearPhoneIconGFX
-	ld hl, vTiles2 tile "☎" ; $62
-	lb bc, BANK(PokegearPhoneIconGFX), 1
-	call Get2bppViaHDMA
-	ld de, FontExtra + 3 tiles ; "<BOLD_D>"
-	ld hl, vTiles2 tile "<BOLD_D>"
-	lb bc, BANK(FontExtra), 22 ; "<BOLD_D>" to "ぉ"
-	call Get2bppViaHDMA
-	jr LoadFrame
-
-_LoadFontsExtra2::
-	ld de, FontsExtra2_UpArrowGFX
-	ld hl, vTiles2 tile "▲" ; $61
-	ld b, BANK(FontsExtra2_UpArrowGFX)
-	ld c, 1
-	call Get2bppViaHDMA
-	ret
-
-_LoadFontsBattleExtra::
-	ld de, FontBattleExtra
-	ld hl, vTiles2 tile $60
-	lb bc, BANK(FontBattleExtra), 25
-	call Get2bppViaHDMA
-	jr LoadFrame
-
-LoadFrame:
-	ld a, [wTextboxFrame]
-	maskbits NUM_FRAMES
-	ld bc, TEXTBOX_FRAME_TILES * TILE_1BPP_SIZE
-	ld hl, Frames
-	call AddNTimes
+	xor a
+_LoadStandardMaybeOpaqueFont:
+	push af
+	call LoadStandardFontPointer
 	ld d, h
 	ld e, l
-	ld hl, vTiles2 tile "┌" ; $79
-	lb bc, BANK(Frames), TEXTBOX_FRAME_TILES ; "┌" to "┘"
-	call Get1bppViaHDMA
-	ld hl, vTiles2 tile " " ; $7f
+	ld hl, vTiles0 tile "A"
+	lb bc, BANK(FontTiles), 114
+	pop af
+	ldh [hRequestOpaque1bpp], a
+	push af
+	call GetMaybeOpaque1bpp
+	ld de, FontCommon
+	ld hl, vTiles0 tile "↑"
+	lb bc, BANK(FontCommon), 6
+	pop af
+	ldh [hRequestOpaque1bpp], a
+	jmp GetMaybeOpaque1bpp
+
+LoadStandardFontPointer::
+	ld hl, .FontPointers
+	ld a, [wOptions2]
+	and FONT_MASK
+	ld d, 0
+	ld e, a
+	add hl, de
+	add hl, de
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
+	ret
+
+.FontPointers:
+	table_width 2
+	dw FontNormal
+	dw FontNarrow
+	dw FontBold
+	dw FontItalic
+	dw FontSerif
+	dw FontChicago
+	dw FontMICR
+	dw FontUnown
+	assert_table_length NUM_FONTS
+
+_LoadFontsBattleExtra::
+	ld hl, BattleExtrasGFX
+	ld de, vTiles2 tile BATTLEEXTRA_GFX_START
+	lb bc, BANK(BattleExtrasGFX), 32
+	call DecompressRequest2bpp
+
+_LoadFrame::
+	ld a, [wTextboxFrame]
+	ld bc, TEXTBOX_FRAME_TILES * TILE_1BPP_SIZE
+	ld hl, Frames
+	rst AddNTimes
+	ld d, h
+	ld e, l
+	ld hl, vTiles0 tile "┌"
+	lb bc, BANK(Frames), TEXTBOX_FRAME_TILES
+	call Get1bpp
+	ld hl, vTiles2 tile " "
 	ld de, TextboxSpaceGFX
 	lb bc, BANK(TextboxSpaceGFX), 1
-	call Get1bppViaHDMA
-	ret
+	jmp Get1bpp
 
 LoadBattleFontsHPBar:
-	ld de, FontBattleExtra
-	ld hl, vTiles2 tile $60
-	lb bc, BANK(FontBattleExtra), 12
-	call Get2bppViaHDMA
-	ld hl, vTiles2 tile $70
-	ld de, FontBattleExtra + 16 tiles ; "<DO>"
-	lb bc, BANK(FontBattleExtra), 3 ; "<DO>" to "『"
-	call Get2bppViaHDMA
-	call LoadFrame
+	call _LoadFontsBattleExtra
 
-LoadHPBar:
-	ld de, EnemyHPBarBorderGFX
-	ld hl, vTiles2 tile $6c
-	lb bc, BANK(EnemyHPBarBorderGFX), 4
-	call Get1bppViaHDMA
-	ld de, HPExpBarBorderGFX
-	ld hl, vTiles2 tile $73
-	lb bc, BANK(HPExpBarBorderGFX), 6
-	call Get1bppViaHDMA
-	ld de, ExpBarGFX
-	ld hl, vTiles2 tile $55
-	lb bc, BANK(ExpBarGFX), 9
-	call Get2bppViaHDMA
-	ld de, MobilePhoneTilesGFX + 7 tiles ; mobile phone icon
-	ld hl, vTiles2 tile $5e
-	lb bc, BANK(MobilePhoneTilesGFX), 2
-	call Get2bppViaHDMA
+LoadSummaryStatusIcon:
+	push de
+	xor a
+	ld de, wTempMonStatus
+	farcall GetStatusConditionIndex
+	ld hl, SummaryStatusIconGFX
+	ld bc, 2 tiles
+	rst AddNTimes
+	ld d, h
+	ld e, l
+	ld hl, vTiles0 tile SUMMARY_TILE_OAM_STATUS
+	lb bc, BANK(SummaryStatusIconGFX), 2
+	call Request2bpp
+	farcall LoadSummaryStatusIconPalette
+	farcall ApplyOBPals
+	pop de
 	ret
 
-StatsScreen_LoadFont:
-	call _LoadFontsBattleExtra
-	ld de, EnemyHPBarBorderGFX
-	ld hl, vTiles2 tile $6c
-	lb bc, BANK(EnemyHPBarBorderGFX), 4
-	call Get1bppViaHDMA
-	ld de, HPExpBarBorderGFX
-	ld hl, vTiles2 tile $78
-	lb bc, BANK(HPExpBarBorderGFX), 1
-	call Get1bppViaHDMA
-	ld de, HPExpBarBorderGFX + 3 * TILE_1BPP_SIZE
-	ld hl, vTiles2 tile $76
-	lb bc, BANK(HPExpBarBorderGFX), 2
-	call Get1bppViaHDMA
-	ld de, ExpBarGFX
+LoadPlayerStatusIcon:
+	push de
+	ld a, [wPlayerSubStatus2]
+	ld de, wBattleMonStatus
+	farcall GetStatusConditionIndex
+	ld hl, StatusIconGFX
+	ld bc, 2 tiles
+	rst AddNTimes
+	ld d, h
+	ld e, l
 	ld hl, vTiles2 tile $55
-	lb bc, BANK(ExpBarGFX), 8
-	call Get2bppViaHDMA
-LoadStatsScreenPageTilesGFX:
-	ld de, StatsScreenPageTilesGFX
-	ld hl, vTiles2 tile $31
-	lb bc, BANK(StatsScreenPageTilesGFX), 17
-	call Get2bppViaHDMA
+	lb bc, BANK(StatusIconGFX), 2
+	call Request2bpp
+	farcall LoadPlayerStatusIconPalette
+	pop de
+	ret
+
+LoadStatusIcons:
+	call LoadPlayerStatusIcon
+	; fallthrough
+
+LoadEnemyStatusIcon:
+	push de
+	ld a, [wEnemySubStatus2]
+	ld de, wEnemyMonStatus
+	farcall GetStatusConditionIndex
+	ld hl, EnemyStatusIconGFX
+	ld bc, 2 tiles
+	rst AddNTimes
+	ld d, h
+	ld e, l
+	ld hl, vTiles2 tile $57
+	lb bc, BANK(EnemyStatusIconGFX), 2
+	call Request2bpp
+	farcall LoadEnemyStatusIconPalette
+	pop de
 	ret

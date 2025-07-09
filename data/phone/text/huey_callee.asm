@@ -1,6 +1,6 @@
 HueyAnswerPhoneText:
 	text "Yeah, this is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 
@@ -10,7 +10,7 @@ HueyAnswerPhoneText:
 
 HueyAnswerPhoneDayText:
 	text "Yeah, this is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 
@@ -20,7 +20,7 @@ HueyAnswerPhoneDayText:
 
 HueyAnswerPhoneNiteText:
 	text "Yeah, this is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 
@@ -32,7 +32,7 @@ HueyGreetText:
 	text "Yo, <PLAYER>!"
 	line "You awake?"
 
-	para "It's me, @"
+	para "It's me, "
 	text_ram wStringBuffer3
 	text "!"
 	line "How's it going?"
@@ -42,7 +42,7 @@ HueyGreetDayText:
 	text "Yo, <PLAYER>! You"
 	line "free right now?"
 
-	para "It's me, @"
+	para "It's me, "
 	text_ram wStringBuffer3
 	text "!"
 	line "How's it going?"
@@ -52,7 +52,7 @@ HueyGreetNiteText:
 	text "Yo, <PLAYER>!"
 	line "Were you asleep?"
 
-	para "It's me, @"
+	para "It's me, "
 	text_ram wStringBuffer3
 	text "!"
 	line "How's it going?"

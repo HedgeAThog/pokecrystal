@@ -30,7 +30,7 @@ Music_PokeFluteChannel_Ch1:
 	octave 2
 	note G_, 4
 	note A_, 8
-.mainloop:
+Music_PokeFluteChannel_branch_f7b40:
 	octave 3
 	note E_, 2
 	note G_, 2
@@ -67,7 +67,7 @@ Music_PokeFluteChannel_Ch1:
 	octave 2
 	note G_, 4
 	note A_, 8
-	sound_loop 0, .mainloop
+	sound_jump Music_PokeFluteChannel_branch_f7b40
 
 Music_PokeFluteChannel_Ch2:
 	stereo_panning FALSE, TRUE
@@ -106,7 +106,7 @@ Music_PokeFluteChannel_Ch2:
 	octave 2
 	note E_, 2
 	note G_, 2
-.mainloop:
+Music_PokeFluteChannel_branch_f7b94:
 	octave 3
 	note C_, 2
 	note E_, 2
@@ -168,14 +168,14 @@ Music_PokeFluteChannel_Ch2:
 	octave 2
 	note E_, 2
 	note G_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_PokeFluteChannel_branch_f7b94
 
 Music_PokeFluteChannel_Ch3:
 	vibrato 16, 1, 4
 	note_type 12, 1, 0
-	sound_call .sub1
-	sound_call .sub1
-.mainloop:
+	sound_call Music_PokeFluteChannel_branch_f7c05
+	sound_call Music_PokeFluteChannel_branch_f7c05
+Music_PokeFluteChannel_branch_f7be1:
 	rest 4
 	octave 4
 	note C_, 2
@@ -205,10 +205,10 @@ Music_PokeFluteChannel_Ch3:
 	note F#, 2
 	note G_, 8
 	rest 4
-	sound_call .sub1
-	sound_loop 0, .mainloop
+	sound_call Music_PokeFluteChannel_branch_f7c05
+	sound_jump Music_PokeFluteChannel_branch_f7be1
 
-.sub1:
+Music_PokeFluteChannel_branch_f7c05:
 	octave 5
 	note E_, 2
 	note F_, 2

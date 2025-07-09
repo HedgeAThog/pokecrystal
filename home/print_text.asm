@@ -1,84 +1,59 @@
 PrintLetterDelay::
 ; Wait before printing the next letter.
 
-; The text speed setting in wOptions is actually a frame count:
-; 	fast: 1 frame
-; 	mid:  3 frames
-; 	slow: 5 frames
-
 ; wTextboxFlags[!0] and A or B override text speed with a one-frame delay.
-; wOptions[4] and wTextboxFlags[!1] disable the delay.
+; wOptions1[4] and wTextboxFlags[!1] disable the delay.
+	ld a, [wTextboxFlags]
+	bit 1, a
+	ret z
+	bit 0, a
+	jr z, .forceFastScroll
 
-	ld a, [wOptions]
+	ld a, [wOptions1]
 	bit NO_TEXT_SCROLL, a
 	ret nz
 
-; non-scrolling text?
-	ld a, [wTextboxFlags]
-	bit TEXT_DELAY_F, a
-	ret z
+	push af
+	xor a
+	ld [wTimeSinceText], a
+	pop af
 
+	and TEXT_DELAY_MASK
+	cp INST_TEXT
+	ret z
+	ld a, $1
+	ldh [hBGMapHalf], a
+.forceFastScroll
 	push hl
 	push de
 	push bc
-
-	ld hl, hOAMUpdate
-	ld a, [hl]
-	push af
-
-; orginally turned oam update off...
-;	ld a, 1
-	ld [hl], a
-
 ; force fast scroll?
 	ld a, [wTextboxFlags]
-	bit FAST_TEXT_DELAY_F, a
-	jr z, .fast
-
+	bit 0, a
+	ld a, FAST_TEXT
+	jr z, .updateDelay
 ; text speed
-	ld a, [wOptions]
-	and %111
-	jr .updatedelay
 
-.fast
-	ld a, TEXT_DELAY_FAST
-
-.updatedelay
+	; Slow/Mid/Fast: 5/3/1 frames.
+	ld a, [wOptions1]
+	and TEXT_DELAY_MASK
+.updateDelay
+	add a
+	cpl
+	add 6
 	ld [wTextDelayFrames], a
-
-.checkjoypad
-	call GetJoypad
-
-; input override
-	ld a, [wDisableTextAcceleration]
-	and a
-	jr nz, .wait
-
-; Wait one frame if holding A or B.
-	ldh a, [hJoyDown]
-	bit B_PAD_A, a
-	jr z, .checkb
-	jr .delay
-.checkb
-	bit B_PAD_B, a
-	jr z, .wait
-
-.delay
-	call DelayFrame
-	jr .end
-
-.wait
+.textDelayLoop
 	ld a, [wTextDelayFrames]
 	and a
-	jr nz, .checkjoypad
-
-.end
-	pop af
-	ldh [hOAMUpdate], a
-	pop bc
-	pop de
-	pop hl
-	ret
+	jr z, .done
+	call DelayFrame
+	call GetJoypad
+; Finish execution if A or B is pressed
+	ldh a, [hJoyDown]
+	and PAD_A | PAD_B
+	jr z, .textDelayLoop
+.done
+	jmp PopBCDEHL
 
 CopyDataUntil::
 ; Copy [hl .. bc) to de.
@@ -98,40 +73,25 @@ CopyDataUntil::
 	jr nz, CopyDataUntil
 	ret
 
-PrintNum::
-	homecall _PrintNum
+PrintNumFromReg::
+	homecall _PrintNumFromReg
 	ret
 
-MobilePrintNum::
-	homecall _MobilePrintNum
+FastPrintNum::
+	homecall _FastPrintNum
 	ret
 
 FarPrintText::
-	ldh [hTempBank], a
+	push de
+	ld d, a
 	ldh a, [hROMBank]
-	push af
-	ldh a, [hTempBank]
+	ld e, a
+	ld a, d
 	rst Bankswitch
-
+	push de
 	call PrintText
-
-	pop af
+	pop de
+	ld a, e
 	rst Bankswitch
-	ret
-
-CallPointerAt::
-	ldh a, [hROMBank]
-	push af
-	ld a, [hli]
-	rst Bankswitch
-
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-
-	call _hl_
-
-	pop hl
-	ld a, h
-	rst Bankswitch
+	pop de
 	ret

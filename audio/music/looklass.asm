@@ -18,7 +18,7 @@ Music_LookLass_Ch1:
 	note B_, 14
 	stereo_panning FALSE, TRUE
 	duty_cycle 0
-.mainloop:
+Music_LookLass_branch_ed7bd:
 	volume_envelope 10, 2
 	octave 3
 	note E_, 4
@@ -28,14 +28,14 @@ Music_LookLass_Ch1:
 	note E_, 2
 	volume_envelope 10, 3
 	note B_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_LookLass_branch_ed7bd
 
 Music_LookLass_Ch2:
 	stereo_panning TRUE, FALSE
 	duty_cycle 0
 	note_type 12, 8, 3
 	rest 16
-.mainloop:
+Music_LookLass_branch_ed7d5:
 	volume_envelope 9, 2
 	octave 2
 	note B_, 4
@@ -46,7 +46,7 @@ Music_LookLass_Ch2:
 	volume_envelope 9, 3
 	octave 3
 	note G#, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_LookLass_branch_ed7d5
 
 Music_LookLass_Ch3:
 	note_type 12, 1, 0
@@ -56,7 +56,7 @@ Music_LookLass_Ch3:
 	note D#, 2
 	note C#, 2
 	note C_, 2
-.mainloop:
+Music_LookLass_branch_ed7ef:
 	octave 5
 	note B_, 2
 	rest 2
@@ -96,13 +96,13 @@ Music_LookLass_Ch3:
 	note F#, 2
 	note G#, 2
 	note A_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_LookLass_branch_ed7ef
 
 Music_LookLass_Ch4:
 	toggle_noise 4
 	drum_speed 12
 	drum_note 1, 16
-.mainloop:
+Music_LookLass_branch_ed81f:
 	drum_speed 6
 	drum_note 3, 8
 	drum_note 2, 8
@@ -112,4 +112,4 @@ Music_LookLass_Ch4:
 	drum_note 2, 1
 	drum_note 2, 1
 	drum_note 2, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_LookLass_branch_ed81f

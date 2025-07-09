@@ -1,10 +1,7 @@
-WhirlIslandSE_MapScripts:
+WhirlIslandSE_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
-
-WhirlIslandSE_MapEvents:
-	db 0, 0 ; filler
 
 	def_warp_events
 	warp_event  5, 13, ROUTE_41, 4

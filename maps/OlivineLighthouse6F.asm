@@ -1,42 +1,51 @@
-	object_const_def
-	const OLIVINELIGHTHOUSE6F_JASMINE
-	const OLIVINELIGHTHOUSE6F_MONSTER
-	const OLIVINELIGHTHOUSE6F_POKE_BALL
-
-OlivineLighthouse6F_MapScripts:
+OlivineLighthouse6F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
+	def_warp_events
+	warp_event  9, 15, OLIVINE_LIGHTHOUSE_5F, 1
+	warp_event 16,  5, OLIVINE_LIGHTHOUSE_5F, 6
+	warp_event 17,  5, OLIVINE_LIGHTHOUSE_5F, 7
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event  8,  8, SPRITE_JASMINE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, OlivineLighthouseJasmine, EVENT_OLIVINE_LIGHTHOUSE_JASMINE
+	object_event  9,  8, SPRITE_MON_ICON, SPRITEMOVEDATA_POKEMON, 0, AMPHAROS, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, NO_FORM, OlivineLighthouseAmphy, -1
+	itemball_event  3,  4, WIDE_LENS, 1, EVENT_OLIVINE_LIGHTHOUSE_6F_WIDE_LENS
+
+	object_const_def
+	const OLIVINELIGHTHOUSE6F_JASMINE
+	const OLIVINELIGHTHOUSE6F_AMPHAROS
+
 OlivineLighthouseJasmine:
 	faceplayer
 	opentext
-	checkitem SECRETPOTION
-	iftrue .BroughtSecretpotion
+	checkkeyitem SECRETPOTION
+	iftruefwd .BroughtSecretpotion
 	checkevent EVENT_JASMINE_EXPLAINED_AMPHYS_SICKNESS
-	iftrue .ExplainedSickness
+	iftruefwd .ExplainedSickness
 	writetext JasmineCianwoodPharmacyText
 	promptbutton
 	setevent EVENT_JASMINE_EXPLAINED_AMPHYS_SICKNESS
 .ExplainedSickness:
-	writetext JasmineGetSomeMedicineText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext JasmineGetSomeMedicineText
 
 .BroughtSecretpotion:
 	writetext JasmineCureAmphyText
 	yesorno
-	iffalse .Refused
+	iffalsefwd .Refused
 	writetext PlayerHandedSecretpotionText
 	promptbutton
-	takeitem SECRETPOTION
+	takekeyitem SECRETPOTION
 	writetext JasmineDontBeOffendedText
 	waitbutton
 	closetext
 	turnobject OLIVINELIGHTHOUSE6F_JASMINE, RIGHT
 	pause 15
-	turnobject OLIVINELIGHTHOUSE6F_MONSTER, LEFT
 	opentext
 	playmusic MUSIC_HEAL
 	writetext JasmineAmphyHowAreYouFeelingText
@@ -45,31 +54,19 @@ OlivineLighthouseJasmine:
 	closetext
 	special RestartMapMusic
 	cry AMPHAROS
-	special FadeOutToWhite
+	special FadeOutPalettes
+	special LoadMapPalettes
 	pause 10
-	special FadeInFromWhite
-	opentext
-	writetext AmphyPaluPaluluText
-	waitbutton
-	closetext
-	turnobject OLIVINELIGHTHOUSE6F_MONSTER, RIGHT
-	pause 10
-	turnobject OLIVINELIGHTHOUSE6F_MONSTER, LEFT
-	pause 10
-	turnobject OLIVINELIGHTHOUSE6F_MONSTER, RIGHT
-	pause 10
-	turnobject OLIVINELIGHTHOUSE6F_MONSTER, LEFT
-	pause 10
-	faceplayer
-	opentext
-	writetext JasmineThankYouText
-	waitbutton
-	closetext
+	special FadeInPalettes_EnableDynNoApply
+	showtext AmphyPaluPaluluText
+	showemote EMOTE_BOLT, OLIVINELIGHTHOUSE6F_AMPHAROS, 15
+	setlasttalked OLIVINELIGHTHOUSE6F_JASMINE
+	showtextfaceplayer JasmineThankYouText
 	setevent EVENT_JASMINE_RETURNED_TO_GYM
 	clearevent EVENT_OLIVINE_GYM_JASMINE
 	readvar VAR_FACING
-	ifequal DOWN, .FacingDown
-	ifequal RIGHT, .FacingRight
+	ifequalfwd DOWN, .FacingDown
+	ifequalfwd RIGHT, .FacingRight
 	applymovement OLIVINELIGHTHOUSE6F_JASMINE, OlivineLighthouseJasmineLeavesUpMovement
 	disappear OLIVINELIGHTHOUSE6F_JASMINE
 	end
@@ -90,78 +87,63 @@ OlivineLighthouseJasmine:
 	closetext
 	turnobject OLIVINELIGHTHOUSE6F_JASMINE, RIGHT
 	pause 15
-	turnobject OLIVINELIGHTHOUSE6F_MONSTER, LEFT
-	opentext
-	writetext JasmineAmphyHangOnText
-	waitbutton
-	closetext
-	end
-
-.Unused: ; unreferenced
-	end
+	jumptext JasmineAmphyHangOnText
 
 OlivineLighthouseAmphy:
+	checkevent EVENT_JASMINE_RETURNED_TO_GYM
+	iftruefwd .HealthyNow
 	faceplayer
 	opentext
-	checkevent EVENT_JASMINE_RETURNED_TO_GYM
-	iftrue .HealthyNow
 	writetext AmphyPalPalooText
-	setval AMPHAROS
+	setmonval AMPHAROS
 	special PlaySlowCry
 	promptbutton
-	writetext AmphyBreathingLaboredText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext AmphyBreathingLaboredText
 
 .HealthyNow:
-	writetext AmphyPaluPaluluText
-	cry AMPHAROS
-	waitbutton
-	closetext
-	special FadeOutToWhite
-	special FadeInFromWhite
-	special FadeOutToWhite
-	special FadeInFromWhite
+	showcrytext AmphyPaluPaluluText, AMPHAROS
+	special FadeOutPalettes
+	special LoadMapPalettes
+	special FadeInPalettes_EnableDynNoApply
+	special FadeOutPalettes
+	special LoadMapPalettes
+	special FadeInPalettes_EnableDynNoApply
 	end
 
-OlivineLighthouse6FSuperPotion:
-	itemball SUPER_POTION
-
 OlivineLighthouseJasmineLeavesUpMovement:
-	slow_step UP
-	slow_step UP
-	slow_step RIGHT
-	slow_step UP
-	slow_step UP
-	step_sleep 8
-	step_sleep 8
+	slow_step_up
+	slow_step_up
+	slow_step_right
+	slow_step_up
+	slow_step_up
+	step_sleep_8
+	step_sleep_8
 	step_end
 
 OlivineLighthouseJasmineLeavesDownMovement:
-	slow_step DOWN
-	slow_step RIGHT
-	slow_step RIGHT
-	slow_step RIGHT
-	slow_step UP
-	slow_step RIGHT
-	slow_step RIGHT
-	slow_step RIGHT
+	slow_step_down
+	slow_step_right
+	slow_step_right
+	slow_step_right
+	slow_step_up
+	slow_step_right
+	slow_step_right
+	slow_step_right
 	step_end
 
 OlivineLighthouseJasmineLeavesRightMovement:
-	slow_step UP
-	slow_step UP
-	slow_step RIGHT
-	slow_step UP
-	slow_step UP
-	slow_step UP
-	step_sleep 8
+	slow_step_up
+	slow_step_up
+	slow_step_right
+	slow_step_up
+	slow_step_up
+	slow_step_up
+	step_sleep_8
 	step_end
 
 JasmineCianwoodPharmacyText:
-	text "JASMINE: … This"
-	line "#MON always"
+	text "Jasmine: …This"
+	line "#mon always"
 
 	para "kept the sea lit"
 	line "at night."
@@ -173,14 +155,14 @@ JasmineCianwoodPharmacyText:
 	para "…I understand"
 	line "that there is a"
 
-	para "wonderful PHARMACY"
-	line "in CIANWOOD…"
+	para "wonderful Pharmacy"
+	line "in Cianwood…"
 
 	para "But that's across"
 	line "the sea…"
 
 	para "And I can't leave"
-	line "AMPHY unattended…"
+	line "Amphy unattended…"
 	done
 
 JasmineGetSomeMedicineText:
@@ -190,36 +172,36 @@ JasmineGetSomeMedicineText:
 	done
 
 JasmineCureAmphyText:
-	text "JASMINE: …Will"
+	text "Jasmine: …Will"
 	line "that medicine cure"
-	cont "AMPHY?"
+	cont "Amphy?"
 	done
 
 PlayerHandedSecretpotionText:
 	text "<PLAYER> handed the"
-	line "SECRETPOTION to"
-	cont "JASMINE."
+	line "SecretPotion to"
+	cont "Jasmine."
 	done
 
 JasmineDontBeOffendedText:
-	text "JASMINE: …Um,"
+	text "Jasmine: …Um,"
 	line "please don't be"
 	cont "offended…"
 
-	para "…AMPHY will not"
+	para "…Amphy will not"
 	line "take anything from"
 	cont "anyone but me…"
 	done
 
 JasmineAmphyHowAreYouFeelingText:
-	text "JASMINE: …"
+	text "Jasmine: …"
 
-	para "AMPHY, how are you"
+	para "Amphy, how are you"
 	line "feeling?"
 	done
 
 JasmineThankYouText:
-	text "JASMINE: …Oh, I'm"
+	text "Jasmine: …Oh, I'm"
 	line "so relieved…"
 
 	para "This is just so"
@@ -229,19 +211,19 @@ JasmineThankYouText:
 	line "very much."
 
 	para "…I will return to"
-	line "the GYM…"
+	line "the Gym…"
 	done
 
 JasmineISeeText:
-	text "JASMINE: …I see…"
+	text "Jasmine: …I see…"
 	done
 
 JasmineAmphyHangOnText:
-	text "…AMPHY, hang on!"
+	text "…Amphy, hang on!"
 	done
 
 AmphyPalPalooText:
-	text "AMPHY: …"
+	text "Amphy: …"
 	line "…Pa… paloo…"
 	done
 
@@ -251,23 +233,6 @@ AmphyBreathingLaboredText:
 	done
 
 AmphyPaluPaluluText:
-	text "AMPHY: Palu!"
+	text "Amphy: Palu!"
 	line "Palulu!"
 	done
-
-OlivineLighthouse6F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  9, 15, OLIVINE_LIGHTHOUSE_5F, 1
-	warp_event 16,  5, OLIVINE_LIGHTHOUSE_5F, 6
-	warp_event 17,  5, OLIVINE_LIGHTHOUSE_5F, 7
-
-	def_coord_events
-
-	def_bg_events
-
-	def_object_events
-	object_event  8,  8, SPRITE_JASMINE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, OlivineLighthouseJasmine, EVENT_OLIVINE_LIGHTHOUSE_JASMINE
-	object_event  9,  8, SPRITE_MONSTER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, OlivineLighthouseAmphy, -1
-	object_event  3,  4, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, OlivineLighthouse6FSuperPotion, EVENT_OLIVINE_LIGHTHOUSE_6F_SUPER_POTION

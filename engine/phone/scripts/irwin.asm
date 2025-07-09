@@ -1,18 +1,18 @@
-IrwinPhoneCalleeScript:
-	gettrainername STRING_BUFFER_3, JUGGLER, IRWIN1
+IrwinPhoneScript1:
+	gettrainername JUGGLER, IRWIN1, STRING_BUFFER_3
 	farscall PhoneScript_AnswerPhone_Male
 	checkflag ENGINE_ROCKETS_IN_RADIO_TOWER
-	iftrue .Rockets
+	iftruefwd .Rockets
 	farsjump IrwinRandomTextScript
 
 .Rockets:
 	farsjump IrwinRocketRumorScript
 
-IrwinPhoneCallerScript:
-	gettrainername STRING_BUFFER_3, JUGGLER, IRWIN1
+IrwinPhoneScript2:
+	gettrainername JUGGLER, IRWIN1, STRING_BUFFER_3
 	farscall PhoneScript_GreetPhone_Male
 	checkflag ENGINE_ROCKETS_IN_RADIO_TOWER
-	iftrue .Rockets
+	iftruefwd .Rockets
 	farsjump IrwinRumorScript
 
 .Rockets:

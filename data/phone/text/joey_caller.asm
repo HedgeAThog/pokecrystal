@@ -1,12 +1,12 @@
 JoeyMonLookingSharperText:
-	text "My @"
+	text "My "
 	text_ram wStringBuffer4
 	text "'s"
 	line "looking sharper"
 	cont "than before!"
 
 	para "I doubt there's a"
-	line "#MON as cool as"
+	line "#mon as cool as"
 
 	para "this guy in your"
 	line "party!"
@@ -14,9 +14,9 @@ JoeyMonLookingSharperText:
 
 JoeyDefeatedMonText:
 	text "Oh yeah, I took"
-	line "down a @"
+	line "down a "
 	text_ram wStringBuffer4
-	text_start
+
 	para "in the wild the"
 	line "other day."
 
@@ -29,7 +29,7 @@ JoeyDefeatedMonText:
 
 JoeyLostAMonText:
 	text "Oh yeah, I saw a"
-	line "wild @"
+	line "wild "
 	text_ram wStringBuffer4
 	text "!"
 
@@ -50,7 +50,7 @@ JoeyBattleRematchText:
 	para "I promise things"
 	line "will be different!"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text "'s"
 	line "where I'll be."
@@ -65,7 +65,7 @@ JoeyHangUpText:
 
 JoeyDevisingStrategiesText:
 	text "I'm checking out"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text "'s moves"
 
@@ -85,7 +85,7 @@ JoeyReminderText:
 	line "battle already!"
 
 	para "I'm waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done

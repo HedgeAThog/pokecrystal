@@ -1,5 +1,5 @@
 TullyMonHasGrownText:
-	text "My @"
+	text "My "
 	text_ram wStringBuffer4
 	text " has"
 	line "grown again."
@@ -13,7 +13,7 @@ TullyMonHasGrownText:
 
 TullyDefeatedMonText:
 	text "Oh yeah, I KO'd a"
-	line "wild @"
+	line "wild "
 	text_ram wStringBuffer4
 	text "."
 
@@ -27,7 +27,7 @@ TullyDefeatedMonText:
 
 TullyLostAMonText:
 	text "Oh yeah, I lost a"
-	line "wild @"
+	line "wild "
 	text_ram wStringBuffer4
 	text "."
 
@@ -44,7 +44,7 @@ TullyBattleRematchText:
 	line "battle going!"
 
 	para "I'll be fishing on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 
@@ -66,7 +66,7 @@ TullyFoundItemText:
 	line "it's yours."
 
 	para "I'll be waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 	done
@@ -82,13 +82,13 @@ TullyNoItemText:
 	done
 
 TullyForwardText:
-	text "Yup, TULLY here…"
+	text "Yup, Tully here…"
 
-	para "<PLAY_G>? What?"
+	para "<PLAYER>? What?"
 	line "You're lost?"
 
 	para "Our battle will be"
-	line "on @"
+	line "on "
 	text_ram wStringBuffer5
 	text "."
 	done
@@ -98,7 +98,7 @@ TullyHurryText:
 	line "good for you."
 
 	para "Hustle over to"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 	done

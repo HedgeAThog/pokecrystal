@@ -2,7 +2,7 @@ RalphNeglectingKidsText:
 	text "I've been spending"
 	line "more time with my"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text " than I"
 	line "have with my kids."
@@ -13,7 +13,7 @@ RalphNeglectingKidsText:
 
 RalphDefeatedMonText:
 	text "I just beat a wild"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text "."
 
@@ -29,7 +29,7 @@ RalphDefeatedMonText:
 
 RalphLostAMonText:
 	text "Yesterday a wild"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text " slipped"
 
@@ -40,7 +40,7 @@ RalphLostAMonText:
 	line "about it until he"
 
 	para "shared his #"
-	line "BALLS with me."
+	line "Balls with me."
 
 	para "Hahah, that sure"
 	line "made my day!"
@@ -56,7 +56,7 @@ RalphBattleRematchText:
 	para "For a kid, you're"
 	line "quite agreeable."
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text " is"
 	line "the spot!"
@@ -71,7 +71,7 @@ RalphItemText:
 	text "Listen, I… Yowch!"
 
 	para "Uh, sorry! See,"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text " are"
 
@@ -79,7 +79,7 @@ RalphItemText:
 	line "is no tomorrow"
 
 	para "over here on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 
@@ -89,7 +89,7 @@ RalphItemText:
 	para "Heh, they're some"
 	line "kind of feisty!"
 
-	para "<PLAY_G>, you have"
+	para "<PLAYER>, you have"
 	line "to see this rare"
 
 	para "sight! Get ready"
@@ -100,11 +100,11 @@ RalphNoItemText:
 	text "Yeah, I know."
 
 	para "You're looking for"
-	line "rare #MON."
+	line "rare #mon."
 
 	para "Recently, all I've"
 	line "been catching are"
-	cont "MAGIKARP, though…"
+	cont "Magikarp, though…"
 	done
 
 RalphReminderText:
@@ -112,7 +112,7 @@ RalphReminderText:
 	line "I'm waiting for"
 
 	para "you to show up on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 
@@ -126,7 +126,7 @@ RalphHurryText:
 
 	para "Aren't you coming"
 	line "over to fish for"
-	cont "QWILFISH?"
+	cont "Qwilfish?"
 
 	para "I'm on ROUTE 32,"
 	line "so hurry up!"

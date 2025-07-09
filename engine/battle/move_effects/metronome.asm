@@ -1,11 +1,11 @@
-BattleCommand_Metronome:
+BattleCommand_metronome:
 	call ClearLastMove
 	call CheckUserIsCharging
 	jr nz, .charging
 
 	ld a, [wBattleAnimParam]
 	push af
-	call BattleCommand_LowerSub
+	call BattleCommand_lowersub
 	pop af
 	ld [wBattleAnimParam], a
 
@@ -15,15 +15,10 @@ BattleCommand_Metronome:
 .GetMove:
 	call BattleRandom
 
-; No invalid moves.
-	cp NUM_ATTACKS + 1
-	jr nc, .GetMove
-
 ; None of the moves in MetronomeExcepts.
 	push af
-	ld de, 1
 	ld hl, MetronomeExcepts
-	call IsInArray
+	call IsInByteArray
 	pop bc
 	jr c, .GetMove
 
@@ -36,6 +31,6 @@ BattleCommand_Metronome:
 	call GetBattleVarAddr
 	ld [hl], b
 	call UpdateMoveData
-	jp ResetTurn
+	jmp ResetTurn
 
 INCLUDE "data/moves/metronome_exception_moves.asm"

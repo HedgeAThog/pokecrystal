@@ -37,6 +37,7 @@
 	const SFX_TRANSACTION                 ; 22
 	const SFX_EXIT_BUILDING               ; 23
 	const SFX_BUMP                        ; 24
+	const SFX_THUNDER_OW                  ; d5
 	const SFX_SAVE                        ; 25
 	const SFX_POKEFLUTE                   ; 26
 	const SFX_ELEVATOR_END                ; 27
@@ -68,7 +69,7 @@
 	const SFX_TACKLE                      ; 41
 	const SFX_POISON_STING                ; 42
 	const SFX_POWDER                      ; 43
-	const SFX_DOUBLESLAP                  ; 44
+	const SFX_DOUBLE_SLAP                 ; 44
 	const SFX_BITE                        ; 45
 	const SFX_JUMP_KICK                   ; 46
 	const SFX_STOMP                       ; 47
@@ -81,7 +82,7 @@
 	const SFX_SUPERSONIC                  ; 4e
 	const SFX_LEER                        ; 4f
 	const SFX_EMBER                       ; 50
-	const SFX_BUBBLEBEAM                  ; 51
+	const SFX_BUBBLE_BEAM                 ; 51
 	const SFX_HYDRO_PUMP                  ; 52
 	const SFX_SURF                        ; 53
 	const SFX_PSYBEAM                     ; 54
@@ -149,8 +150,8 @@
 	const SFX_FANFARE_2                   ; 92
 	const SFX_REGISTER_PHONE_NUMBER       ; 93
 	const SFX_3RD_PLACE                   ; 94
-	const SFX_GET_EGG_UNUSED              ; 95
-	const SFX_GET_EGG                     ; 96
+	const SFX_GET_EGG_FROM_DAYCARE_MAN    ; 95
+	const SFX_GET_EGG_FROM_DAYCARE_LADY   ; 96
 	const SFX_MOVE_DELETED                ; 97
 	const SFX_2ND_PLACE                   ; 98
 	const SFX_1ST_PLACE                   ; 99
@@ -179,7 +180,7 @@
 	const SFX_ENCORE                      ; b0
 	const SFX_BEAT_UP                     ; b1
 	const SFX_BATON_PASS                  ; b2
-	const SFX_BALL_WOBBLE                 ; b3
+	const SFX_BALL_WIGGLE                 ; b3
 	const SFX_SWEET_SCENT                 ; b4
 	const SFX_SWEET_SCENT_2               ; b5
 	const SFX_HIT_END_OF_EXP_BAR          ; b6
@@ -204,8 +205,14 @@
 	const SFX_INTRO_SUICUNE_4             ; c8
 	const SFX_GAME_FREAK_PRESENTS         ; c9
 	const SFX_TINGLE                      ; ca
-	const SFX_INTRO_WHOOSH                ; cb
+	const SFX_TITLE_SCREEN_INTRO          ; cb
 	const SFX_TWO_PC_BEEPS                ; cc
 	const SFX_4_NOTE_DITTY                ; cd
 	const SFX_TWINKLE                     ; ce
+	const SFX_PUDDLE                      ; cf
+	const SFX_ABILITYSLIDEOUT             ; d0
+	const SFX_CRITICAL_CAPTURE            ; d1
+	const SFX_STAT_UP                     ; d2
+	const SFX_STAT_DOWN                   ; d3
+	const SFX_GRAVITY                     ; d4
 DEF NUM_SFX EQU const_value

@@ -8,40 +8,45 @@ CheckMagikarpLength:
 	farcall SelectMonFromParty
 	jr c, .declined
 	ld a, [wCurPartySpecies]
-	cp MAGIKARP
+	cp LOW(MAGIKARP)
+	jr nz, .not_magikarp
+	ld a, [wCurForm]
+	assert MON_IS_EGG == MON_FORM
+	and IS_EGG_MASK | EXTSPECIES_MASK
+	assert !HIGH(MAGIKARP)
+	and a ; cp HIGH(MAGIKARP) << MON_EXTSPECIES_F | IS_EGG_MASK
 	jr nz, .not_magikarp
 
-	; Now let's compute its length based on its DVs and Trainer ID.
+	; Now let's compute its length based on its DVs and ID.
 	ld a, [wCurPartyMon]
 	ld hl, wPartyMon1Species
 	ld bc, PARTYMON_STRUCT_LENGTH
-	call AddNTimes
+	rst AddNTimes
 	push hl
 	ld bc, MON_DVS
 	add hl, bc
 	ld d, h
 	ld e, l
 	pop hl
-	ld bc, MON_OT_ID
+	ld bc, MON_ID
 	add hl, bc
 	ld b, h
 	ld c, l
 	call CalcMagikarpLength
 	call PrintMagikarpLength
-	farcall StubbedTrainerRankings_MagikarpLength
-	ld hl, .MagikarpGuruMeasureText
+	ld hl, .MeasureItText
 	call PrintText
 
 	; Did we beat the record?
-	ld hl, wMagikarpLength
-	ld de, wBestMagikarpLengthFeet
+	ld hl, wMagikarpLengthMm
+	ld de, wBestMagikarpLengthMm
 	ld c, 2
-	call CompareBytes
+	call StringCmp
 	jr nc, .not_long_enough
 
 	; NEW RECORD!!! Let's save that.
-	ld hl, wMagikarpLength
-	ld de, wBestMagikarpLengthFeet
+	ld hl, wMagikarpLengthMm
+	ld de, wBestMagikarpLengthMm
 	ld a, [hli]
 	ld [de], a
 	inc de
@@ -51,61 +56,137 @@ CheckMagikarpLength:
 	ld a, [wCurPartyMon]
 	ld hl, wPartyMonOTs
 	call SkipNames
-	call CopyBytes
-	ld a, MAGIKARPLENGTH_BEAT_RECORD
-	ld [wScriptVar], a
+	rst CopyBytes
+	ld a, 3
+	ldh [hScriptVar], a
 	ret
 
 .not_long_enough
-	ld a, MAGIKARPLENGTH_TOO_SHORT
-	ld [wScriptVar], a
+	ld a, 2
+	ldh [hScriptVar], a
 	ret
 
 .declined
-	ld a, MAGIKARPLENGTH_REFUSED
-	ld [wScriptVar], a
+	ld a, 1
+	ldh [hScriptVar], a
 	ret
 
 .not_magikarp
-	xor a ; MAGIKARPLENGTH_NOT_MAGIKARP
-	ld [wScriptVar], a
+	xor a
+	ldh [hScriptVar], a
 	ret
 
-.MagikarpGuruMeasureText:
+.MeasureItText:
+	; Let me measure that MAGIKARP. …Hm, it measures @ .
 	text_far _MagikarpGuruMeasureText
 	text_end
 
-Magikarp_LoadFeetInchesChars:
-	ld hl, vTiles2 tile "′" ; $6e
-	ld de, .feetinchchars
-	lb bc, BANK(.feetinchchars), 2
-	call Request2bpp
-	ret
-
-.feetinchchars
-INCBIN "gfx/font/feet_inches.2bpp"
-
 PrintMagikarpLength:
-	call Magikarp_LoadFeetInchesChars
+	ld a, [wOptions2]
+	bit POKEDEX_UNITS, a
+	jr z, .imperial
 	ld hl, wStringBuffer1
-	ld de, wMagikarpLength
-	lb bc, PRINTNUM_LEFTALIGN | 1, 2
+	ld de, wMagikarpLengthMm
+	lb bc, PRINTNUM_LEFTALIGN | 2, 4
 	call PrintNum
-	ld [hl], "′"
+	dec hl
+	ld a, [hl]
+	ld [hl], "." ; no-optimize *hl++|*hl-- = N
 	inc hl
-	ld de, wMagikarpLength + 1
-	lb bc, PRINTNUM_LEFTALIGN | 1, 2
-	call PrintNum
-	ld [hl], "″"
-	inc hl
+	ld [hli], a
+	ld a, "c"
+	ld [hli], a
+	ld a, "m"
+	ld [hli], a
 	ld [hl], "@"
 	ret
 
+.imperial
+	ld a, [wMagikarpLengthMmHi]
+	ld b, a
+	ld a, [wMagikarpLengthMmLo]
+	ld c, a
+	ld de, div(1.0q16, 25.4q16, 16) ; 1 in / 25.4 mm = 0.03937 in/mm
+	xor a
+	ldh [hTmpd], a
+	ldh [hTmpe], a
+	ld hl, 0
+	ld a, 16
+	ldh [hProduct], a
+.loop
+	add hl, hl
+	ldh a, [hTmpe]
+	rla
+	ldh [hTmpe], a
+	ldh a, [hTmpd]
+	rla
+	ldh [hTmpd], a
+	sla e
+	rl d
+	jr nc, .noadd
+	add hl, bc
+	ldh a, [hTmpe]
+	adc 0
+	ldh [hTmpe], a
+	ldh a, [hTmpd]
+	adc 0
+	ldh [hTmpd], a
+.noadd
+	ldh a, [hProduct]
+	dec a
+	ldh [hProduct], a
+	jr nz, .loop
+	ldh a, [hTmpd]
+	ld h, a
+	ldh a, [hTmpe]
+	ld l, a
+	ld bc, -12
+	ld e, 0
+.inchloop
+	ld a, h
+	and a
+	jr nz, .inchloop2
+	ld a, l
+	cp 12
+	jr c, .inchdone
+.inchloop2
+	add hl, bc
+	inc e
+	jr .inchloop
+.inchdone
+	ld a, [wMagikarpLengthMmHi]
+	ld b, a
+	ld a, [wMagikarpLengthMmLo]
+	ld c, a
+	push bc
+	ld a, e
+	ld [wMagikarpLengthMmHi], a
+	ld a, l
+	ld [wMagikarpLengthMmLo], a
+	ld hl, wStringBuffer1
+	ld de, wMagikarpLengthMmHi
+	lb bc, PRINTNUM_LEFTALIGN | 1, 2
+	call PrintNum
+	ld a, "′"
+	ld [hli], a
+	ld de, wMagikarpLengthMmLo
+	lb bc, PRINTNUM_LEFTALIGN | 1, 2
+	call PrintNum
+	ld a, "″"
+	ld [hli], a
+	ld [hl], "@"
+	pop bc
+	ld hl, wMagikarpLengthMmHi
+	ld a, b
+	ld [hli], a
+	ld [hl], c
+	ret
+
 CalcMagikarpLength:
-; Return Magikarp's length (in feet and inches) at wMagikarpLength (big endian).
+; Return Magikarp's length (in mm) at wMagikarpLengthMm (big endian).
 ;
 ; input:
-;   de: wEnemyMonDVs
+;   de: wOTPartyMon1DVs
 ;   bc: wPlayerID
 
 ; This function is poorly commented.
@@ -119,9 +200,9 @@ CalcMagikarpLength:
 
 ; bc = rrc(dv[0]) ++ rrc(dv[1]) ^ rrc(id)
 
-; if bc < 10:    [wMagikarpLength] = c + 190
-; if bc ≥ $ff00: [wMagikarpLength] = c + 1370
-; else:          [wMagikarpLength] = z * 100 + (bc - x) / y
+; if bc < 10:    [wMagikarpLengthMm] = c + 190
+; if bc ≥ $ff00: [wMagikarpLengthMm] = c + 1370
+; else:          [wMagikarpLengthMm] = z × 100 + (bc − x) / y
 
 ; X, Y, and Z depend on the value of b as follows:
 
@@ -203,8 +284,8 @@ CalcMagikarpLength:
 	ld a, [hl]
 	ldh [hDivisor], a
 	ld b, 2
-	call Divide
-	ldh a, [hQuotient + 3]
+	farcall Divide
+	ldh a, [hQuotient + 2]
 	ld c, a
 
 	; de = c + 100 × (2 + i)
@@ -215,7 +296,7 @@ CalcMagikarpLength:
 	ldh [hMultiplicand + 2], a
 	ld a, [wTempByteValue]
 	ldh [hMultiplier], a
-	call Multiply
+	farcall Multiply
 	ld b, 0
 	ldh a, [hProduct + 3]
 	add c
@@ -223,66 +304,26 @@ CalcMagikarpLength:
 	ldh a, [hProduct + 2]
 	adc b
 	ld d, a
-	jr .done
+
+.done
+	ld hl, wMagikarpLengthMm
+	ld a, d
+	ld [hli], a
+	ld [hl], e
+	ret
 
 .next
 	inc hl ; align to next triplet
 	ld a, [wTempByteValue]
-	inc a
+	inc a ; no-optimize inefficient WRAM increment/decrement
 	ld [wTempByteValue], a
-	cp 16
-	jr c, .read
-
-	call .BCMinusDE
-	ld hl, 1600
-	add hl, bc
-	ld d, h
-	ld e, l
-
-.done
-	; convert from mm to feet and inches
-	; in = mm / 25.4
-	; ft = in / 12
-
-	; hl = de × 10
-	ld h, d
-	ld l, e
-	add hl, hl
-	add hl, hl
-	add hl, de
-	add hl, hl
-
-	; hl = hl / 254
-	ld de, -254
-	ld a, -1
-.div_254
-	inc a
-	add hl, de
-	jr c, .div_254
-
-	; d, e = hl / 12, hl % 12
-	ld d, 0
-.mod_12
-	cp 12
-	jr c, .ok
-	sub 12
-	inc d
-	jr .mod_12
-.ok
-	ld e, a
-
-	ld hl, wMagikarpLength
-	ld [hl], d ; ft
-	inc hl
-	ld [hl], e ; in
-	ret
+	jr .read
 
 .BCLessThanDE:
-; BUG: Magikarp lengths can be miscalculated (see docs/bugs_and_glitches.md)
+; return bc < de
 	ld a, b
 	cp d
 	ret c
-	ret nc
 	ld a, c
 	cp e
 	ret
@@ -299,16 +340,17 @@ CalcMagikarpLength:
 
 INCLUDE "data/events/magikarp_lengths.asm"
 
-MagikarpHouseSign:
-	ld a, [wBestMagikarpLengthFeet]
-	ld [wMagikarpLength], a
-	ld a, [wBestMagikarpLengthInches]
-	ld [wMagikarpLength + 1], a
+Special_MagikarpHouseSign:
+	ld hl, wBestMagikarpLengthMmHi
+	ld a, [hli]
+	ld [wMagikarpLengthMmHi], a
+	ld a, [hl]
+	ld [wMagikarpLengthMmLo], a
 	call PrintMagikarpLength
-	ld hl, .KarpGuruRecordText
-	call PrintText
-	ret
+	ld hl, .CurrentRecordtext
+	jmp PrintText
 
-.KarpGuruRecordText:
+.CurrentRecordtext:
+	; "CURRENT RECORD"
 	text_far _KarpGuruRecordText
 	text_end

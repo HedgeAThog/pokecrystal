@@ -2,12 +2,6 @@ InitMovementBuffer::
 	ld [wMovementBufferObject], a
 	xor a
 	ld [wMovementBufferCount], a
-	ld a, $0 ; was BANK(wMovementBuffer) in G/S
-	ld [wUnusedMovementBufferBank], a
-	ld a, LOW(wMovementBuffer)
-	ld [wUnusedMovementBufferPointer], a
-	ld a, HIGH(wMovementBuffer)
-	ld [wUnusedMovementBufferPointer + 1], a
 	ret
 
 DecrementMovementBufferCount::
@@ -30,22 +24,6 @@ AppendToMovementBuffer::
 	ld [hl], a
 	pop de
 	pop hl
-	ret
-
-AppendToMovementBufferNTimes::
-	push af
-	ld a, c
-	and a
-	jr nz, .okay
-	pop af
-	ret
-
-.okay
-	pop af
-.loop
-	call AppendToMovementBuffer
-	dec c
-	jr nz, .loop
 	ret
 
 ComputePathToWalkToPlayer::
@@ -87,17 +65,32 @@ ComputePathToWalkToPlayer::
 	ld b, a
 ; Add movement in the longer direction first...
 	ld a, h
-	call .GetMovementData
+	call _GetMovementData
 	ld c, d
 	call AppendToMovementBufferNTimes
 ; ... then add the shorter direction.
 	ld a, l
-	call .GetMovementData
+	call _GetMovementData
 	ld c, e
-	call AppendToMovementBufferNTimes
+	; fallthrough
+
+AppendToMovementBufferNTimes::
+	push af
+	ld a, c
+	and a
+	jr nz, .okay
+	pop af
 	ret
 
-.GetMovementData:
+.okay
+	pop af
+.loop
+	call AppendToMovementBuffer
+	dec c
+	jr nz, .loop
+	ret
+
+_GetMovementData:
 	push de
 	push hl
 	ld l, b
@@ -115,15 +108,15 @@ ComputePathToWalkToPlayer::
 	ret
 
 .MovementData:
-	slow_step DOWN
-	slow_step UP
-	slow_step LEFT
-	slow_step RIGHT
-	step DOWN
-	step UP
-	step LEFT
-	step RIGHT
-	big_step DOWN
-	big_step UP
-	big_step LEFT
-	big_step RIGHT
+	slow_step_down
+	slow_step_up
+	slow_step_left
+	slow_step_right
+	step_down
+	step_up
+	step_left
+	step_right
+	big_step_down
+	big_step_up
+	big_step_left
+	big_step_right

@@ -21,7 +21,7 @@ Music_LookOfficer_Ch1:
 	volume_envelope 2, -7
 	octave 3
 	note B_, 16
-.mainloop:
+Music_LookOfficer_branch_ed852:
 	volume_envelope 8, 2
 	rest 4
 	note B_, 6
@@ -33,7 +33,7 @@ Music_LookOfficer_Ch1:
 	volume_envelope 2, -7
 	note A#, 16
 	note A_, 16
-	sound_loop 0, .mainloop
+	sound_jump Music_LookOfficer_branch_ed852
 
 Music_LookOfficer_Ch2:
 	vibrato 18, 3, 4
@@ -60,8 +60,7 @@ Music_LookOfficer_Ch2:
 	note B_, 2
 	octave 2
 	note D#, 2
-.mainloop:
-.loop1:
+Music_LookOfficer_branch_ed882:
 	note E_, 2
 	note G#, 2
 	octave 3
@@ -72,14 +71,14 @@ Music_LookOfficer_Ch2:
 	note B_, 2
 	note E_, 2
 	note G#, 2
-	sound_loop 2, .loop1
+	sound_loop 2, Music_LookOfficer_branch_ed882
 	transpose 0, 1
-	sound_call .sub1
+	sound_call Music_LookOfficer_branch_ed89e
 	transpose 0, 0
-	sound_call .sub1
-	sound_loop 0, .mainloop
+	sound_call Music_LookOfficer_branch_ed89e
+	sound_jump Music_LookOfficer_branch_ed882
 
-.sub1:
+Music_LookOfficer_branch_ed89e:
 	octave 1
 	note A_, 2
 	octave 2
@@ -118,7 +117,7 @@ Music_LookOfficer_Ch3:
 	note C#, 2
 	rest 1
 	note D#, 2
-.mainloop:
+Music_LookOfficer_branch_ed8c8:
 	note E_, 6
 	note D#, 6
 	note C#, 4
@@ -136,4 +135,4 @@ Music_LookOfficer_Ch3:
 	note D_, 8
 	note E_, 8
 	note C#, 8
-	sound_loop 0, .mainloop
+	sound_jump Music_LookOfficer_branch_ed8c8

@@ -1,18 +1,20 @@
 LearnMove:
-	call LoadTilemapToTempTilemap
+	call LoadTileMapToTempTileMap
 	ld a, [wCurPartyMon]
 	ld hl, wPartyMonNicknames
 	call GetNickname
 	ld hl, wStringBuffer1
 	ld de, wMonOrItemNameBuffer
 	ld bc, MON_NAME_LENGTH
-	call CopyBytes
+	rst CopyBytes
 
 .loop
+	ld hl, wForgettingMove
+	res FORGETTING_MOVE_F, [hl]
 	ld hl, wPartyMon1Moves
 	ld bc, PARTYMON_STRUCT_LENGTH
 	ld a, [wCurPartyMon]
-	call AddNTimes
+	rst AddNTimes
 	ld d, h
 	ld e, l
 	ld b, NUM_MOVES
@@ -32,27 +34,41 @@ LearnMove:
 	push de
 	call ForgetMove
 	pop de
-	jp c, .cancel
+	jmp c, .cancel
 
 	push hl
 	push de
 	ld [wNamedObjectIndex], a
 
 	ld b, a
-	ld a, [wBattleMode]
+	ld a, [wPlayerDisableCount]
 	and a
 	jr z, .not_disabled
-	ld a, [wDisabledMove]
-	cp b
+	swap a
+	and $f
+	dec a
+	xor c
 	jr nz, .not_disabled
-	xor a
-	ld [wDisabledMove], a
 	ld [wPlayerDisableCount], a
-.not_disabled
 
+.not_disabled
+	ld a, [wPlayerEncoreCount]
+	and a
+	jr z, .not_encored
+	swap a
+	and $f
+	dec a
+	xor c
+	jr nz, .not_encored
+	ld [wPlayerEncoreCount], a
+
+.not_encored
 	call GetMoveName
 	ld hl, Text_1_2_and_Poof ; 1, 2 and…
 	call PrintText
+
+	ld hl, wForgettingMove
+	set FORGETTING_MOVE_F, [hl]
 	pop de
 	pop hl
 
@@ -64,63 +80,105 @@ LearnMove:
 
 	push hl
 	push de
-	dec a
 	ld hl, Moves + MOVE_PP
-	ld bc, MOVE_LENGTH
-	call AddNTimes
-	ld a, BANK(Moves)
-	call GetFarByte
+	call GetMoveProperty
 	pop de
 	pop hl
+	ld b, a
 
+; Are we forgetting a move?
+	ld a, [wForgettingMove]
+	cp FORGETTING_MOVE | LEARNING_TM
+	jr nz, .pp_ok
+; Is the old move's current PP less than the new move's PP?
+	ld a, [hl]
+	cp b
+	jr nc, .pp_ok
+; TMs won't give free PP
+	ld b, a
+.pp_ok
+	ld [hl], b
+
+; Changes Pikachu's form if it learns Fly or Surf. Several assumptions:
+;   -- Pikachu can't forget Fly or Surf outside a move deleter, so we only care if it learns one of those moves
+;   -- player Pikachu cannot legally learn both Fly and Surf
+;   -- Pikachu can't learn Fly or Surf during a battle
+	ld a, MON_SPECIES
+	call GetPartyParamLocationAndValue
+	cp LOW(PIKACHU)
+	jr nz, .done_pikachu
+	assert !HIGH(PIKACHU)
+	ld bc, MON_FORM - MON_SPECIES
+	add hl, bc
+	ld a, [hl]
+	and EXTSPECIES_MASK
+	jr nz, .done_pikachu
+	ld a, [wPutativeTMHMMove]
+	ld b, PIKACHU_FLY_FORM
+	cp FLY
+	jr z, .got_form
+	assert PIKACHU_FLY_FORM + 1 == PIKACHU_SURF_FORM
+	inc b
+	cp SURF
+	jr nz, .done_pikachu
+.got_form
+	ld a, [hl]
+	and ~FORM_MASK
+	or b
 	ld [hl], a
 
+	ld c, PIKACHU
+	push de
+	call SetSeenAndCaughtMon
+	pop de
+
+.done_pikachu
 	ld a, [wBattleMode]
 	and a
-	jp z, .learned
+	jr z, .learned
 
 	ld a, [wCurPartyMon]
 	ld b, a
 	ld a, [wCurBattleMon]
 	cp b
-	jp nz, .learned
+	jr nz, .learned
 
-	ld a, [wPlayerSubStatus5]
+	ld a, [wPlayerSubStatus2]
 	bit SUBSTATUS_TRANSFORMED, a
-	jp nz, .learned
+	jr nz, .learned
 
 	ld h, d
 	ld l, e
 	ld de, wBattleMonMoves
 	ld bc, NUM_MOVES
-	call CopyBytes
+	rst CopyBytes
 	ld bc, wPartyMon1PP - (wPartyMon1Moves + NUM_MOVES)
 	add hl, bc
 	ld de, wBattleMonPP
 	ld bc, NUM_MOVES
-	call CopyBytes
-	jp .learned
+	rst CopyBytes
+	jr .learned
 
 .cancel
-	ld hl, StopLearningMoveText
+	ld hl, Text_StopLearning ; Stop learning <MOVE>?
 	call PrintText
 	call YesNoBox
-	jp c, .loop
+	jmp c, .loop
 
-	ld hl, DidNotLearnMoveText
+	ld hl, Text_DidNotLearn ; <MON> did not learn <MOVE>.
 	call PrintText
 	ld b, 0
 	ret
 
 .learned
-	ld hl, LearnedMoveText
+	ld hl, Text_LearnedMove ; <MON> learned <MOVE>!
 	call PrintText
 	ld b, 1
 	ret
 
 ForgetMove:
 	push hl
-	ld hl, AskForgetMoveText
+	ld hl, Text_TryingToLearn
 	call PrintText
 	call YesNoBox
 	pop hl
@@ -130,93 +188,50 @@ ForgetMove:
 	push hl
 	ld de, wListMoves_MoveIndicesBuffer
 	ld bc, NUM_MOVES
-	call CopyBytes
-	pop hl
-.loop
-	push hl
-	ld hl, MoveAskForgetText
+	rst CopyBytes
+	ld hl, Text_ForgetWhich
 	call PrintText
-	hlcoord 5, 2
-	ld b, NUM_MOVES * 2
-	ld c, MOVE_NAME_LENGTH
-	call Textbox
-	hlcoord 5 + 2, 2 + 2
-	ld a, SCREEN_WIDTH * 2
-	ld [wListMovesLineSpacing], a
-	predef ListMoves
-	; w2DMenuData
-	ld a, $4
-	ld [w2DMenuCursorInitY], a
-	ld a, $6
-	ld [w2DMenuCursorInitX], a
-	ld a, [wNumMoves]
-	inc a
-	ld [w2DMenuNumRows], a
-	ld a, $1
-	ld [w2DMenuNumCols], a
-	ld [wMenuCursorY], a
-	ld [wMenuCursorX], a
-	ld a, $3
-	ld [wMenuJoypadFilter], a
-	ld a, $20
-	ld [w2DMenuFlags1], a
-	xor a
-	ld [w2DMenuFlags2], a
-	ld a, $20
-	ld [w2DMenuCursorOffsets], a
-	call StaticMenuJoypad
-	push af
-	call SafeLoadTempTilemapToTilemap
-	pop af
-	pop hl
-	bit B_PAD_B, a
-	jr nz, .cancel
-	push hl
-	ld a, [wMenuCursorY]
+	farcall ChooseMoveToForget
+	jr z, .cancel
+	cp 5 ; user chose the new move itself, meaning cancel
+	jr z, .cancel
 	dec a
 	ld c, a
 	ld b, 0
-	add hl, bc
-	ld a, [hl]
-	push af
-	push bc
-	call IsHMMove
-	pop bc
-	pop de
-	ld a, d
-	jr c, .hmmove
+	ld a, [wMoveScreenSelectedMove]
 	pop hl
 	add hl, bc
 	and a
 	ret
 
-.hmmove
-	ld hl, MoveCantForgetHMText
-	call PrintText
-	pop hl
-	jr .loop
-
 .cancel
+	pop hl
 	scf
 	ret
 
-LearnedMoveText:
+Text_LearnedMove:
+; <MON> learned <MOVE>!
 	text_far _LearnedMoveText
 	text_end
 
-MoveAskForgetText:
+Text_ForgetWhich:
+; Which move should be forgotten?
 	text_far _MoveAskForgetText
 	text_end
 
-StopLearningMoveText:
+Text_StopLearning:
+; Stop learning <MOVE>?
 	text_far _StopLearningMoveText
 	text_end
 
-DidNotLearnMoveText:
+Text_DidNotLearn:
+; <MON> did not learn <MOVE>.
 	text_far _DidNotLearnMoveText
 	text_end
 
-AskForgetMoveText:
+Text_TryingToLearn:
+; <MON> is trying to learn <MOVE>. But <MON> can't learn more than
+; four moves. Delete an older move to make room for <MOVE>?
 	text_far _AskForgetMoveText
 	text_end
 
@@ -227,13 +242,10 @@ Text_1_2_and_Poof:
 	ld de, SFX_SWITCH_POKEMON
 	call PlaySFX
 	pop de
-	ld hl, .MoveForgotText
+	ld hl, .PoofForgot
 	ret
 
-.MoveForgotText:
+.PoofForgot:
+; Poof! <MON> forgot <MOVE>. And…
 	text_far _MoveForgotText
-	text_end
-
-MoveCantForgetHMText:
-	text_far _MoveCantForgetHMText
 	text_end

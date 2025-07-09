@@ -1,44 +1,36 @@
-BattleCommand_Counter:
+BattleCommand_counter:
 	ld a, 1
 	ld [wAttackMissed], a
-	ld a, BATTLE_VARS_LAST_COUNTER_MOVE_OPP
-	call GetBattleVar
-	and a
-	ret z
 
-	ld b, a
-	callfar GetMoveEffect
-	ld a, b
-	cp EFFECT_COUNTER
-	ret z
-
-	call BattleCommand_ResetTypeMatchup
+	; Doesn't work if the target is immune to this move's type
+	call BattleCommand_resettypematchup
 	ld a, [wTypeMatchup]
 	and a
 	ret z
 
-	call CheckOpponentWentFirst
-	ret z
-
-	ld a, BATTLE_VARS_LAST_COUNTER_MOVE_OPP
+	; Only works if countering of the same move category
+	ld a, BATTLE_VARS_MOVE_CATEGORY
 	call GetBattleVar
-	dec a
-	ld de, wStringBuffer1
-	call GetMoveData
-
-	ld a, [wStringBuffer1 + MOVE_POWER]
-	and a
+	cp PHYSICAL
+	ld a, 1 << PHYSICAL
+	jr z, .got_cat
+	ld a, 1 << SPECIAL
+.got_cat
+	call HasOpponentDamagedUs
 	ret z
 
-	ld a, [wStringBuffer1 + MOVE_TYPE]
-	cp SPECIAL
-	ret nc
-
-; BUG: Counter and Mirror Coat still work if the opponent uses an item (see docs/bugs_and_glitches.md)
+	; TODO: is this necessary? if it is, then Avalanche is broken because it
+	; uses HasOpponentDamagedUs only (it can't check wCurDamage).
 	ld hl, wCurDamage
 	ld a, [hli]
 	or [hl]
 	ret z
+
+	; Don't double damage twice for Parental Bond
+	ld a, BATTLE_VARS_SUBSTATUS2
+	call GetBattleVar
+	bit SUBSTATUS_IN_ABILITY, a
+	jr nz, .got_damage
 
 	ld a, [hl]
 	add a
@@ -46,12 +38,12 @@ BattleCommand_Counter:
 	ld a, [hl]
 	adc a
 	ld [hl], a
-	jr nc, .capped
+	jr nc, .got_damage
 	ld a, $ff
 	ld [hli], a
 	ld [hl], a
-.capped
 
+.got_damage
 	xor a
 	ld [wAttackMissed], a
 	ret

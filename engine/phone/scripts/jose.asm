@@ -1,52 +1,52 @@
-JosePhoneCalleeScript:
-	gettrainername STRING_BUFFER_3, BIRD_KEEPER, JOSE2
+JosePhoneScript1:
+	gettrainername BIRD_KEEPER, JOSE2, STRING_BUFFER_3
 	checkflag ENGINE_JOSE_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	farscall PhoneScript_AnswerPhone_Male
 	checkflag ENGINE_JOSE_SATURDAY_NIGHT
-	iftrue .NotSaturday
+	iftruefwd .NotSaturday
 	checkflag ENGINE_JOSE_HAS_STAR_PIECE
-	iftrue .HasItem
+	iftruefwd .HasItem
 	readvar VAR_WEEKDAY
 	ifnotequal SATURDAY, .NotSaturday
-	checktime NITE
-	iftrue JoseSaturdayNight
+	checktime (1 << EVE) | (1 << NITE)
+	iftruefwd JoseSaturdayNight
 
 .NotSaturday:
 	farsjump JoseHangUpScript
 
 .WantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_27
+	getlandmarkname ROUTE_27, STRING_BUFFER_5
 	farsjump JoseReminderScript
 
 .HasItem:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_27
+	getlandmarkname ROUTE_27, STRING_BUFFER_5
 	farsjump JoseReminderScript
 
-JosePhoneCallerScript:
-	gettrainername STRING_BUFFER_3, BIRD_KEEPER, JOSE2
+JosePhoneScript2:
+	gettrainername BIRD_KEEPER, JOSE2, STRING_BUFFER_3
 	farscall PhoneScript_GreetPhone_Male
 	checkflag ENGINE_JOSE_READY_FOR_REMATCH
-	iftrue .Generic
+	iftruefwd .Generic
 	checkflag ENGINE_JOSE_SATURDAY_NIGHT
-	iftrue .Generic
+	iftruefwd .Generic
 	checkflag ENGINE_JOSE_HAS_STAR_PIECE
-	iftrue .Generic
+	iftruefwd .Generic
 	farscall PhoneScript_Random3
-	ifequal 0, JoseWantsBattle
+	ifequalfwd $0, JoseWantsBattle
 	farscall PhoneScript_Random3
-	ifequal 0, JoseHasStarPiece
+	ifequalfwd $0, JoseHasStarPiece
 
 .Generic:
 	farscall PhoneScript_Random3
-	ifequal 0, JoseFoundRare
+	ifequalfwd $0, JoseFoundRare
 	farsjump Phone_GenericCall_Male
 
 JoseSaturdayNight:
 	setflag ENGINE_JOSE_SATURDAY_NIGHT
 
 JoseWantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_27
+	getlandmarkname ROUTE_27, STRING_BUFFER_5
 	setflag ENGINE_JOSE_READY_FOR_REMATCH
 	farsjump PhoneScript_WantsToBattle_Male
 
@@ -55,5 +55,5 @@ JoseFoundRare:
 
 JoseHasStarPiece:
 	setflag ENGINE_JOSE_HAS_STAR_PIECE
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_27
+	getlandmarkname ROUTE_27, STRING_BUFFER_5
 	farsjump PhoneScript_FoundItem_Male

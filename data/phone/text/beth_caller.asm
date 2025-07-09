@@ -1,10 +1,10 @@
 BethExhilaratingRideText:
 	text "Do you remember my"
-	line "sweet @"
+	line "sweet "
 	text_ram wStringBuffer4
 	text "?"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text " runs"
 	line "very fast."
@@ -18,9 +18,8 @@ BethExhilaratingRideText:
 
 BethDefeatedMonText:
 	text "Oh, have you ever"
-	line "seen a @"
+	line "seen a "
 	text_ram wStringBuffer4
-	text_start
 	cont "before?"
 
 	para "I just battled"
@@ -38,7 +37,7 @@ BethDefeatedMonText:
 
 BethLostAMonText:
 	text "Oh, I just saw a"
-	line "wild @"
+	line "wild "
 	text_ram wStringBuffer4
 	text "."
 
@@ -47,7 +46,7 @@ BethLostAMonText:
 
 	para "noticed that I was"
 	line "all out of #"
-	cont "BALLS."
+	cont "Balls."
 
 	para "If you don't check"
 	line "your items, you"
@@ -67,7 +66,7 @@ BethBattleRematchText:
 	para "I'll be waiting"
 	line "for you around"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text "."
 	line "Look for me, OK?"
@@ -83,13 +82,13 @@ BethLetsBattleAgainSometimeText:
 	done
 
 BethReminderText:
-	text "Um… <PLAY_G>?"
+	text "Um… <PLAYER>?"
 	line "What's wrong?"
 
 	para "Did you forget our"
 	line "deal?"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer5
 	text "."
 

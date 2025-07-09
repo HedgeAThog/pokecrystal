@@ -1,21 +1,27 @@
-	db AZUMARILL ; 184
+if DEF(FAITHFUL)
+	db 100,  50,  80,  50,  60,  80 ; 420 BST
+	;   hp  atk  def  spe  sat  sdf
+else
+	db 100,  50,  80,  50,  90,  80 ; 450 BST
+	;   hp  atk  def  spe  sat  sdf
+endc
 
-	db 100,  50,  80,  50,  50,  80
-	;   hp  atk  def  spd  sat  sdf
-
-	db WATER, WATER ; type
+	db WATER, FAIRY ; type
 	db 75 ; catch rate
+if DEF(FAITHFUL)
 	db 153 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_F50 ; gender ratio
-	db 100 ; unknown 1
-	db 20 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/azumarill/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+else
+	db 183 ; base exp
+endc
+	db NO_ITEM, NO_ITEM ; held items
+	dn GENDER_F50, HATCH_FASTER ; gender ratio, step cycles to hatch
+
+	abilities_for AZUMARILL, THICK_FAT, HUGE_POWER, SAP_SIPPER
 	db GROWTH_FAST ; growth rate
 	dn EGG_WATER_1, EGG_FAIRY ; egg groups
 
+	ev_yield 3 HP
+
 	; tm/hm learnset
-	tmhm DYNAMICPUNCH, HEADBUTT, CURSE, ROLLOUT, TOXIC, ROCK_SMASH, HIDDEN_POWER, SNORE, BLIZZARD, HYPER_BEAM, ICY_WIND, PROTECT, RAIN_DANCE, ENDURE, FRUSTRATION, IRON_TAIL, RETURN, MUD_SLAP, DOUBLE_TEAM, ICE_PUNCH, SWAGGER, SLEEP_TALK, SWIFT, DEFENSE_CURL, REST, ATTRACT, SURF, STRENGTH, WHIRLPOOL, WATERFALL, ICE_BEAM
+	tmhm DYNAMICPUNCH, CURSE, TOXIC, HAIL, HIDDEN_POWER, ICE_BEAM, BLIZZARD, HYPER_BEAM, LIGHT_SCREEN, PROTECT, RAIN_DANCE, BULLDOZE, IRON_TAIL, RETURN, DIG, ROCK_SMASH, DOUBLE_TEAM, SWIFT, SUBSTITUTE, FACADE, REST, ATTRACT, FOCUS_BLAST, SCALD, WATER_PULSE, GIGA_IMPACT, SURF, STRENGTH, WHIRLPOOL, WATERFALL, AQUA_TAIL, BODY_SLAM, CHARM, DEFENSE_CURL, DOUBLE_EDGE, ENDURE, HEADBUTT, HYPER_VOICE, ICE_PUNCH, ICY_WIND, KNOCK_OFF, ROLLOUT, SEISMIC_TOSS, SLEEP_TALK, SWAGGER
 	; end

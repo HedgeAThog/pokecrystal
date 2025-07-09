@@ -26,7 +26,7 @@ Music_Route36_Ch1:
 	note A_, 1
 	volume_envelope 5, -5
 	note A#, 4
-.mainloop:
+Music_Route36_branch_e9517:
 	volume_envelope 11, 5
 	note F_, 4
 	note A_, 2
@@ -162,7 +162,7 @@ Music_Route36_Ch1:
 	volume_envelope 11, 5
 	note D#, 2
 	note E_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_Route36_branch_e9517
 
 Music_Route36_Ch2:
 	duty_cycle 3
@@ -187,7 +187,7 @@ Music_Route36_Ch2:
 	note F_, 8
 	octave 3
 	note G_, 4
-.mainloop:
+Music_Route36_branch_e95ce:
 	volume_envelope 12, 7
 	octave 4
 	note C_, 10
@@ -309,7 +309,7 @@ Music_Route36_Ch2:
 	note G_, 1
 	note A_, 1
 	note B_, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_Route36_branch_e95ce
 
 Music_Route36_Ch3:
 	note_type 12, 2, 5
@@ -335,7 +335,7 @@ Music_Route36_Ch3:
 	octave 3
 	note D#, 2
 	note E_, 2
-.mainloop:
+Music_Route36_branch_e9684:
 	note F_, 4
 	note C_, 2
 	note F_, 4
@@ -465,32 +465,31 @@ Music_Route36_Ch3:
 	note D_, 2
 	note D#, 2
 	note E_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_Route36_branch_e9684
 
 Music_Route36_Ch4:
 	toggle_noise 1
 	drum_speed 12
-	sound_call .sub1
-	sound_call .sub3
-.mainloop:
-.loop1:
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub1
-	sound_call .sub3
-	sound_loop 2, .loop1
-.loop2:
+	sound_call Music_Route36_branch_e9734
+	sound_call Music_Route36_branch_e9741
+Music_Route36_branch_e9713:
+	sound_call Music_Route36_branch_e9734
+	sound_call Music_Route36_branch_e973b
+	sound_call Music_Route36_branch_e9734
+	sound_call Music_Route36_branch_e9741
+	sound_loop 2, Music_Route36_branch_e9713
+Music_Route36_branch_e9723:
 	drum_note 11, 4
 	drum_note 10, 2
 	drum_note 6, 4
 	drum_note 12, 1
 	drum_note 12, 1
 	drum_note 10, 4
-	sound_loop 11, .loop2
-	sound_call .sub3
-	sound_loop 0, .mainloop
+	sound_loop 11, Music_Route36_branch_e9723
+	sound_call Music_Route36_branch_e9741
+	sound_jump Music_Route36_branch_e9713
 
-.sub1:
+Music_Route36_branch_e9734:
 	drum_note 10, 4
 	drum_note 10, 6
 	drum_note 11, 1
@@ -499,7 +498,7 @@ Music_Route36_Ch4:
 	drum_note 11, 2
 	sound_ret
 
-.sub2:
+Music_Route36_branch_e973b:
 	drum_note 10, 4
 	drum_note 10, 6
 	drum_note 12, 1
@@ -507,7 +506,7 @@ Music_Route36_Ch4:
 	drum_note 10, 4
 	sound_ret
 
-.sub3:
+Music_Route36_branch_e9741:
 	drum_note 10, 4
 	drum_note 10, 6
 	drum_note 11, 1

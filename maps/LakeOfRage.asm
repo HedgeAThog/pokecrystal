@@ -1,39 +1,65 @@
-	object_const_def
-	const LAKEOFRAGE_LANCE
-	const LAKEOFRAGE_GRAMPS
-	const LAKEOFRAGE_SUPER_NERD1
-	const LAKEOFRAGE_COOLTRAINER_F1
-	const LAKEOFRAGE_FISHER1
-	const LAKEOFRAGE_FISHER2
-	const LAKEOFRAGE_COOLTRAINER_M
-	const LAKEOFRAGE_COOLTRAINER_F2
-	const LAKEOFRAGE_GYARADOS
-	const LAKEOFRAGE_WESLEY
-	const LAKEOFRAGE_POKE_BALL1
-	const LAKEOFRAGE_POKE_BALL2
-
-LakeOfRage_MapScripts:
+LakeOfRage_MapScriptHeader:
 	def_scene_scripts
-	scene_script LakeOfRageNoop1Scene ; unusable
-	scene_script LakeOfRageNoop2Scene ; unusable
 
 	def_callbacks
-	callback MAPCALLBACK_NEWMAP, LakeOfRageFlypointCallback
-	callback MAPCALLBACK_OBJECTS, LakeOfRageWesleyCallback
+	callback MAPCALLBACK_NEWMAP, LakeOfRageFlyPoint
+	callback MAPCALLBACK_OBJECTS, LakeOfRageWesleyAndEngineer
+	callback MAPCALLBACK_TILES, LakeOfRageFloodScript
 
-LakeOfRageNoop1Scene:
-	end
+	def_warp_events
+	warp_event  7,  3, LAKE_OF_RAGE_HIDDEN_POWER_HOUSE, 1
+	warp_event 27, 31, LAKE_OF_RAGE_MAGIKARP_HOUSE, 1
+	warp_event 10, 28, HIDDEN_TREE_GROTTO, 1
 
-LakeOfRageNoop2Scene:
-	end
+	def_coord_events
 
-LakeOfRageFlypointCallback:
+	def_bg_events
+	bg_event 21, 27, BGEVENT_JUMPTEXT, LakeOfRageSignText
+	bg_event  3, 26, BGEVENT_JUMPTEXT, LakeOfRageAdvancedTipsSignText
+	bg_event 25, 31, BGEVENT_READ, LakeOfRageFishingGuruSign
+	bg_event  4,  4, BGEVENT_ITEM + RARE_CANDY, EVENT_LAKE_OF_RAGE_HIDDEN_RARE_CANDY
+	bg_event 35,  5, BGEVENT_ITEM + MAX_POTION, EVENT_LAKE_OF_RAGE_HIDDEN_MAX_POTION
+	bg_event 11, 28, BGEVENT_ITEM + FULL_RESTORE, EVENT_LAKE_OF_RAGE_HIDDEN_FULL_RESTORE
+	bg_event 10, 27, BGEVENT_JUMPSTD, treegrotto, HIDDENGROTTO_LAKE_OF_RAGE
+	bg_event 11, 27, BGEVENT_JUMPSTD, treegrotto, HIDDENGROTTO_LAKE_OF_RAGE
+
+	def_object_events
+	object_event 21, 28, SPRITE_LANCE, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, LakeOfRageLanceScript, EVENT_LAKE_OF_RAGE_LANCE
+	object_event 18, 22, SPRITE_BIG_GYARADOS, SPRITEMOVEDATA_BIG_GYARADOS, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, LakeOfRageRedGyaradosScript, EVENT_LAKE_OF_RAGE_RED_GYARADOS
+	object_event  4,  4, SPRITE_POKEMANIAC, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, WesleyScript, EVENT_LAKE_OF_RAGE_WESLEY_OF_WEDNESDAY
+	object_event 20, 29, SPRITE_ENGINEER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, LakeOfRageEngineerText, EVENT_LAKE_OF_RAGE_CIVILIANS
+	object_event  4, 15, SPRITE_ACE_TRAINER_M, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerCooltrainermAaron, EVENT_LAKE_OF_RAGE_CIVILIANS
+	object_event 36,  7, SPRITE_ACE_TRAINER_F, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 0, GenericTrainerCooltrainerfLois, EVENT_LAKE_OF_RAGE_CIVILIANS
+	object_event 30, 23, SPRITE_FISHER, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerFisherAndre, EVENT_LAKE_OF_RAGE_CIVILIANS
+	object_event 24, 26, SPRITE_FISHER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerFisherRaymond, EVENT_LAKE_OF_RAGE_CIVILIANS
+	object_event 20, 26, SPRITE_GRAMPS, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, LakeOfRageGrampsScript, -1
+	object_event 36, 13, SPRITE_SUPER_NERD, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, LakeOfRageSuperNerdText, -1
+	object_event 25, 29, SPRITE_BATTLE_GIRL, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, PAL_NPC_BLUE, OBJECTTYPE_COMMAND, jumptextfaceplayer, LakeOfRageCooltrainerFText, -1
+	itemball_event 13,  2, ELIXIR, 1, EVENT_LAKE_OF_RAGE_ELIXIR
+	itemball_event  7, 10, MAX_REVIVE, 1, EVENT_LAKE_OF_RAGE_MAX_REVIVE
+	tmhmball_event 35,  2, TM_SUBSTITUTE, EVENT_LAKE_OF_RAGE_TM_SUBSTITUTE
+	cuttree_event 18,  9, EVENT_LAKE_OF_RAGE_CUT_TREE_1
+	cuttree_event 11, 12, EVENT_LAKE_OF_RAGE_CUT_TREE_2
+	cuttree_event  5, 14, EVENT_LAKE_OF_RAGE_CUT_TREE_3
+	cuttree_event  6, 21, EVENT_LAKE_OF_RAGE_CUT_TREE_4
+	cuttree_event 23,  4, EVENT_LAKE_OF_RAGE_CUT_TREE_5
+
+	object_const_def
+	const LAKEOFRAGE_LANCE
+	const LAKEOFRAGE_RED_GYARADOS
+	const LAKEOFRAGE_WESLEY
+
+LakeOfRageFlyPoint:
 	setflag ENGINE_FLYPOINT_LAKE_OF_RAGE
 	endcallback
 
-LakeOfRageWesleyCallback:
+LakeOfRageWesleyAndEngineer:
+	checkevent EVENT_LAKE_OF_RAGE_CIVILIANS
+	iftruefwd .NoEngineer
+	moveobject LAKEOFRAGE_LANCE, 18, 29
+.NoEngineer
 	readvar VAR_WEEKDAY
-	ifequal WEDNESDAY, .WesleyAppears
+	ifequalfwd WEDNESDAY, .WesleyAppears
 	disappear LAKEOFRAGE_WESLEY
 	endcallback
 
@@ -41,224 +67,105 @@ LakeOfRageWesleyCallback:
 	appear LAKEOFRAGE_WESLEY
 	endcallback
 
+LakeOfRageFloodScript:
+	special Special_GetOvercastIndex
+	ifequalfwd LAKE_OF_RAGE_OVERCAST, .flood
+	changemapblocks LakeOfRage_BlockData
+	endcallback
+
+.flood
+	changemapblocks LakeOfRageFlooded_BlockData
+	endcallback
+
+LakeOfRageSignText:
+	text "Lake of Rage,"
+	line "also known as"
+	cont "Gyarados Lake."
+	done
+
+LakeOfRageAdvancedTipsSignText:
+	text "Advanced Tips!"
+
+	para "The Hidden Power"
+	line "move can take on"
+if DEF(FAITHFUL)
+	cont "any type, except"
+else
+	cont "any type, even"
+endc
+
+	para "the newly disco-"
+	line "vered Fairy type!"
+	done
+
+LakeOfRageFishingGuruSign:
+	opentext
+	writetext .Text
+	checkevent EVENT_CLEARED_ROCKET_HIDEOUT
+	iftruefwd .Continue
+	waitendtext
+
+.Continue:
+	promptbutton
+	special Special_MagikarpHouseSign
+	endtext
+
+.Text:
+	text "Fishing Guru's"
+	line "House"
+	done
+
 LakeOfRageLanceScript:
 	checkevent EVENT_REFUSED_TO_HELP_LANCE_AT_LAKE_OF_RAGE
-	iftrue .AskAgainForHelp
+	iftruefwd .AskForHelpAgain
 	opentext
-	writetext LakeOfRageLanceForcedToEvolveText
+	writetext .OverheardText
 	promptbutton
 	faceplayer
-	writetext LakeOfRageLanceIntroText
+	writetext .IntroText
 	yesorno
-	iffalse .RefusedToHelp
-.AgreedToHelp:
-	writetext LakeOfRageLanceRadioSignalText
+	iffalsefwd .Refused
+.Agreed:
+	writetext .YesText
 	waitbutton
 	closetext
 	playsound SFX_WARP_TO
-	applymovement LAKEOFRAGE_LANCE, LakeOfRageLanceTeleportIntoSkyMovement
+	applyonemovement LAKEOFRAGE_LANCE, teleport_from
 	disappear LAKEOFRAGE_LANCE
 	clearevent EVENT_MAHOGANY_MART_LANCE_AND_DRAGONITE
 	setevent EVENT_DECIDED_TO_HELP_LANCE
-	setmapscene MAHOGANY_MART_1F, SCENE_MAHOGANYMART1F_LANCE_UNCOVERS_STAIRS
+	setmapscene MAHOGANY_MART_1F, $1
 	end
 
-.RefusedToHelp:
-	writetext LakeOfRageLanceRefusedText
-	waitbutton
-	closetext
+.Refused:
 	setevent EVENT_REFUSED_TO_HELP_LANCE_AT_LAKE_OF_RAGE
-	end
+	jumpopenedtext .Notext
 
-.AskAgainForHelp:
+.AskForHelpAgain:
 	faceplayer
 	opentext
-	writetext LakeOfRageLanceAskHelpText
+	writetext .QuestionText
 	yesorno
-	iffalse .RefusedToHelp
-	sjump .AgreedToHelp
+	iffalse .Refused
+	sjump .Agreed
 
-RedGyarados:
-	opentext
-	writetext LakeOfRageGyaradosCryText
-	pause 15
-	cry GYARADOS
-	closetext
-	loadwildmon GYARADOS, 30
-	loadvar VAR_BATTLETYPE, BATTLETYPE_FORCESHINY
-	startbattle
-	ifequal LOSE, .NotBeaten
-	disappear LAKEOFRAGE_GYARADOS
-.NotBeaten:
-	reloadmapafterbattle
-	opentext
-	giveitem RED_SCALE
-	waitsfx
-	writetext LakeOfRageGotRedScaleText
-	playsound SFX_ITEM
-	waitsfx
-	itemnotify
-	closetext
-	setscene 0 ; Lake of Rage does not have a scene variable
-	appear LAKEOFRAGE_LANCE
-	end
-
-LakeOfRageGrampsScript:
-	faceplayer
-	opentext
-	checkevent EVENT_CLEARED_ROCKET_HIDEOUT
-	iftrue .ClearedRocketHideout
-	writetext LakeOfRageGrampsText
-	waitbutton
-	closetext
-	end
-
-.ClearedRocketHideout:
-	writetext LakeOfRageGrampsText_ClearedRocketHideout
-	waitbutton
-	closetext
-	end
-
-LakeOfRageSuperNerdScript:
-	jumptextfaceplayer LakeOfRageSuperNerdText
-
-LakeOfRageCooltrainerFScript:
-	jumptextfaceplayer LakeOfRageCooltrainerFText
-
-LakeOfRageSign:
-	jumptext LakeOfRageSignText
-
-MagikarpHouseSignScript:
-	opentext
-	writetext FishingGurusHouseSignText
-	checkevent EVENT_CLEARED_ROCKET_HIDEOUT
-	iftrue .MagikarpLengthRecord
-	waitbutton
-	closetext
-	end
-
-.MagikarpLengthRecord:
-	promptbutton
-	special MagikarpHouseSign
-	closetext
-	end
-
-TrainerFisherAndre:
-	trainer FISHER, ANDRE, EVENT_BEAT_FISHER_ANDRE, FisherAndreSeenText, FisherAndreBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext FisherAndreAfterBattleText
-	waitbutton
-	closetext
-	end
-
-TrainerFisherRaymond:
-	trainer FISHER, RAYMOND, EVENT_BEAT_FISHER_RAYMOND, FisherRaymondSeenText, FisherRaymondBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext FisherRaymondAfterBattleText
-	waitbutton
-	closetext
-	end
-
-TrainerCooltrainermAaron:
-	trainer COOLTRAINERM, AARON, EVENT_BEAT_COOLTRAINERM_AARON, CooltrainermAaronSeenText, CooltrainermAaronBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext CooltrainermAaronAfterBattleText
-	waitbutton
-	closetext
-	end
-
-TrainerCooltrainerfLois:
-	trainer COOLTRAINERF, LOIS, EVENT_BEAT_COOLTRAINERF_LOIS, CooltrainerfLoisSeenText, CooltrainerfLoisBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext CooltrainerfLoisAfterBattleText
-	waitbutton
-	closetext
-	end
-
-WesleyScript:
-	faceplayer
-	opentext
-	checkevent EVENT_GOT_BLACKBELT_FROM_WESLEY
-	iftrue WesleyWednesdayScript
-	readvar VAR_WEEKDAY
-	ifnotequal WEDNESDAY, WesleyNotWednesdayScript
-	checkevent EVENT_MET_WESLEY_OF_WEDNESDAY
-	iftrue .MetWesley
-	writetext MeetWesleyText
-	promptbutton
-	setevent EVENT_MET_WESLEY_OF_WEDNESDAY
-.MetWesley:
-	writetext WesleyGivesGiftText
-	promptbutton
-	verbosegiveitem BLACKBELT_I
-	iffalse WesleyDoneScript
-	setevent EVENT_GOT_BLACKBELT_FROM_WESLEY
-	writetext WesleyGaveGiftText
-	waitbutton
-	closetext
-	end
-
-WesleyWednesdayScript:
-	writetext WesleyWednesdayText
-	waitbutton
-WesleyDoneScript:
-	closetext
-	end
-
-WesleyNotWednesdayScript:
-	writetext WesleyNotWednesdayText
-	waitbutton
-	closetext
-	end
-
-LakeOfRageElixer:
-	itemball ELIXER
-
-LakeOfRageTMDetect:
-	itemball TM_DETECT
-
-LakeOfRageHiddenFullRestore:
-	hiddenitem FULL_RESTORE, EVENT_LAKE_OF_RAGE_HIDDEN_FULL_RESTORE
-
-LakeOfRageHiddenRareCandy:
-	hiddenitem RARE_CANDY, EVENT_LAKE_OF_RAGE_HIDDEN_RARE_CANDY
-
-LakeOfRageHiddenMaxPotion:
-	hiddenitem MAX_POTION, EVENT_LAKE_OF_RAGE_HIDDEN_MAX_POTION
-
-LakeOfRageLanceTeleportIntoSkyMovement:
-	teleport_from
-	step_end
-
-LakeOfRageLanceForcedToEvolveText:
+.OverheardText:
 	text "This lake is full"
-	line "of GYARADOS but"
+	line "of Gyarados but"
 	cont "nothing else…"
 
-	para "So the MAGIKARP"
+	para "So the Magikarp"
 	line "are being forced"
 	cont "to evolve…"
 	done
 
-LakeOfRageLanceIntroText:
+.IntroText:
 	text "Did you come here"
 	line "because of the"
 	cont "rumors?"
 
 	para "You're <PLAYER>?"
-	line "I'm LANCE, a"
+	line "I'm Lance, a"
 	cont "trainer like you."
 
 	para "I heard some ru-"
@@ -267,7 +174,7 @@ LakeOfRageLanceIntroText:
 
 	para "I saw the way you"
 	line "battled earlier,"
-	cont "<PLAY_G>."
+	cont "<PLAYER>."
 
 	para "I can tell that"
 	line "you're a trainer"
@@ -280,11 +187,11 @@ LakeOfRageLanceIntroText:
 	cont "investigate?"
 	done
 
-LakeOfRageLanceRadioSignalText:
-	text "LANCE: Excellent!"
+.YesText:
+	text "Lance: Excellent!"
 
 	para "It seems that the"
-	line "LAKE's MAGIKARP"
+	line "lake's Magikarp"
 
 	para "are being forced"
 	line "to evolve."
@@ -292,49 +199,245 @@ LakeOfRageLanceRadioSignalText:
 	para "A mysterious radio"
 	line "broadcast coming"
 
-	para "from MAHOGANY is"
+	para "from Mahogany is"
 	line "the cause."
 
 	para "I'll be waiting"
-	line "for you, <PLAY_G>."
+	line "for you, <PLAYER>."
 	done
 
-LakeOfRageLanceRefusedText:
+.Notext:
 	text "Oh… Well, if you"
 	line "change your mind,"
 	cont "please help me."
 	done
 
-LakeOfRageLanceAskHelpText:
-	text "LANCE: Hm? Are you"
+.QuestionText:
+	text "Lance: Hm? Are you"
 	line "going to help me?"
 	done
 
-LakeOfRageGyaradosCryText:
-	text "GYARADOS: Gyashaa!"
+LakeOfRageEngineerText:
+	text "I'm an urban"
+	line "planner."
+
+	para "I've got big ideas"
+	line "for this place,"
+	cont "just you wait!"
+
+	para "It's the perfect"
+	line "spot for my next"
+	cont "project."
 	done
 
-LakeOfRageGotRedScaleText:
-	text "<PLAYER> obtained a"
-	line "RED SCALE."
+LakeOfRageRedGyaradosScript:
+	opentext
+	writetext .GyaradosText
+	cry GYARADOS
+	pause 15
+	closetext
+	loadwildmon GYARADOS, GYARADOS_RED_FORM, 35
+	loadvar VAR_BATTLETYPE, BATTLETYPE_NEVER_SHINY
+	startbattle
+	ifequalfwd $1, .Continue
+	disappear LAKEOFRAGE_RED_GYARADOS
+.Continue:
+	reloadmapafterbattle
+	opentext
+	givekeyitem RED_SCALE
+	waitsfx
+	writetext .RedScaleText
+	special ShowKeyItemIcon
+	playsound SFX_KEY_ITEM
+	waitbutton
+	keyitemnotify
+	closetext
+	appear LAKEOFRAGE_LANCE
+	end
+
+.GyaradosText:
+	text "Gyarados: Gyashaa!"
 	done
 
-LakeOfRageGrampsText:
-	text "The GYARADOS are"
+.RedScaleText:
+	text "<PLAYER> found"
+	line "Red Scale."
+	done
+
+WesleyScript:
+	checkevent EVENT_GOT_BLACK_BELT_FROM_WESLEY
+	iftrue_jumptextfaceplayer .WednesdayText
+	readvar VAR_WEEKDAY
+	ifnotequal WEDNESDAY, .NotWednesday
+	faceplayer
+	opentext
+	checkevent EVENT_MET_WESLEY_OF_WEDNESDAY
+	iftruefwd .MetWesley
+	writetext .MeetText
+	promptbutton
+	setevent EVENT_MET_WESLEY_OF_WEDNESDAY
+.MetWesley:
+	writetext .GivesGiftText
+	promptbutton
+	verbosegiveitem BLACK_BELT
+	iffalse_endtext
+	setevent EVENT_GOT_BLACK_BELT_FROM_WESLEY
+	jumpthisopenedtext
+
+	text "Wesley: Black Belt"
+	line "beefs up the power"
+	cont "of Fighting moves."
+	done
+
+.NotWednesday:
+	jumpthisopenedtext
+
+	text "Wesley: Today's"
+	line "not Wednesday."
+	cont "That's too bad."
+	done
+
+.MeetText:
+	text "Wesley: Well, how"
+	line "do you do?"
+
+	para "Seeing as how it's"
+	line "Wednesday today,"
+
+	para "I'm Wesley of"
+	line "Wednesday."
+	done
+
+.GivesGiftText:
+	text "Pleased to meet"
+	line "you. Please take a"
+	cont "souvenir."
+	done
+
+.WednesdayText:
+	text "Wesley: Since you"
+	line "found me, you must"
+
+	para "have met my broth-"
+	line "ers and sisters."
+
+	para "Or did you just"
+	line "get lucky?"
+	done
+
+GenericTrainerCooltrainermAaron:
+	generictrainer COOLTRAINERM, AARON, EVENT_BEAT_COOLTRAINERM_AARON, .SeenText, .BeatenText
+
+	text "#mon and their"
+	line "trainer become"
+
+	para "powerful through"
+	line "constant battling."
+	done
+
+.SeenText:
+	text "If a trainer spots"
+	line "another trainer,"
+
+	para "he has to make a"
+	line "challenge."
+
+	para "That is our"
+	line "destiny."
+	done
+
+.BeatenText:
+	text "Whew…"
+	line "Good battle."
+	done
+
+GenericTrainerCooltrainerfLois:
+	generictrainer COOLTRAINERF, LOIS, EVENT_BEAT_COOLTRAINERF_LOIS, .SeenText, .BeatenText
+
+	text "Come to think of"
+	line "it, I've seen a"
+	cont "pink Butterfree."
+	done
+
+.SeenText:
+	text "What happened to"
+	line "the red Gyarados?"
+
+	para "It's gone?"
+
+	para "Oh, darn. I came"
+	line "here for nothing?"
+
+	para "I know--let's"
+	line "battle!"
+	done
+
+.BeatenText:
+	text "Good going!"
+	done
+
+GenericTrainerFisherAndre:
+	generictrainer FISHER, ANDRE, EVENT_BEAT_FISHER_ANDRE, FisherAndreSeenText, FisherAndreBeatenText
+
+	text "I won't lose as an"
+	line "angler! I catch"
+	cont "#mon all day."
+	done
+
+FisherAndreSeenText:
+	text "Let me battle with"
+	line "the #mon I just"
+	cont "caught!"
+	done
+
+FisherAndreBeatenText:
+	text "I might be an ex-"
+	line "pert angler, but"
+
+	para "I stink as a #-"
+	line "mon trainer…"
+	done
+
+GenericTrainerFisherRaymond:
+	generictrainer FISHER, RAYMOND, EVENT_BEAT_FISHER_RAYMOND, FisherRaymondSeenText, FisherRaymondBeatenText
+
+	text "Why can't I catch"
+	line "any good #mon?"
+	done
+
+FisherRaymondSeenText:
+	text "No matter what I"
+	line "do, all I catch"
+
+	para "are the same #-"
+	line "mon…"
+	done
+
+FisherRaymondBeatenText:
+	text "My line's all"
+	line "tangled up…"
+	done
+
+LakeOfRageGrampsScript:
+	checkevent EVENT_CLEARED_ROCKET_HIDEOUT
+	iftrue_jumptextfaceplayer .Text2
+	jumpthistextfaceplayer
+
+	text "The Gyarados are"
 	line "angry!"
 
 	para "It's a bad omen!"
 	done
 
-LakeOfRageGrampsText_ClearedRocketHideout:
-	text "Hahah! The MAGI-"
-	line "KARP are biting!"
+.Text2:
+	text "Hahah! The Magi-"
+	line "karp are biting!"
 	done
 
 LakeOfRageSuperNerdText:
 	text "I heard this lake"
 	line "was made by ram-"
-	cont "paging GYARADOS."
+	cont "paging Gyarados."
 
 	para "I wonder if there"
 	line "is any connection"
@@ -347,176 +450,10 @@ LakeOfRageCooltrainerFText:
 	text "Did my eyes de-"
 	line "ceive me? I saw a"
 
-	para "red GYARADOS in"
-	line "the LAKE…"
+	para "red Gyarados in"
+	line "the lake…"
 
 	para "But I thought"
-	line "GYARADOS were"
+	line "Gyarados were"
 	cont "usually blue?"
 	done
-
-FisherAndreSeenText:
-	text "Let me battle with"
-	line "the #MON I just"
-	cont "caught!"
-	done
-
-FisherAndreBeatenText:
-	text "I might be an ex-"
-	line "pert angler, but"
-
-	para "I stink as a #-"
-	line "MON trainer…"
-	done
-
-FisherAndreAfterBattleText:
-	text "I won't lose as an"
-	line "angler! I catch"
-	cont "#MON all day."
-	done
-
-FisherRaymondSeenText:
-	text "No matter what I"
-	line "do, all I catch"
-
-	para "are the same #-"
-	line "MON…"
-	done
-
-FisherRaymondBeatenText:
-	text "My line's all"
-	line "tangled up…"
-	done
-
-FisherRaymondAfterBattleText:
-	text "Why can't I catch"
-	line "any good #MON?"
-	done
-
-CooltrainermAaronSeenText:
-	text "If a trainer spots"
-	line "another trainer,"
-
-	para "he has to make a"
-	line "challenge."
-
-	para "That is our"
-	line "destiny."
-	done
-
-CooltrainermAaronBeatenText:
-	text "Whew…"
-	line "Good battle."
-	done
-
-CooltrainermAaronAfterBattleText:
-	text "#MON and their"
-	line "trainer become"
-
-	para "powerful through"
-	line "constant battling."
-	done
-
-CooltrainerfLoisSeenText:
-	text "What happened to"
-	line "the red GYARADOS?"
-
-	para "It's gone?"
-
-	para "Oh, darn. I came"
-	line "here for nothing?"
-
-	para "I know--let's"
-	line "battle!"
-	done
-
-CooltrainerfLoisBeatenText:
-	text "Good going!"
-	done
-
-CooltrainerfLoisAfterBattleText:
-	text "Come to think of"
-	line "it, I've seen a"
-	cont "pink BUTTERFREE."
-	done
-
-MeetWesleyText:
-	text "WESLEY: Well, how"
-	line "do you do?"
-
-	para "Seeing as how it's"
-	line "Wednesday today,"
-
-	para "I'm WESLEY of"
-	line "Wednesday."
-	done
-
-WesleyGivesGiftText:
-	text "Pleased to meet"
-	line "you. Please take a"
-	cont "souvenir."
-	done
-
-WesleyGaveGiftText:
-	text "WESLEY: BLACKBELT"
-	line "beefs up the power"
-	cont "of fighting moves."
-	done
-
-WesleyWednesdayText:
-	text "WESLEY: Since you"
-	line "found me, you must"
-
-	para "have met my broth-"
-	line "ers and sisters."
-
-	para "Or did you just"
-	line "get lucky?"
-	done
-
-WesleyNotWednesdayText:
-	text "WESLEY: Today's"
-	line "not Wednesday."
-	cont "That's too bad."
-	done
-
-LakeOfRageSignText:
-	text "LAKE OF RAGE,"
-	line "also known as"
-	cont "GYARADOS LAKE."
-	done
-
-FishingGurusHouseSignText:
-	text "FISHING GURU'S"
-	line "HOUSE"
-	done
-
-LakeOfRage_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  7,  3, LAKE_OF_RAGE_HIDDEN_POWER_HOUSE, 1
-	warp_event 27, 31, LAKE_OF_RAGE_MAGIKARP_HOUSE, 1
-
-	def_coord_events
-
-	def_bg_events
-	bg_event 21, 27, BGEVENT_READ, LakeOfRageSign
-	bg_event 25, 31, BGEVENT_READ, MagikarpHouseSignScript
-	bg_event 11, 28, BGEVENT_ITEM, LakeOfRageHiddenFullRestore
-	bg_event  4,  4, BGEVENT_ITEM, LakeOfRageHiddenRareCandy
-	bg_event 35,  5, BGEVENT_ITEM, LakeOfRageHiddenMaxPotion
-
-	def_object_events
-	object_event 21, 28, SPRITE_LANCE, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, LakeOfRageLanceScript, EVENT_LAKE_OF_RAGE_LANCE
-	object_event 20, 26, SPRITE_GRAMPS, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, LakeOfRageGrampsScript, -1
-	object_event 36, 13, SPRITE_SUPER_NERD, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, LakeOfRageSuperNerdScript, -1
-	object_event 25, 29, SPRITE_COOLTRAINER_F, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 1, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, LakeOfRageCooltrainerFScript, -1
-	object_event 30, 23, SPRITE_FISHER, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerFisherAndre, EVENT_LAKE_OF_RAGE_CIVILIANS
-	object_event 24, 26, SPRITE_FISHER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 1, TrainerFisherRaymond, EVENT_LAKE_OF_RAGE_CIVILIANS
-	object_event  4, 15, SPRITE_COOLTRAINER_M, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 1, TrainerCooltrainermAaron, EVENT_LAKE_OF_RAGE_CIVILIANS
-	object_event 36,  7, SPRITE_COOLTRAINER_F, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 0, TrainerCooltrainerfLois, EVENT_LAKE_OF_RAGE_CIVILIANS
-	object_event 18, 22, SPRITE_GYARADOS, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, RedGyarados, EVENT_LAKE_OF_RAGE_RED_GYARADOS
-	object_event  4,  4, SPRITE_SUPER_NERD, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, WesleyScript, EVENT_LAKE_OF_RAGE_WESLEY_OF_WEDNESDAY
-	object_event  7, 10, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, LakeOfRageElixer, EVENT_LAKE_OF_RAGE_ELIXER
-	object_event 35,  2, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, LakeOfRageTMDetect, EVENT_LAKE_OF_RAGE_TM_DETECT

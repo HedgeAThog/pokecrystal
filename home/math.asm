@@ -15,6 +15,9 @@ SimpleMultiply::
 
 SimpleDivide::
 ; Divide a by c. Return quotient b and remainder a.
+	inc c
+	dec c
+	jr z, .div0
 	ld b, 0
 .loop
 	inc b
@@ -23,36 +26,34 @@ SimpleDivide::
 	dec b
 	add c
 	ret
+.div0
+	ld a, ERR_DIV_ZERO
+	jmp Crash
 
-Multiply::
-; Multiply hMultiplicand (3 bytes) by hMultiplier. Result in hProduct.
-; All values are big endian.
-	push hl
+MultiplyAndDivide::
+; a = $xy: multiply multiplicands by x, then divide by y
+; Used for damage modifiers, catch rate modifiers, etc.
 	push bc
+	ld b, a
 
-	callfar _Multiply
+	ldh a, [hROMBank]
+	push af
+	ld a, BANK(Multiply)
+	rst Bankswitch
 
+	ld a, b
+	swap a
+	and $f
+	ld c, LOW(hMultiplier)
+	ldh [c], a
+	call Multiply ; far-ok
+	ld a, b
+	and $f
+	ldh [c], a
+	ld b, 4
+	call Divide ; far-ok
+
+	pop af
+	rst Bankswitch
 	pop bc
-	pop hl
-	ret
-
-Divide::
-; Divide hDividend length b (max 4 bytes) by hDivisor. Result in hQuotient.
-; All values are big endian.
-	push hl
-	push de
-	push bc
-	homecall _Divide
-	pop bc
-	pop de
-	pop hl
-	ret
-
-SubtractAbsolute:: ; unreferenced
-; Return |a - b|, sign in carry.
-	sub b
-	ret nc
-	cpl
-	add 1
-	scf
 	ret

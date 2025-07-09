@@ -1,129 +1,32 @@
-DEF CELADONDEPTSTORE6F_FRESH_WATER_PRICE EQU 200
-DEF CELADONDEPTSTORE6F_SODA_POP_PRICE    EQU 300
-DEF CELADONDEPTSTORE6F_LEMONADE_PRICE    EQU 350
-
-	object_const_def
-	const CELADONDEPTSTORE6F_SUPER_NERD
-	const CELADONDEPTSTORE6F_YOUNGSTER
-
-CeladonDeptStore6F_MapScripts:
+CeladonDeptStore6F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
-	callback MAPCALLBACK_TILES, CeladonDeptStore6FHideRooftopStairsCallback
 
-CeladonDeptStore6FHideRooftopStairsCallback:
-	changeblock 12, 0, $03 ; wall
-	endcallback
+	def_warp_events
+	warp_event 15,  0, CELADON_DEPT_STORE_5F, 2
+	warp_event  2,  0, CELADON_DEPT_STORE_ELEVATOR, 1
 
-CeladonDeptStore6FSuperNerdScript:
-	jumptextfaceplayer CeladonDeptStore6FSuperNerdText
+	def_coord_events
 
-CeladonDeptStore6FYoungsterScript:
-	jumptextfaceplayer CeladonDeptStore6FYoungsterText
+	def_bg_events
+	bg_event 14,  0, BGEVENT_JUMPTEXT, CeladonDeptStore6FDirectoryText
 
-CeladonDeptStore6FVendingMachine:
-	opentext
-	writetext CeladonVendingText
-.Start:
-	special PlaceMoneyTopRight
-	loadmenu .MenuHeader
-	verticalmenu
-	closewindow
-	ifequal 1, .FreshWater
-	ifequal 2, .SodaPop
-	ifequal 3, .Lemonade
-	closetext
+	def_object_events
+	object_event  9,  2, SPRITE_POKEMANIAC, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, CeladonDeptStore6FSuperNerdText, -1
+	object_event 12,  5, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_WANDER, 1, 2, -1, PAL_NPC_RED, OBJECTTYPE_COMMAND, jumptextfaceplayer, CeladonDeptStore6FYoungsterText, -1
+	object_event  5,  1, SPRITE_GAMEBOY_KID, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, CeladonDeptStore3FGameboyKid1Script, -1
+	object_event  6,  1, SPRITE_GAMER_GIRL, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, CeladonDeptStore3FGameboyKid2Script, -1
+
+CeladonDeptStore3FGameboyKid1Script:
+	showtextfaceplayer CeladonDeptStore3FGameboyKid1Text
+	turnobject LAST_TALKED, DOWN
 	end
 
-.FreshWater:
-	checkmoney YOUR_MONEY, CELADONDEPTSTORE6F_FRESH_WATER_PRICE
-	ifequal HAVE_LESS, .NotEnoughMoney
-	giveitem FRESH_WATER
-	iffalse .NotEnoughSpace
-	takemoney YOUR_MONEY, CELADONDEPTSTORE6F_FRESH_WATER_PRICE
-	getitemname STRING_BUFFER_3, FRESH_WATER
-	sjump .VendItem
-
-.SodaPop:
-	checkmoney YOUR_MONEY, CELADONDEPTSTORE6F_SODA_POP_PRICE
-	ifequal HAVE_LESS, .NotEnoughMoney
-	giveitem SODA_POP
-	iffalse .NotEnoughSpace
-	takemoney YOUR_MONEY, CELADONDEPTSTORE6F_SODA_POP_PRICE
-	getitemname STRING_BUFFER_3, SODA_POP
-	sjump .VendItem
-
-.Lemonade:
-	checkmoney YOUR_MONEY, CELADONDEPTSTORE6F_LEMONADE_PRICE
-	ifequal HAVE_LESS, .NotEnoughMoney
-	giveitem LEMONADE
-	iffalse .NotEnoughSpace
-	takemoney YOUR_MONEY, CELADONDEPTSTORE6F_LEMONADE_PRICE
-	getitemname STRING_BUFFER_3, LEMONADE
-	sjump .VendItem
-
-.VendItem:
-	pause 10
-	playsound SFX_ENTER_DOOR
-	writetext CeladonClangText
-	promptbutton
-	itemnotify
-	sjump .Start
-
-.NotEnoughMoney:
-	writetext CeladonVendingNoMoneyText
-	waitbutton
-	sjump .Start
-
-.NotEnoughSpace:
-	writetext CeladonVendingNoSpaceText
-	waitbutton
-	sjump .Start
-
-.MenuHeader:
-	db MENU_BACKUP_TILES ; flags
-	menu_coords 0, 2, SCREEN_WIDTH - 1, TEXTBOX_Y - 1
-	dw .MenuData
-	db 1 ; default option
-
-.MenuData:
-	db STATICMENU_CURSOR ; flags
-	db 4 ; items
-	db "FRESH WATER  ¥{d:CELADONDEPTSTORE6F_FRESH_WATER_PRICE}@"
-	db "SODA POP     ¥{d:CELADONDEPTSTORE6F_SODA_POP_PRICE}@"
-	db "LEMONADE     ¥{d:CELADONDEPTSTORE6F_LEMONADE_PRICE}@"
-	db "CANCEL@"
-
-CeladonDeptStore6FDirectory:
-	jumptext CeladonDeptStore6FDirectoryText
-
-CeladonDeptStore6FElevatorButton: ; unreferenced
-	jumpstd ElevatorButtonScript
-
-CeladonVendingText:
-	text "A vending machine!"
-	line "Here's the menu."
-	done
-
-CeladonClangText:
-	text "Clang!"
-
-	para "@"
-	text_ram wStringBuffer3
-	text_start
-	line "popped out."
-	done
-
-CeladonVendingNoMoneyText:
-	text "Oops, not enough"
-	line "money…"
-	done
-
-CeladonVendingNoSpaceText:
-	text "There's no more"
-	line "room for stuff…"
-	done
+CeladonDeptStore3FGameboyKid2Script:
+	showtextfaceplayer CeladonDeptStore3FGameboyKid2Text
+	turnobject LAST_TALKED, DOWN
+	end
 
 CeladonDeptStore6FSuperNerdText:
 	text "A vending machine"
@@ -135,34 +38,41 @@ CeladonDeptStore6FSuperNerdText:
 	done
 
 CeladonDeptStore6FYoungsterText:
-	text "Aww! There's no"
-	line "games here!"
+	text "I can play games"
+	line "on the third"
+	cont "floor, then come"
 
-	para "I wanted to play…"
+	para "here when I get"
+	line "thirsty!"
+
+	para "This store is"
+	line "great!"
+	done
+
+CeladonDeptStore3FGameboyKid1Text:
+	text "I traded my"
+	line "#mon while"
+
+	para "it was holding"
+	line "an Upgrade."
+	done
+
+CeladonDeptStore3FGameboyKid2Text:
+	text "Yay! I'm finally"
+	line "getting a Porygon!"
+
+	para "I'm no good at the"
+	line "slots, so I could"
+
+	para "never get enough"
+	line "coins…"
+
+	para "I'll raise it with"
+	line "an Upgrade to make"
+	cont "it evolve!"
 	done
 
 CeladonDeptStore6FDirectoryText:
-	text "6F: ROOFTOP SQUARE"
-	line "VENDING MACHINES"
+	text "6F: Rooftop Atrium"
+	line "Vending Machines"
 	done
-
-CeladonDeptStore6F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event 15,  0, CELADON_DEPT_STORE_5F, 2
-	warp_event  2,  0, CELADON_DEPT_STORE_ELEVATOR, 1
-
-	def_coord_events
-
-	def_bg_events
-	bg_event 14,  0, BGEVENT_READ, CeladonDeptStore6FDirectory
-	bg_event  3,  0, BGEVENT_READ, CeladonDeptStore1FElevatorButton
-	bg_event  8,  1, BGEVENT_UP, CeladonDeptStore6FVendingMachine
-	bg_event  9,  1, BGEVENT_UP, CeladonDeptStore6FVendingMachine
-	bg_event 10,  1, BGEVENT_UP, CeladonDeptStore6FVendingMachine
-	bg_event 11,  1, BGEVENT_UP, CeladonDeptStore6FVendingMachine
-
-	def_object_events
-	object_event  9,  2, SPRITE_SUPER_NERD, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CeladonDeptStore6FSuperNerdScript, -1
-	object_event 12,  5, SPRITE_YOUNGSTER, SPRITEMOVEDATA_WANDER, 2, 1, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, CeladonDeptStore6FYoungsterScript, -1

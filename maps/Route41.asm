@@ -1,135 +1,260 @@
-	object_const_def
-	const ROUTE41_OLIVINE_RIVAL1
-	const ROUTE41_OLIVINE_RIVAL2
-	const ROUTE41_OLIVINE_RIVAL3
-	const ROUTE41_OLIVINE_RIVAL4
-	const ROUTE41_OLIVINE_RIVAL5
-	const ROUTE41_SWIMMER_GIRL1
-	const ROUTE41_SWIMMER_GIRL2
-	const ROUTE41_SWIMMER_GIRL3
-	const ROUTE41_SWIMMER_GIRL4
-	const ROUTE41_SWIMMER_GIRL5
-
-Route41_MapScripts:
+Route41_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-TrainerSwimmerfKaylee:
-	trainer SWIMMERF, KAYLEE, EVENT_BEAT_SWIMMERF_KAYLEE, SwimmerfKayleeSeenText, SwimmerfKayleeBeatenText, 0, .Script
+	def_warp_events
+	warp_event 13, 17, WHIRL_ISLAND_NW, 1
+	warp_event 37, 19, WHIRL_ISLAND_NE, 1
+	warp_event 13, 37, WHIRL_ISLAND_SW, 1
+	warp_event 37, 45, WHIRL_ISLAND_SE, 1
 
-.Script:
-	endifjustbattled
+	def_coord_events
+
+	def_bg_events
+	bg_event  9, 35, BGEVENT_ITEM + MAX_ETHER, EVENT_ROUTE_41_HIDDEN_MAX_ETHER
+
+	def_object_events
+	object_event 57, 14, SPRITE_MARLON, SPRITEMOVEDATA_WANDER, 1, 1, -1, 0, OBJECTTYPE_SCRIPT, 0, Route41MarlonScript, -1
+	object_event 32,  6, SPRITE_SWIMMER_GUY, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSwimmermCharlie, -1
+	object_event 46,  8, SPRITE_SWIMMER_GUY, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSwimmermGeorge, -1
+	object_event 20, 26, SPRITE_SWIMMER_GUY, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSwimmermBerke, -1
+	object_event 32, 30, SPRITE_SWIMMER_GUY, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSwimmermKirk, -1
+	object_event 19, 46, SPRITE_SWIMMER_GUY, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSwimmermMathew, -1
+	object_event 57, 24, SPRITE_SWIMMER_GUY, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSwimmermLewis, -1
+	object_event 17,  4, SPRITE_SWIMMER_GIRL, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSwimmerfKaylee, -1
+	object_event 23, 19, SPRITE_SWIMMER_GIRL, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSwimmerfSusie, -1
+	object_event 27, 34, SPRITE_SWIMMER_GIRL, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSwimmerfDenise, -1
+	object_event 44, 28, SPRITE_SWIMMER_GIRL, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 4, GenericTrainerSwimmerfKara, -1
+	object_event  9, 50, SPRITE_SWIMMER_GIRL, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 2, GenericTrainerSwimmerfWendy, -1
+	itemball_event 56, 12, SILVER_LEAF, 1, EVENT_ROUTE_41_SILVER_LEAF
+
+	object_const_def
+	const ROUTE41_MARLON
+
+Route41MarlonScript:
+	faceplayer
 	opentext
-	writetext SwimmerfKayleeAfterBattleText
+	checkevent EVENT_BEAT_MARLON_AGAIN
+	iftruefwd .Beaten
+	checkevent EVENT_BEAT_MARLON
+	iffalsefwd .NotYetBattled
+	writetext .RematchText
+	sjumpfwd .Battle
+.NotYetBattled
+	checkevent EVENT_INTRODUCED_MARLON
+	iftruefwd .Introduced1
+	writetext .IntroText
+	waitbutton
+	setevent EVENT_INTRODUCED_MARLON
+.Introduced1
+	writetext .ChallengeText
+.Battle
+	yesorno
+	iffalse_jumpopenedtext .RefusedText
+	writetext .SeenText
 	waitbutton
 	closetext
-	end
-
-TrainerSwimmerfSusie:
-	trainer SWIMMERF, SUSIE, EVENT_BEAT_SWIMMERF_SUSIE, SwimmerfSusieSeenText, SwimmerfSusieBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
+	winlosstext .BeatenText, 0
+	setlasttalked ROUTE41_MARLON
+	checkevent EVENT_BEAT_ELITE_FOUR_AGAIN
+	iftruefwd .Rematch2
+	checkevent EVENT_BEAT_ELITE_FOUR
+	iftruefwd .Rematch1
+	loadtrainer MARLON, 1
+	sjumpfwd .StartBattle
+.Rematch1
+	loadtrainer MARLON, 2
+	sjumpfwd .StartBattle
+.Rematch2
+	loadtrainer MARLON, 3
+.StartBattle
+	startbattle
+	reloadmapafterbattle
 	opentext
-	writetext SwimmerfSusieAfterBattleText
+.Beaten:
+	writetext .AfterText
 	waitbutton
 	closetext
+	setevent EVENT_BEAT_MARLON
+	setevent EVENT_BEAT_MARLON_AGAIN
 	end
 
-TrainerSwimmerfDenise:
-	trainer SWIMMERF, DENISE, EVENT_BEAT_SWIMMERF_DENISE, SwimmerfDeniseSeenText, SwimmerfDeniseBeatenText, 0, .Script
+.IntroText:
+	text "Marlon: Uihaa!"
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SwimmerfDeniseAfterBattleText
-	waitbutton
-	closetext
-	end
+	para "Sup, so you're"
+	line "<PLAYER>!"
 
-TrainerSwimmerfKara:
-	trainer SWIMMERF, KARA, EVENT_BEAT_SWIMMERF_KARA, SwimmerfKaraSeenText, SwimmerfKaraBeatenText, 0, .Script
+	para "The name's Marlon,"
+	line "man of the sea!"
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SwimmerfKaraAfterBattleText
-	waitbutton
-	closetext
-	end
+	para "Me 'n' my #mon"
+	line "swam here from"
+	cont "the Unova region!"
+	done
 
-TrainerSwimmerfWendy:
-	trainer SWIMMERF, WENDY, EVENT_BEAT_SWIMMERF_WENDY, SwimmerfWendySeenText, SwimmerfWendyBeatenText, 0, .Script
+.ChallengeText:
+	text "You look strong!"
+	line "Shoots!"
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SwimmerfWendyAfterBattleText
-	waitbutton
-	closetext
-	end
+	para "We should totally"
+	line "have a battle!"
+	done
 
-TrainerSwimmermCharlie:
-	trainer SWIMMERM, CHARLIE, EVENT_BEAT_SWIMMERM_CHARLIE, SwimmermCharlieSeenText, SwimmermCharlieBeatenText, 0, .Script
+.RematchText:
+	text "Ohoho! 'Sup,"
+	line "<PLAYER>!"
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SwimmermCharlieAfterBattleText
-	waitbutton
-	closetext
-	end
+	para "So I'm facing"
+	line "you again!"
 
-TrainerSwimmermGeorge:
-	trainer SWIMMERM, GEORGE, EVENT_BEAT_SWIMMERM_GEORGE, SwimmermGeorgeSeenText, SwimmermGeorgeBeatenText, 0, .Script
+	para "You're gonna get"
+	line "swept away,"
+	cont "fo' sho'!"
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SwimmermGeorgeAfterBattleText
-	waitbutton
-	closetext
-	end
+.RefusedText:
+	text "Aw, man!"
+	done
 
-TrainerSwimmermBerke:
-	trainer SWIMMERM, BERKE, EVENT_BEAT_SWIMMERM_BERKE, SwimmermBerkeSeenText, SwimmermBerkeBeatenText, 0, .Script
+.SeenText:
+	text "Right on,"
+	line "let's roll!"
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SwimmermBerkeAfterBattleText
-	waitbutton
-	closetext
-	end
+.BeatenText:
+	text "You totally rocked"
+	line "that!"
 
-TrainerSwimmermKirk:
-	trainer SWIMMERM, KIRK, EVENT_BEAT_SWIMMERM_KIRK, SwimmermKirkSeenText, SwimmermKirkBeatenText, 0, .Script
+	para "You got this Trai-"
+	line "ner thing down!"
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SwimmermKirkAfterBattleText
-	waitbutton
-	closetext
-	end
+.AfterText:
+	text "You don't just"
+	line "look strong, you're"
+	cont "strong fo' reals!"
 
-TrainerSwimmermMathew:
-	trainer SWIMMERM, MATHEW, EVENT_BEAT_SWIMMERM_MATHEW, SwimmermMathewSeenText, SwimmermMathewBeatenText, 0, .Script
+	para "Eh, I was swept"
+	line "away, too!"
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SwimmermMathewAfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerSwimmerfKaylee:
+	generictrainer SWIMMERF, KAYLEE, EVENT_BEAT_SWIMMERF_KAYLEE, SwimmerfKayleeSeenText, SwimmerfKayleeBeatenText
 
-Route41Rock: ; unreferenced
-	jumpstd SmashRockScript
+	text "There's supposed"
+	line "to be a big #-"
+	cont "mon deep beneath"
+	cont "Whirl Islands."
 
-Route41HiddenMaxEther:
-	hiddenitem MAX_ETHER, EVENT_ROUTE_41_HIDDEN_MAX_ETHER
+	para "I wonder what it"
+	line "could be?"
+	done
+
+GenericTrainerSwimmerfSusie:
+	generictrainer SWIMMERF, SUSIE, EVENT_BEAT_SWIMMERF_SUSIE, SwimmerfSusieSeenText, SwimmerfSusieBeatenText
+
+	text "Wasn't there a hit"
+	line "song about a boy"
+	cont "riding a Lapras?"
+	done
+
+GenericTrainerSwimmerfDenise:
+	generictrainer SWIMMERF, DENISE, EVENT_BEAT_SWIMMERF_DENISE, SwimmerfDeniseSeenText, SwimmerfDeniseBeatenText
+
+	text "A sunburn is the"
+	line "worst for skin."
+
+	para "But I don't use a"
+	line "sunblock."
+
+	para "I won't pollute"
+	line "the water."
+	done
+
+GenericTrainerSwimmerfKara:
+	generictrainer SWIMMERF, KARA, EVENT_BEAT_SWIMMERF_KARA, SwimmerfKaraSeenText, SwimmerfKaraBeatenText
+
+	text "I heard roars from"
+	line "deep inside the"
+	cont "Islands."
+	done
+
+GenericTrainerSwimmerfWendy:
+	generictrainer SWIMMERF, WENDY, EVENT_BEAT_SWIMMERF_WENDY, SwimmerfWendySeenText, SwimmerfWendyBeatenText
+
+	text "The clusters of"
+	line "Staryu light up"
+	cont "at the same time."
+
+	para "It's so beautiful,"
+	line "it's scary."
+	done
+
+GenericTrainerSwimmermCharlie:
+	generictrainer SWIMMERM, CHARLIE, EVENT_BEAT_SWIMMERM_CHARLIE, SwimmermCharlieSeenText, SwimmermCharlieBeatenText
+
+	text "Isn't it relaxing"
+	line "just floating like"
+	cont "this?"
+	done
+
+GenericTrainerSwimmermGeorge:
+	generictrainer SWIMMERM, GEORGE, EVENT_BEAT_SWIMMERM_GEORGE, SwimmermGeorgeSeenText, SwimmermGeorgeBeatenText
+
+	text "It's so far to"
+	line "Cianwood."
+
+	para "But it's no easy"
+	line "return trip to"
+	cont "Olivine either."
+
+	para "What should I do?"
+	done
+
+GenericTrainerSwimmermBerke:
+	generictrainer SWIMMERM, BERKE, EVENT_BEAT_SWIMMERM_BERKE, SwimmermBerkeSeenText, SwimmermBerkeBeatenText
+
+	text "It was a dark and"
+	line "stormy night…"
+
+	para "I saw this giant"
+	line "#mon flying"
+	cont "from the islands."
+
+	para "It was scattering"
+	line "feathers from its"
+	cont "silver wings."
+	done
+
+GenericTrainerSwimmermKirk:
+	generictrainer SWIMMERM, KIRK, EVENT_BEAT_SWIMMERM_KIRK, SwimmermKirkSeenText, SwimmermKirkBeatenText
+
+	text "The currents keep"
+	line "me from reaching"
+	cont "that island."
+	done
+
+GenericTrainerSwimmermMathew:
+	generictrainer SWIMMERM, MATHEW, EVENT_BEAT_SWIMMERM_MATHEW, SwimmermMathewSeenText, SwimmermMathewBeatenText
+
+	text "A secret about"
+	line "Whirl Islands…"
+
+	para "It's pitch-black"
+	line "inside!"
+	done
+
+GenericTrainerSwimmermLewis:
+	generictrainer SWIMMERM, LEWIS, EVENT_BEAT_SWIMMERM_LEWIS, SwimmermLewisSeenText, SwimmermLewisBeatenText
+
+	text "It takes knowledge"
+	line "and experience"
+
+	para "to not get lost"
+	line "in the water."
+	done
 
 SwimmermCharlieSeenText:
 	text "The water's warm"
@@ -145,31 +270,14 @@ SwimmermCharlieBeatenText:
 	line "prune skin!"
 	done
 
-SwimmermCharlieAfterBattleText:
-	text "Isn't it relaxing"
-	line "just floating like"
-	cont "this?"
-	done
-
 SwimmermGeorgeSeenText:
 	text "I'm a bit tired."
 	line "If I win, lend me"
-	cont "your #MON."
+	cont "your #mon."
 	done
 
 SwimmermGeorgeBeatenText:
 	text "Pant, pant…"
-	done
-
-SwimmermGeorgeAfterBattleText:
-	text "It's so far to"
-	line "CIANWOOD."
-
-	para "But it's no easy"
-	line "return trip to"
-	cont "OLIVINE either."
-
-	para "What should I do?"
 	done
 
 SwimmermBerkeSeenText:
@@ -186,19 +294,6 @@ SwimmermBerkeBeatenText:
 	line "to your strength?"
 	done
 
-SwimmermBerkeAfterBattleText:
-	text "It was a dark and"
-	line "stormy night…"
-
-	para "I saw this giant"
-	line "#MON flying"
-	cont "from the islands."
-
-	para "It was scattering"
-	line "feathers from its"
-	cont "silver wings."
-	done
-
 SwimmermKirkSeenText:
 	text "The waves are wild"
 	line "here."
@@ -211,16 +306,10 @@ SwimmermKirkBeatenText:
 	text "I'm beat!"
 	done
 
-SwimmermKirkAfterBattleText:
-	text "The currents keep"
-	line "me from reaching"
-	cont "that island."
-	done
-
 SwimmermMathewSeenText:
 	text "Are you seeking"
 	line "the secrets of"
-	cont "WHIRL ISLANDS?"
+	cont "Whirl Islands?"
 	done
 
 SwimmermMathewBeatenText:
@@ -228,17 +317,19 @@ SwimmermMathewBeatenText:
 	line "great endurance!"
 	done
 
-SwimmermMathewAfterBattleText:
-	text "A secret about"
-	line "WHIRL ISLANDS…"
+SwimmermLewisSeenText:
+	text "I feel right at"
+	line "home in the sea!"
+	done
 
-	para "It's pitch-black"
-	line "inside!"
+SwimmermLewisBeatenText:
+	text "Beaten in my own"
+	line "home?"
 	done
 
 SwimmerfKayleeSeenText:
 	text "I'm on my way to"
-	line "WHIRL ISLANDS."
+	line "Whirl Islands."
 
 	para "I'm going explor-"
 	line "ing with friends."
@@ -249,30 +340,14 @@ SwimmerfKayleeBeatenText:
 	line "it?"
 	done
 
-SwimmerfKayleeAfterBattleText:
-	text "There's supposed"
-	line "to be a big #-"
-	cont "MON deep beneath"
-	cont "WHIRL ISLANDS."
-
-	para "I wonder what it"
-	line "could be?"
-	done
-
 SwimmerfSusieSeenText:
 	text "You look so ele-"
 	line "gant, riding your"
-	cont "#MON."
+	cont "#mon."
 	done
 
 SwimmerfSusieBeatenText:
 	text "I'm crushed…"
-	done
-
-SwimmerfSusieAfterBattleText:
-	text "Wasn't there a hit"
-	line "song about a boy"
-	cont "riding a LAPRAS?"
 	done
 
 SwimmerfDeniseSeenText:
@@ -283,17 +358,6 @@ SwimmerfDeniseSeenText:
 
 SwimmerfDeniseBeatenText:
 	text "Ohhh!"
-	done
-
-SwimmerfDeniseAfterBattleText:
-	text "A sunburn is the"
-	line "worst for skin."
-
-	para "But I don't use a"
-	line "sunblock."
-
-	para "I won't pollute"
-	line "the water."
 	done
 
 SwimmerfKaraSeenText:
@@ -313,14 +377,8 @@ SwimmerfKaraBeatenText:
 	line "energy than I do."
 	done
 
-SwimmerfKaraAfterBattleText:
-	text "I heard roars from"
-	line "deep inside the"
-	cont "ISLANDS."
-	done
-
 SwimmerfWendySeenText:
-	text "At night, STARYU"
+	text "At night, Staryu"
 	line "gather near the"
 	cont "water's surface."
 	done
@@ -328,38 +386,3 @@ SwimmerfWendySeenText:
 SwimmerfWendyBeatenText:
 	text "Oh, dear…"
 	done
-
-SwimmerfWendyAfterBattleText:
-	text "The clusters of"
-	line "STARYU light up"
-	cont "at the same time."
-
-	para "It's so beautiful,"
-	line "it's scary."
-	done
-
-Route41_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event 12, 17, WHIRL_ISLAND_NW, 1
-	warp_event 36, 19, WHIRL_ISLAND_NE, 1
-	warp_event 12, 37, WHIRL_ISLAND_SW, 1
-	warp_event 36, 45, WHIRL_ISLAND_SE, 1
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  9, 35, BGEVENT_ITEM, Route41HiddenMaxEther
-
-	def_object_events
-	object_event 32,  6, SPRITE_OLIVINE_RIVAL, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 3, TrainerSwimmermCharlie, -1
-	object_event 46,  8, SPRITE_OLIVINE_RIVAL, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 3, TrainerSwimmermGeorge, -1
-	object_event 20, 26, SPRITE_OLIVINE_RIVAL, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 3, TrainerSwimmermBerke, -1
-	object_event 32, 30, SPRITE_OLIVINE_RIVAL, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 3, TrainerSwimmermKirk, -1
-	object_event 19, 46, SPRITE_OLIVINE_RIVAL, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 3, TrainerSwimmermMathew, -1
-	object_event 17,  4, SPRITE_SWIMMER_GIRL, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_TRAINER, 3, TrainerSwimmerfKaylee, -1
-	object_event 23, 19, SPRITE_SWIMMER_GIRL, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_TRAINER, 3, TrainerSwimmerfSusie, -1
-	object_event 27, 34, SPRITE_SWIMMER_GIRL, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_TRAINER, 3, TrainerSwimmerfDenise, -1
-	object_event 44, 28, SPRITE_SWIMMER_GIRL, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_TRAINER, 4, TrainerSwimmerfKara, -1
-	object_event  9, 50, SPRITE_SWIMMER_GIRL, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_TRAINER, 2, TrainerSwimmerfWendy, -1

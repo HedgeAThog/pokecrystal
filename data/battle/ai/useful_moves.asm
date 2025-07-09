@@ -1,7 +1,7 @@
-; AI_SMART tries to use Mirror Move, Mimic, and Disable
-; after the player uses these moves.
+; AI_SMART knows these moves are usable all-around
 
 UsefulMoves:
+; Moves that are usable all-around.
 	db DOUBLE_EDGE
 	db SING
 	db FLAMETHROWER
@@ -17,8 +17,12 @@ UsefulMoves:
 	db TOXIC
 	db PSYCHIC_M
 	db HYPNOSIS
+	db WILL_O_WISP
 	db RECOVER
 	db FIRE_BLAST
-	db SOFTBOILED
+	db FRESH_SNACK
 	db SUPER_FANG
+	db MOONBLAST
+	db PLAY_ROUGH
+	db HURRICANE
 	db -1 ; end

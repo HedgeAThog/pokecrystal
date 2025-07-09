@@ -1,33 +1,33 @@
-BrentPhoneCalleeScript:
-	gettrainername STRING_BUFFER_3, POKEMANIAC, BRENT1
+BrentPhoneScript1:
+	gettrainername POKEMANIAC, BRENT1, STRING_BUFFER_3
 	checkflag ENGINE_BRENT_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	farscall PhoneScript_AnswerPhone_Male
 	checkflag ENGINE_BRENT_MONDAY_MORNING
-	iftrue .NotMonday
+	iftruefwd .NotMonday
 	readvar VAR_WEEKDAY
 	ifnotequal MONDAY, .NotMonday
-	checktime MORN
-	iftrue BrentMondayMorning
+	checktime 1 << MORN
+	iftruefwd BrentMondayMorning
 
 .NotMonday:
 	farsjump BrentHangUpScript
 
 .WantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_43
+	getlandmarkname ROUTE_43, STRING_BUFFER_5
 	farsjump BrentReminderScript
 
-BrentPhoneCallerScript:
-	gettrainername STRING_BUFFER_3, POKEMANIAC, BRENT1
+BrentPhoneScript2:
+	gettrainername POKEMANIAC, BRENT1, STRING_BUFFER_3
 	farscall PhoneScript_GreetPhone_Male
 	farscall PhoneScript_Random2
-	ifequal 0, BrentBillTrivia
+	ifequalfwd $0, BrentBillTrivia
 	checkflag ENGINE_BRENT_READY_FOR_REMATCH
-	iftrue .Generic
+	iftruefwd .Generic
 	checkflag ENGINE_BRENT_MONDAY_MORNING
-	iftrue .Generic
+	iftruefwd .Generic
 	farscall PhoneScript_Random2
-	ifequal 0, BrentWantsBattle
+	ifequalfwd $0, BrentWantsBattle
 
 .Generic:
 	farsjump Phone_GenericCall_Male
@@ -36,7 +36,7 @@ BrentMondayMorning:
 	setflag ENGINE_BRENT_MONDAY_MORNING
 
 BrentWantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_43
+	getlandmarkname ROUTE_43, STRING_BUFFER_5
 	setflag ENGINE_BRENT_READY_FOR_REMATCH
 	farsjump PhoneScript_WantsToBattle_Male
 

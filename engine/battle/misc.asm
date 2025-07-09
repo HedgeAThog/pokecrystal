@@ -1,4 +1,40 @@
-_DisappearUser:
+_CheckContactMove::
+; Check if user's move made contact. Returns nc if it is
+	predef GetUserItemAfterUnnerve
+	ld a, b
+	cp HELD_PROTECTIVE_PADS
+	jr z, .protective_pads
+	cp HELD_PUNCHING_GLOVE
+	jr nz, .not_punching_glove
+	farcall IsPunchingMove
+	ret z
+
+.not_punching_glove
+	ld a, BATTLE_VARS_MOVE
+	call GetBattleVar
+	cp STRUGGLE
+	ret nc
+	push af
+	ld hl, AbnormalContactMoves
+	call IsInByteArray
+	ld b, PHYSICAL
+	jr nc, .not_abnormal
+	assert PHYSICAL + 1 == SPECIAL
+	inc b
+.not_abnormal
+	pop af
+	ld hl, Moves + MOVE_CATEGORY
+	call GetMoveProperty ; checks category properly even if PSS is off
+	cp b
+	ret z
+	and a
+.protective_pads
+	ccf
+	ret
+
+INCLUDE "data/moves/abnormal_contact_moves.asm"
+
+DisappearUser::
 	xor a
 	ldh [hBGMapMode], a
 	ldh a, [hBattleTurn]
@@ -13,11 +49,11 @@ _DisappearUser:
 	jr FinishAppearDisappearUser
 
 _AppearUserRaiseSub:
-	farcall BattleCommand_RaiseSubNoAnim
+	farcall BattleCommand_raisesubnoanim
 	jr AppearUser
 
 _AppearUserLowerSub:
-	farcall BattleCommand_LowerSubNoAnim
+	farcall BattleCommand_lowersubnoanim
 
 AppearUser:
 	xor a
@@ -50,175 +86,34 @@ GetPlayerBackpicCoords:
 	ret
 
 DoWeatherModifiers:
-	ld de, WeatherTypeModifiers
-	ld a, [wBattleWeather]
-	ld b, a
-	ld a, [wCurType]
-	ld c, a
-
-.CheckWeatherType:
-	ld a, [de]
-	inc de
-	cp -1
-	jr z, .done_weather_types
-
-	cp b
-	jr nz, .NextWeatherType
-
-	ld a, [de]
-	cp c
-	jr z, .ApplyModifier
-
-.NextWeatherType:
-	inc de
-	inc de
-	jr .CheckWeatherType
-
-.done_weather_types
-	ld de, WeatherMoveModifiers
-
-	ld a, BATTLE_VARS_MOVE_EFFECT
-	call GetBattleVar
-	ld c, a
-
-.CheckWeatherMove:
-	ld a, [de]
-	inc de
-	cp -1
-	jr z, .done
-
-	cp b
-	jr nz, .NextWeatherMove
-
-	ld a, [de]
-	cp c
-	jr z, .ApplyModifier
-
-.NextWeatherMove:
-	inc de
-	inc de
-	jr .CheckWeatherMove
-
-.ApplyModifier:
-	xor a
-	ldh [hMultiplicand + 0], a
-	ld hl, wCurDamage
-	ld a, [hli]
-	ldh [hMultiplicand + 1], a
-	ld a, [hl]
-	ldh [hMultiplicand + 2], a
-
-	inc de
-	ld a, [de]
-	ldh [hMultiplier], a
-
-	call Multiply
-
-	ld a, 10
-	ldh [hDivisor], a
-	ld b, 4
-	call Divide
-
-	ldh a, [hQuotient + 1]
-	and a
-	ld bc, -1
-	jr nz, .Update
-
-	ldh a, [hQuotient + 2]
-	ld b, a
-	ldh a, [hQuotient + 3]
-	ld c, a
-	or b
-	jr nz, .Update
-
-	ld bc, 1
-
-.Update:
-	ld a, b
-	ld [wCurDamage], a
-	ld a, c
-	ld [wCurDamage + 1], a
-
-.done
+; checks attacking move type in b with current weather for a x1.5 boost or x0.5 penalty to
+; apply for wTypeMatchup for later damage calc adjustment (alongside STAB and type matchup)
+	call GetWeatherAfterOpponentUmbrella
+	cp WEATHER_SUN
+	jr z, .sun
+	cp WEATHER_RAIN
+	jr z, .rain
 	ret
-
-INCLUDE "data/battle/weather_modifiers.asm"
-
-DoBadgeTypeBoosts:
-	ld a, [wLinkMode]
-	and a
+.sun
+	lb de, FIRE, WATER
+	jr .check_movetype
+.rain
+	lb de, WATER, FIRE
+.check_movetype
+	ld a, b ; move type
+	cp e
+	jr z, .reduce
+	cp d
 	ret nz
-
-	ld a, [wInBattleTowerBattle]
-	and a
-	ret nz
-
-	ldh a, [hBattleTurn]
-	and a
-	ret nz
-
-	push de
-	push bc
-
-	ld hl, BadgeTypeBoosts
-
-	ld a, [wKantoBadges]
+.boost
+	ld a, [wTypeMatchup]
 	ld b, a
-	ld a, [wJohtoBadges]
-	ld c, a
-
-.CheckBadge:
-	ld a, [hl]
-	cp -1
-	jr z, .done
-
 	srl b
-	rr c
-	jr nc, .NextBadge
-
-	ld a, [wCurType]
-	cp [hl]
-	jr z, .ApplyBoost
-
-.NextBadge:
-	inc hl
-	jr .CheckBadge
-
-.ApplyBoost:
-	ld a, [wCurDamage]
-	ld h, a
-	ld d, a
-	ld a, [wCurDamage + 1]
-	ld l, a
-	ld e, a
-
-	srl d
-	rr e
-	srl d
-	rr e
-	srl d
-	rr e
-
-	ld a, e
-	or d
-	jr nz, .done_min
-	ld e, 1
-
-.done_min
-	add hl, de
-	jr nc, .Update
-
-	ld hl, $ffff
-
-.Update:
-	ld a, h
-	ld [wCurDamage], a
-	ld a, l
-	ld [wCurDamage + 1], a
-
-.done
-	pop bc
-	pop de
+	add b
+	ld [wTypeMatchup], a
 	ret
-
-INCLUDE "data/types/badge_type_boosts.asm"
+.reduce
+	ld a, [wTypeMatchup]
+	srl a
+	ld [wTypeMatchup], a
+	ret

@@ -1,7 +1,8 @@
 _TitleScreen:
+
 	call ClearBGPalettes
 	call ClearSprites
-	call ClearTilemap
+	call ClearTileMap
 
 ; Turn BG Map update off
 	xor a
@@ -10,9 +11,9 @@ _TitleScreen:
 ; Reset timing variables
 	ld hl, wJumptableIndex
 	ld [hli], a ; wJumptableIndex
-	ld [hli], a ; wTitleScreenSelectedOption
+	ld [hli], a ; wIntroSceneFrameCounter
 	ld [hli], a ; wTitleScreenTimer
-	ld [hl], a  ; wTitleScreenTimer + 1
+	ld [hl], a  ; wTitleScreenTimer+1
 
 ; Turn LCD off
 	call DisableLCD
@@ -28,9 +29,9 @@ _TitleScreen:
 
 ; Clear screen palettes
 	hlbgcoord 0, 0
-	ld bc, 20 * TILEMAP_WIDTH
+	ld bc, SCREEN_WIDTH * TILEMAP_WIDTH
 	xor a
-	call ByteFill
+	rst ByteFill
 
 ; Fill tile palettes:
 
@@ -40,7 +41,7 @@ _TitleScreen:
 	hlbgcoord 0, 0, vBGMap1
 	ld bc, TILEMAP_WIDTH
 	ld a, 7 ; palette
-	call ByteFill
+	rst ByteFill
 
 ; BG Map 0:
 
@@ -50,42 +51,42 @@ _TitleScreen:
 	hlbgcoord 0, 3
 	ld bc, 2 * TILEMAP_WIDTH
 	ld a, 2
-	call ByteFill
+	rst ByteFill
 ; line 5
 	hlbgcoord 0, 5
 	ld bc, TILEMAP_WIDTH
 	ld a, 3
-	call ByteFill
+	rst ByteFill
 ; line 6
 	hlbgcoord 0, 6
 	ld bc, TILEMAP_WIDTH
 	ld a, 4
-	call ByteFill
+	rst ByteFill
 ; line 7
 	hlbgcoord 0, 7
 	ld bc, TILEMAP_WIDTH
 	ld a, 5
-	call ByteFill
+	rst ByteFill
 ; lines 8-9
 	hlbgcoord 0, 8
 	ld bc, 2 * TILEMAP_WIDTH
 	ld a, 6
-	call ByteFill
+	rst ByteFill
 
 ; 'CRYSTAL VERSION'
 	hlbgcoord 5, 9
-	ld bc, 11 ; length of version text
+	ld bc, NAME_LENGTH ; length of version text
 	ld a, 1
-	call ByteFill
+	rst ByteFill
 
 ; Suicune gfx
 	hlbgcoord 0, 12
 	ld bc, 6 * TILEMAP_WIDTH ; the rest of the screen
-	ld a, 0 | OAM_BANK1
-	call ByteFill
+	ld a, 8
+	rst ByteFill
 
 ; Back to VRAM bank 0
-	ld a, 0
+	xor a
 	ldh [rVBK], a
 
 ; Decompress logo
@@ -102,21 +103,26 @@ _TitleScreen:
 	hlbgcoord 0, 0
 	ld bc, 64 * TILEMAP_WIDTH
 	ld a, " "
-	call ByteFill
+	rst ByteFill
 
 ; Draw Pokemon logo
 	hlcoord 0, 3
-	lb bc, 7, 20
-	ld d, $80
-	ld e, 20
+	lb bc, 7, SCREEN_WIDTH
+	lb de, $80, SCREEN_WIDTH
 	call DrawTitleGraphic
 
 ; Draw copyright text
-	hlbgcoord 3, 0, vBGMap1
+	hlbgcoord 4, 0, vBGMap1
 	lb bc, 1, 13
-	ld d, $c
-	ld e, 16
+	lb de, $0c, 0
 	call DrawTitleGraphic
+
+IF DEF(FAITHFUL)
+	hlbgcoord 17, 0, vBGMap1
+	lb bc, 1, 1
+	lb de, $19, 0
+	call DrawTitleGraphic
+endc
 
 ; Initialize running Suicune?
 	ld d, $0
@@ -125,56 +131,44 @@ _TitleScreen:
 ; Initialize background crystal
 	call InitializeBackground
 
-; Update palette colors
+; Save WRAM bank
 	ldh a, [rWBK]
 	push af
-	ld a, BANK(wBGPals1)
+; WRAM bank 5
+	ld a, 5
 	ldh [rWBK], a
 
+; Update palette colors
 	ld hl, TitleScreenPalettes
 	ld de, wBGPals1
 	ld bc, 16 palettes
-	call CopyBytes
+	rst CopyBytes
 
 	ld hl, TitleScreenPalettes
 	ld de, wBGPals2
 	ld bc, 16 palettes
-	call CopyBytes
+	rst CopyBytes
 
+; Restore WRAM bank
 	pop af
 	ldh [rWBK], a
 
 ; LY/SCX trickery starts here
 
-	ldh a, [rWBK]
 	push af
 	ld a, BANK(wLYOverrides)
 	ldh [rWBK], a
 
-; Make alternating lines come in from opposite sides
-
-; (This part is actually totally pointless, you can't
-;  see anything until these values are overwritten!)
-
-	ld b, 80 / 2 ; alternate for 80 lines
+; Make sure the LYOverrides buffer is empty
 	ld hl, wLYOverrides
-.loop
-; $00 is the middle position
-	ld [hl], +112 ; coming from the left
-	inc hl
-	ld [hl], -112 ; coming from the right
-	inc hl
-	dec b
-	jr nz, .loop
-
-; Make sure the rest of the buffer is empty
-	ld hl, wLYOverrides + 80
 	xor a
-	ld bc, wLYOverridesEnd - (wLYOverrides + 80)
-	call ByteFill
+	ld bc, wLYOverridesEnd - wLYOverrides
+	rst ByteFill
 
 ; Let LCD Stat know we're messing around with SCX
-	ld a, LOW(rSCX)
+	ld hl, rIE
+	set B_IE_STAT, [hl]
+	ld a, rSCX - rJOYP
 	ldh [hLCDCPointer], a
 
 	pop af
@@ -184,7 +178,6 @@ _TitleScreen:
 	call ChannelsOff
 	call EnableLCD
 
-; Set sprite size to 8x16
 	ldh a, [rLCDC]
 	set B_LCDC_OBJ_SIZE, a
 	ldh [rLCDC], a
@@ -198,35 +191,33 @@ _TitleScreen:
 	ld a, -112
 	ldh [hWY], a
 
-	ld a, TRUE
+	ld a, $1
 	ldh [hCGBPalUpdate], a
 
 ; Update BG Map 0 (bank 0)
 	ldh [hBGMapMode], a
 
 	xor a
-	ld [wSuicuneFrame], a
+	ld [wBGPals1 palette 0 + 2], a
 
 ; Play starting sound effect
 	call SFXChannelsOff
 	ld de, SFX_TITLE_SCREEN_ENTRANCE
-	call PlaySFX
-
-	ret
+	jmp PlaySFX
 
 SuicuneFrameIterator:
-	ld hl, wSuicuneFrame
+	ld hl, wBGPals1 palette 0 + 2
 	ld a, [hl]
 	ld c, a
 	inc [hl]
 
 ; Only do this once every eight frames
-	and %111
+	and (1 << 3) - 1
 	ret nz
 
 	ld a, c
-	and %11000
-	sla a
+	and 3 << 3
+	add a
 	swap a
 	ld e, a
 	ld d, 0
@@ -238,13 +229,12 @@ SuicuneFrameIterator:
 	call LoadSuicuneFrame
 	ld a, $1
 	ldh [hBGMapMode], a
-	ld a, $3
-	ldh [hBGMapThird], a
+	ldh [hBGMapHalf], a
 	ret
 
 .Frames:
-	db $80 ; vTiles3 tile $80
-	db $88 ; vTiles3 tile $88
+	db $80 ; vTiles4 tile $00
+	db $88 ; vTiles4 tile $08
 	db $00 ; vTiles5 tile $00
 	db $08 ; vTiles5 tile $08
 
@@ -259,12 +249,19 @@ LoadSuicuneFrame:
 	inc d
 	dec c
 	jr nz, .col
-	ld a, SCREEN_WIDTH - 8
-	add l
-	ld l, a
-	ld a, 0
-	adc h
-	ld h, a
+; "add hl, SCREEN_WIDTH - 8"
+; 6 bytes, 12 cycles
+	push de
+	ld de, SCREEN_WIDTH - 8
+	add hl, de
+	pop de
+;; 8 bytes, 8 cycles
+;	ld a, SCREEN_WIDTH - 8
+;	add l
+;	ld l, a
+;	ld a, 0
+;	adc h
+;	ld h, a
 	ld a, 8
 	add d
 	ld d, a
@@ -302,9 +299,8 @@ DrawTitleGraphic:
 	ret
 
 InitializeBackground:
-	ld hl, wShadowOAMSprite00
-	ld d, -$22
-	ld e, $0
+	ld hl, wShadowOAM
+	lb de, -$22, $0
 	ld c, 5
 .loop
 	push bc
@@ -318,21 +314,20 @@ InitializeBackground:
 	ret
 
 .InitColumn:
-	ld c, $6
-	ld b, $40
+	lb bc, $40, $6
 .loop2
 	ld a, d
-	ld [hli], a ; y
+	ld [hli], a
 	ld a, b
-	ld [hli], a ; x
+	ld [hli], a
 	add $8
 	ld b, a
 	ld a, e
-	ld [hli], a ; tile id
+	ld [hli], a
 	inc e
 	inc e
-	ld a, 0 | OAM_PRIO
-	ld [hli], a ; attributes
+	ld a, $80
+	ld [hli], a
 	dec c
 	jr nz, .loop2
 	ret
@@ -342,9 +337,9 @@ AnimateTitleCrystal:
 
 ; Stop at y=6
 ; y is really from the bottom of the sprite, which is two tiles high
-	ld hl, wShadowOAMSprite00YCoord
+	ld hl, wShadowOAM
 	ld a, [hl]
-	cp 6 + 2 * TILE_WIDTH
+	cp 6 + $10
 	ret z
 
 ; Move all 30 parts of the crystal down by 2
@@ -352,10 +347,10 @@ AnimateTitleCrystal:
 .loop
 	ld a, [hl]
 	add 2
-	ld [hli], a ; y
-rept OBJ_SIZE - 1
+	ld [hli], a
 	inc hl
-endr
+	inc hl
+	inc hl
 	dec c
 	jr nz, .loop
 
@@ -365,7 +360,7 @@ TitleSuicuneGFX:
 INCBIN "gfx/title/suicune.2bpp.lz"
 
 TitleLogoGFX:
-INCBIN "gfx/title/logo.2bpp.lz"
+INCBIN "gfx/title/logo_version.2bpp.lz"
 
 TitleCrystalGFX:
 INCBIN "gfx/title/crystal.2bpp.lz"

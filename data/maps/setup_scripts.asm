@@ -18,38 +18,40 @@ MapSetupScripts:
 ; valid commands are listed in MapSetupCommands (see data/maps/setup_script_pointers.asm)
 MACRO mapsetup
 	db (\1_MapSetupCmd - MapSetupCommands) / 3
-	; `mapsetup` takes a parameter if `add_mapsetup` indicates taking one.
-	if _NARG == 2
-		db \2 ; param
-	endc
 ENDM
 
 MapSetupScript_Teleport:
 	mapsetup ResetPlayerObjectAction
 MapSetupScript_Fly:
-	mapsetup FadeOutToWhite
+	mapsetup FadeOutPalettes
 	mapsetup JumpRoamMons
 MapSetupScript_Warp:
 	mapsetup DisableLCD
+	mapsetup DisableDynPalUpdates
 	mapsetup InitSound
 	mapsetup EnterMapSpawnPoint
 	mapsetup LoadMapAttributes
 	mapsetup HandleNewMap
+	mapsetup ClearWeather
+	mapsetup SetCurrentWeather
 	mapsetup SpawnPlayer
 	mapsetup RefreshPlayerCoords
 	mapsetup GetMapScreenCoords
 	mapsetup LoadBlockData
 	mapsetup BufferScreen
 	mapsetup LoadMapGraphics
+	mapsetup DecompressMetatiles
 	mapsetup LoadMapTimeOfDay
 	mapsetup LoadMapObjects
+	mapsetup GrottoUpdatePlayerTallGrassFlags
 	mapsetup EnableLCD
 	mapsetup LoadMapPalettes
 	mapsetup SpawnInFacingDown
+	mapsetup EnableDynPalUpdatesNoApply
 	mapsetup RefreshMapSprites
 	mapsetup PlayMapMusicBike
 	mapsetup FadeInToMusic
-	mapsetup FadeInFromWhite
+	mapsetup FadeInPalettes
 	mapsetup ActivateMapAnims
 	mapsetup LoadWildMonData
 	db -1 ; end
@@ -58,22 +60,27 @@ MapSetupScript_BadWarp:
 	mapsetup EnterMapSpawnPoint
 	mapsetup LoadMapAttributes
 	mapsetup HandleNewMap
+	mapsetup ClearWeather
+	mapsetup SetCurrentWeather
 	mapsetup SpawnPlayer
 	mapsetup RefreshPlayerCoords
 	mapsetup GetMapScreenCoords
 	mapsetup LoadBlockData
 	mapsetup BufferScreen
 	mapsetup DisableLCD
+	mapsetup DisableDynPalUpdates
 	mapsetup LoadMapGraphics
+	mapsetup DecompressMetatiles
 	mapsetup LoadMapTimeOfDay
 	mapsetup FadeOutMapMusic
 	mapsetup EnableLCD
 	mapsetup LoadMapObjects
 	mapsetup LoadMapPalettes
 	mapsetup SpawnInFacingDown
+	mapsetup EnableDynPalUpdatesNoApply
 	mapsetup RefreshMapSprites
 	mapsetup FadeToMapMusic
-	mapsetup FadeInFromWhite
+	mapsetup FadeInPalettes
 	mapsetup ActivateMapAnims
 	mapsetup LoadWildMonData
 	db -1 ; end
@@ -81,17 +88,22 @@ MapSetupScript_BadWarp:
 MapSetupScript_Connection:
 	mapsetup SuspendMapAnims
 	mapsetup EnterMapConnection
-	mapsetup LoadMapAttributes
+	mapsetup LoadMapAttributes_Connection
 	mapsetup HandleNewMap
+	mapsetup SetCurrentWeather
 	mapsetup RefreshPlayerCoords
 	mapsetup LoadBlockData
 	mapsetup LoadMapTileset
 	mapsetup SaveScreen
-	mapsetup LoadMapObjects
+	mapsetup DeferredLoadMapGraphics
+	mapsetup DecompressMetatiles
+	mapsetup DisableDynPalUpdates
+	mapsetup LoadMapObjects_Connection
 	mapsetup FadeToMapMusic
 	mapsetup LoadMapPalettes
+	mapsetup EnableDynPalUpdatesNoApply
+	mapsetup MapConnOWFadePalettesInit
 	mapsetup InitMapNameSign
-	mapsetup ApplyMapPalettes
 	mapsetup LoadWildMonData
 	mapsetup UpdateRoamMons
 	mapsetup ActivateMapAnims
@@ -100,44 +112,54 @@ MapSetupScript_Connection:
 MapSetupScript_Fall:
 	mapsetup ResetPlayerObjectAction
 MapSetupScript_Door:
-	mapsetup FadeOutToWhite
+	mapsetup FadeOutPalettes
 MapSetupScript_Train:
 	mapsetup EnterMapWarp
 	mapsetup LoadMapAttributes
 	mapsetup GetWarpDestCoords
 	mapsetup HandleNewMap
+	mapsetup ClearWeather
+	mapsetup SetCurrentWeather
 	mapsetup RefreshPlayerCoords
 	mapsetup LoadBlockData
 	mapsetup BufferScreen
 	mapsetup DisableLCD
+	mapsetup DisableDynPalUpdates
 	mapsetup LoadMapGraphics
+	mapsetup DecompressMetatiles
 	mapsetup LoadMapTimeOfDay
 	mapsetup FadeOutMapMusic
 	mapsetup EnableLCD
 	mapsetup LoadMapObjects
+	mapsetup GrottoUpdatePlayerTallGrassFlags
 	mapsetup LoadMapPalettes
+	mapsetup EnableDynPalUpdatesNoApply
 	mapsetup RefreshMapSprites
 	mapsetup FadeToMapMusic
-	mapsetup FadeInFromWhite
+	mapsetup FadeInPalettes
 	mapsetup ActivateMapAnims
 	mapsetup LoadWildMonData
 	mapsetup UpdateRoamMons
 	db -1 ; end
 
 MapSetupScript_ReloadMap:
+	mapsetup ClearWeather
 	mapsetup FadeMapMusicAndPalettes
 	mapsetup ClearBGPalettes
 	mapsetup DisableLCD
+	mapsetup DisableDynPalUpdates
 	mapsetup InitSound
 	mapsetup LoadBlockData
 	mapsetup LoadConnectionBlockData
 	mapsetup LoadMapGraphics
+	mapsetup DecompressMetatiles
 	mapsetup LoadMapTimeOfDay
 	mapsetup EnableLCD
 	mapsetup LoadMapPalettes
+	mapsetup EnableDynPalUpdatesNoApply
 	mapsetup RefreshMapSprites
 	mapsetup ForceMapMusic
-	mapsetup FadeInFromWhite
+	mapsetup FadeInPalettes
 	mapsetup ActivateMapAnims
 	mapsetup LoadWildMonData
 	db -1 ; end
@@ -145,24 +167,27 @@ MapSetupScript_ReloadMap:
 MapSetupScript_LinkReturn:
 	mapsetup FadeMapMusicAndPalettes
 	mapsetup DisableLCD
+	mapsetup DisableDynPalUpdates
 	mapsetup InitSound
 	mapsetup HandleNewMap
 	mapsetup LoadBlockData
 	mapsetup BufferScreen
 	mapsetup LoadMapGraphics
+	mapsetup DecompressMetatiles
 	mapsetup LoadMapTimeOfDay
 	mapsetup EnableLCD
 	mapsetup LoadMapPalettes
+	mapsetup EnableDynPalUpdatesNoApply
 	mapsetup RefreshMapSprites
 	mapsetup PlayMapMusicBike
-	mapsetup FadeInFromWhite
+	mapsetup FadeInPalettes
 	mapsetup ActivateMapAnims
 	mapsetup LoadWildMonData
-	mapsetup EnableTextAcceleration
 	db -1 ; end
 
 MapSetupScript_Continue:
 	mapsetup DisableLCD
+	mapsetup DisableDynPalUpdates
 	mapsetup InitSound
 	mapsetup LoadMapAttributes_SkipObjects
 	mapsetup GetMapScreenCoords
@@ -171,12 +196,16 @@ MapSetupScript_Continue:
 	mapsetup LoadConnectionBlockData
 	mapsetup BufferScreen
 	mapsetup LoadMapGraphics
+	mapsetup DecompressMetatiles
 	mapsetup LoadMapTimeOfDay
 	mapsetup EnableLCD
 	mapsetup LoadMapPalettes
+	mapsetup EnableDynPalUpdatesNoApply
 	mapsetup RefreshMapSprites
 	mapsetup PlayMapMusicBike
-	mapsetup FadeInFromWhite
+	mapsetup FadeInPalettes
+	mapsetup ClearWeather
+	mapsetup SetCurrentWeather
 	mapsetup ActivateMapAnims
 	mapsetup LoadWildMonData
 	db -1 ; end
@@ -184,4 +213,7 @@ MapSetupScript_Continue:
 MapSetupScript_Submenu:
 	mapsetup LoadBlockData
 	mapsetup LoadConnectionBlockData
+	mapsetup DisableLCD
+	mapsetup LoadMapTilesetGFX
+	mapsetup EnableLCD
 	db -1 ; end

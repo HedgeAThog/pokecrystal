@@ -1,32 +1,30 @@
-DEF ALLOW_SKIPPING_CREDITS_F EQU 6
-
-
 SECTION "Credits", ROMX
 
+SetCreditsSpawn::
+	ld a, b
+	ld [wCreditsSpawn], a
+	ret
+
 Credits::
-	; Don't allow skipping credits the first time they're viewed in the Hall of Fame
-	bit STATUSFLAGS_HALL_OF_FAME_F, b
-	ld a, 0
+	xor a
+	bit 6, b ; Hall Of Fame
 	jr z, .okay
-	ld a, 1 << ALLOW_SKIPPING_CREDITS_F
+	ld a, $40
 .okay
 	ld [wJumptableIndex], a
 
 	ldh a, [rWBK]
 	push af
-	ld a, BANK(wGBCPalettes)
+	ld a, BANK(wDecompressedCreditsGFX)
 	ldh [rWBK], a
 
 	call ClearBGPalettes
-	call ClearTilemap
+	call ClearTileMap
 	call ClearSprites
 
 	ld hl, wCreditsBlankFrame2bpp
-	ld c, (wCreditsBlankFrame2bppEnd - wCreditsBlankFrame2bpp) / 2
-	ld de, `22222222 ; eight pixels, each color #2 (dark)
-
-; Fill wCreditsBlankFrame2bpp with 4x4=16 tiles, all solid dark color
-; (the same color used for the four border frame mons' backgrounds)
+	ld c, $80
+	lb de, %11111111, %00000000 ; solid light gray hue
 
 .load_loop
 	ld a, e
@@ -36,31 +34,16 @@ Credits::
 	dec c
 	jr nz, .load_loop
 
-	ld de, CreditsBorderGFX
-	ld hl, vTiles2 tile $20
-	lb bc, BANK(CreditsBorderGFX), 9
-	call Request2bpp
+	call DecompressCreditsGFX
 
-	ld de, CopyrightGFX
-	ld hl, vTiles2 tile $60
-	lb bc, BANK(CopyrightGFX), 29
-	call Request2bpp
-
-	ld de, TheEndGFX
-	ld hl, vTiles2 tile $40
-	lb bc, BANK(TheEndGFX), 16
-	call Request2bpp
-
-	ld a, $ff
-	ld [wCreditsBorderFrame], a
 	xor a
 	ld [wCreditsBorderMon], a
+	dec a ; $ff
+	ld [wCreditsBorderFrame], a
 
 	call Credits_LoadBorderGFX
-	ld e, l
-	ld d, h
 	ld hl, vTiles2
-	lb bc, BANK(CreditsMonsGFX), 16
+	lb bc, BANK("Credits Graphics"), 4 * 4
 	call Request2bpp
 
 	call ConstructCreditsTilemap
@@ -70,28 +53,30 @@ Credits::
 	ld hl, wLYOverrides
 	ld bc, $100
 	xor a
-	call ByteFill
+	rst ByteFill
 
+	ld hl, rIE
+	set B_IE_STAT, [hl]
 	ld a, LOW(rSCX)
 	ldh [hLCDCPointer], a
 
 	call GetCreditsPalette
 	call SetDefaultBGPAndOBP
-; BUG: Credits sequence changes move selection menu behavior (see docs/bugs_and_glitches.md)
 	ldh a, [hVBlank]
 	push af
-	ld a, VBLANK_CREDITS
+	ld a, $5
 	ldh [hVBlank], a
-	ld a, TRUE
+	ld a, $1
 	ldh [hInMenu], a
 	xor a
 	ldh [hBGMapMode], a
 	ld [wCreditsPos], a
-	ld [wCreditsPos + 1], a
+	ld [wCreditsPos+1], a
 	ld [wCreditsTimer], a
 
 .execution_loop
 	call Credits_HandleBButton
+	jr nz, .exit_credits
 	call Credits_HandleAButton
 	jr nz, .exit_credits
 
@@ -101,6 +86,8 @@ Credits::
 
 .exit_credits
 	call ClearBGPalettes
+	ld hl, rIE
+	res B_IE_STAT, [hl]
 	xor a
 	ldh [hLCDCPointer], a
 	ldh [hBGMapAddress], a
@@ -115,7 +102,7 @@ Credits_HandleAButton:
 	and PAD_A
 	ret z
 	ld a, [wJumptableIndex]
-	bit JUMPTABLE_EXIT_F, a
+	bit 7, a
 	ret
 
 Credits_HandleBButton:
@@ -123,7 +110,7 @@ Credits_HandleBButton:
 	and PAD_B
 	ret z
 	ld a, [wJumptableIndex]
-	bit ALLOW_SKIPPING_CREDITS_F, a
+	bit 6, a
 	ret z
 	ld hl, wCreditsPos
 	ld a, [hli]
@@ -143,15 +130,7 @@ Credits_HandleBButton:
 Credits_Jumptable:
 	ld a, [wJumptableIndex]
 	and $f
-	ld e, a
-	ld d, 0
-	ld hl, .Jumptable
-	add hl, de
-	add hl, de
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	jp hl
+	call StackJumpTable
 
 .Jumptable:
 	dw ParseCredits
@@ -168,11 +147,6 @@ Credits_Jumptable:
 	dw Credits_RequestGFX
 	dw Credits_LoopBack
 
-Credits_Next:
-	ld hl, wJumptableIndex
-	inc [hl]
-	ret
-
 Credits_LoopBack:
 	ld hl, wJumptableIndex
 	ld a, [hl]
@@ -183,26 +157,31 @@ Credits_LoopBack:
 Credits_PrepBGMapUpdate:
 	xor a
 	ldh [hBGMapMode], a
-	jp Credits_Next
+	; fallthrough
+
+Credits_Next:
+	ld hl, wJumptableIndex
+	inc [hl]
+	ret
 
 Credits_UpdateGFXRequestPath:
 	call Credits_LoadBorderGFX
-	ld a, l
-	ld [wRequested2bppSource], a
-	ld a, h
-	ld [wRequested2bppSource + 1], a
-	ld a, LOW(vTiles2)
-	ld [wRequested2bppDest], a
+	ld a, e
+	ldh [hRequestedVTileSource], a
+	ld a, d
+	ldh [hRequestedVTileSource + 1], a
+	xor a ; LOW(vTiles2)
+	ldh [hRequestedVTileDest], a
 	ld a, HIGH(vTiles2)
-	ld [wRequested2bppDest + 1], a
-	jr Credits_RequestGFX
+	ldh [hRequestedVTileDest + 1], a
+	; fallthrough
 
 Credits_RequestGFX:
 	xor a
 	ldh [hBGMapMode], a
-	ld a, 8
-	ld [wRequested2bppSize], a
-	jp Credits_Next
+	ld a, $8
+	ldh [hRequested2bpp], a
+	jr Credits_Next
 
 Credits_LYOverride:
 	ldh a, [rLY]
@@ -216,7 +195,7 @@ Credits_LYOverride:
 	call .Fill
 	ld hl, wLYOverrides + $87
 	call .Fill
-	jp Credits_Next
+	jr Credits_Next
 
 .Fill:
 	ld c, $8
@@ -228,8 +207,8 @@ Credits_LYOverride:
 
 ParseCredits:
 	ld hl, wJumptableIndex
-	bit JUMPTABLE_EXIT_F, [hl]
-	jp nz, .done
+	bit 7, [hl]
+	jmp nz, .done
 
 ; Wait until the timer has run out to parse the next command.
 	ld hl, wCreditsTimer
@@ -239,7 +218,7 @@ ParseCredits:
 
 ; One tick has passed.
 	dec [hl]
-	jp .done
+	jmp .done
 
 .parse
 ; First, let's clear the current text display,
@@ -247,9 +226,9 @@ ParseCredits:
 	xor a
 	ldh [hBGMapMode], a
 	hlcoord 0, 5
-	ld bc, SCREEN_WIDTH * 12
+	ld bc, 20 * 12
 	ld a, " "
-	call ByteFill
+	rst ByteFill
 
 ; Then read the script.
 
@@ -258,9 +237,9 @@ ParseCredits:
 
 ; Commands:
 	cp CREDITS_END
-	jp z, .end
+	jmp z, .end
 	cp CREDITS_WAIT
-	jr z, .wait
+	jmp z, .wait
 	cp CREDITS_SCENE
 	jr z, .scene
 	cp CREDITS_CLEAR
@@ -308,9 +287,9 @@ ParseCredits:
 .print
 ; Print strings spaced every two lines.
 	call .get
-	ld bc, SCREEN_WIDTH * 2
-	call AddNTimes
-	call PlaceString
+	ld bc, 20 * 2
+	rst AddNTimes
+	rst PlaceString
 	jr .loop
 
 .theend
@@ -320,7 +299,16 @@ ParseCredits:
 
 .scene
 ; Update the scene number and corresponding palette.
+
+	ld a, [wCreditsSpawn]
+	cp SPAWN_LEAF
+	jr z, .leaf_scene
 	call .get
+	jr .got_scene
+.leaf_scene
+	call .get
+	add 4
+.got_scene
 	ld [wCreditsBorderMon], a ; scene
 	xor a
 	ld [wCreditsBorderFrame], a ; frame
@@ -336,14 +324,12 @@ ParseCredits:
 
 .music
 ; Play the credits music.
-	ld de, MUSIC_CREDITS
-	push de
-	ld de, MUSIC_NONE
+	ld e, MUSIC_NONE
 	call PlayMusic
 	call DelayFrame
-	pop de
+	ld e, MUSIC_CREDITS
 	call PlayMusic
-	jp .loop
+	jmp .loop
 
 .wait2
 ; Wait for some amount of ticks.
@@ -357,23 +343,23 @@ ParseCredits:
 	ld [wCreditsTimer], a
 
 	xor a
-	ldh [hBGMapThird], a
+	ldh [hBGMapHalf], a
 	ld a, 1
 	ldh [hBGMapMode], a
 
 .done
-	jp Credits_Next
+	jmp Credits_Next
 
 .end
 ; Stop execution.
 	ld hl, wJumptableIndex
-	set JUMPTABLE_EXIT_F, [hl]
+	set 7, [hl]
 	ld a, 32
 	ld [wMusicFade], a
 	ld a, LOW(MUSIC_POST_CREDITS)
 	ld [wMusicFadeID], a
-	ld a, HIGH(MUSIC_POST_CREDITS)
-	ld [wMusicFadeID + 1], a
+	xor a ; HIGH(MUSIC_POST_CREDITS)
+	ld [wMusicFadeIDHi], a
 	ret
 
 .get
@@ -382,7 +368,7 @@ ParseCredits:
 	push de
 	ld a, [wCreditsPos]
 	ld e, a
-	ld a, [wCreditsPos + 1]
+	ld a, [wCreditsPos+1]
 	ld d, a
 	ld hl, CreditsScript
 	add hl, de
@@ -391,7 +377,7 @@ ParseCredits:
 	ld a, e
 	ld [wCreditsPos], a
 	ld a, d
-	ld [wCreditsPos + 1], a
+	ld [wCreditsPos+1], a
 	ld a, [hl]
 	pop de
 	pop hl
@@ -406,12 +392,12 @@ ConstructCreditsTilemap:
 	ld a, $28
 	hlcoord 0, 0
 	ld bc, SCREEN_AREA
-	call ByteFill
+	rst ByteFill
 
 	ld a, $7f
 	hlcoord 0, 4
 	ld bc, (SCREEN_HEIGHT - 4) * SCREEN_WIDTH
-	call ByteFill
+	rst ByteFill
 
 	hlcoord 0, 4
 	ld a, $24
@@ -424,31 +410,30 @@ ConstructCreditsTilemap:
 	hlcoord 0, 0, wAttrmap
 	ld bc, 4 * SCREEN_WIDTH
 	xor a
-	call ByteFill
+	rst ByteFill
 
 	hlcoord 0, 4, wAttrmap
 	ld bc, SCREEN_WIDTH
 	ld a, $1
-	call ByteFill
+	rst ByteFill
 
 	hlcoord 0, 5, wAttrmap
 	ld bc, 12 * SCREEN_WIDTH
 	ld a, $2
-	call ByteFill
+	rst ByteFill
 
 	hlcoord 0, 17, wAttrmap
 	ld bc, SCREEN_WIDTH
 	ld a, $1
-	call ByteFill
+	rst ByteFill
 
-	call WaitBGMap2
+	call ApplyAttrAndTilemapInVBlank
 	xor a
 	ldh [hBGMapMode], a
 	ldh [hBGMapAddress], a
 	hlcoord 0, 0
 	call .InitTopPortion
-	call WaitBGMap2
-	ret
+	jmp ApplyAttrAndTilemapInVBlank
 
 .InitTopPortion:
 	ld b, 5
@@ -493,47 +478,54 @@ GetCreditsPalette:
 	call .GetPalAddress
 
 	push hl
-	ld a, 0
+	ldh a, [rWBK]
+	push af
+	ld a, BANK(wBGPals1)
+	ldh [rWBK], a
+	xor a
 	call .UpdatePals
+	pop af
+	ldh [rWBK], a
 	pop hl
 	ret
 
 .GetPalAddress:
 ; Each set of palette data is 24 bytes long.
 	ld a, [wCreditsBorderMon] ; scene
-	and %11
+	and 7
 	add a
-	add a ; * 8
+	add a
 	add a
 	ld e, a
 	ld d, 0
 	ld hl, CreditsPalettes
 	add hl, de
-	add hl, de ; * 3
+	add hl, de
 	add hl, de
 	ret
 
 .UpdatePals:
 ; Update the first three colors in both palette buffers.
+
 	push af
 	push hl
 	add LOW(wBGPals1)
 	ld e, a
-	ld a, 0
 	adc HIGH(wBGPals1)
+	sub e
 	ld d, a
 	ld bc, 24
-	call CopyBytes
+	rst CopyBytes
 
 	pop hl
 	pop af
 	add LOW(wBGPals2)
 	ld e, a
-	ld a, 0
 	adc HIGH(wBGPals2)
+	sub e
 	ld d, a
 	ld bc, 24
-	call CopyBytes
+	rst CopyBytes
 	ret
 
 CreditsPalettes:
@@ -545,50 +537,41 @@ Credits_LoadBorderGFX:
 	cp $ff
 	jr z, .init
 
-	and %11
+	and 7
 	ld e, a
 	inc a
-	and %11
+	and 7
 	ld [hl], a
 	ld a, [wCreditsBorderMon]
-	and %11
+	and 7
+	add a
 	add a
 	add a
 	add e
-	add a
-	ld e, a
-	ld d, 0
-	ld hl, .Frames
-	add hl, de
-	ld a, [hli]
-	ld h, [hl]
+	add LOW(.Frames)
 	ld l, a
+	adc HIGH(.Frames)
+	sub l
+	ld h, a
+	ld a, [hl]
+	add HIGH(wDecompressedCreditsGFX)
+	ld d, a
+	ld e, 0
 	ret
 
 .init
-	ld hl, wCreditsBlankFrame2bpp
+	ld de, wCreditsBlankFrame2bpp
 	ret
 
 .Frames:
-	dw CreditsPichuGFX
-	dw CreditsPichuGFX     + 16 tiles
-	dw CreditsPichuGFX     + 32 tiles
-	dw CreditsPichuGFX     + 48 tiles
-
-	dw CreditsSmoochumGFX
-	dw CreditsSmoochumGFX  + 16 tiles
-	dw CreditsSmoochumGFX  + 32 tiles
-	dw CreditsSmoochumGFX  + 48 tiles
-
-	dw CreditsDittoGFX
-	dw CreditsDittoGFX     + 16 tiles
-	dw CreditsDittoGFX     + 32 tiles
-	dw CreditsDittoGFX     + 48 tiles
-
-	dw CreditsIgglybuffGFX
-	dw CreditsIgglybuffGFX + 16 tiles
-	dw CreditsIgglybuffGFX + 32 tiles
-	dw CreditsIgglybuffGFX + 48 tiles
+	db  0,  1,  2,  1,  0,  1,  2,  1 ; Pichu
+	db  3,  3,  4,  4,  5,  5,  6,  6 ; Sentret
+	db  7,  7,  8,  8,  7,  7,  9,  9 ; Munchlax
+	db 10, 10, 11, 11, 10, 10, 12, 12 ; Togepi
+	db  0,  1,  0,  2,  0,  1,  0,  2 ; Smoochum
+	db  3,  4,  5,  6,  3,  4,  5,  6 ; Ditto
+	db  7,  7,  8,  8,  7,  7,  9,  9 ; Elekid
+	db 10, 10, 11, 11, 12, 12, 11, 11 ; Bellossom
 
 Credits_TheEnd:
 	ld a, $40
@@ -604,13 +587,31 @@ Credits_TheEnd:
 	jr nz, .loop
 	ret
 
-CreditsBorderGFX:    INCBIN "gfx/credits/border.2bpp"
+DecompressCreditsGFX:
+	ld hl, CreditsBorderGFX
+	ld de, vTiles2 tile $20
+	lb bc, BANK(CreditsBorderGFX), $09
+	call DecompressRequest2bpp
 
-CreditsMonsGFX: ; used only for BANK(CreditsMonsGFX)
-CreditsPichuGFX:     INCBIN "gfx/credits/pichu.2bpp"
-CreditsSmoochumGFX:  INCBIN "gfx/credits/smoochum.2bpp"
-CreditsDittoGFX:     INCBIN "gfx/credits/ditto.2bpp"
-CreditsIgglybuffGFX: INCBIN "gfx/credits/igglybuff.2bpp"
+	ld hl, TheEndGFX
+	ld de, vTiles2 tile $40
+	lb bc, BANK(TheEndGFX), $10
+	call DecompressRequest2bpp
+
+	ld hl, CopyrightGFX
+	ld de, vTiles2 tile $60
+	lb bc, BANK(CopyrightGFX), $1d
+	call DecompressRequest2bpp
+
+	ld a, [wCreditsSpawn]
+	cp SPAWN_LEAF
+	ld hl, CreditsSequence2GFX
+	jr z, .ok
+	ld hl, CreditsSequence1GFX
+.ok
+	ld b, BANK("Credits Graphics")
+	assert wDecompressedCreditsGFX == STARTOF(WRAMX)
+	jmp FarDecompressInB
 
 INCLUDE "data/credits_script.asm"
 INCLUDE "data/credits_strings.asm"

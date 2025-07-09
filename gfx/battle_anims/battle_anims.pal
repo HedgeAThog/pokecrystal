@@ -1,3 +1,4 @@
+if !DEF(MONOCHROME)
 ; gray
 	RGB 31, 31, 31
 	RGB 25, 25, 25
@@ -21,10 +22,15 @@
 ; blue
 	RGB 31, 31, 31
 	RGB 08, 12, 31
-	RGB 01, 04, 31
+	RGB 03, 05, 21
 	RGB 00, 00, 00
 ; brown
 	RGB 31, 31, 31
 	RGB 24, 18, 07
 	RGB 20, 15, 03
 	RGB 00, 00, 00
+else
+rept 6
+	MONOCHROME_RGB_FOUR
+endr
+endc

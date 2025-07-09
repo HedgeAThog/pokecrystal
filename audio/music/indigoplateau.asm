@@ -11,21 +11,21 @@ Music_IndigoPlateau_Ch1:
 	duty_cycle 3
 	pitch_offset 2
 	stereo_panning FALSE, TRUE
-.mainloop:
-	sound_call .sub1
+Music_IndigoPlateau_branch_ee86a:
+	sound_call Music_IndigoPlateau_branch_ee881
 	octave 3
 	note D_, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee881
 	octave 3
 	note D#, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee881
 	octave 3
 	note D#, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee881
 	note A#, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_IndigoPlateau_branch_ee86a
 
-.sub1:
+Music_IndigoPlateau_branch_ee881:
 	note_type 12, 11, 6
 	octave 2
 	note A_, 4
@@ -44,14 +44,14 @@ Music_IndigoPlateau_Ch2:
 	duty_cycle 3
 	vibrato 16, 2, 2
 	stereo_panning TRUE, FALSE
-.mainloop:
-	sound_call .sub1
+Music_IndigoPlateau_branch_ee899:
+	sound_call Music_IndigoPlateau_branch_ee8e9
 	note A_, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee8e9
 	note A#, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee8e9
 	note A_, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee8e9
 	note C#, 4
 	volume_envelope 12, 7
 	note A_, 6
@@ -61,7 +61,7 @@ Music_IndigoPlateau_Ch2:
 	note A_, 8
 	volume_envelope 11, 0
 	note A_, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee8e9
 	note A#, 4
 	volume_envelope 12, 7
 	octave 4
@@ -72,7 +72,7 @@ Music_IndigoPlateau_Ch2:
 	volume_envelope 11, 0
 	octave 3
 	note A_, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee8e9
 	note C#, 4
 	volume_envelope 12, 7
 	octave 4
@@ -84,7 +84,7 @@ Music_IndigoPlateau_Ch2:
 	note F#, 8
 	volume_envelope 11, 0
 	note A_, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee8e9
 	note A#, 4
 	volume_envelope 12, 7
 	octave 4
@@ -95,11 +95,11 @@ Music_IndigoPlateau_Ch2:
 	volume_envelope 11, 0
 	octave 3
 	note A_, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee8e9
 	note C#, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_IndigoPlateau_branch_ee899
 
-.sub1:
+Music_IndigoPlateau_branch_ee8e9:
 	note_type 12, 12, 6
 	octave 3
 	note D_, 4
@@ -116,22 +116,22 @@ Music_IndigoPlateau_Ch2:
 
 Music_IndigoPlateau_Ch3:
 	note_type 12, 1, 9
-.mainloop:
-	sound_call .sub1
+Music_IndigoPlateau_branch_ee8fd:
+	sound_call Music_IndigoPlateau_branch_ee915
 	octave 3
 	note A_, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee915
 	octave 3
 	note A_, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee915
 	octave 3
 	note A_, 4
-	sound_call .sub1
+	sound_call Music_IndigoPlateau_branch_ee915
 	octave 3
 	note F#, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_IndigoPlateau_branch_ee8fd
 
-.sub1:
+Music_IndigoPlateau_branch_ee915:
 	octave 3
 	note D_, 1
 	rest 3
@@ -152,7 +152,7 @@ Music_IndigoPlateau_Ch4:
 	stereo_panning TRUE, FALSE
 	toggle_noise 0
 	drum_speed 12
-.mainloop:
+Music_IndigoPlateau_branch_ee92a:
 	drum_note 4, 4
 	drum_note 3, 2
 	drum_note 4, 2
@@ -180,4 +180,4 @@ Music_IndigoPlateau_Ch4:
 	drum_note 3, 2
 	drum_note 3, 2
 	drum_note 2, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_IndigoPlateau_branch_ee92a

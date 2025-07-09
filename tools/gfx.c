@@ -134,12 +134,15 @@ void remove_whitespace(struct Graphic *graphic) {
 	graphic->size &= ~(tile_size - 1);
 	int i = 0;
 	for (int j = 0, d = 0; i < graphic->size && j < graphic->size; i += tile_size, j += tile_size) {
-		for (; j < graphic->size && is_whitespace(&graphic->data[j], tile_size) && !is_preserved(j / tile_size - d); j += tile_size, d++) {
+		while (j < graphic->size && is_whitespace(&graphic->data[j], tile_size) && !is_preserved(j / tile_size - d)) {
 			shift_preserved(j / tile_size - d);
+			d++;
+			j += tile_size;
 		}
 		if (j >= graphic->size) {
 			break;
-		} else if (j > i) {
+		}
+		if (j > i) {
 			memcpy(&graphic->data[i], &graphic->data[j], tile_size);
 		}
 	}
@@ -167,11 +170,13 @@ void remove_duplicates(struct Graphic *graphic) {
 	graphic->size &= ~(tile_size - 1);
 	int num_tiles = 0;
 	for (int i = 0, j = 0, d = 0; i < graphic->size && j < graphic->size; i += tile_size, j += tile_size) {
-		for (; j < graphic->size && tile_exists(&graphic->data[j], graphic->data, tile_size, num_tiles); j += tile_size, d++) {
+		while (j < graphic->size && tile_exists(&graphic->data[j], graphic->data, tile_size, num_tiles)) {
 			if ((options.keep_whitespace && is_whitespace(&graphic->data[j], tile_size)) || is_preserved(j / tile_size - d)) {
 				break;
 			}
 			shift_preserved(j / tile_size - d);
+			d++;
+			j += tile_size;
 		}
 		if (j >= graphic->size) {
 			break;
@@ -222,11 +227,13 @@ void remove_flip(struct Graphic *graphic, bool xflip, bool yflip) {
 	graphic->size &= ~(tile_size - 1);
 	int num_tiles = 0;
 	for (int i = 0, j = 0, d = 0; i < graphic->size && j < graphic->size; i += tile_size, j += tile_size) {
-		for (; j < graphic->size && flip_exists(&graphic->data[j], graphic->data, tile_size, num_tiles, xflip, yflip); j += tile_size, d++) {
+		while (j < graphic->size && flip_exists(&graphic->data[j], graphic->data, tile_size, num_tiles, xflip, yflip)) {
 			if ((options.keep_whitespace && is_whitespace(&graphic->data[j], tile_size)) || is_preserved(j / tile_size - d)) {
 				break;
 			}
 			shift_preserved(j / tile_size - d);
+			d++;
+			j += tile_size;
 		}
 		if (j >= graphic->size) {
 			break;
@@ -271,7 +278,7 @@ int main(int argc, char *argv[]) {
 	}
 	if (options.interleave) {
 		if (!options.png_file) {
-			error_exit("--interleave needs --png to infer dimensions\n");
+			error_exit("--interleave needs --png to infer dimensions");
 		}
 		int width = read_png_width(options.png_file);
 		interleave(&graphic, width);

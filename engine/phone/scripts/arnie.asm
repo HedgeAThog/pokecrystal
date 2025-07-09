@@ -1,60 +1,60 @@
-ArniePhoneCalleeScript:
-	gettrainername STRING_BUFFER_3, BUG_CATCHER, ARNIE1
+ArniePhoneScript1:
+	gettrainername BUG_CATCHER, ARNIE1, STRING_BUFFER_3
 	checkflag ENGINE_ARNIE_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	farscall PhoneScript_AnswerPhone_Male
 	checkflag ENGINE_ARNIE_TUESDAY_MORNING
-	iftrue .NotTuesday
+	iftruefwd .NotTuesday
 	readvar VAR_WEEKDAY
 	ifnotequal TUESDAY, .NotTuesday
-	checktime MORN
-	iftrue ArnieTuesdayMorning
+	checktime 1 << MORN
+	iftruefwd ArnieTuesdayMorning
 
 .NotTuesday:
 	checkflag ENGINE_YANMA_SWARM
-	iftrue .AlreadySwarming
+	iftruefwd .AlreadySwarming
 	farsjump ArnieHangUpScript
 
 .WantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_35
+	getlandmarkname ROUTE_35, STRING_BUFFER_5
 	farsjump ArnieReminderScript
 
 .AlreadySwarming:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_35
+	getlandmarkname ROUTE_35, STRING_BUFFER_5
 	farsjump ArnieHurryScript
 
-ArniePhoneCallerScript:
-	gettrainername STRING_BUFFER_3, BUG_CATCHER, ARNIE1
+ArniePhoneScript2:
+	gettrainername BUG_CATCHER, ARNIE1, STRING_BUFFER_3
 	farscall PhoneScript_GreetPhone_Male
 	checkflag ENGINE_ARNIE_READY_FOR_REMATCH
-	iftrue .Swarm
+	iftruefwd .Swarm
 	checkflag ENGINE_ARNIE_TUESDAY_MORNING
-	iftrue .Swarm
+	iftruefwd .Swarm
 	farscall PhoneScript_Random2
-	ifequal 0, ArnieWantsBattle
+	ifequalfwd $0, ArnieWantsBattle
 
 .Swarm:
 	farscall PhoneScript_Random5
-	ifequal 0, ArnieYanmaSwarm
+	ifequalfwd $0, ArnieYanmaSwarm
 	farscall PhoneScript_Random3
-	ifequal 0, ArnieFoundRare
+	ifequalfwd $0, ArnieFoundRare
 	farsjump Phone_GenericCall_Male
 
 ArnieTuesdayMorning:
 	setflag ENGINE_ARNIE_TUESDAY_MORNING
 
 ArnieWantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_35
+	getlandmarkname ROUTE_35, STRING_BUFFER_5
 	setflag ENGINE_ARNIE_READY_FOR_REMATCH
 	farsjump PhoneScript_WantsToBattle_Male
 
 ArnieYanmaSwarm: ; start swarm
 	checkflag ENGINE_YANMA_SWARM
-	iftrue ArnieYanmaAlreadySwarming
+	iftruefwd ArnieYanmaAlreadySwarming
 	setflag ENGINE_YANMA_SWARM
-	getmonname STRING_BUFFER_4, YANMA
+	getmonname YANMA, STRING_BUFFER_4
 	swarm SWARM_YANMA, ROUTE_35
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_35
+	getlandmarkname ROUTE_35, STRING_BUFFER_5
 	farsjump ArnieSwarmScript
 
 ArnieFoundRare:

@@ -1,5 +1,5 @@
 RalphAnswerPhoneText:
-	text "Yes? Ah, <PLAY_G>."
+	text "Yes? Ah, <PLAYER>."
 
 	para "You're courteous"
 	line "enough to state"
@@ -9,7 +9,7 @@ RalphAnswerPhoneText:
 	done
 
 RalphAnswerPhoneDayText:
-	text "Yes? Ah, <PLAY_G>."
+	text "Yes? Ah, <PLAYER>."
 
 	para "You're courteous"
 	line "enough to state"
@@ -19,7 +19,7 @@ RalphAnswerPhoneDayText:
 	done
 
 RalphAnswerPhoneNiteText:
-	text "Yes? Ah, <PLAY_G>."
+	text "Yes? Ah, <PLAYER>."
 
 	para "You're courteous"
 	line "enough to state"
@@ -30,21 +30,21 @@ RalphAnswerPhoneNiteText:
 
 RalphGreetText:
 	text "Hiya, it's Uncle"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 	done
 
 RalphGreetDayText:
 	text "Hiya, it's Uncle"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 	done
 
 RalphGreetNiteText:
 	text "Hiya, it's Uncle"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 	done
@@ -53,7 +53,7 @@ RalphGenericText:
 	text "Are you taking"
 	line "good care of your"
 
-	para "#MON? You have"
+	para "#mon? You have"
 	line "to be good to your"
 	cont "partners!"
 	done

@@ -23,7 +23,7 @@ Music_Bicycle_Ch1:
 	note A_, 8
 	volume_envelope 11, 2
 	note F#, 2
-.mainloop:
+Music_Bicycle_branch_ee144:
 	stereo_panning FALSE, TRUE
 	volume_envelope 11, 2
 	note G_, 2
@@ -168,7 +168,7 @@ Music_Bicycle_Ch1:
 	note G_, 2
 	note G#, 2
 	note A_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_Bicycle_branch_ee144
 
 Music_Bicycle_Ch2:
 	duty_cycle 2
@@ -194,7 +194,7 @@ Music_Bicycle_Ch2:
 	octave 3
 	note B_, 2
 	note A_, 2
-.mainloop:
+Music_Bicycle_branch_ee1fd:
 	stereo_panning TRUE, TRUE
 	duty_cycle 2
 	volume_envelope 12, 3
@@ -254,7 +254,7 @@ Music_Bicycle_Ch2:
 	volume_envelope 12, 7
 	note F#, 8
 	stereo_panning FALSE, TRUE
-	sound_call .sub1
+	sound_call Music_Bicycle_branch_ee263
 	note F#, 4
 	volume_envelope 12, 3
 	note A_, 2
@@ -263,7 +263,7 @@ Music_Bicycle_Ch2:
 	note F_, 2
 	note F#, 4
 	volume_envelope 12, 7
-	sound_call .sub1
+	sound_call Music_Bicycle_branch_ee263
 	note F#, 4
 	volume_envelope 12, 3
 	note A_, 2
@@ -271,9 +271,9 @@ Music_Bicycle_Ch2:
 	note A_, 2
 	note G_, 2
 	note F#, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_Bicycle_branch_ee1fd
 
-.sub1:
+Music_Bicycle_branch_ee263:
 	note G_, 6
 	note B_, 6
 	note G_, 4
@@ -302,8 +302,8 @@ Music_Bicycle_Ch3:
 	octave 3
 	note A_, 1
 	rest 1
-.mainloop:
-	sound_call .sub1
+Music_Bicycle_branch_ee27f:
+	sound_call Music_Bicycle_branch_ee333
 	note E_, 1
 	rest 1
 	note G_, 1
@@ -354,7 +354,7 @@ Music_Bicycle_Ch3:
 	rest 1
 	note F#, 1
 	rest 1
-	sound_call .sub1
+	sound_call Music_Bicycle_branch_ee333
 	note E_, 1
 	rest 1
 	note G_, 1
@@ -405,7 +405,7 @@ Music_Bicycle_Ch3:
 	rest 1
 	note A_, 1
 	rest 1
-.loop1:
+Music_Bicycle_branch_ee2e9:
 	note G_, 1
 	rest 1
 	note B_, 1
@@ -472,10 +472,10 @@ Music_Bicycle_Ch3:
 	rest 1
 	note A_, 1
 	rest 1
-	sound_loop 2, .loop1
-	sound_loop 0, .mainloop
+	sound_loop 2, Music_Bicycle_branch_ee2e9
+	sound_jump Music_Bicycle_branch_ee27f
 
-.sub1:
+Music_Bicycle_branch_ee333:
 	octave 3
 	note G_, 1
 	rest 1
@@ -500,16 +500,16 @@ Music_Bicycle_Ch4:
 	drum_speed 12
 	rest 16
 	rest 16
-.mainloop:
+Music_Bicycle_branch_ee34b:
 	rest 2
-.loop1:
+Music_Bicycle_branch_ee34c:
 	stereo_panning TRUE, FALSE
 	drum_note 6, 4
-	sound_loop 12, .loop1
+	sound_loop 12, Music_Bicycle_branch_ee34c
 	drum_note 6, 4
 	drum_note 6, 4
 	stereo_panning TRUE, TRUE
 	drum_note 6, 2
 	drum_note 6, 2
 	drum_note 6, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_Bicycle_branch_ee34b

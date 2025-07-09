@@ -1,50 +1,7 @@
-	object_const_def
-	const ECRUTEAKMART_CLERK
-	const ECRUTEAKMART_SUPER_NERD
-	const ECRUTEAKMART_GRANNY
-
-EcruteakMart_MapScripts:
+EcruteakMart_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
-
-EcruteakMartClerkScript:
-	opentext
-	pokemart MARTTYPE_STANDARD, MART_ECRUTEAK
-	closetext
-	end
-
-EcruteakMartSuperNerdScript:
-	jumptextfaceplayer EcruteakMartSuperNerdText
-
-EcruteakMartGrannyScript:
-	jumptextfaceplayer EcruteakMartGrannyText
-
-EcruteakMartSuperNerdText:
-	text "My EEVEE evolved"
-	line "into an ESPEON."
-
-	para "But my friend's"
-	line "EEVEE turned into"
-	cont "an UMBREON."
-
-	para "I wonder why? We"
-	line "both were raising"
-
-	para "our EEVEE in the"
-	line "same way…"
-	done
-
-EcruteakMartGrannyText:
-	text "If you use REVIVE,"
-	line "a #MON that's"
-
-	para "fainted will wake"
-	line "right up."
-	done
-
-EcruteakMart_MapEvents:
-	db 0, 0 ; filler
 
 	def_warp_events
 	warp_event  2,  7, ECRUTEAK_CITY, 9
@@ -55,6 +12,31 @@ EcruteakMart_MapEvents:
 	def_bg_events
 
 	def_object_events
-	object_event  1,  3, SPRITE_CLERK, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, EcruteakMartClerkScript, -1
-	object_event  5,  2, SPRITE_SUPER_NERD, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 1, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, EcruteakMartSuperNerdScript, -1
-	object_event  6,  6, SPRITE_GRANNY, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, EcruteakMartGrannyScript, -1
+	mart_clerk_event  1,  3, MARTTYPE_STANDARD, MART_ECRUTEAK
+	object_event  5,  2, SPRITE_POKEMANIAC, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, PAL_NPC_GREEN, OBJECTTYPE_COMMAND, jumptextfaceplayer, EcruteakMartSuperNerdText, -1
+	object_event  6,  6, SPRITE_RICH_BOY, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, PAL_NPC_PURPLE, OBJECTTYPE_COMMAND, jumptextfaceplayer, EcruteakMartGrannyText, -1
+
+EcruteakMartSuperNerdText:
+	text "My Eevee evolved"
+	line "into an Espeon."
+
+	para "But my friend's"
+	line "Eevee turned into"
+	cont "an Umbreon."
+
+	para "I wonder why? We"
+	line "both were raising"
+
+	para "our Eevee in the"
+	line "same way…"
+	done
+
+EcruteakMartGrannyText:
+	text "The Magnet Train"
+	line "in Goldenrod is"
+	cont "great, but there"
+
+	para "were also plans to"
+	line "put a station in"
+	cont "Ecruteak at first."
+	done

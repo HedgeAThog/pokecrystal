@@ -1,116 +1,117 @@
-BattleCommand_Sketch:
+BattleCommand_sketch:
 	call ClearLastMove
-; Don't sketch during a link battle
+
+	; Don't sketch during a link battle
 	ld a, [wLinkMode]
 	and a
 	jr z, .not_linked
 	call AnimateFailedMove
-	jp PrintNothingHappened
+	jmp PrintNothingHappened
 
 .not_linked
-; If the opponent has a substitute up, fail.
+	; If the opponent has a substitute up, fail.
 	call CheckSubstituteOpp
-	jp nz, .fail
-; If the opponent is transformed, fail.
-; BUG: A Transformed Pokémon can use Sketch and learn otherwise unobtainable moves (see docs/bugs_and_glitches.md)
-	ld a, BATTLE_VARS_SUBSTATUS5_OPP
+	jr nz, .fail
+
+	; If the user is transformed, fail.
+	ld a, BATTLE_VARS_SUBSTATUS2
 	call GetBattleVarAddr
 	bit SUBSTATUS_TRANSFORMED, [hl]
-	jp nz, .fail
-; Get the user's moveset in its party struct.
-; This move replacement shall be permanent.
-; Pointer will be in de.
-	ld a, MON_MOVES
-	call UserPartyAttr
-	ld d, h
-	ld e, l
-; Get the battle move structs.
-	ld hl, wBattleMonMoves
+	jr nz, .fail
+
+	; Get the battle move structs.
 	ldh a, [hBattleTurn]
 	and a
+	ld hl, wBattleMonMoves
 	jr z, .get_last_move
 	ld hl, wEnemyMonMoves
 .get_last_move
 	ld a, BATTLE_VARS_LAST_COUNTER_MOVE_OPP
 	call GetBattleVar
-	ld [wNamedObjectIndex], a
+	ld [wTypeMatchup], a
 	ld b, a
-; Fail if move is invalid or is Struggle.
+
+	; Fail if move is invalid or is Struggle. Sketch is implicitly checked below.
 	and a
 	jr z, .fail
-	cp STRUGGLE
+	inc a ; cp STRUGGLE
 	jr z, .fail
-; Fail if user already knows that move
+
+	; Fail if user already knows that move (which will always include Sketch)
 	ld c, NUM_MOVES
+	push hl
 .does_user_already_know_move
 	ld a, [hli]
 	cp b
-	jr z, .fail
+	jr z, .pop_hl_and_fail
 	dec c
 	jr nz, .does_user_already_know_move
-; Find Sketch in the user's moveset.
-; Pointer in hl, and index in c.
-	dec hl
-	ld c, NUM_MOVES
-.find_sketch
-	dec c
-	ld a, [hld]
-	cp SKETCH
-	jr nz, .find_sketch
-	inc hl
-; The Sketched move is loaded to that slot.
-	ld a, b
-	ld [hl], a
-; Copy the base PP from that move.
+
+	; We now have the move in b ready to be written. Get move PP into c.
 	push bc
-	push hl
+	ld a, b
 	dec a
 	ld hl, Moves + MOVE_PP
 	call GetMoveAttr
-	pop hl
-	ld bc, wBattleMonPP - wBattleMonMoves
-	add hl, bc
-	ld [hl], a
 	pop bc
+	ld c, a
+	pop hl
 
+	; Retrieve currently disabled/encored move, since we might overwrite it
+	; if one of them are Sketch.
+	farcall GetDisableEncoreMoves
+	push de
+
+	; Get move index to overwrite.
 	ldh a, [hBattleTurn]
 	and a
-	jr z, .user_trainer
-	ld a, [wBattleMode]
-	dec a
-	jr nz, .user_trainer
-; wildmon
-	ld a, [hl]
-	push bc
-	ld hl, wWildMonPP
-	ld b, 0
-	add hl, bc
-	ld [hl], a
-	ld hl, wWildMonMoves
-	add hl, bc
-	pop bc
-	ld [hl], b
-	jr .done_copy
-
-.user_trainer
-	ld a, [hl]
+	ld a, [wCurMoveNum]
+	jr z, .got_move_num
+	ld a, [wCurEnemyMoveNum]
+.got_move_num
+	; hl points to the move list in the battle struct. Get the right index.
 	push af
-	ld l, c
-	ld h, 0
+	add l
+	ld l, a
+	adc h
+	sub l
+	ld h, a
+
+	; Now set move ID and PP.
+	ld [hl], b
+	ld de, wBattleMonPP - wBattleMonMoves
 	add hl, de
-	ld a, b
-	ld [hl], a
+	ld [hl], c
+
+	; Do the same thing for the party struct if, and only if, we have Sketch.
+	ld a, MON_MOVES
+	call UserPartyAttr
 	pop af
+	add l
+	ld l, a
+	adc h
+	sub l
+	ld h, a
+	ld a, [hl]
+	cp SKETCH
+	jr nz, .finished_overwriting_sketch
+
+	ld [hl], b
 	ld de, MON_PP - MON_MOVES
 	add hl, de
-	ld [hl], a
-.done_copy
+	ld [hl], c
+
+.finished_overwriting_sketch
 	call GetMoveName
 	call AnimateCurrentMove
+	pop de
+	farcall SetDisableEncoreMoves
 
 	ld hl, SketchedText
-	jp StdBattleTextbox
+	jmp StdBattleTextbox
 
+.pop_hl_and_fail
+	pop hl
 .fail
 	call AnimateFailedMove
-	jp PrintDidntAffect
+	jmp PrintDidntAffect

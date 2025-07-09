@@ -11,22 +11,22 @@ Music_RuinsOfAlphRadio_Ch1:
 	pitch_offset 280
 	vibrato 0, 15, 0
 	stereo_panning TRUE, FALSE
-.mainloop:
+Music_RuinsOfAlphRadio_branch_eede3:
 	note_type 6, 7, 1
-	sound_call .sub1
+	sound_call Music_RuinsOfAlphRadio_branch_eee01
 	note_type 12, 10, 1
 	rest 16
 	rest 16
-	sound_call .sub2
+	sound_call Music_RuinsOfAlphRadio_branch_eee08
 	note_type 12, 10, 1
 	rest 16
 	rest 16
-	sound_call .sub1
+	sound_call Music_RuinsOfAlphRadio_branch_eee01
 	note_type 12, 10, 1
 	rest 16
-	sound_loop 0, .mainloop
+	sound_jump Music_RuinsOfAlphRadio_branch_eede3
 
-.sub1:
+Music_RuinsOfAlphRadio_branch_eee01:
 	octave 4
 	note G_, 1
 	note F#, 1
@@ -35,7 +35,7 @@ Music_RuinsOfAlphRadio_Ch1:
 	note C_, 8
 	sound_ret
 
-.sub2:
+Music_RuinsOfAlphRadio_branch_eee08:
 	octave 4
 	note G_, 1
 	note F#, 1
@@ -50,25 +50,25 @@ Music_RuinsOfAlphRadio_Ch1:
 Music_RuinsOfAlphRadio_Ch2:
 	duty_cycle 1
 	vibrato 1, 14, 0
-.mainloop:
+Music_RuinsOfAlphRadio_branch_eee17:
 	stereo_panning FALSE, TRUE
 	note_type 6, 8, 1
-	sound_call Music_RuinsOfAlphRadio_Ch1.sub1
+	sound_call Music_RuinsOfAlphRadio_branch_eee01
 	note_type 12, 10, 1
 	rest 16
 	rest 16
 	note_type 6, 8, 1
-	sound_call Music_RuinsOfAlphRadio_Ch1.sub2
+	sound_call Music_RuinsOfAlphRadio_branch_eee08
 	note_type 12, 10, 1
 	rest 16
-	sound_loop 0, .mainloop
+	sound_jump Music_RuinsOfAlphRadio_branch_eee17
 
 Music_RuinsOfAlphRadio_Ch3:
 	note_type 6, 2, 6
-.mainloop:
+Music_RuinsOfAlphRadio_branch_eee35:
 	octave 2
 	note C_, 1
 	note C#, 1
 	note C_, 1
 	rest 16
-	sound_loop 0, .mainloop
+	sound_jump Music_RuinsOfAlphRadio_branch_eee35

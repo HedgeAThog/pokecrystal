@@ -3,10 +3,10 @@ SplashScreen:
 ; Return carry if user cancels animation by pressing a button.
 
 ; Reinitialize everything
-	ld de, MUSIC_NONE
+	ld e, MUSIC_NONE
 	call PlayMusic
 	call ClearBGPalettes
-	call ClearTilemap
+	call ClearTileMap
 	ld a, HIGH(vBGMap0)
 	ldh [hBGMapAddress + 1], a
 	xor a ; LOW(vBGMap0)
@@ -14,26 +14,26 @@ SplashScreen:
 	ldh [hJoyDown], a
 	ldh [hSCX], a
 	ldh [hSCY], a
-	ld a, SCREEN_HEIGHT_PX
+	ld a, $90
 	ldh [hWY], a
-	call WaitBGMap
-	ld b, SCGB_GAMEFREAK_LOGO
-	call GetSGBLayout
+	ld a, CGB_GAMEFREAK_LOGO
+	call GetCGBLayout
+
+; Draw copyright screen, check for BSOD
+	farcall Copyright
+	farcall BSOD
+	call ApplyTilemapInVBlank
+	ld c, 15
+	call FadePalettes
+	ld c, 80
+	call DelayFrames
+	call SetBlackPals
+	ld c, 15
+	call FadePalettes
+	call ClearTileMap
+	ld a, CGB_GAMEFREAK_LOGO
+	call GetCGBLayout
 	call SetDefaultBGPAndOBP
-	ld c, 10
-	call DelayFrames
-
-; Draw copyright screen
-	callfar Copyright
-	call WaitBGMap
-	ld c, 100
-	call DelayFrames
-	call ClearTilemap
-
-; Stop here if not in GBC mode
-	farcall GBCOnlyScreen
-
-; Play GameFreak logo animation
 	call GameFreakPresentsInit
 .joy_loop
 	call JoyTextDelay
@@ -41,9 +41,9 @@ SplashScreen:
 	and PAD_BUTTONS
 	jr nz, .pressed_button
 	ld a, [wJumptableIndex]
-	bit JUMPTABLE_EXIT_F, a
+	bit 7, a
 	jr nz, .finish
-	call GameFreakPresentsScene
+	call PlaceGameFreakPresents
 	farcall PlaySpriteAnimations
 	call DelayFrame
 	jr .joy_loop
@@ -72,7 +72,7 @@ GameFreakPresentsInit:
 	ld hl, GameFreakDittoGFX
 	ld de, wDecompressScratch
 	ld a, BANK(GameFreakDittoGFX)
-	call FarDecompress
+	call Decompress
 
 	ld hl, vTiles0
 	ld de, wDecompressScratch
@@ -87,9 +87,9 @@ GameFreakPresentsInit:
 	pop af
 	ldh [rWBK], a
 
-	farcall ClearSpriteAnims
+	call ClearSpriteAnims
 	depixel 10, 11, 4, 0
-	ld a, SPRITE_ANIM_OBJ_GAMEFREAK_LOGO
+	ld a, SPRITE_ANIM_INDEX_GAMEFREAK_LOGO
 	call InitSpriteAnimStruct
 	ld hl, SPRITEANIMSTRUCT_YOFFSET
 	add hl, bc
@@ -111,57 +111,41 @@ GameFreakPresentsInit:
 	ld a, 144
 	ldh [hWY], a
 	lb de, %11100100, %11100100
-	call DmgToCgbObjPals
-	ret
+	jmp DmgToCgbObjPals
 
 GameFreakPresentsEnd:
-	farcall ClearSpriteAnims
-	call ClearTilemap
+	call ClearSpriteAnims
+	call ClearTileMap
 	call ClearSprites
 	ld c, 16
-	call DelayFrames
-	ret
+	jmp DelayFrames
 
-GameFreakPresentsScene:
-	jumptable .scenes, wJumptableIndex
+PlaceGameFreakPresents:
+	call StandardStackJumpTable
 
-.scenes
-	dw GameFreakPresents_WaitSpriteAnim
+.Jumptable
+	dw DoNothing
 	dw GameFreakPresents_PlaceGameFreak
 	dw GameFreakPresents_PlacePresents
 	dw GameFreakPresents_WaitForTimer
 
-GameFreakPresents_NextScene:
-	ld hl, wJumptableIndex
-	inc [hl]
-	ret
-
-GameFreakPresents_WaitSpriteAnim:
-	ret
-
 GameFreakPresents_PlaceGameFreak:
 	ld hl, wIntroSceneTimer
 	ld a, [hl]
-	cp 32
+	cp $20
 	jr nc, .PlaceGameFreak
 	inc [hl]
 	ret
 
 .PlaceGameFreak:
 	ld [hl], 0
-	ld hl, .game_freak
+	ld hl, Splash_GameFreakTiles
 	decoord 5, 10
-	ld bc, .end - .game_freak
-	call CopyBytes
+	ld bc, Splash_GameFreakTiles.end - Splash_GameFreakTiles
+	rst CopyBytes
 	call GameFreakPresents_NextScene
 	ld de, SFX_GAME_FREAK_PRESENTS
-	call PlaySFX
-	ret
-
-.game_freak
-	db $00, $01, $02, $03, $0d, $04, $05, $03, $01, $06
-.end
-	db "@"
+	jmp PlaySFX
 
 GameFreakPresents_PlacePresents:
 	ld hl, wIntroSceneTimer
@@ -173,17 +157,25 @@ GameFreakPresents_PlacePresents:
 
 .place_presents
 	ld [hl], 0
-	ld hl, .presents
+	ld hl, Splash_PresentsTiles
 	decoord 7, 11
-	ld bc, .end - .presents
-	call CopyBytes
-	call GameFreakPresents_NextScene
+	ld bc, Splash_PresentsTiles.end - Splash_PresentsTiles
+	rst CopyBytes
+	; fallthrough
+
+GameFreakPresents_NextScene:
+	ld hl, wJumptableIndex
+	inc [hl]
 	ret
 
-.presents
-	db $07, $08, $09, $0a, $0b, $0c
+Splash_GameFreakTiles:
+	;  G  A  M  E   _  F  R  E  A  K
+	db 0, 1, 2, 3, 13, 4, 5, 3, 1, 6
 .end
-	db "@"
+
+Splash_PresentsTiles:
+	db 7, 8, 9, 10, 11, 12
+.end
 
 GameFreakPresents_WaitForTimer:
 	ld hl, wIntroSceneTimer
@@ -195,28 +187,21 @@ GameFreakPresents_WaitForTimer:
 
 .finish
 	ld hl, wJumptableIndex
-	set JUMPTABLE_EXIT_F, [hl]
+	set 7, [hl]
 	ret
 
-GameFreakLogoSpriteAnim:
+GameFreakLogoJumper:
 	ld hl, SPRITEANIMSTRUCT_JUMPTABLE_INDEX
 	add hl, bc
-	ld e, [hl]
-	ld d, 0
-	ld hl, .scenes
-	add hl, de
-	add hl, de
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	jp hl
+	ld a, [hl]
+	call StackJumpTable
 
-.scenes:
+.Jumptable:
 	dw GameFreakLogo_Init
 	dw GameFreakLogo_Bounce
 	dw GameFreakLogo_Ditto
 	dw GameFreakLogo_Transform
-	dw GameFreakLogo_Done
+	dw DoNothing
 
 GameFreakLogo_Init:
 	ld hl, SPRITEANIMSTRUCT_JUMPTABLE_INDEX
@@ -229,7 +214,6 @@ GameFreakLogo_Bounce:
 ; By default, this is twice, with a height of 96 pixels and 48 pixels.
 ; Sine offset starts at 48 (32+32/2, or pi+pi/2), so it starts at the maximum
 ; value of the sine wave (i.e. the top of the screen).
-
 	ld hl, SPRITEANIMSTRUCT_VAR1 ; jump height
 	add hl, bc
 	ld a, [hl]
@@ -246,12 +230,10 @@ GameFreakLogo_Bounce:
 	jr nc, .no_negative
 	add 32
 .no_negative
-
-	ld e, a
-	farcall BattleAnim_Sine_e ; e = d * sin(e * pi/32)
+	farcall Sine
 	ld hl, SPRITEANIMSTRUCT_YOFFSET
 	add hl, bc
-	ld [hl], e
+	ld [hl], a
 
 ; Decrement the sine offset
 	ld hl, SPRITEANIMSTRUCT_VAR2 ; sine offset
@@ -268,22 +250,19 @@ GameFreakLogo_Bounce:
 	sub 48
 	ld [hl], a
 	ld de, SFX_DITTO_BOUNCE
-	call PlaySFX
-	ret
+	jmp PlaySFX
 
 .done
 	ld hl, SPRITEANIMSTRUCT_JUMPTABLE_INDEX
 	add hl, bc
 	inc [hl]
-	ld hl, SPRITEANIMSTRUCT_VAR2
+	ld hl, SPRITEANIMSTRUCT_VAR2 ; sine offset
 	add hl, bc
 	ld [hl], 0
 	ld de, SFX_DITTO_POP_UP
-	call PlaySFX
-	ret
+	jmp PlaySFX
 
 GameFreakLogo_Ditto:
-; Wait a little, then start transforming
 	ld hl, SPRITEANIMSTRUCT_VAR2 ; frame count
 	add hl, bc
 	ld a, [hl]
@@ -300,23 +279,22 @@ GameFreakLogo_Ditto:
 	add hl, bc
 	ld [hl], 0
 	ld de, SFX_DITTO_TRANSFORM
-	call PlaySFX
-	ret
+	jmp PlaySFX
 
 GameFreakLogo_Transform:
-	ld hl, SPRITEANIMSTRUCT_VAR2 ; frame count
+	ld hl, SPRITEANIMSTRUCT_VAR2
 	add hl, bc
 	ld a, [hl]
 	cp 64
 	jr z, .done
 	inc [hl]
 
-; Fade ditto's palettes while it's transforming
+; Fade Ditto's palettes while it's transforming
 	srl a
 	srl a
 	ld e, a
 	ld d, 0
-	ld hl, GameFreakDittoPaletteFade
+	ld hl, GameFreakLogoPalettes
 	add hl, de
 	add hl, de
 	ldh a, [rWBK]
@@ -324,9 +302,9 @@ GameFreakLogo_Transform:
 	ld a, BANK(wOBPals2)
 	ldh [rWBK], a
 	ld a, [hli]
-	ld [wOBPals2 + 12], a
+	ld [wOBPals2 palette 1 + 4], a
 	ld a, [hli]
-	ld [wOBPals2 + 13], a
+	ld [wOBPals2 palette 1 + 5], a
 	pop af
 	ldh [rWBK], a
 	ld a, TRUE
@@ -337,13 +315,14 @@ GameFreakLogo_Transform:
 	ld hl, SPRITEANIMSTRUCT_JUMPTABLE_INDEX
 	add hl, bc
 	inc [hl]
-	call GameFreakPresents_NextScene
-GameFreakLogo_Done:
-	ret
+	jmp GameFreakPresents_NextScene
 
-GameFreakDittoPaletteFade:
+GameFreakLogoPalettes:
 INCLUDE "gfx/splash/ditto_fade.pal"
 
 GameFreakLogoGFX:
-INCBIN "gfx/splash/gamefreak_presents.1bpp"
-INCBIN "gfx/splash/gamefreak_logo.1bpp"
+INCBIN "gfx/splash/logo1.1bpp"
+INCBIN "gfx/splash/logo2.1bpp"
+
+GameFreakDittoGFX:
+INCBIN "gfx/splash/ditto.2bpp.lz"

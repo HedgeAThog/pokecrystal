@@ -1,96 +1,107 @@
-_GiveOddEgg:
-	; Figure out which egg to give.
-
-	; Compare a random word to probabilities out of $ffff.
-	call Random
+GiveOddEgg:
+	ld a, 100
+	call RandomRange
 	ld hl, OddEggProbabilities
-	ld c, 0
-	ld b, c
 .loop
-	ld a, [hli]
-	ld e, a
-	ld a, [hli]
-	ld d, a
-
-	; Break on $ffff.
-	ld a, d
-	cp HIGH($ffff)
-	jr nz, .not_done
-	ld a, e
-	cp LOW($ffff)
-	jr z, .done
-.not_done
-
-	; Break when the random word <= the next probability in de.
-	ldh a, [hRandomSub]
-	cp d
-	jr c, .done
-	jr z, .ok
-	jr .next
-.ok
-	ldh a, [hRandomAdd]
-	cp e
-	jr c, .done
-	jr z, .done
-.next
-	inc bc
-	jr .loop
-.done
-
+	cp [hl]
+	inc hl
+	jr nc, .loop
+	ld a, LOW(OddEggProbabilities)
+	sub l
+	cpl
 	ld hl, OddEggs
-	ld a, NICKNAMED_MON_STRUCT_LENGTH
-	call AddNTimes
+	ld bc, ODD_EGG_LENGTH
+	rst AddNTimes
 
-	; Writes to wOddEgg, wOddEggName, and wOddEggOT,
-	; even though OddEggs does not have data for wOddEggOT
-	ld de, wOddEgg
-	ld bc, NICKNAMED_MON_STRUCT_LENGTH + NAME_LENGTH
-	call CopyBytes
+	; Get random gender
+	call Random
+	and GENDER_MASK
+	ld [wCurForm], a
+	jr GiveSpecialEgg
 
-	ld a, EGG_TICKET
-	ld [wCurItem], a
+GiveMystriEgg::
+	; Gender is specified in the egg struct
+	xor a
+	ld [wCurForm], a
+	ld hl, MystriEgg
+; fallthrough
+GiveSpecialEgg:
+	ld de, wTempMonSpecies
+	ld a, [hli]
+	ld [de], a
+	inc de
+
+	; form byte
+	ld a, [wCurForm] ; gender is stored here
+	or [hl]
+	inc hl
+	ld [wTempMonForm], a
+
+	xor a ; item
+	ld [de], a
+	inc de
+	ld bc, NUM_MOVES
+	rst CopyBytes
+	call SwapHLDE
+	xor a
+	ld bc, MON_DVS - MON_ID
+	rst ByteFill
+	call SwapHLDE
+
+	; DVs, first personality byte (form byte handled above)
+	ld bc, 4
+	rst CopyBytes
+
+	ld hl, wTempMonEggCycles
+	ld a, 20
+	ld [hli], a
+	xor a
+rept MON_CAUGHTDATA - MON_PKRUS
+	ld [hli], a
+endr
+	ld a, POKE_BALL
+	ld [hli], a
+	xor a
+	ld [hli], a ; caught level
+	ld [hli], a ; caught location
+	assert EGG_LEVEL == 1
+	inc a
+	ld [hl], a
+	ld hl, wTempMonNickname
+	ld de, .EggName
+	call CopyName2
+	ld hl, wTempMonOT
+	ld de, .EggName
+	call CopyName2
+	ld hl, wTempMonExtra
+	xor a
+	ld [hli], a
+	ld [hli], a
+	ld [hl], a
+	farcall SetTempPartyMonData
+	farcall AddTempMonToParty
+	jr c, .box
 	ld a, 1
-	ld [wItemQuantityChange], a
-	ld a, -1
-	ld [wCurItemQuantity], a
-	ld hl, wNumItems
-	call TossItem
+	jr .done
 
-	; load species in wMobileMonSpecies
-	ld a, EGG
-	ld [wMobileMonMiscSpecies], a
+.box
+	farcall NewStorageBoxPointer
+	jr c, .failed
+	ld a, c
+	ld [wTempMonSlot], a
+	ld a, b
+	ld [wTempMonBox], a
+	farcall UpdateStorageBoxMonFromTemp
+	ld a, 2
+	jr .done
 
-	; load pointer to (wMobileMonSpecies - 1) in wMobileMonSpeciesPointer
-	ld a, LOW(wMobileMonMiscSpecies - 1)
-	ld [wMobileMonSpeciesPointer], a
-	ld a, HIGH(wMobileMonMiscSpecies - 1)
-	ld [wMobileMonSpeciesPointer + 1], a
-	; load pointer to wOddEgg in wMobileMonStructPointer
-	ld a, LOW(wOddEgg)
-	ld [wMobileMonStructPointer], a
-	ld a, HIGH(wOddEgg)
-	ld [wMobileMonStructPointer + 1], a
-
-	; load Odd Egg Name in wTempOddEggNickname
-	ld hl, .Odd
-	ld de, wTempOddEggNickname
-	ld bc, MON_NAME_LENGTH
-	call CopyBytes
-
-	; load pointer to wTempOddEggNickname in wMobileMonOTPointer
-	ld a, LOW(wTempOddEggNickname)
-	ld [wMobileMonOTPointer], a
-	ld a, HIGH(wTempOddEggNickname)
-	ld [wMobileMonOTPointer + 1], a
-	; load pointer to wOddEggName in wMobileMonNicknamePointer
-	ld a, LOW(wOddEggName)
-	ld [wMobileMonNicknamePointer], a
-	ld a, HIGH(wOddEggName)
-	ld [wMobileMonNicknamePointer + 1], a
-	farcall AddMobileMonToParty
+.failed
+	xor a
+.done
+	ldh [hScriptVar], a
 	ret
 
-.Odd:
-	db "ODD@@@@@@@@@"
+.EggName:
+	rawchar "Egg@"
 
 INCLUDE "data/events/odd_eggs.asm"

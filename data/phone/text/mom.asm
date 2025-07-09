@@ -7,21 +7,21 @@ MomPhoneGreetingText:
 
 MomPhoneLandmarkText:
 	text "Oh, so you're in"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "…"
 
 	para "Isn't that where"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
-	text_start
+
 	para "is? Did you go"
 	line "take a look?"
 	done
 
 MomPhoneGenericAreaText:
 	text "Really, you're in"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "?"
 
@@ -32,17 +32,17 @@ MomPhoneGenericAreaText:
 
 MomPhoneNewBarkText:
 	text "What? You're in"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "?"
 
-	para "Come see your MOM"
+	para "Come see your Mom"
 	line "sometime!"
 	done
 
 MomPhoneCherrygroveText:
 	text "You're visiting"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "?"
 
@@ -52,12 +52,12 @@ MomPhoneCherrygroveText:
 
 MomOtherAreaText:
 	text "Wow, you're in"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "?"
 
 	para "Good luck on your"
-	line "#MON quest!"
+	line "#mon quest!"
 	done
 
 MomDeterminedText:
@@ -73,7 +73,7 @@ MomDeterminedText:
 
 MomCheckBalanceText:
 	text "By the way, you've"
-	line "saved up ¥@"
+	line "saved up ¥"
 	text_ram wStringBuffer3
 	text "."
 
@@ -96,7 +96,7 @@ MomYoureNotSavingText:
 
 MomYouveSavedText:
 	text "By the way, you've"
-	line "saved up ¥@"
+	line "saved up ¥"
 	text_ram wStringBuffer3
 	text "."
 
@@ -124,7 +124,7 @@ MomPhoneNoPokemonText:
 	text "Hello?"
 
 	para "Oh, hi, <PLAYER>!"
-	line "Wasn't PROF.ELM"
+	line "Wasn't Prof.Elm"
 	cont "waiting for you?"
 	done
 
@@ -134,8 +134,8 @@ MomPhoneNoPokedexText:
 	para "Oh, hi, <PLAYER>!"
 	line "You're on a big"
 
-	para "mission for PROF."
-	line "ELM? Be good!"
+	para "mission for Prof."
+	line "Elm? Be good!"
 	done
 
 MomPhoneNoGymQuestText:
@@ -151,10 +151,10 @@ MomPhoneNoGymQuestText:
 MomPhoneLectureText:
 	text "Hello?"
 
-	para "…… <PLAYER>?"
-	line "I heard from PROF."
+	para "……<PLAYER>?"
+	line "I heard from Prof."
 
-	para "ELM that you went"
+	para "Elm that you went"
 	line "on a long trip."
 
 	para "I wish you would"

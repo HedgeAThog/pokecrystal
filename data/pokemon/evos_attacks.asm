@@ -1,3357 +1,5943 @@
+DEF EVOS_ATTACKS_STATE EQU -1
+DEF EVOS_ATTACKS_LAST_LEVEL EQU -1
+DEF EVOS_ATTACKS_CURRENT_MON EQUS ""
+DEF EVOS_ATTACKS_FIRST EQU 1
+
+MACRO evo_data
+	if EVOS_ATTACKS_STATE == 0
+		if !EVOS_ATTACKS_FIRST
+			db -1 ; end of previous mon's moves
+		endc
+		REDEF EVOS_ATTACKS_FIRST EQU 0
+		{EVOS_ATTACKS_CURRENT_MON}EvosAttacks:
+	endc
+	assert EVOS_ATTACKS_STATE != 2, "{EVOS_ATTACKS_CURRENT_MON} has evo_data after its learnset!"
+	REDEF EVOS_ATTACKS_STATE EQU 1
+	db \1 ; evolution type
+	if \1 == EVOLVE_PARTY
+		dp \2, PLAIN_FORM ; parameter
+	else
+		db \2 ; parameter
+	endc
+	if \1 == EVOLVE_STAT || \1 == EVOLVE_HOLDING
+		db \3 ; ATK_*_DEF | time of day
+		shift
+	endc
+	if _NARG > 3
+		dp \3, \4
+	else
+		dp \3, PLAIN_FORM
+	endc
+ENDM
+
+MACRO evos_attacks
+	REDEF EVOS_ATTACKS_CURRENT_MON EQUS "\1"
+	assert EVOS_ATTACKS_STATE != 0, "Empty learnset preceding {EVOS_ATTACKS_CURRENT_MON}!"
+	REDEF EVOS_ATTACKS_STATE EQU 0
+	REDEF EVOS_ATTACKS_LAST_LEVEL EQU -1
+ENDM
+
+; For split banks, adds a terminator and resets tracking
+MACRO end_evos_attacks
+	assert EVOS_ATTACKS_STATE != 0, "Empty learnset for {EVOS_ATTACKS_CURRENT_MON}!"
+	db -1
+	REDEF EVOS_ATTACKS_STATE EQU -1
+	REDEF EVOS_ATTACKS_FIRST EQU 1
+ENDM
+
+MACRO learnset
+	REDEF EVOS_ATTACKS_FIRST EQU 0
+	if \1 < EVOS_ATTACKS_LAST_LEVEL
+		warn "{EVOS_ATTACKS_CURRENT_MON} learns \2 at a lower level than previous move!"
+	endc
+	if EVOS_ATTACKS_LAST_LEVEL == -1 && \1 != 1
+		warn "{EVOS_ATTACKS_CURRENT_MON} learns its first move at level \1 instead of level 1!"
+	endc
+	if \1 < 1 || \1 > 100
+		warn "{EVOS_ATTACKS_CURRENT_MON} learns a move at level \1, which should be impossible!"
+	endc
+	REDEF EVOS_ATTACKS_LAST_LEVEL EQU \1
+	if EVOS_ATTACKS_STATE != 2
+		if EVOS_ATTACKS_STATE == 0
+			{EVOS_ATTACKS_CURRENT_MON}EvosAttacks:
+		endc
+		db -1 ; end of evolutions and, if there were no evos, previous mon's moves
+	endc
+	REDEF EVOS_ATTACKS_STATE EQU 2
+	db \1 ; level
+	db \2 ; move
+ENDM
+
+
 SECTION "Evolutions and Attacks", ROMX
 
-; Evos+attacks data structure:
-; - Evolution methods:
-;    * db EVOLVE_LEVEL, level, species
-;    * db EVOLVE_ITEM, used item, species
-;    * db EVOLVE_TRADE, held item (or -1 for none), species
-;    * db EVOLVE_HAPPINESS, TR_* constant (ANYTIME, MORNDAY, NITE), species
-;    * db EVOLVE_STAT, level, ATK_*_DEF constant (LT, GT, EQ), species
-; - db 0 ; no more evolutions
-; - Learnset (in increasing level order):
-;    * db level, move
-; - db 0 ; no more level-up moves
+INCLUDE "data/pokemon/evolution_moves.asm"
 
 INCLUDE "data/pokemon/evos_attacks_pointers.asm"
 
-BulbasaurEvosAttacks:
-	db EVOLVE_LEVEL, 16, IVYSAUR
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 4, GROWL
-	db 7, LEECH_SEED
-	db 10, VINE_WHIP
-	db 15, POISONPOWDER
-	db 15, SLEEP_POWDER
-	db 20, RAZOR_LEAF
-	db 25, SWEET_SCENT
-	db 32, GROWTH
-	db 39, SYNTHESIS
-	db 46, SOLARBEAM
-	db 0 ; no more level-up moves
-
-IvysaurEvosAttacks:
-	db EVOLVE_LEVEL, 32, VENUSAUR
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 1, LEECH_SEED
-	db 4, GROWL
-	db 7, LEECH_SEED
-	db 10, VINE_WHIP
-	db 15, POISONPOWDER
-	db 15, SLEEP_POWDER
-	db 22, RAZOR_LEAF
-	db 29, SWEET_SCENT
-	db 38, GROWTH
-	db 47, SYNTHESIS
-	db 56, SOLARBEAM
-	db 0 ; no more level-up moves
-
-VenusaurEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 1, LEECH_SEED
-	db 1, VINE_WHIP
-	db 4, GROWL
-	db 7, LEECH_SEED
-	db 10, VINE_WHIP
-	db 15, POISONPOWDER
-	db 15, SLEEP_POWDER
-	db 22, RAZOR_LEAF
-	db 29, SWEET_SCENT
-	db 41, GROWTH
-	db 53, SYNTHESIS
-	db 65, SOLARBEAM
-	db 0 ; no more level-up moves
-
-CharmanderEvosAttacks:
-	db EVOLVE_LEVEL, 16, CHARMELEON
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, GROWL
-	db 7, EMBER
-	db 13, SMOKESCREEN
-	db 19, RAGE
-	db 25, SCARY_FACE
-	db 31, FLAMETHROWER
-	db 37, SLASH
-	db 43, DRAGON_RAGE
-	db 49, FIRE_SPIN
-	db 0 ; no more level-up moves
-
-CharmeleonEvosAttacks:
-	db EVOLVE_LEVEL, 36, CHARIZARD
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, GROWL
-	db 1, EMBER
-	db 7, EMBER
-	db 13, SMOKESCREEN
-	db 20, RAGE
-	db 27, SCARY_FACE
-	db 34, FLAMETHROWER
-	db 41, SLASH
-	db 48, DRAGON_RAGE
-	db 55, FIRE_SPIN
-	db 0 ; no more level-up moves
-
-CharizardEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, GROWL
-	db 1, EMBER
-	db 1, SMOKESCREEN
-	db 7, EMBER
-	db 13, SMOKESCREEN
-	db 20, RAGE
-	db 27, SCARY_FACE
-	db 34, FLAMETHROWER
-	db 36, WING_ATTACK
-	db 44, SLASH
-	db 54, DRAGON_RAGE
-	db 64, FIRE_SPIN
-	db 0 ; no more level-up moves
-
-SquirtleEvosAttacks:
-	db EVOLVE_LEVEL, 16, WARTORTLE
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 4, TAIL_WHIP
-	db 7, BUBBLE
-	db 10, WITHDRAW
-	db 13, WATER_GUN
-	db 18, BITE
-	db 23, RAPID_SPIN
-	db 28, PROTECT
-	db 33, RAIN_DANCE
-	db 40, SKULL_BASH
-	db 47, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-WartortleEvosAttacks:
-	db EVOLVE_LEVEL, 36, BLASTOISE
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, TAIL_WHIP
-	db 1, BUBBLE
-	db 4, TAIL_WHIP
-	db 7, BUBBLE
-	db 10, WITHDRAW
-	db 13, WATER_GUN
-	db 19, BITE
-	db 25, RAPID_SPIN
-	db 31, PROTECT
-	db 37, RAIN_DANCE
-	db 45, SKULL_BASH
-	db 53, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-BlastoiseEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, TAIL_WHIP
-	db 1, BUBBLE
-	db 1, WITHDRAW
-	db 4, TAIL_WHIP
-	db 7, BUBBLE
-	db 10, WITHDRAW
-	db 13, WATER_GUN
-	db 19, BITE
-	db 25, RAPID_SPIN
-	db 31, PROTECT
-	db 42, RAIN_DANCE
-	db 55, SKULL_BASH
-	db 68, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-CaterpieEvosAttacks:
-	db EVOLVE_LEVEL, 7, METAPOD
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, STRING_SHOT
-	db 0 ; no more level-up moves
-
-MetapodEvosAttacks:
-	db EVOLVE_LEVEL, 10, BUTTERFREE
-	db 0 ; no more evolutions
-	db 1, HARDEN
-	db 7, HARDEN
-	db 0 ; no more level-up moves
-
-ButterfreeEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, CONFUSION
-	db 10, CONFUSION
-	db 13, POISONPOWDER
-	db 14, STUN_SPORE
-	db 15, SLEEP_POWDER
-	db 18, SUPERSONIC
-	db 23, WHIRLWIND
-	db 28, GUST
-	db 34, PSYBEAM
-	db 40, SAFEGUARD
-	db 0 ; no more level-up moves
-
-WeedleEvosAttacks:
-	db EVOLVE_LEVEL, 7, KAKUNA
-	db 0 ; no more evolutions
-	db 1, POISON_STING
-	db 1, STRING_SHOT
-	db 0 ; no more level-up moves
-
-KakunaEvosAttacks:
-	db EVOLVE_LEVEL, 10, BEEDRILL
-	db 0 ; no more evolutions
-	db 1, HARDEN
-	db 7, HARDEN
-	db 0 ; no more level-up moves
-
-BeedrillEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, FURY_ATTACK
-	db 10, FURY_ATTACK
-	db 15, FOCUS_ENERGY
-	db 20, TWINEEDLE
-	db 25, RAGE
-	db 30, PURSUIT
-	db 35, PIN_MISSILE
-	db 40, AGILITY
-	db 0 ; no more level-up moves
-
-PidgeyEvosAttacks:
-	db EVOLVE_LEVEL, 18, PIDGEOTTO
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 5, SAND_ATTACK
-	db 9, GUST
-	db 15, QUICK_ATTACK
-	db 21, WHIRLWIND
-	db 29, WING_ATTACK
-	db 37, AGILITY
-	db 47, MIRROR_MOVE
-	db 0 ; no more level-up moves
-
-PidgeottoEvosAttacks:
-	db EVOLVE_LEVEL, 36, PIDGEOT
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, SAND_ATTACK
-	db 1, GUST
-	db 5, SAND_ATTACK
-	db 9, GUST
-	db 15, QUICK_ATTACK
-	db 23, WHIRLWIND
-	db 33, WING_ATTACK
-	db 43, AGILITY
-	db 55, MIRROR_MOVE
-	db 0 ; no more level-up moves
-
-PidgeotEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, SAND_ATTACK
-	db 1, GUST
-	db 1, QUICK_ATTACK
-	db 5, SAND_ATTACK
-	db 9, GUST
-	db 15, QUICK_ATTACK
-	db 23, WHIRLWIND
-	db 33, WING_ATTACK
-	db 46, AGILITY
-	db 61, MIRROR_MOVE
-	db 0 ; no more level-up moves
-
-RattataEvosAttacks:
-	db EVOLVE_LEVEL, 20, RATICATE
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, TAIL_WHIP
-	db 7, QUICK_ATTACK
-	db 13, HYPER_FANG
-	db 20, FOCUS_ENERGY
-	db 27, PURSUIT
-	db 34, SUPER_FANG
-	db 0 ; no more level-up moves
-
-RaticateEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, TAIL_WHIP
-	db 1, QUICK_ATTACK
-	db 7, QUICK_ATTACK
-	db 13, HYPER_FANG
-	db 20, SCARY_FACE
-	db 30, PURSUIT
-	db 40, SUPER_FANG
-	db 0 ; no more level-up moves
-
-SpearowEvosAttacks:
-	db EVOLVE_LEVEL, 20, FEAROW
-	db 0 ; no more evolutions
-	db 1, PECK
-	db 1, GROWL
-	db 7, LEER
-	db 13, FURY_ATTACK
-	db 25, PURSUIT
-	db 31, MIRROR_MOVE
-	db 37, DRILL_PECK
-	db 43, AGILITY
-	db 0 ; no more level-up moves
-
-FearowEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, PECK
-	db 1, GROWL
-	db 1, LEER
-	db 1, FURY_ATTACK
-	db 7, LEER
-	db 13, FURY_ATTACK
-	db 26, PURSUIT
-	db 32, MIRROR_MOVE
-	db 40, DRILL_PECK
-	db 47, AGILITY
-	db 0 ; no more level-up moves
-
-EkansEvosAttacks:
-	db EVOLVE_LEVEL, 22, ARBOK
-	db 0 ; no more evolutions
-	db 1, WRAP
-	db 1, LEER
-	db 9, POISON_STING
-	db 15, BITE
-	db 23, GLARE
-	db 29, SCREECH
-	db 37, ACID
-	db 43, HAZE
-	db 0 ; no more level-up moves
-
-ArbokEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, WRAP
-	db 1, LEER
-	db 1, POISON_STING
-	db 1, BITE
-	db 9, POISON_STING
-	db 15, BITE
-	db 25, GLARE
-	db 33, SCREECH
-	db 43, ACID
-	db 51, HAZE
-	db 0 ; no more level-up moves
-
-PikachuEvosAttacks:
-	db EVOLVE_ITEM, THUNDERSTONE, RAICHU
-	db 0 ; no more evolutions
-	db 1, THUNDERSHOCK
-	db 1, GROWL
-	db 6, TAIL_WHIP
-	db 8, THUNDER_WAVE
-	db 11, QUICK_ATTACK
-	db 15, DOUBLE_TEAM
-	db 20, SLAM
-	db 26, THUNDERBOLT
-	db 33, AGILITY
-	db 41, THUNDER
-	db 50, LIGHT_SCREEN
-	db 0 ; no more level-up moves
-
-RaichuEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, THUNDERSHOCK
-	db 1, TAIL_WHIP
-	db 1, QUICK_ATTACK
-	db 1, THUNDERBOLT
-	db 0 ; no more level-up moves
-
-SandshrewEvosAttacks:
-	db EVOLVE_LEVEL, 22, SANDSLASH
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 6, DEFENSE_CURL
-	db 11, SAND_ATTACK
-	db 17, POISON_STING
-	db 23, SLASH
-	db 30, SWIFT
-	db 37, FURY_SWIPES
-	db 45, SANDSTORM
-	db 0 ; no more level-up moves
-
-SandslashEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, DEFENSE_CURL
-	db 1, SAND_ATTACK
-	db 6, DEFENSE_CURL
-	db 11, SAND_ATTACK
-	db 17, POISON_STING
-	db 24, SLASH
-	db 33, SWIFT
-	db 42, FURY_SWIPES
-	db 52, SANDSTORM
-	db 0 ; no more level-up moves
-
-NidoranFEvosAttacks:
-	db EVOLVE_LEVEL, 16, NIDORINA
-	db 0 ; no more evolutions
-	db 1, GROWL
-	db 1, TACKLE
-	db 8, SCRATCH
-	db 12, DOUBLE_KICK
-	db 17, POISON_STING
-	db 23, TAIL_WHIP
-	db 30, BITE
-	db 38, FURY_SWIPES
-	db 0 ; no more level-up moves
-
-NidorinaEvosAttacks:
-	db EVOLVE_ITEM, MOON_STONE, NIDOQUEEN
-	db 0 ; no more evolutions
-	db 1, GROWL
-	db 1, TACKLE
-	db 8, SCRATCH
-	db 12, DOUBLE_KICK
-	db 19, POISON_STING
-	db 27, TAIL_WHIP
-	db 36, BITE
-	db 46, FURY_SWIPES
-	db 0 ; no more level-up moves
-
-NidoqueenEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, SCRATCH
-	db 1, DOUBLE_KICK
-	db 1, TAIL_WHIP
-	db 23, BODY_SLAM
-	db 0 ; no more level-up moves
-
-NidoranMEvosAttacks:
-	db EVOLVE_LEVEL, 16, NIDORINO
-	db 0 ; no more evolutions
-	db 1, LEER
-	db 1, TACKLE
-	db 8, HORN_ATTACK
-	db 12, DOUBLE_KICK
-	db 17, POISON_STING
-	db 23, FOCUS_ENERGY
-	db 30, FURY_ATTACK
-	db 38, HORN_DRILL
-	db 0 ; no more level-up moves
-
-NidorinoEvosAttacks:
-	db EVOLVE_ITEM, MOON_STONE, NIDOKING
-	db 0 ; no more evolutions
-	db 1, LEER
-	db 1, TACKLE
-	db 8, HORN_ATTACK
-	db 12, DOUBLE_KICK
-	db 19, POISON_STING
-	db 27, FOCUS_ENERGY
-	db 36, FURY_ATTACK
-	db 46, HORN_DRILL
-	db 0 ; no more level-up moves
-
-NidokingEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, HORN_ATTACK
-	db 1, DOUBLE_KICK
-	db 1, POISON_STING
-	db 23, THRASH
-	db 0 ; no more level-up moves
-
-ClefairyEvosAttacks:
-	db EVOLVE_ITEM, MOON_STONE, CLEFABLE
-	db 0 ; no more evolutions
-	db 1, POUND
-	db 1, GROWL
-	db 4, ENCORE
-	db 8, SING
-	db 13, DOUBLESLAP
-	db 19, MINIMIZE
-	db 26, DEFENSE_CURL
-	db 34, METRONOME
-	db 43, MOONLIGHT
-	db 53, LIGHT_SCREEN
-	db 0 ; no more level-up moves
-
-ClefableEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SING
-	db 1, DOUBLESLAP
-	db 1, METRONOME
-	db 1, MOONLIGHT
-	db 0 ; no more level-up moves
-
-VulpixEvosAttacks:
-	db EVOLVE_ITEM, FIRE_STONE, NINETALES
-	db 0 ; no more evolutions
-	db 1, EMBER
-	db 1, TAIL_WHIP
-	db 7, QUICK_ATTACK
-	db 13, ROAR
-	db 19, CONFUSE_RAY
-	db 25, SAFEGUARD
-	db 31, FLAMETHROWER
-	db 37, FIRE_SPIN
-	db 0 ; no more level-up moves
-
-NinetalesEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, EMBER
-	db 1, QUICK_ATTACK
-	db 1, CONFUSE_RAY
-	db 1, SAFEGUARD
-	db 43, FIRE_SPIN
-	db 0 ; no more level-up moves
-
-JigglypuffEvosAttacks:
-	db EVOLVE_ITEM, MOON_STONE, WIGGLYTUFF
-	db 0 ; no more evolutions
-	db 1, SING
-	db 4, DEFENSE_CURL
-	db 9, POUND
-	db 14, DISABLE
-	db 19, ROLLOUT
-	db 24, DOUBLESLAP
-	db 29, REST
-	db 34, BODY_SLAM
-	db 39, DOUBLE_EDGE
-	db 0 ; no more level-up moves
-
-WigglytuffEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SING
-	db 1, DISABLE
-	db 1, DEFENSE_CURL
-	db 1, DOUBLESLAP
-	db 0 ; no more level-up moves
-
-ZubatEvosAttacks:
-	db EVOLVE_LEVEL, 22, GOLBAT
-	db 0 ; no more evolutions
-	db 1, LEECH_LIFE
-	db 6, SUPERSONIC
-	db 12, BITE
-	db 19, CONFUSE_RAY
-	db 27, WING_ATTACK
-	db 36, MEAN_LOOK
-	db 46, HAZE
-	db 0 ; no more level-up moves
-
-GolbatEvosAttacks:
-	db EVOLVE_HAPPINESS, TR_ANYTIME, CROBAT
-	db 0 ; no more evolutions
-	db 1, SCREECH
-	db 1, LEECH_LIFE
-	db 1, SUPERSONIC
-	db 6, SUPERSONIC
-	db 12, BITE
-	db 19, CONFUSE_RAY
-	db 30, WING_ATTACK
-	db 42, MEAN_LOOK
-	db 55, HAZE
-	db 0 ; no more level-up moves
-
-OddishEvosAttacks:
-	db EVOLVE_LEVEL, 21, GLOOM
-	db 0 ; no more evolutions
-	db 1, ABSORB
-	db 7, SWEET_SCENT
-	db 14, POISONPOWDER
-	db 16, STUN_SPORE
-	db 18, SLEEP_POWDER
-	db 23, ACID
-	db 32, MOONLIGHT
-	db 39, PETAL_DANCE
-	db 0 ; no more level-up moves
-
-GloomEvosAttacks:
-	db EVOLVE_ITEM, LEAF_STONE, VILEPLUME
-	db EVOLVE_ITEM, SUN_STONE, BELLOSSOM
-	db 0 ; no more evolutions
-	db 1, ABSORB
-	db 1, SWEET_SCENT
-	db 1, POISONPOWDER
-	db 7, SWEET_SCENT
-	db 14, POISONPOWDER
-	db 16, STUN_SPORE
-	db 18, SLEEP_POWDER
-	db 24, ACID
-	db 35, MOONLIGHT
-	db 44, PETAL_DANCE
-	db 0 ; no more level-up moves
-
-VileplumeEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, ABSORB
-	db 1, SWEET_SCENT
-	db 1, STUN_SPORE
-	db 1, PETAL_DANCE
-	db 0 ; no more level-up moves
-
-ParasEvosAttacks:
-	db EVOLVE_LEVEL, 24, PARASECT
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 7, STUN_SPORE
-	db 13, POISONPOWDER
-	db 19, LEECH_LIFE
-	db 25, SPORE
-	db 31, SLASH
-	db 37, GROWTH
-	db 43, GIGA_DRAIN
-	db 0 ; no more level-up moves
-
-ParasectEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, STUN_SPORE
-	db 1, POISONPOWDER
-	db 7, STUN_SPORE
-	db 13, POISONPOWDER
-	db 19, LEECH_LIFE
-	db 28, SPORE
-	db 37, SLASH
-	db 46, GROWTH
-	db 55, GIGA_DRAIN
-	db 0 ; no more level-up moves
-
-VenonatEvosAttacks:
-	db EVOLVE_LEVEL, 31, VENOMOTH
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, DISABLE
-	db 1, FORESIGHT
-	db 9, SUPERSONIC
-	db 17, CONFUSION
-	db 20, POISONPOWDER
-	db 25, LEECH_LIFE
-	db 28, STUN_SPORE
-	db 33, PSYBEAM
-	db 36, SLEEP_POWDER
-	db 41, PSYCHIC_M
-	db 0 ; no more level-up moves
-
-VenomothEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, DISABLE
-	db 1, FORESIGHT
-	db 1, SUPERSONIC
-	db 9, SUPERSONIC
-	db 17, CONFUSION
-	db 20, POISONPOWDER
-	db 25, LEECH_LIFE
-	db 28, STUN_SPORE
-	db 31, GUST
-	db 36, PSYBEAM
-	db 42, SLEEP_POWDER
-	db 52, PSYCHIC_M
-	db 0 ; no more level-up moves
-
-DiglettEvosAttacks:
-	db EVOLVE_LEVEL, 26, DUGTRIO
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 5, GROWL
-	db 9, MAGNITUDE
-	db 17, DIG
-	db 25, SAND_ATTACK
-	db 33, SLASH
-	db 41, EARTHQUAKE
-	db 49, FISSURE
-	db 0 ; no more level-up moves
-
-DugtrioEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TRI_ATTACK
-	db 1, SCRATCH
-	db 1, GROWL
-	db 1, MAGNITUDE
-	db 5, GROWL
-	db 9, MAGNITUDE
-	db 17, DIG
-	db 25, SAND_ATTACK
-	db 37, SLASH
-	db 49, EARTHQUAKE
-	db 61, FISSURE
-	db 0 ; no more level-up moves
-
-MeowthEvosAttacks:
-	db EVOLVE_LEVEL, 28, PERSIAN
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, GROWL
-	db 11, BITE
-	db 20, PAY_DAY
-	db 28, FAINT_ATTACK
-	db 35, SCREECH
-	db 41, FURY_SWIPES
-	db 46, SLASH
-	db 0 ; no more level-up moves
-
-PersianEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, GROWL
-	db 1, BITE
-	db 11, BITE
-	db 20, PAY_DAY
-	db 29, FAINT_ATTACK
-	db 38, SCREECH
-	db 46, FURY_SWIPES
-	db 53, SLASH
-	db 0 ; no more level-up moves
-
-PsyduckEvosAttacks:
-	db EVOLVE_LEVEL, 33, GOLDUCK
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 5, TAIL_WHIP
-	db 10, DISABLE
-	db 16, CONFUSION
-	db 23, SCREECH
-	db 31, PSYCH_UP
-	db 40, FURY_SWIPES
-	db 50, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-GolduckEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, TAIL_WHIP
-	db 1, DISABLE
-	db 1, CONFUSION
-	db 5, TAIL_WHIP
-	db 10, DISABLE
-	db 16, CONFUSION
-	db 23, SCREECH
-	db 31, PSYCH_UP
-	db 44, FURY_SWIPES
-	db 58, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-MankeyEvosAttacks:
-	db EVOLVE_LEVEL, 28, PRIMEAPE
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, LEER
-	db 9, LOW_KICK
-	db 15, KARATE_CHOP
-	db 21, FURY_SWIPES
-	db 27, FOCUS_ENERGY
-	db 33, SEISMIC_TOSS
-	db 39, CROSS_CHOP
-	db 45, SCREECH
-	db 51, THRASH
-	db 0 ; no more level-up moves
-
-PrimeapeEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, LEER
-	db 1, LOW_KICK
-	db 1, RAGE
-	db 9, LOW_KICK
-	db 15, KARATE_CHOP
-	db 21, FURY_SWIPES
-	db 27, FOCUS_ENERGY
-	db 28, RAGE
-	db 36, SEISMIC_TOSS
-	db 45, CROSS_CHOP
-	db 54, SCREECH
-	db 63, THRASH
-	db 0 ; no more level-up moves
-
-GrowlitheEvosAttacks:
-	db EVOLVE_ITEM, FIRE_STONE, ARCANINE
-	db 0 ; no more evolutions
-	db 1, BITE
-	db 1, ROAR
-	db 9, EMBER
-	db 18, LEER
-	db 26, TAKE_DOWN
-	db 34, FLAME_WHEEL
-	db 42, AGILITY
-	db 50, FLAMETHROWER
-	db 0 ; no more level-up moves
-
-ArcanineEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, ROAR
-	db 1, LEER
-	db 1, TAKE_DOWN
-	db 1, FLAME_WHEEL
-	db 50, EXTREMESPEED
-	db 0 ; no more level-up moves
-
-PoliwagEvosAttacks:
-	db EVOLVE_LEVEL, 25, POLIWHIRL
-	db 0 ; no more evolutions
-	db 1, BUBBLE
-	db 7, HYPNOSIS
-	db 13, WATER_GUN
-	db 19, DOUBLESLAP
-	db 25, RAIN_DANCE
-	db 31, BODY_SLAM
-	db 37, BELLY_DRUM
-	db 43, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-PoliwhirlEvosAttacks:
-	db EVOLVE_ITEM, WATER_STONE, POLIWRATH
-	db EVOLVE_TRADE, KINGS_ROCK, POLITOED
-	db 0 ; no more evolutions
-	db 1, BUBBLE
-	db 1, HYPNOSIS
-	db 1, WATER_GUN
-	db 7, HYPNOSIS
-	db 13, WATER_GUN
-	db 19, DOUBLESLAP
-	db 27, RAIN_DANCE
-	db 35, BODY_SLAM
-	db 43, BELLY_DRUM
-	db 51, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-PoliwrathEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, WATER_GUN
-	db 1, HYPNOSIS
-	db 1, DOUBLESLAP
-	db 1, SUBMISSION
-	db 35, SUBMISSION
-	db 51, MIND_READER
-	db 0 ; no more level-up moves
-
-AbraEvosAttacks:
-	db EVOLVE_LEVEL, 16, KADABRA
-	db 0 ; no more evolutions
-	db 1, TELEPORT
-	db 0 ; no more level-up moves
-
-KadabraEvosAttacks:
-	db EVOLVE_TRADE, -1, ALAKAZAM
-	db 0 ; no more evolutions
-	db 1, TELEPORT
-	db 1, KINESIS
-	db 1, CONFUSION
-	db 16, CONFUSION
-	db 18, DISABLE
-	db 21, PSYBEAM
-	db 26, RECOVER
-	db 31, FUTURE_SIGHT
-	db 38, PSYCHIC_M
-	db 45, REFLECT
-	db 0 ; no more level-up moves
-
-AlakazamEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TELEPORT
-	db 1, KINESIS
-	db 1, CONFUSION
-	db 16, CONFUSION
-	db 18, DISABLE
-	db 21, PSYBEAM
-	db 26, RECOVER
-	db 31, FUTURE_SIGHT
-	db 38, PSYCHIC_M
-	db 45, REFLECT
-	db 0 ; no more level-up moves
-
-MachopEvosAttacks:
-	db EVOLVE_LEVEL, 28, MACHOKE
-	db 0 ; no more evolutions
-	db 1, LOW_KICK
-	db 1, LEER
-	db 7, FOCUS_ENERGY
-	db 13, KARATE_CHOP
-	db 19, SEISMIC_TOSS
-	db 25, FORESIGHT
-	db 31, VITAL_THROW
-	db 37, CROSS_CHOP
-	db 43, SCARY_FACE
-	db 49, SUBMISSION
-	db 0 ; no more level-up moves
-
-MachokeEvosAttacks:
-	db EVOLVE_TRADE, -1, MACHAMP
-	db 0 ; no more evolutions
-	db 1, LOW_KICK
-	db 1, LEER
-	db 1, FOCUS_ENERGY
-	db 8, FOCUS_ENERGY
-	db 15, KARATE_CHOP
-	db 19, SEISMIC_TOSS
-	db 25, FORESIGHT
-	db 34, VITAL_THROW
-	db 43, CROSS_CHOP
-	db 52, SCARY_FACE
-	db 61, SUBMISSION
-	db 0 ; no more level-up moves
-
-MachampEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, LOW_KICK
-	db 1, LEER
-	db 1, FOCUS_ENERGY
-	db 8, FOCUS_ENERGY
-	db 15, KARATE_CHOP
-	db 19, SEISMIC_TOSS
-	db 25, FORESIGHT
-	db 34, VITAL_THROW
-	db 43, CROSS_CHOP
-	db 52, SCARY_FACE
-	db 61, SUBMISSION
-	db 0 ; no more level-up moves
-
-BellsproutEvosAttacks:
-	db EVOLVE_LEVEL, 21, WEEPINBELL
-	db 0 ; no more evolutions
-	db 1, VINE_WHIP
-	db 6, GROWTH
-	db 11, WRAP
-	db 15, SLEEP_POWDER
-	db 17, POISONPOWDER
-	db 19, STUN_SPORE
-	db 23, ACID
-	db 30, SWEET_SCENT
-	db 37, RAZOR_LEAF
-	db 45, SLAM
-	db 0 ; no more level-up moves
-
-WeepinbellEvosAttacks:
-	db EVOLVE_ITEM, LEAF_STONE, VICTREEBEL
-	db 0 ; no more evolutions
-	db 1, VINE_WHIP
-	db 1, GROWTH
-	db 1, WRAP
-	db 6, GROWTH
-	db 11, WRAP
-	db 15, SLEEP_POWDER
-	db 17, POISONPOWDER
-	db 19, STUN_SPORE
-	db 24, ACID
-	db 33, SWEET_SCENT
-	db 42, RAZOR_LEAF
-	db 54, SLAM
-	db 0 ; no more level-up moves
-
-VictreebelEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, VINE_WHIP
-	db 1, SLEEP_POWDER
-	db 1, SWEET_SCENT
-	db 1, RAZOR_LEAF
-	db 0 ; no more level-up moves
-
-TentacoolEvosAttacks:
-	db EVOLVE_LEVEL, 30, TENTACRUEL
-	db 0 ; no more evolutions
-	db 1, POISON_STING
-	db 6, SUPERSONIC
-	db 12, CONSTRICT
-	db 19, ACID
-	db 25, BUBBLEBEAM
-	db 30, WRAP
-	db 36, BARRIER
-	db 43, SCREECH
-	db 49, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-TentacruelEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, POISON_STING
-	db 1, SUPERSONIC
-	db 1, CONSTRICT
-	db 6, SUPERSONIC
-	db 12, CONSTRICT
-	db 19, ACID
-	db 25, BUBBLEBEAM
-	db 30, WRAP
-	db 38, BARRIER
-	db 47, SCREECH
-	db 55, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-GeodudeEvosAttacks:
-	db EVOLVE_LEVEL, 25, GRAVELER
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 6, DEFENSE_CURL
-	db 11, ROCK_THROW
-	db 16, MAGNITUDE
-	db 21, SELFDESTRUCT
-	db 26, HARDEN
-	db 31, ROLLOUT
-	db 36, EARTHQUAKE
-	db 41, EXPLOSION
-	db 0 ; no more level-up moves
-
-GravelerEvosAttacks:
-	db EVOLVE_TRADE, -1, GOLEM
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, DEFENSE_CURL
-	db 1, ROCK_THROW
-	db 6, DEFENSE_CURL
-	db 11, ROCK_THROW
-	db 16, MAGNITUDE
-	db 21, SELFDESTRUCT
-	db 27, HARDEN
-	db 34, ROLLOUT
-	db 41, EARTHQUAKE
-	db 48, EXPLOSION
-	db 0 ; no more level-up moves
-
-GolemEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, DEFENSE_CURL
-	db 1, ROCK_THROW
-	db 1, MAGNITUDE
-	db 6, DEFENSE_CURL
-	db 11, ROCK_THROW
-	db 16, MAGNITUDE
-	db 21, SELFDESTRUCT
-	db 27, HARDEN
-	db 34, ROLLOUT
-	db 41, EARTHQUAKE
-	db 48, EXPLOSION
-	db 0 ; no more level-up moves
-
-PonytaEvosAttacks:
-	db EVOLVE_LEVEL, 40, RAPIDASH
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 4, GROWL
-	db 8, TAIL_WHIP
-	db 13, EMBER
-	db 19, STOMP
-	db 26, FIRE_SPIN
-	db 34, TAKE_DOWN
-	db 43, AGILITY
-	db 53, FIRE_BLAST
-	db 0 ; no more level-up moves
-
-RapidashEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 1, TAIL_WHIP
-	db 1, EMBER
-	db 4, GROWL
-	db 8, TAIL_WHIP
-	db 13, EMBER
-	db 19, STOMP
-	db 26, FIRE_SPIN
-	db 34, TAKE_DOWN
-	db 40, FURY_ATTACK
-	db 47, AGILITY
-	db 61, FIRE_BLAST
-	db 0 ; no more level-up moves
-
-SlowpokeEvosAttacks:
-	db EVOLVE_LEVEL, 37, SLOWBRO
-	db EVOLVE_TRADE, KINGS_ROCK, SLOWKING
-	db 0 ; no more evolutions
-	db 1, CURSE
-	db 1, TACKLE
-	db 6, GROWL
-	db 15, WATER_GUN
-	db 20, CONFUSION
-	db 29, DISABLE
-	db 34, HEADBUTT
-	db 43, AMNESIA
-	db 48, PSYCHIC_M
-	db 0 ; no more level-up moves
-
-SlowbroEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, CURSE
-	db 1, TACKLE
-	db 1, GROWL
-	db 1, WATER_GUN
-	db 6, GROWL
-	db 15, WATER_GUN
-	db 20, CONFUSION
-	db 29, DISABLE
-	db 34, HEADBUTT
-	db 37, WITHDRAW
-	db 46, AMNESIA
-	db 54, PSYCHIC_M
-	db 0 ; no more level-up moves
-
-MagnemiteEvosAttacks:
-	db EVOLVE_LEVEL, 30, MAGNETON
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 6, THUNDERSHOCK
-	db 11, SUPERSONIC
-	db 16, SONICBOOM
-	db 21, THUNDER_WAVE
-	db 27, LOCK_ON
-	db 33, SWIFT
-	db 39, SCREECH
-	db 45, ZAP_CANNON
-	db 0 ; no more level-up moves
-
-MagnetonEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, THUNDERSHOCK
-	db 1, SUPERSONIC
-	db 1, SONICBOOM
-	db 6, THUNDERSHOCK
-	db 11, SUPERSONIC
-	db 16, SONICBOOM
-	db 21, THUNDER_WAVE
-	db 27, LOCK_ON
-	db 35, TRI_ATTACK
-	db 43, SCREECH
-	db 53, ZAP_CANNON
-	db 0 ; no more level-up moves
-
-FarfetchDEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, PECK
-	db 7, SAND_ATTACK
-	db 13, LEER
-	db 19, FURY_ATTACK
-	db 25, SWORDS_DANCE
-	db 31, AGILITY
-	db 37, SLASH
-	db 44, FALSE_SWIPE
-	db 0 ; no more level-up moves
-
-DoduoEvosAttacks:
-	db EVOLVE_LEVEL, 31, DODRIO
-	db 0 ; no more evolutions
-	db 1, PECK
-	db 1, GROWL
-	db 9, PURSUIT
-	db 13, FURY_ATTACK
-	db 21, TRI_ATTACK
-	db 25, RAGE
-	db 33, DRILL_PECK
-	db 37, AGILITY
-	db 0 ; no more level-up moves
-
-DodrioEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, PECK
-	db 1, GROWL
-	db 1, PURSUIT
-	db 1, FURY_ATTACK
-	db 9, PURSUIT
-	db 13, FURY_ATTACK
-	db 21, TRI_ATTACK
-	db 25, RAGE
-	db 38, DRILL_PECK
-	db 47, AGILITY
-	db 0 ; no more level-up moves
-
-SeelEvosAttacks:
-	db EVOLVE_LEVEL, 34, DEWGONG
-	db 0 ; no more evolutions
-	db 1, HEADBUTT
-	db 5, GROWL
-	db 16, AURORA_BEAM
-	db 21, REST
-	db 32, TAKE_DOWN
-	db 37, ICE_BEAM
-	db 48, SAFEGUARD
-	db 0 ; no more level-up moves
-
-DewgongEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, HEADBUTT
-	db 1, GROWL
-	db 1, AURORA_BEAM
-	db 5, GROWL
-	db 16, AURORA_BEAM
-	db 21, REST
-	db 32, TAKE_DOWN
-	db 43, ICE_BEAM
-	db 60, SAFEGUARD
-	db 0 ; no more level-up moves
-
-GrimerEvosAttacks:
-	db EVOLVE_LEVEL, 38, MUK
-	db 0 ; no more evolutions
-	db 1, POISON_GAS
-	db 1, POUND
-	db 5, HARDEN
-	db 10, DISABLE
-	db 16, SLUDGE
-	db 23, MINIMIZE
-	db 31, SCREECH
-	db 40, ACID_ARMOR
-	db 50, SLUDGE_BOMB
-	db 0 ; no more level-up moves
-
-MukEvosAttacks:
-	db 0 ; no more evolutions
-	; moves are not sorted by level
-	db 1, POISON_GAS
-	db 1, POUND
-	db 1, HARDEN
-	db 33, HARDEN
-	db 37, DISABLE
-	db 45, SLUDGE
-	db 23, MINIMIZE
-	db 31, SCREECH
-	db 45, ACID_ARMOR
-	db 60, SLUDGE_BOMB
-	db 0 ; no more level-up moves
-
-ShellderEvosAttacks:
-	db EVOLVE_ITEM, WATER_STONE, CLOYSTER
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, WITHDRAW
-	db 9, SUPERSONIC
-	db 17, AURORA_BEAM
-	db 25, PROTECT
-	db 33, LEER
-	db 41, CLAMP
-	db 49, ICE_BEAM
-	db 0 ; no more level-up moves
-
-CloysterEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, WITHDRAW
-	db 1, SUPERSONIC
-	db 1, AURORA_BEAM
-	db 1, PROTECT
-	db 33, SPIKES
-	db 41, SPIKE_CANNON
-	db 0 ; no more level-up moves
-
-GastlyEvosAttacks:
-	db EVOLVE_LEVEL, 25, HAUNTER
-	db 0 ; no more evolutions
-	db 1, HYPNOSIS
-	db 1, LICK
-	db 8, SPITE
-	db 13, MEAN_LOOK
-	db 16, CURSE
-	db 21, NIGHT_SHADE
-	db 28, CONFUSE_RAY
-	db 33, DREAM_EATER
-	db 36, DESTINY_BOND
-	db 0 ; no more level-up moves
-
-HaunterEvosAttacks:
-	db EVOLVE_TRADE, -1, GENGAR
-	db 0 ; no more evolutions
-	db 1, HYPNOSIS
-	db 1, LICK
-	db 1, SPITE
-	db 8, SPITE
-	db 13, MEAN_LOOK
-	db 16, CURSE
-	db 21, NIGHT_SHADE
-	db 31, CONFUSE_RAY
-	db 39, DREAM_EATER
-	db 48, DESTINY_BOND
-	db 0 ; no more level-up moves
-
-GengarEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, HYPNOSIS
-	db 1, LICK
-	db 1, SPITE
-	db 8, SPITE
-	db 13, MEAN_LOOK
-	db 16, CURSE
-	db 21, NIGHT_SHADE
-	db 31, CONFUSE_RAY
-	db 39, DREAM_EATER
-	db 48, DESTINY_BOND
-	db 0 ; no more level-up moves
-
-OnixEvosAttacks:
-	db EVOLVE_TRADE, METAL_COAT, STEELIX
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, SCREECH
-	db 10, BIND
-	db 14, ROCK_THROW
-	db 23, HARDEN
-	db 27, RAGE
-	db 36, SANDSTORM
-	db 40, SLAM
-	db 0 ; no more level-up moves
-
-DrowzeeEvosAttacks:
-	db EVOLVE_LEVEL, 26, HYPNO
-	db 0 ; no more evolutions
-	db 1, POUND
-	db 1, HYPNOSIS
-	db 10, DISABLE
-	db 18, CONFUSION
-	db 25, HEADBUTT
-	db 31, POISON_GAS
-	db 36, MEDITATE
-	db 40, PSYCHIC_M
-	db 43, PSYCH_UP
-	db 45, FUTURE_SIGHT
-	db 0 ; no more level-up moves
-
-HypnoEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, POUND
-	db 1, HYPNOSIS
-	db 1, DISABLE
-	db 1, CONFUSION
-	db 10, DISABLE
-	db 18, CONFUSION
-	db 25, HEADBUTT
-	db 33, POISON_GAS
-	db 40, MEDITATE
-	db 49, PSYCHIC_M
-	db 55, PSYCH_UP
-	db 60, FUTURE_SIGHT
-	db 0 ; no more level-up moves
-
-KrabbyEvosAttacks:
-	db EVOLVE_LEVEL, 28, KINGLER
-	db 0 ; no more evolutions
-	db 1, BUBBLE
-	db 5, LEER
-	db 12, VICEGRIP
-	db 16, HARDEN
-	db 23, STOMP
-	db 27, GUILLOTINE
-	db 34, PROTECT
-	db 41, CRABHAMMER
-	db 0 ; no more level-up moves
-
-KinglerEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, BUBBLE
-	db 1, LEER
-	db 1, VICEGRIP
-	db 5, LEER
-	db 12, VICEGRIP
-	db 16, HARDEN
-	db 23, STOMP
-	db 27, GUILLOTINE
-	db 38, PROTECT
-	db 49, CRABHAMMER
-	db 0 ; no more level-up moves
-
-VoltorbEvosAttacks:
-	db EVOLVE_LEVEL, 30, ELECTRODE
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 9, SCREECH
-	db 17, SONICBOOM
-	db 23, SELFDESTRUCT
-	db 29, ROLLOUT
-	db 33, LIGHT_SCREEN
-	db 37, SWIFT
-	db 39, EXPLOSION
-	db 41, MIRROR_COAT
-	db 0 ; no more level-up moves
-
-ElectrodeEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, SCREECH
-	db 1, SONICBOOM
-	db 1, SELFDESTRUCT
-	db 9, SCREECH
-	db 17, SONICBOOM
-	db 23, SELFDESTRUCT
-	db 29, ROLLOUT
-	db 34, LIGHT_SCREEN
-	db 40, SWIFT
-	db 44, EXPLOSION
-	db 48, MIRROR_COAT
-	db 0 ; no more level-up moves
-
-ExeggcuteEvosAttacks:
-	db EVOLVE_ITEM, LEAF_STONE, EXEGGUTOR
-	db 0 ; no more evolutions
-	db 1, BARRAGE
-	db 1, HYPNOSIS
-	db 7, REFLECT
-	db 13, LEECH_SEED
-	db 19, CONFUSION
-	db 25, STUN_SPORE
-	db 31, POISONPOWDER
-	db 37, SLEEP_POWDER
-	db 43, SOLARBEAM
-	db 0 ; no more level-up moves
-
-ExeggutorEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, BARRAGE
-	db 1, HYPNOSIS
-	db 1, CONFUSION
-	db 19, STOMP
-	db 31, EGG_BOMB
-	db 0 ; no more level-up moves
-
-CuboneEvosAttacks:
-	db EVOLVE_LEVEL, 28, MAROWAK
-	db 0 ; no more evolutions
-	db 1, GROWL
-	db 5, TAIL_WHIP
-	db 9, BONE_CLUB
-	db 13, HEADBUTT
-	db 17, LEER
-	db 21, FOCUS_ENERGY
-	db 25, BONEMERANG
-	db 29, RAGE
-	db 33, FALSE_SWIPE
-	db 37, THRASH
-	db 41, BONE_RUSH
-	db 0 ; no more level-up moves
-
-MarowakEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, GROWL
-	db 1, TAIL_WHIP
-	db 1, BONE_CLUB
-	db 1, HEADBUTT
-	db 5, TAIL_WHIP
-	db 9, BONE_CLUB
-	db 13, HEADBUTT
-	db 17, LEER
-	db 21, FOCUS_ENERGY
-	db 25, BONEMERANG
-	db 32, RAGE
-	db 39, FALSE_SWIPE
-	db 46, THRASH
-	db 53, BONE_RUSH
-	db 0 ; no more level-up moves
-
-HitmonleeEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, DOUBLE_KICK
-	db 6, MEDITATE
-	db 11, ROLLING_KICK
-	db 16, JUMP_KICK
-	db 21, FOCUS_ENERGY
-	db 26, HI_JUMP_KICK
-	db 31, MIND_READER
-	db 36, FORESIGHT
-	db 41, ENDURE
-	db 46, MEGA_KICK
-	db 51, REVERSAL
-	db 0 ; no more level-up moves
-
-HitmonchanEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, COMET_PUNCH
-	db 7, AGILITY
-	db 13, PURSUIT
-	db 26, THUNDERPUNCH
-	db 26, ICE_PUNCH
-	db 26, FIRE_PUNCH
-	db 32, MACH_PUNCH
-	db 38, MEGA_PUNCH
-	db 44, DETECT
-	db 50, COUNTER
-	db 0 ; no more level-up moves
-
-LickitungEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, LICK
-	db 7, SUPERSONIC
-	db 13, DEFENSE_CURL
-	db 19, STOMP
-	db 25, WRAP
-	db 31, DISABLE
-	db 37, SLAM
-	db 43, SCREECH
-	db 0 ; no more level-up moves
-
-KoffingEvosAttacks:
-	db EVOLVE_LEVEL, 35, WEEZING
-	db 0 ; no more evolutions
-	db 1, POISON_GAS
-	db 1, TACKLE
-	db 9, SMOG
-	db 17, SELFDESTRUCT
-	db 21, SLUDGE
-	db 25, SMOKESCREEN
-	db 33, HAZE
-	db 41, EXPLOSION
-	db 45, DESTINY_BOND
-	db 0 ; no more level-up moves
-
-WeezingEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, POISON_GAS
-	db 1, TACKLE
-	db 1, SMOG
-	db 1, SELFDESTRUCT
-	db 9, SMOG
-	db 17, SELFDESTRUCT
-	db 21, SLUDGE
-	db 25, SMOKESCREEN
-	db 33, HAZE
-	db 44, EXPLOSION
-	db 51, DESTINY_BOND
-	db 0 ; no more level-up moves
-
-RhyhornEvosAttacks:
-	db EVOLVE_LEVEL, 42, RHYDON
-	db 0 ; no more evolutions
-	db 1, HORN_ATTACK
-	db 1, TAIL_WHIP
-	db 13, STOMP
-	db 19, FURY_ATTACK
-	db 31, SCARY_FACE
-	db 37, HORN_DRILL
-	db 49, TAKE_DOWN
-	db 55, EARTHQUAKE
-	db 0 ; no more level-up moves
-
-RhydonEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, HORN_ATTACK
-	db 1, TAIL_WHIP
-	db 1, STOMP
-	db 1, FURY_ATTACK
-	db 13, STOMP
-	db 19, FURY_ATTACK
-	db 31, SCARY_FACE
-	db 37, HORN_DRILL
-	db 54, TAKE_DOWN
-	db 65, EARTHQUAKE
-	db 0 ; no more level-up moves
-
-ChanseyEvosAttacks:
-	db EVOLVE_HAPPINESS, TR_ANYTIME, BLISSEY
-	db 0 ; no more evolutions
-	db 1, POUND
-	db 5, GROWL
-	db 9, TAIL_WHIP
-	db 13, SOFTBOILED
-	db 17, DOUBLESLAP
-	db 23, MINIMIZE
-	db 29, SING
-	db 35, EGG_BOMB
-	db 41, DEFENSE_CURL
-	db 49, LIGHT_SCREEN
-	db 57, DOUBLE_EDGE
-	db 0 ; no more level-up moves
-
-TangelaEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, CONSTRICT
-	db 4, SLEEP_POWDER
-	db 10, ABSORB
-	db 13, POISONPOWDER
-	db 19, VINE_WHIP
-	db 25, BIND
-	db 31, MEGA_DRAIN
-	db 34, STUN_SPORE
-	db 40, SLAM
-	db 46, GROWTH
-	db 0 ; no more level-up moves
-
-KangaskhanEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, COMET_PUNCH
-	db 7, LEER
-	db 13, BITE
-	db 19, TAIL_WHIP
-	db 25, MEGA_PUNCH
-	db 31, RAGE
-	db 37, ENDURE
-	db 43, DIZZY_PUNCH
-	db 49, REVERSAL
-	db 0 ; no more level-up moves
-
-HorseaEvosAttacks:
-	db EVOLVE_LEVEL, 32, SEADRA
-	db 0 ; no more evolutions
-	db 1, BUBBLE
-	db 8, SMOKESCREEN
-	db 15, LEER
-	db 22, WATER_GUN
-	db 29, TWISTER
-	db 36, AGILITY
-	db 43, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-SeadraEvosAttacks:
-	db EVOLVE_TRADE, DRAGON_SCALE, KINGDRA
-	db 0 ; no more evolutions
-	db 1, BUBBLE
-	db 1, SMOKESCREEN
-	db 1, LEER
-	db 1, WATER_GUN
-	db 8, SMOKESCREEN
-	db 15, LEER
-	db 22, WATER_GUN
-	db 29, TWISTER
-	db 40, AGILITY
-	db 51, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-GoldeenEvosAttacks:
-	db EVOLVE_LEVEL, 33, SEAKING
-	db 0 ; no more evolutions
-	db 1, PECK
-	db 1, TAIL_WHIP
-	db 10, SUPERSONIC
-	db 15, HORN_ATTACK
-	db 24, FLAIL
-	db 29, FURY_ATTACK
-	db 38, WATERFALL
-	db 43, HORN_DRILL
-	db 52, AGILITY
-	db 0 ; no more level-up moves
-
-SeakingEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, PECK
-	db 1, TAIL_WHIP
-	db 1, TAIL_WHIP
-	db 10, SUPERSONIC
-	db 15, HORN_ATTACK
-	db 24, FLAIL
-	db 29, FURY_ATTACK
-	db 41, WATERFALL
-	db 49, HORN_DRILL
-	db 61, AGILITY
-	db 0 ; no more level-up moves
-
-StaryuEvosAttacks:
-	db EVOLVE_ITEM, WATER_STONE, STARMIE
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, HARDEN
-	db 7, WATER_GUN
-	db 13, RAPID_SPIN
-	db 19, RECOVER
-	db 25, SWIFT
-	db 31, BUBBLEBEAM
-	db 37, MINIMIZE
-	db 43, LIGHT_SCREEN
-	db 50, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-StarmieEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, RAPID_SPIN
-	db 1, RECOVER
-	db 1, BUBBLEBEAM
-	db 37, CONFUSE_RAY
-	db 0 ; no more level-up moves
-
-MrMimeEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, BARRIER
-	db 6, CONFUSION
-	db 11, SUBSTITUTE
-	db 16, MEDITATE
-	db 21, DOUBLESLAP
-	db 26, LIGHT_SCREEN
-	db 26, REFLECT
-	db 31, ENCORE
-	db 36, PSYBEAM
-	db 41, BATON_PASS
-	db 46, SAFEGUARD
-	db 0 ; no more level-up moves
-
-ScytherEvosAttacks:
-	db EVOLVE_TRADE, METAL_COAT, SCIZOR
-	db 0 ; no more evolutions
-	db 1, QUICK_ATTACK
-	db 1, LEER
-	db 6, FOCUS_ENERGY
-	db 12, PURSUIT
-	db 18, FALSE_SWIPE
-	db 24, AGILITY
-	db 30, WING_ATTACK
-	db 36, SLASH
-	db 42, SWORDS_DANCE
-	db 48, DOUBLE_TEAM
-	db 0 ; no more level-up moves
-
-JynxEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, POUND
-	db 1, LICK
-	db 1, LOVELY_KISS
-	db 1, POWDER_SNOW
-	db 9, LOVELY_KISS
-	db 13, POWDER_SNOW
-	db 21, DOUBLESLAP
-	db 25, ICE_PUNCH
-	db 35, MEAN_LOOK
-	db 41, BODY_SLAM
-	db 51, PERISH_SONG
-	db 57, BLIZZARD
-	db 0 ; no more level-up moves
-
-ElectabuzzEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, QUICK_ATTACK
-	db 1, LEER
-	db 1, THUNDERPUNCH
-	db 9, THUNDERPUNCH
-	db 17, LIGHT_SCREEN
-	db 25, SWIFT
-	db 36, SCREECH
-	db 47, THUNDERBOLT
-	db 58, THUNDER
-	db 0 ; no more level-up moves
-
-MagmarEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, EMBER
-	db 1, LEER
-	db 1, SMOG
-	db 1, FIRE_PUNCH
-	db 7, LEER
-	db 13, SMOG
-	db 19, FIRE_PUNCH
-	db 25, SMOKESCREEN
-	db 33, SUNNY_DAY
-	db 41, FLAMETHROWER
-	db 49, CONFUSE_RAY
-	db 57, FIRE_BLAST
-	db 0 ; no more level-up moves
-
-PinsirEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, VICEGRIP
-	db 7, FOCUS_ENERGY
-	db 13, BIND
-	db 19, SEISMIC_TOSS
-	db 25, HARDEN
-	db 31, GUILLOTINE
-	db 37, SUBMISSION
-	db 43, SWORDS_DANCE
-	db 0 ; no more level-up moves
-
-TaurosEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 4, TAIL_WHIP
-	db 8, RAGE
-	db 13, HORN_ATTACK
-	db 19, SCARY_FACE
-	db 26, PURSUIT
-	db 34, REST
-	db 43, THRASH
-	db 53, TAKE_DOWN
-	db 0 ; no more level-up moves
-
-MagikarpEvosAttacks:
-	db EVOLVE_LEVEL, 20, GYARADOS
-	db 0 ; no more evolutions
-	db 1, SPLASH
-	db 15, TACKLE
-	db 30, FLAIL
-	db 0 ; no more level-up moves
-
-GyaradosEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, THRASH
-	db 20, BITE
-	db 25, DRAGON_RAGE
-	db 30, LEER
-	db 35, TWISTER
-	db 40, HYDRO_PUMP
-	db 45, RAIN_DANCE
-	db 50, HYPER_BEAM
-	db 0 ; no more level-up moves
-
-LaprasEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, WATER_GUN
-	db 1, GROWL
-	db 1, SING
-	db 8, MIST
-	db 15, BODY_SLAM
-	db 22, CONFUSE_RAY
-	db 29, PERISH_SONG
-	db 36, ICE_BEAM
-	db 43, RAIN_DANCE
-	db 50, SAFEGUARD
-	db 57, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-DittoEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TRANSFORM
-	db 0 ; no more level-up moves
-
-EeveeEvosAttacks:
-	db EVOLVE_ITEM, THUNDERSTONE, JOLTEON
-	db EVOLVE_ITEM, WATER_STONE, VAPOREON
-	db EVOLVE_ITEM, FIRE_STONE, FLAREON
-	db EVOLVE_HAPPINESS, TR_MORNDAY, ESPEON
-	db EVOLVE_HAPPINESS, TR_NITE, UMBREON
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, TAIL_WHIP
-	db 8, SAND_ATTACK
-	db 16, GROWL
-	db 23, QUICK_ATTACK
-	db 30, BITE
-	db 36, BATON_PASS
-	db 42, TAKE_DOWN
-	db 0 ; no more level-up moves
-
-VaporeonEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, TAIL_WHIP
-	db 8, SAND_ATTACK
-	db 16, WATER_GUN
-	db 23, QUICK_ATTACK
-	db 30, BITE
-	db 36, AURORA_BEAM
-	db 42, HAZE
-	db 47, ACID_ARMOR
-	db 52, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-JolteonEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, TAIL_WHIP
-	db 8, SAND_ATTACK
-	db 16, THUNDERSHOCK
-	db 23, QUICK_ATTACK
-	db 30, DOUBLE_KICK
-	db 36, PIN_MISSILE
-	db 42, THUNDER_WAVE
-	db 47, AGILITY
-	db 52, THUNDER
-	db 0 ; no more level-up moves
-
-FlareonEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, TAIL_WHIP
-	db 8, SAND_ATTACK
-	db 16, EMBER
-	db 23, QUICK_ATTACK
-	db 30, BITE
-	db 36, FIRE_SPIN
-	db 42, SMOG
-	db 47, LEER
-	db 52, FLAMETHROWER
-	db 0 ; no more level-up moves
-
-PorygonEvosAttacks:
-	db EVOLVE_TRADE, UP_GRADE, PORYGON2
-	db 0 ; no more evolutions
-	db 1, CONVERSION2
-	db 1, TACKLE
-	db 1, CONVERSION
-	db 9, AGILITY
-	db 12, PSYBEAM
-	db 20, RECOVER
-	db 24, SHARPEN
-	db 32, LOCK_ON
-	db 36, TRI_ATTACK
-	db 44, ZAP_CANNON
-	db 0 ; no more level-up moves
-
-OmanyteEvosAttacks:
-	db EVOLVE_LEVEL, 40, OMASTAR
-	db 0 ; no more evolutions
-	db 1, CONSTRICT
-	db 1, WITHDRAW
-	db 13, BITE
-	db 19, WATER_GUN
-	db 31, LEER
-	db 37, PROTECT
-	db 49, ANCIENTPOWER
-	db 55, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-OmastarEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, CONSTRICT
-	db 1, WITHDRAW
-	db 1, BITE
-	db 13, BITE
-	db 19, WATER_GUN
-	db 31, LEER
-	db 37, PROTECT
-	db 40, SPIKE_CANNON
-	db 54, ANCIENTPOWER
-	db 65, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-KabutoEvosAttacks:
-	db EVOLVE_LEVEL, 40, KABUTOPS
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, HARDEN
-	db 10, ABSORB
-	db 19, LEER
-	db 28, SAND_ATTACK
-	db 37, ENDURE
-	db 46, MEGA_DRAIN
-	db 55, ANCIENTPOWER
-	db 0 ; no more level-up moves
-
-KabutopsEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, HARDEN
-	db 1, ABSORB
-	db 10, ABSORB
-	db 19, LEER
-	db 28, SAND_ATTACK
-	db 37, ENDURE
-	db 40, SLASH
-	db 51, MEGA_DRAIN
-	db 65, ANCIENTPOWER
-	db 0 ; no more level-up moves
-
-AerodactylEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, WING_ATTACK
-	db 8, AGILITY
-	db 15, BITE
-	db 22, SUPERSONIC
-	db 29, ANCIENTPOWER
-	db 36, SCARY_FACE
-	db 43, TAKE_DOWN
-	db 50, HYPER_BEAM
-	db 0 ; no more level-up moves
-
-SnorlaxEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 8, AMNESIA
-	db 15, DEFENSE_CURL
-	db 22, BELLY_DRUM
-	db 29, HEADBUTT
-	db 36, SNORE
-	db 36, REST
-	db 43, BODY_SLAM
-	db 50, ROLLOUT
-	db 57, HYPER_BEAM
-	db 0 ; no more level-up moves
-
-ArticunoEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, GUST
-	db 1, POWDER_SNOW
-	db 13, MIST
-	db 25, AGILITY
-	db 37, MIND_READER
-	db 49, ICE_BEAM
-	db 61, REFLECT
-	db 73, BLIZZARD
-	db 0 ; no more level-up moves
-
-ZapdosEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, PECK
-	db 1, THUNDERSHOCK
-	db 13, THUNDER_WAVE
-	db 25, AGILITY
-	db 37, DETECT
-	db 49, DRILL_PECK
-	db 61, LIGHT_SCREEN
-	db 73, THUNDER
-	db 0 ; no more level-up moves
-
-MoltresEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, WING_ATTACK
-	db 1, EMBER
-	db 13, FIRE_SPIN
-	db 25, AGILITY
-	db 37, ENDURE
-	db 49, FLAMETHROWER
-	db 61, SAFEGUARD
-	db 73, SKY_ATTACK
-	db 0 ; no more level-up moves
-
-DratiniEvosAttacks:
-	db EVOLVE_LEVEL, 30, DRAGONAIR
-	db 0 ; no more evolutions
-	db 1, WRAP
-	db 1, LEER
-	db 8, THUNDER_WAVE
-	db 15, TWISTER
-	db 22, DRAGON_RAGE
-	db 29, SLAM
-	db 36, AGILITY
-	db 43, SAFEGUARD
-	db 50, OUTRAGE
-	db 57, HYPER_BEAM
-	db 0 ; no more level-up moves
-
-DragonairEvosAttacks:
-	db EVOLVE_LEVEL, 55, DRAGONITE
-	db 0 ; no more evolutions
-	db 1, WRAP
-	db 1, LEER
-	db 1, THUNDER_WAVE
-	db 1, TWISTER
-	db 8, THUNDER_WAVE
-	db 15, TWISTER
-	db 22, DRAGON_RAGE
-	db 29, SLAM
-	db 38, AGILITY
-	db 47, SAFEGUARD
-	db 56, OUTRAGE
-	db 65, HYPER_BEAM
-	db 0 ; no more level-up moves
-
-DragoniteEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, WRAP
-	db 1, LEER
-	db 1, THUNDER_WAVE
-	db 1, TWISTER
-	db 8, THUNDER_WAVE
-	db 15, TWISTER
-	db 22, DRAGON_RAGE
-	db 29, SLAM
-	db 38, AGILITY
-	db 47, SAFEGUARD
-	db 55, WING_ATTACK
-	db 61, OUTRAGE
-	db 75, HYPER_BEAM
-	db 0 ; no more level-up moves
-
-MewtwoEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, CONFUSION
-	db 1, DISABLE
-	db 11, BARRIER
-	db 22, SWIFT
-	db 33, PSYCH_UP
-	db 44, FUTURE_SIGHT
-	db 55, MIST
-	db 66, PSYCHIC_M
-	db 77, AMNESIA
-	db 88, RECOVER
-	db 99, SAFEGUARD
-	db 0 ; no more level-up moves
-
-MewEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, POUND
-	db 10, TRANSFORM
-	db 20, MEGA_PUNCH
-	db 30, METRONOME
-	db 40, PSYCHIC_M
-	db 50, ANCIENTPOWER
-	db 0 ; no more level-up moves
-
-ChikoritaEvosAttacks:
-	db EVOLVE_LEVEL, 16, BAYLEEF
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 8, RAZOR_LEAF
-	db 12, REFLECT
-	db 15, POISONPOWDER
-	db 22, SYNTHESIS
-	db 29, BODY_SLAM
-	db 36, LIGHT_SCREEN
-	db 43, SAFEGUARD
-	db 50, SOLARBEAM
-	db 0 ; no more level-up moves
-
-BayleefEvosAttacks:
-	db EVOLVE_LEVEL, 32, MEGANIUM
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 1, RAZOR_LEAF
-	db 1, REFLECT
-	db 8, RAZOR_LEAF
-	db 12, REFLECT
-	db 15, POISONPOWDER
-	db 23, SYNTHESIS
-	db 31, BODY_SLAM
-	db 39, LIGHT_SCREEN
-	db 47, SAFEGUARD
-	db 55, SOLARBEAM
-	db 0 ; no more level-up moves
-
-MeganiumEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 1, RAZOR_LEAF
-	db 1, REFLECT
-	db 8, RAZOR_LEAF
-	db 12, REFLECT
-	db 15, POISONPOWDER
-	db 23, SYNTHESIS
-	db 31, BODY_SLAM
-	db 41, LIGHT_SCREEN
-	db 51, SAFEGUARD
-	db 61, SOLARBEAM
-	db 0 ; no more level-up moves
-
-CyndaquilEvosAttacks:
-	db EVOLVE_LEVEL, 14, QUILAVA
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, LEER
-	db 6, SMOKESCREEN
-	db 12, EMBER
-	db 19, QUICK_ATTACK
-	db 27, FLAME_WHEEL
-	db 36, SWIFT
-	db 46, FLAMETHROWER
-	db 0 ; no more level-up moves
-
-QuilavaEvosAttacks:
-	db EVOLVE_LEVEL, 36, TYPHLOSION
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, LEER
-	db 1, SMOKESCREEN
-	db 6, SMOKESCREEN
-	db 12, EMBER
-	db 21, QUICK_ATTACK
-	db 31, FLAME_WHEEL
-	db 42, SWIFT
-	db 54, FLAMETHROWER
-	db 0 ; no more level-up moves
-
-TyphlosionEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, LEER
-	db 1, SMOKESCREEN
-	db 1, EMBER
-	db 6, SMOKESCREEN
-	db 12, EMBER
-	db 21, QUICK_ATTACK
-	db 31, FLAME_WHEEL
-	db 45, SWIFT
-	db 60, FLAMETHROWER
-	db 0 ; no more level-up moves
-
-TotodileEvosAttacks:
-	db EVOLVE_LEVEL, 18, CROCONAW
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, LEER
-	db 7, RAGE
-	db 13, WATER_GUN
-	db 20, BITE
-	db 27, SCARY_FACE
-	db 35, SLASH
-	db 43, SCREECH
-	db 52, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-CroconawEvosAttacks:
-	db EVOLVE_LEVEL, 30, FERALIGATR
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, LEER
-	db 1, RAGE
-	db 7, RAGE
-	db 13, WATER_GUN
-	db 21, BITE
-	db 28, SCARY_FACE
-	db 37, SLASH
-	db 45, SCREECH
-	db 55, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-FeraligatrEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, LEER
-	db 1, RAGE
-	db 1, WATER_GUN
-	db 7, RAGE
-	db 13, WATER_GUN
-	db 21, BITE
-	db 28, SCARY_FACE
-	db 38, SLASH
-	db 47, SCREECH
-	db 58, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-SentretEvosAttacks:
-	db EVOLVE_LEVEL, 15, FURRET
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 5, DEFENSE_CURL
-	db 11, QUICK_ATTACK
-	db 17, FURY_SWIPES
-	db 25, SLAM
-	db 33, REST
-	db 41, AMNESIA
-	db 0 ; no more level-up moves
-
-FurretEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, DEFENSE_CURL
-	db 1, QUICK_ATTACK
-	db 5, DEFENSE_CURL
-	db 11, QUICK_ATTACK
-	db 18, FURY_SWIPES
-	db 28, SLAM
-	db 38, REST
-	db 48, AMNESIA
-	db 0 ; no more level-up moves
-
-HoothootEvosAttacks:
-	db EVOLVE_LEVEL, 20, NOCTOWL
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 6, FORESIGHT
-	db 11, PECK
-	db 16, HYPNOSIS
-	db 22, REFLECT
-	db 28, TAKE_DOWN
-	db 34, CONFUSION
-	db 48, DREAM_EATER
-	db 0 ; no more level-up moves
-
-NoctowlEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 1, FORESIGHT
-	db 1, PECK
-	db 6, FORESIGHT
-	db 11, PECK
-	db 16, HYPNOSIS
-	db 25, REFLECT
-	db 33, TAKE_DOWN
-	db 41, CONFUSION
-	db 57, DREAM_EATER
-	db 0 ; no more level-up moves
-
-LedybaEvosAttacks:
-	db EVOLVE_LEVEL, 18, LEDIAN
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 8, SUPERSONIC
-	db 15, COMET_PUNCH
-	db 22, LIGHT_SCREEN
-	db 22, REFLECT
-	db 22, SAFEGUARD
-	db 29, BATON_PASS
-	db 36, SWIFT
-	db 43, AGILITY
-	db 50, DOUBLE_EDGE
-	db 0 ; no more level-up moves
-
-LedianEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, SUPERSONIC
-	db 8, SUPERSONIC
-	db 15, COMET_PUNCH
-	db 24, LIGHT_SCREEN
-	db 24, REFLECT
-	db 24, SAFEGUARD
-	db 33, BATON_PASS
-	db 42, SWIFT
-	db 51, AGILITY
-	db 60, DOUBLE_EDGE
-	db 0 ; no more level-up moves
-
-SpinarakEvosAttacks:
-	db EVOLVE_LEVEL, 22, ARIADOS
-	db 0 ; no more evolutions
-	db 1, POISON_STING
-	db 1, STRING_SHOT
-	db 6, SCARY_FACE
-	db 11, CONSTRICT
-	db 17, NIGHT_SHADE
-	db 23, LEECH_LIFE
-	db 30, FURY_SWIPES
-	db 37, SPIDER_WEB
-	db 45, AGILITY
-	db 53, PSYCHIC_M
-	db 0 ; no more level-up moves
-
-AriadosEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, POISON_STING
-	db 1, STRING_SHOT
-	db 1, SCARY_FACE
-	db 1, CONSTRICT
-	db 6, SCARY_FACE
-	db 11, CONSTRICT
-	db 17, NIGHT_SHADE
-	db 25, LEECH_LIFE
-	db 34, FURY_SWIPES
-	db 43, SPIDER_WEB
-	db 53, AGILITY
-	db 63, PSYCHIC_M
-	db 0 ; no more level-up moves
-
-CrobatEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCREECH
-	db 1, LEECH_LIFE
-	db 1, SUPERSONIC
-	db 6, SUPERSONIC
-	db 12, BITE
-	db 19, CONFUSE_RAY
-	db 30, WING_ATTACK
-	db 42, MEAN_LOOK
-	db 55, HAZE
-	db 0 ; no more level-up moves
-
-ChinchouEvosAttacks:
-	db EVOLVE_LEVEL, 27, LANTURN
-	db 0 ; no more evolutions
-	db 1, BUBBLE
-	db 1, THUNDER_WAVE
-	db 5, SUPERSONIC
-	db 13, FLAIL
-	db 17, WATER_GUN
-	db 25, SPARK
-	db 29, CONFUSE_RAY
-	db 37, TAKE_DOWN
-	db 41, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-LanturnEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, BUBBLE
-	db 1, THUNDER_WAVE
-	db 1, SUPERSONIC
-	db 5, SUPERSONIC
-	db 13, FLAIL
-	db 17, WATER_GUN
-	db 25, SPARK
-	db 33, CONFUSE_RAY
-	db 45, TAKE_DOWN
-	db 53, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-PichuEvosAttacks:
-	db EVOLVE_HAPPINESS, TR_ANYTIME, PIKACHU
-	db 0 ; no more evolutions
-	db 1, THUNDERSHOCK
-	db 1, CHARM
-	db 6, TAIL_WHIP
-	db 8, THUNDER_WAVE
-	db 11, SWEET_KISS
-	db 0 ; no more level-up moves
-
-CleffaEvosAttacks:
-	db EVOLVE_HAPPINESS, TR_ANYTIME, CLEFAIRY
-	db 0 ; no more evolutions
-	db 1, POUND
-	db 1, CHARM
-	db 4, ENCORE
-	db 8, SING
-	db 13, SWEET_KISS
-	db 0 ; no more level-up moves
-
-IgglybuffEvosAttacks:
-	db EVOLVE_HAPPINESS, TR_ANYTIME, JIGGLYPUFF
-	db 0 ; no more evolutions
-	db 1, SING
-	db 1, CHARM
-	db 4, DEFENSE_CURL
-	db 9, POUND
-	db 14, SWEET_KISS
-	db 0 ; no more level-up moves
-
-TogepiEvosAttacks:
-	db EVOLVE_HAPPINESS, TR_ANYTIME, TOGETIC
-	db 0 ; no more evolutions
-	db 1, GROWL
-	db 1, CHARM
-	db 7, METRONOME
-	db 18, SWEET_KISS
-	db 25, ENCORE
-	db 31, SAFEGUARD
-	db 38, DOUBLE_EDGE
-	db 0 ; no more level-up moves
-
-TogeticEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, GROWL
-	db 1, CHARM
-	db 7, METRONOME
-	db 18, SWEET_KISS
-	db 25, ENCORE
-	db 31, SAFEGUARD
-	db 38, DOUBLE_EDGE
-	db 0 ; no more level-up moves
-
-NatuEvosAttacks:
-	db EVOLVE_LEVEL, 25, XATU
-	db 0 ; no more evolutions
-	db 1, PECK
-	db 1, LEER
-	db 10, NIGHT_SHADE
-	db 20, TELEPORT
-	db 30, FUTURE_SIGHT
-	db 40, CONFUSE_RAY
-	db 50, PSYCHIC_M
-	db 0 ; no more level-up moves
-
-XatuEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, PECK
-	db 1, LEER
-	db 1, NIGHT_SHADE
-	db 10, NIGHT_SHADE
-	db 20, TELEPORT
-	db 35, FUTURE_SIGHT
-	db 50, CONFUSE_RAY
-	db 65, PSYCHIC_M
-	db 0 ; no more level-up moves
-
-MareepEvosAttacks:
-	db EVOLVE_LEVEL, 15, FLAAFFY
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 9, THUNDERSHOCK
-	db 16, THUNDER_WAVE
-	db 23, COTTON_SPORE
-	db 30, LIGHT_SCREEN
-	db 37, THUNDER
-	db 0 ; no more level-up moves
-
-FlaaffyEvosAttacks:
-	db EVOLVE_LEVEL, 30, AMPHAROS
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 1, THUNDERSHOCK
-	db 9, THUNDERSHOCK
-	db 18, THUNDER_WAVE
-	db 27, COTTON_SPORE
-	db 36, LIGHT_SCREEN
-	db 45, THUNDER
-	db 0 ; no more level-up moves
-
-AmpharosEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 1, THUNDERSHOCK
-	db 1, THUNDER_WAVE
-	db 9, THUNDERSHOCK
-	db 18, THUNDER_WAVE
-	db 27, COTTON_SPORE
-	db 30, THUNDERPUNCH
-	db 42, LIGHT_SCREEN
-	db 57, THUNDER
-	db 0 ; no more level-up moves
-
-BellossomEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, ABSORB
-	db 1, SWEET_SCENT
-	db 1, STUN_SPORE
-	db 1, PETAL_DANCE
-	db 55, SOLARBEAM
-	db 0 ; no more level-up moves
-
-MarillEvosAttacks:
-	db EVOLVE_LEVEL, 18, AZUMARILL
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 3, DEFENSE_CURL
-	db 6, TAIL_WHIP
-	db 10, WATER_GUN
-	db 15, ROLLOUT
-	db 21, BUBBLEBEAM
-	db 28, DOUBLE_EDGE
-	db 36, RAIN_DANCE
-	db 0 ; no more level-up moves
-
-AzumarillEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, DEFENSE_CURL
-	db 1, TAIL_WHIP
-	db 1, WATER_GUN
-	db 3, DEFENSE_CURL
-	db 6, TAIL_WHIP
-	db 10, WATER_GUN
-	db 15, ROLLOUT
-	db 25, BUBBLEBEAM
-	db 36, DOUBLE_EDGE
-	db 48, RAIN_DANCE
-	db 0 ; no more level-up moves
-
-SudowoodoEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, ROCK_THROW
-	db 1, MIMIC
-	db 10, FLAIL
-	db 19, LOW_KICK
-	db 28, ROCK_SLIDE
-	db 37, FAINT_ATTACK
-	db 46, SLAM
-	db 0 ; no more level-up moves
-
-PolitoedEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, WATER_GUN
-	db 1, HYPNOSIS
-	db 1, DOUBLESLAP
-	db 1, PERISH_SONG
-	db 35, PERISH_SONG
-	db 51, SWAGGER
-	db 0 ; no more level-up moves
-
-HoppipEvosAttacks:
-	db EVOLVE_LEVEL, 18, SKIPLOOM
-	db 0 ; no more evolutions
-	db 1, SPLASH
-	db 5, SYNTHESIS
-	db 5, TAIL_WHIP
-	db 10, TACKLE
-	db 13, POISONPOWDER
-	db 15, STUN_SPORE
-	db 17, SLEEP_POWDER
-	db 20, LEECH_SEED
-	db 25, COTTON_SPORE
-	db 30, MEGA_DRAIN
-	db 0 ; no more level-up moves
-
-SkiploomEvosAttacks:
-	db EVOLVE_LEVEL, 27, JUMPLUFF
-	db 0 ; no more evolutions
-	db 1, SPLASH
-	db 1, SYNTHESIS
-	db 1, TAIL_WHIP
-	db 1, TACKLE
-	db 5, SYNTHESIS
-	db 5, TAIL_WHIP
-	db 10, TACKLE
-	db 13, POISONPOWDER
-	db 15, STUN_SPORE
-	db 17, SLEEP_POWDER
-	db 22, LEECH_SEED
-	db 29, COTTON_SPORE
-	db 36, MEGA_DRAIN
-	db 0 ; no more level-up moves
-
-JumpluffEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SPLASH
-	db 1, SYNTHESIS
-	db 1, TAIL_WHIP
-	db 1, TACKLE
-	db 5, SYNTHESIS
-	db 5, TAIL_WHIP
-	db 10, TACKLE
-	db 13, POISONPOWDER
-	db 15, STUN_SPORE
-	db 17, SLEEP_POWDER
-	db 22, LEECH_SEED
-	db 33, COTTON_SPORE
-	db 44, MEGA_DRAIN
-	db 0 ; no more level-up moves
-
-AipomEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, TAIL_WHIP
-	db 6, SAND_ATTACK
-	db 12, BATON_PASS
-	db 19, FURY_SWIPES
-	db 27, SWIFT
-	db 36, SCREECH
-	db 46, AGILITY
-	db 0 ; no more level-up moves
-
-SunkernEvosAttacks:
-	db EVOLVE_ITEM, SUN_STONE, SUNFLORA
-	db 0 ; no more evolutions
-	db 1, ABSORB
-	db 4, GROWTH
-	db 10, MEGA_DRAIN
-	db 19, SUNNY_DAY
-	db 31, SYNTHESIS
-	db 46, GIGA_DRAIN
-	db 0 ; no more level-up moves
-
-SunfloraEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, ABSORB
-	db 1, POUND
-	db 4, GROWTH
-	db 10, RAZOR_LEAF
-	db 19, SUNNY_DAY
-	db 31, PETAL_DANCE
-	db 46, SOLARBEAM
-	db 0 ; no more level-up moves
-
-YanmaEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, FORESIGHT
-	db 7, QUICK_ATTACK
-	db 13, DOUBLE_TEAM
-	db 19, SONICBOOM
-	db 25, DETECT
-	db 31, SUPERSONIC
-	db 37, WING_ATTACK
-	db 43, SCREECH
-	db 0 ; no more level-up moves
-
-WooperEvosAttacks:
-	db EVOLVE_LEVEL, 20, QUAGSIRE
-	db 0 ; no more evolutions
-	db 1, WATER_GUN
-	db 1, TAIL_WHIP
-	db 11, SLAM
-	db 21, AMNESIA
-	db 31, EARTHQUAKE
-	db 41, RAIN_DANCE
-	db 51, MIST
-	db 51, HAZE
-	db 0 ; no more level-up moves
-
-QuagsireEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, WATER_GUN
-	db 1, TAIL_WHIP
-	db 11, SLAM
-	db 23, AMNESIA
-	db 35, EARTHQUAKE
-	db 47, RAIN_DANCE
-	db 59, MIST
-	db 59, HAZE
-	db 0 ; no more level-up moves
-
-EspeonEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, TAIL_WHIP
-	db 8, SAND_ATTACK
-	db 16, CONFUSION
-	db 23, QUICK_ATTACK
-	db 30, SWIFT
-	db 36, PSYBEAM
-	db 42, PSYCH_UP
-	db 47, PSYCHIC_M
-	db 52, MORNING_SUN
-	db 0 ; no more level-up moves
-
-UmbreonEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, TAIL_WHIP
-	db 8, SAND_ATTACK
-	db 16, PURSUIT
-	db 23, QUICK_ATTACK
-	db 30, CONFUSE_RAY
-	db 36, FAINT_ATTACK
-	db 42, MEAN_LOOK
-	db 47, SCREECH
-	db 52, MOONLIGHT
-	db 0 ; no more level-up moves
-
-MurkrowEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, PECK
-	db 11, PURSUIT
-	db 16, HAZE
-	db 26, NIGHT_SHADE
-	db 31, FAINT_ATTACK
-	db 41, MEAN_LOOK
-	db 0 ; no more level-up moves
-
-SlowkingEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, CURSE
-	db 1, TACKLE
-	db 6, GROWL
-	db 15, WATER_GUN
-	db 20, CONFUSION
-	db 29, DISABLE
-	db 34, HEADBUTT
-	db 43, SWAGGER
-	db 48, PSYCHIC_M
-	db 0 ; no more level-up moves
-
-MisdreavusEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, GROWL
-	db 1, PSYWAVE
-	db 6, SPITE
-	db 12, CONFUSE_RAY
-	db 19, MEAN_LOOK
-	db 27, PSYBEAM
-	db 36, PAIN_SPLIT
-	db 46, PERISH_SONG
-	db 0 ; no more level-up moves
-
-UnownEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, HIDDEN_POWER
-	db 0 ; no more level-up moves
-
-WobbuffetEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, COUNTER
-	db 1, MIRROR_COAT
-	db 1, SAFEGUARD
-	db 1, DESTINY_BOND
-	db 0 ; no more level-up moves
-
-GirafarigEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 1, CONFUSION
-	db 1, STOMP
-	db 7, CONFUSION
-	db 13, STOMP
-	db 20, AGILITY
-	db 30, BATON_PASS
-	db 41, PSYBEAM
-	db 54, CRUNCH
-	db 0 ; no more level-up moves
-
-PinecoEvosAttacks:
-	db EVOLVE_LEVEL, 31, FORRETRESS
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, PROTECT
-	db 8, SELFDESTRUCT
-	db 15, TAKE_DOWN
-	db 22, RAPID_SPIN
-	db 29, BIDE
-	db 36, EXPLOSION
-	db 43, SPIKES
-	db 50, DOUBLE_EDGE
-	db 0 ; no more level-up moves
-
-ForretressEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, PROTECT
-	db 1, SELFDESTRUCT
-	db 8, SELFDESTRUCT
-	db 15, TAKE_DOWN
-	db 22, RAPID_SPIN
-	db 29, BIDE
-	db 39, EXPLOSION
-	db 49, SPIKES
-	db 59, DOUBLE_EDGE
-	db 0 ; no more level-up moves
-
-DunsparceEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, RAGE
-	db 5, DEFENSE_CURL
-	db 13, GLARE
-	db 18, SPITE
-	db 26, PURSUIT
-	db 30, SCREECH
-	db 38, TAKE_DOWN
-	db 0 ; no more level-up moves
-
-GligarEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, POISON_STING
-	db 6, SAND_ATTACK
-	db 13, HARDEN
-	db 20, QUICK_ATTACK
-	db 28, FAINT_ATTACK
-	db 36, SLASH
-	db 44, SCREECH
-	db 52, GUILLOTINE
-	db 0 ; no more level-up moves
-
-SteelixEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, SCREECH
-	db 10, BIND
-	db 14, ROCK_THROW
-	db 23, HARDEN
-	db 27, RAGE
-	db 36, SANDSTORM
-	db 40, SLAM
-	db 49, CRUNCH
-	db 0 ; no more level-up moves
-
-SnubbullEvosAttacks:
-	db EVOLVE_LEVEL, 23, GRANBULL
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, SCARY_FACE
-	db 4, TAIL_WHIP
-	db 8, CHARM
-	db 13, BITE
-	db 19, LICK
-	db 26, ROAR
-	db 34, RAGE
-	db 43, TAKE_DOWN
-	db 0 ; no more level-up moves
-
-GranbullEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, SCARY_FACE
-	db 4, TAIL_WHIP
-	db 8, CHARM
-	db 13, BITE
-	db 19, LICK
-	db 28, ROAR
-	db 38, RAGE
-	db 51, TAKE_DOWN
-	db 0 ; no more level-up moves
-
-QwilfishEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SPIKES
-	db 1, TACKLE
-	db 1, POISON_STING
-	db 10, HARDEN
-	db 10, MINIMIZE
-	db 19, WATER_GUN
-	db 28, PIN_MISSILE
-	db 37, TAKE_DOWN
-	db 46, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-ScizorEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, QUICK_ATTACK
-	db 1, LEER
-	db 6, FOCUS_ENERGY
-	db 12, PURSUIT
-	db 18, FALSE_SWIPE
-	db 24, AGILITY
-	db 30, METAL_CLAW
-	db 36, SLASH
-	db 42, SWORDS_DANCE
-	db 48, DOUBLE_TEAM
-	db 0 ; no more level-up moves
-
-ShuckleEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, CONSTRICT
-	db 1, WITHDRAW
-	db 9, WRAP
-	db 14, ENCORE
-	db 23, SAFEGUARD
-	db 28, BIDE
-	db 37, REST
-	db 0 ; no more level-up moves
-
-HeracrossEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, LEER
-	db 6, HORN_ATTACK
-	db 12, ENDURE
-	db 19, FURY_ATTACK
-	db 27, COUNTER
-	db 35, TAKE_DOWN
-	db 44, REVERSAL
-	db 54, MEGAHORN
-	db 0 ; no more level-up moves
-
-SneaselEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, LEER
-	db 9, QUICK_ATTACK
-	db 17, SCREECH
-	db 25, FAINT_ATTACK
-	db 33, FURY_SWIPES
-	db 41, AGILITY
-	db 49, SLASH
-	db 57, BEAT_UP
-	db 65, METAL_CLAW
-	db 0 ; no more level-up moves
-
-TeddiursaEvosAttacks:
-	db EVOLVE_LEVEL, 30, URSARING
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, LEER
-	db 8, LICK
-	db 15, FURY_SWIPES
-	db 22, FAINT_ATTACK
-	db 29, REST
-	db 36, SLASH
-	db 43, SNORE
-	db 50, THRASH
-	db 0 ; no more level-up moves
-
-UrsaringEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SCRATCH
-	db 1, LEER
-	db 1, LICK
-	db 1, FURY_SWIPES
-	db 8, LICK
-	db 15, FURY_SWIPES
-	db 22, FAINT_ATTACK
-	db 29, REST
-	db 39, SLASH
-	db 49, SNORE
-	db 59, THRASH
-	db 0 ; no more level-up moves
-
-SlugmaEvosAttacks:
-	db EVOLVE_LEVEL, 38, MAGCARGO
-	db 0 ; no more evolutions
-	db 1, SMOG
-	db 8, EMBER
-	db 15, ROCK_THROW
-	db 22, HARDEN
-	db 29, AMNESIA
-	db 36, FLAMETHROWER
-	db 43, ROCK_SLIDE
-	db 50, BODY_SLAM
-	db 0 ; no more level-up moves
-
-MagcargoEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SMOG
-	db 1, EMBER
-	db 1, ROCK_THROW
-	db 8, EMBER
-	db 15, ROCK_THROW
-	db 22, HARDEN
-	db 29, AMNESIA
-	db 36, FLAMETHROWER
-	db 48, ROCK_SLIDE
-	db 60, BODY_SLAM
-	db 0 ; no more level-up moves
-
-SwinubEvosAttacks:
-	db EVOLVE_LEVEL, 33, PILOSWINE
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 10, POWDER_SNOW
-	db 19, ENDURE
-	db 28, TAKE_DOWN
-	db 37, MIST
-	db 46, BLIZZARD
-	db 55, AMNESIA
-	db 0 ; no more level-up moves
-
-PiloswineEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, HORN_ATTACK
-	db 1, POWDER_SNOW
-	db 1, ENDURE
-	db 10, POWDER_SNOW
-	db 19, ENDURE
-	db 28, TAKE_DOWN
-	db 33, FURY_ATTACK
-	db 42, MIST
-	db 56, BLIZZARD
-	db 70, AMNESIA
-	db 0 ; no more level-up moves
-
-CorsolaEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 7, HARDEN
-	db 13, BUBBLE
-	db 19, RECOVER
-	db 25, BUBBLEBEAM
-	db 31, SPIKE_CANNON
-	db 37, MIRROR_COAT
-	db 43, ANCIENTPOWER
-	db 0 ; no more level-up moves
-
-RemoraidEvosAttacks:
-	db EVOLVE_LEVEL, 25, OCTILLERY
-	db 0 ; no more evolutions
-	db 1, WATER_GUN
-	db 11, LOCK_ON
-	db 22, PSYBEAM
-	db 22, AURORA_BEAM
-	db 22, BUBBLEBEAM
-	db 33, FOCUS_ENERGY
-	db 44, ICE_BEAM
-	db 55, HYPER_BEAM
-	db 0 ; no more level-up moves
-
-OctilleryEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, WATER_GUN
-	db 11, CONSTRICT
-	db 22, PSYBEAM
-	db 22, AURORA_BEAM
-	db 22, BUBBLEBEAM
-	db 25, OCTAZOOKA
-	db 38, FOCUS_ENERGY
-	db 54, ICE_BEAM
-	db 70, HYPER_BEAM
-	db 0 ; no more level-up moves
-
-DelibirdEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, PRESENT
-	db 0 ; no more level-up moves
-
-MantineEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, BUBBLE
-	db 10, SUPERSONIC
-	db 18, BUBBLEBEAM
-	db 25, TAKE_DOWN
-	db 32, AGILITY
-	db 40, WING_ATTACK
-	db 49, CONFUSE_RAY
-	db 0 ; no more level-up moves
-
-SkarmoryEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, LEER
-	db 1, PECK
-	db 13, SAND_ATTACK
-	db 19, SWIFT
-	db 25, AGILITY
-	db 37, FURY_ATTACK
-	db 49, STEEL_WING
-	db 0 ; no more level-up moves
-
-HoundourEvosAttacks:
-	db EVOLVE_LEVEL, 24, HOUNDOOM
-	db 0 ; no more evolutions
-	db 1, LEER
-	db 1, EMBER
-	db 7, ROAR
-	db 13, SMOG
-	db 20, BITE
-	db 27, FAINT_ATTACK
-	db 35, FLAMETHROWER
-	db 43, CRUNCH
-	db 0 ; no more level-up moves
-
-HoundoomEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, LEER
-	db 1, EMBER
-	db 7, ROAR
-	db 13, SMOG
-	db 20, BITE
-	db 30, FAINT_ATTACK
-	db 41, FLAMETHROWER
-	db 52, CRUNCH
-	db 0 ; no more level-up moves
-
-KingdraEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, BUBBLE
-	db 1, SMOKESCREEN
-	db 1, LEER
-	db 1, WATER_GUN
-	db 8, SMOKESCREEN
-	db 15, LEER
-	db 22, WATER_GUN
-	db 29, TWISTER
-	db 40, AGILITY
-	db 51, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-PhanpyEvosAttacks:
-	db EVOLVE_LEVEL, 25, DONPHAN
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 1, GROWL
-	db 9, DEFENSE_CURL
-	db 17, FLAIL
-	db 25, TAKE_DOWN
-	db 33, ROLLOUT
-	db 41, ENDURE
-	db 49, DOUBLE_EDGE
-	db 0 ; no more level-up moves
-
-DonphanEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, HORN_ATTACK
-	db 1, GROWL
-	db 9, DEFENSE_CURL
-	db 17, FLAIL
-	db 25, FURY_ATTACK
-	db 33, ROLLOUT
-	db 41, RAPID_SPIN
-	db 49, EARTHQUAKE
-	db 0 ; no more level-up moves
-
-Porygon2EvosAttacks:
-	db 0 ; no more evolutions
-	db 1, CONVERSION2
-	db 1, TACKLE
-	db 1, CONVERSION
-	db 9, AGILITY
-	db 12, PSYBEAM
-	db 20, RECOVER
-	db 24, DEFENSE_CURL
-	db 32, LOCK_ON
-	db 36, TRI_ATTACK
-	db 44, ZAP_CANNON
-	db 0 ; no more level-up moves
-
-StantlerEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 8, LEER
-	db 15, HYPNOSIS
-	db 23, STOMP
-	db 31, SAND_ATTACK
-	db 40, TAKE_DOWN
-	db 49, CONFUSE_RAY
-	db 0 ; no more level-up moves
-
-SmeargleEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SKETCH
-	db 11, SKETCH
-	db 21, SKETCH
-	db 31, SKETCH
-	db 41, SKETCH
-	db 51, SKETCH
-	db 61, SKETCH
-	db 71, SKETCH
-	db 81, SKETCH
-	db 91, SKETCH
-	db 0 ; no more level-up moves
-
-TyrogueEvosAttacks:
-	db EVOLVE_STAT, 20, ATK_LT_DEF, HITMONCHAN
-	db EVOLVE_STAT, 20, ATK_GT_DEF, HITMONLEE
-	db EVOLVE_STAT, 20, ATK_EQ_DEF, HITMONTOP
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 0 ; no more level-up moves
-
-HitmontopEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, ROLLING_KICK
-	db 7, FOCUS_ENERGY
-	db 13, PURSUIT
-	db 19, QUICK_ATTACK
-	db 25, RAPID_SPIN
-	db 31, COUNTER
-	db 37, AGILITY
-	db 43, DETECT
-	db 49, TRIPLE_KICK
-	db 0 ; no more level-up moves
-
-SmoochumEvosAttacks:
-	db EVOLVE_LEVEL, 30, JYNX
-	db 0 ; no more evolutions
-	db 1, POUND
-	db 1, LICK
-	db 9, SWEET_KISS
-	db 13, POWDER_SNOW
-	db 21, CONFUSION
-	db 25, SING
-	db 33, MEAN_LOOK
-	db 37, PSYCHIC_M
-	db 45, PERISH_SONG
-	db 49, BLIZZARD
-	db 0 ; no more level-up moves
-
-ElekidEvosAttacks:
-	db EVOLVE_LEVEL, 30, ELECTABUZZ
-	db 0 ; no more evolutions
-	db 1, QUICK_ATTACK
-	db 1, LEER
-	db 9, THUNDERPUNCH
-	db 17, LIGHT_SCREEN
-	db 25, SWIFT
-	db 33, SCREECH
-	db 41, THUNDERBOLT
-	db 49, THUNDER
-	db 0 ; no more level-up moves
-
-MagbyEvosAttacks:
-	db EVOLVE_LEVEL, 30, MAGMAR
-	db 0 ; no more evolutions
-	db 1, EMBER
-	db 7, LEER
-	db 13, SMOG
-	db 19, FIRE_PUNCH
-	db 25, SMOKESCREEN
-	db 31, SUNNY_DAY
-	db 37, FLAMETHROWER
-	db 43, CONFUSE_RAY
-	db 49, FIRE_BLAST
-	db 0 ; no more level-up moves
-
-MiltankEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, TACKLE
-	db 4, GROWL
-	db 8, DEFENSE_CURL
-	db 13, STOMP
-	db 19, MILK_DRINK
-	db 26, BIDE
-	db 34, ROLLOUT
-	db 43, BODY_SLAM
-	db 53, HEAL_BELL
-	db 0 ; no more level-up moves
-
-BlisseyEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, POUND
-	db 4, GROWL
-	db 7, TAIL_WHIP
-	db 10, SOFTBOILED
-	db 13, DOUBLESLAP
-	db 18, MINIMIZE
-	db 23, SING
-	db 28, EGG_BOMB
-	db 33, DEFENSE_CURL
-	db 40, LIGHT_SCREEN
-	db 47, DOUBLE_EDGE
-	db 0 ; no more level-up moves
-
-RaikouEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, BITE
-	db 1, LEER
-	db 11, THUNDERSHOCK
-	db 21, ROAR
-	db 31, QUICK_ATTACK
-	db 41, SPARK
-	db 51, REFLECT
-	db 61, CRUNCH
-	db 71, THUNDER
-	db 0 ; no more level-up moves
-
-EnteiEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, BITE
-	db 1, LEER
-	db 11, EMBER
-	db 21, ROAR
-	db 31, FIRE_SPIN
-	db 41, STOMP
-	db 51, FLAMETHROWER
-	db 61, SWAGGER
-	db 71, FIRE_BLAST
-	db 0 ; no more level-up moves
-
-SuicuneEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, BITE
-	db 1, LEER
-	db 11, BUBBLEBEAM
-	db 21, RAIN_DANCE
-	db 31, GUST
-	db 41, AURORA_BEAM
-	db 51, MIST
-	db 61, MIRROR_COAT
-	db 71, HYDRO_PUMP
-	db 0 ; no more level-up moves
-
-LarvitarEvosAttacks:
-	db EVOLVE_LEVEL, 30, PUPITAR
-	db 0 ; no more evolutions
-	db 1, BITE
-	db 1, LEER
-	db 8, SANDSTORM
-	db 15, SCREECH
-	db 22, ROCK_SLIDE
-	db 29, THRASH
-	db 36, SCARY_FACE
-	db 43, CRUNCH
-	db 50, EARTHQUAKE
-	db 57, HYPER_BEAM
-	db 0 ; no more level-up moves
-
-PupitarEvosAttacks:
-	db EVOLVE_LEVEL, 55, TYRANITAR
-	db 0 ; no more evolutions
-	db 1, BITE
-	db 1, LEER
-	db 1, SANDSTORM
-	db 1, SCREECH
-	db 8, SANDSTORM
-	db 15, SCREECH
-	db 22, ROCK_SLIDE
-	db 29, THRASH
-	db 38, SCARY_FACE
-	db 47, CRUNCH
-	db 56, EARTHQUAKE
-	db 65, HYPER_BEAM
-	db 0 ; no more level-up moves
-
-TyranitarEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, BITE
-	db 1, LEER
-	db 1, SANDSTORM
-	db 1, SCREECH
-	db 8, SANDSTORM
-	db 15, SCREECH
-	db 22, ROCK_SLIDE
-	db 29, THRASH
-	db 38, SCARY_FACE
-	db 47, CRUNCH
-	db 61, EARTHQUAKE
-	db 75, HYPER_BEAM
-	db 0 ; no more level-up moves
-
-LugiaEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, AEROBLAST
-	db 11, SAFEGUARD
-	db 22, GUST
-	db 33, RECOVER
-	db 44, HYDRO_PUMP
-	db 55, RAIN_DANCE
-	db 66, SWIFT
-	db 77, WHIRLWIND
-	db 88, ANCIENTPOWER
-	db 99, FUTURE_SIGHT
-	db 0 ; no more level-up moves
-
-HoOhEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, SACRED_FIRE
-	db 11, SAFEGUARD
-	db 22, GUST
-	db 33, RECOVER
-	db 44, FIRE_BLAST
-	db 55, SUNNY_DAY
-	db 66, SWIFT
-	db 77, WHIRLWIND
-	db 88, ANCIENTPOWER
-	db 99, FUTURE_SIGHT
-	db 0 ; no more level-up moves
-
-CelebiEvosAttacks:
-	db 0 ; no more evolutions
-	db 1, LEECH_SEED
-	db 1, CONFUSION
-	db 1, RECOVER
-	db 1, HEAL_BELL
-	db 10, SAFEGUARD
-	db 20, ANCIENTPOWER
-	db 30, FUTURE_SIGHT
-	db 40, BATON_PASS
-	db 50, PERISH_SONG
-	db 0 ; no more level-up moves
+EvosAttacks::
+
+	evos_attacks Bulbasaur
+	evo_data EVOLVE_LEVEL, 16, IVYSAUR
+	learnset 1, TACKLE
+	learnset 3, GROWL
+	learnset 7, LEECH_SEED
+	learnset 9, VINE_WHIP
+	learnset 13, POISONPOWDER
+	learnset 13, SLEEP_POWDER
+	learnset 15, MUD_SLAP ; Take Down → GSC TM move
+	learnset 19, RAZOR_LEAF
+	learnset 21, TAKE_DOWN ; Sweet Scent → Take Down
+	learnset 25, GROWTH
+	learnset 27, DOUBLE_EDGE
+	learnset 31, ANCIENTPOWER ; Worry Seed → event move
+	learnset 33, HEALINGLIGHT ; Synthesis → similar move
+	learnset 37, SEED_BOMB
+	learnset 43, SLUDGE_BOMB ; TM move
+
+	evos_attacks Ivysaur
+	evo_data EVOLVE_LEVEL, 32, VENUSAUR
+	learnset 1, TACKLE
+	learnset 3, GROWL
+	learnset 7, LEECH_SEED
+	learnset 9, VINE_WHIP
+	learnset 13, POISONPOWDER
+	learnset 13, SLEEP_POWDER
+	learnset 15, MUD_SLAP ; Take Down → GSC TM move
+	learnset 20, RAZOR_LEAF
+	learnset 23, TAKE_DOWN ; Sweet Scent → Take Down
+	learnset 28, GROWTH
+	learnset 31, DOUBLE_EDGE
+	learnset 36, ANCIENTPOWER ; Worry Seed → event move
+	learnset 39, HEALINGLIGHT ; Synthesis → similar move
+	learnset 44, SEED_BOMB
+	learnset 50, SLUDGE_BOMB ; TM move
+
+	evos_attacks Venusaur
+	learnset 1, PETAL_DANCE ; evolution move
+	learnset 1, OUTRAGE ; HGSS tutor move
+	learnset 1, TACKLE
+	learnset 3, GROWL
+	learnset 7, LEECH_SEED
+	learnset 9, VINE_WHIP
+	learnset 13, POISONPOWDER
+	learnset 13, SLEEP_POWDER
+	learnset 15, MUD_SLAP ; Take Down → GSC TM move
+	learnset 20, RAZOR_LEAF
+	learnset 23, TAKE_DOWN ; Sweet Scent → Take Down
+	learnset 28, GROWTH
+	learnset 31, DOUBLE_EDGE
+	learnset 39, ANCIENTPOWER ; Worry Seed → event move
+	learnset 45, HEALINGLIGHT ; Synthesis → similar move
+	learnset 50, SEED_BOMB
+	learnset 53, SLUDGE_BOMB ; Solar Beam → Sludge Bomb
+	learnset 60, SOLAR_BEAM
+
+	evos_attacks Charmander
+	evo_data EVOLVE_LEVEL, 16, CHARMELEON
+	learnset 1, SCRATCH
+	learnset 1, GROWL
+	learnset 7, EMBER
+	learnset 10, SMOKESCREEN
+	learnset 16, METAL_CLAW ; Dragon Rage → TM move
+	learnset 19, DRAGON_RAGE ; Scary Face → Dragon Rage
+	learnset 25, SCARY_FACE ; Fire Fang → Scary Face
+	learnset 28, FLAME_CHARGE ; Flame Burst → TM move
+	learnset 34, SLASH
+	learnset 37, FLAMETHROWER
+	learnset 43, FIRE_SPIN
+	learnset 46, CRUNCH
+	learnset 52, FLARE_BLITZ ; Sw/Sh move
+
+	evos_attacks Charmeleon
+	evo_data EVOLVE_LEVEL, 36, CHARIZARD
+	learnset 1, SCRATCH
+	learnset 1, GROWL
+	learnset 7, EMBER
+	learnset 10, SMOKESCREEN
+	learnset 17, METAL_CLAW ; Dragon Rage → TM move
+	learnset 21, DRAGON_RAGE ; Scary Face → Dragon Rage
+	learnset 28, SCARY_FACE ; Fire Fang → Scary Face
+	learnset 32, FLAME_CHARGE ; Flame Burst → TM move
+	learnset 39, SLASH
+	learnset 43, FLAMETHROWER
+	learnset 50, FIRE_SPIN
+	learnset 54, CRUNCH
+	learnset 61, FLARE_BLITZ ; Sw/Sh move
+
+	evos_attacks Charizard
+	learnset 1, WING_ATTACK ; evolution move
+	learnset 1, FLARE_BLITZ
+	learnset 1, DRAGONBREATH
+	learnset 1, DRAGON_CLAW
+	learnset 1, SHADOW_CLAW
+	learnset 1, AIR_SLASH
+	learnset 1, OUTRAGE ; HGSS tutor move
+	learnset 1, SCRATCH
+	learnset 1, GROWL
+	learnset 7, EMBER
+	learnset 10, SMOKESCREEN
+	learnset 17, METAL_CLAW ; Dragon Rage → TM move
+	learnset 21, DRAGON_RAGE ; Scary Face → Dragon Rage
+	learnset 28, SCARY_FACE ; Fire Fang → Scary Face
+	learnset 32, FLAME_CHARGE ; Flame Burst → TM move
+	learnset 41, SLASH
+	learnset 47, FLAMETHROWER
+	learnset 56, FIRE_SPIN
+	learnset 62, CRUNCH
+	learnset 71, FLARE_BLITZ
+	learnset 77, HURRICANE ; Sw/Sh move
+
+	evos_attacks Squirtle
+	evo_data EVOLVE_LEVEL, 16, WARTORTLE
+	learnset 1, TACKLE
+	learnset 4, LEER ; Tail Whip → similar move
+	learnset 7, WATER_GUN
+	learnset 10, DEFENSE_CURL ; Withdraw → similar move
+	learnset 13, AQUA_JET ; Bubble → egg move
+	learnset 16, BITE
+	learnset 19, RAPID_SPIN
+	learnset 22, PROTECT
+	learnset 25, WATER_PULSE
+	learnset 28, AQUA_TAIL
+	learnset 31, CLOSE_COMBAT ; Skull Bash → new move
+	learnset 34, MIRROR_COAT ; Iron Defense → egg move
+	learnset 37, RAIN_DANCE
+	learnset 40, HYDRO_PUMP
+	learnset 43, SHELL_SMASH ; Sw/Sw move
+
+	evos_attacks Wartortle
+	evo_data EVOLVE_LEVEL, 36, BLASTOISE
+	learnset 1, TACKLE
+	learnset 4, LEER ; Tail Whip → similar move
+	learnset 7, WATER_GUN
+	learnset 10, DEFENSE_CURL ; Withdraw → similar move
+	learnset 13, AQUA_JET ; Bubble → egg move
+	learnset 16, BITE
+	learnset 20, RAPID_SPIN
+	learnset 24, PROTECT
+	learnset 28, WATER_PULSE
+	learnset 32, AQUA_TAIL
+	learnset 36, CLOSE_COMBAT ; Skull Bash → new move
+	learnset 40, MIRROR_COAT ; Iron Defense → egg move
+	learnset 44, RAIN_DANCE
+	learnset 48, HYDRO_PUMP
+	learnset 52, SHELL_SMASH ; Sw/Sw move
+
+	evos_attacks Blastoise
+	learnset 1, FLASH_CANNON ; evolution move
+	learnset 1, AURA_SPHERE ; new move
+	learnset 1, ZAP_CANNON ; event move
+	learnset 1, OUTRAGE ; HGSS tutor move
+	learnset 1, TACKLE
+	learnset 4, LEER ; Tail Whip → similar move
+	learnset 7, WATER_GUN
+	learnset 10, DEFENSE_CURL ; Withdraw → similar move
+	learnset 13, AQUA_JET ; Bubble → egg move
+	learnset 16, BITE
+	learnset 20, RAPID_SPIN
+	learnset 24, PROTECT
+	learnset 28, WATER_PULSE
+	learnset 32, AQUA_TAIL
+	learnset 39, CLOSE_COMBAT ; Skull Bash → new move
+	learnset 46, MIRROR_COAT ; Iron Defense → egg move
+	learnset 53, RAIN_DANCE
+	learnset 60, HYDRO_PUMP
+	learnset 67, SHELL_SMASH ; Sw/Sw move
+if !DEF(FAITHFUL)
+	learnset 75, IRON_HEAD ; TM move
+endc
+
+	evos_attacks Caterpie
+	evo_data EVOLVE_LEVEL, 7, METAPOD
+	learnset 1, TACKLE
+	learnset 1, STRING_SHOT
+	learnset 9, BUG_BITE
+
+	evos_attacks Metapod
+	evo_data EVOLVE_LEVEL, 10, BUTTERFREE
+	learnset 1, TACKLE ; Caterpie move
+	learnset 1, STRING_SHOT ; Caterpie move
+	learnset 1, DEFENSE_CURL ; Harden → similar move
+
+	evos_attacks Butterfree
+	learnset 1, TACKLE ; Caterpie move
+	learnset 1, STRING_SHOT ; Caterpie move
+	learnset 1, GUST
+	learnset 11, CONFUSION
+	learnset 13, POISONPOWDER
+	learnset 15, STUN_SPORE
+	learnset 17, SLEEP_POWDER ; Psybeam → Sleep Powder
+	learnset 19, PSYBEAM ; Silver Wind → Psybeam
+	learnset 23, SUPERSONIC
+	learnset 25, SAFEGUARD
+	learnset 29, HYPNOSIS ; Whirlwind → new move
+	learnset 31, BUG_BUZZ
+	learnset 35, REFLECT ; Rage Powder → RBY TM move
+	learnset 37, AGILITY ; Captivate → new move
+	learnset 41, HEALINGLIGHT ; Tailwind → new move
+	learnset 43, AIR_SLASH
+	learnset 47, PSYCHIC_M ; Quiver Dance → TM move
+
+	evos_attacks Weedle
+	evo_data EVOLVE_LEVEL, 7, KAKUNA
+	learnset 1, POISON_STING
+	learnset 1, STRING_SHOT
+	learnset 9, BUG_BITE
+
+	evos_attacks Kakuna
+	evo_data EVOLVE_LEVEL, 10, BEEDRILL
+	learnset 1, POISON_STING ; Weedle move
+	learnset 1, STRING_SHOT ; Weedle move
+	learnset 1, DEFENSE_CURL ; Harden → similar move
+
+	evos_attacks Beedrill
+	learnset 1, POISON_STING ; Weedle move
+	learnset 1, STRING_SHOT ; Weedle move
+	learnset 1, FURY_STRIKES ; Fury Attack → similar move
+	learnset 1, U_TURN ; evolution move
+	learnset 14, RAGE
+	learnset 17, PURSUIT
+	learnset 20, FOCUS_ENERGY
+	learnset 23, VENOSHOCK
+	learnset 26, FEINT_ATTACK ; Assurance → similar move
+	learnset 29, TOXIC_SPIKES
+	learnset 32, PIN_MISSILE
+	learnset 35, POISON_JAB
+	learnset 38, AGILITY
+	learnset 41, SWORDS_DANCE ; Endeavor → TM move
+	learnset 44, OUTRAGE ; Fell Stinger → LGPE move
+
+	evos_attacks Pidgey
+	evo_data EVOLVE_LEVEL, 18, PIDGEOTTO
+	learnset 1, TACKLE
+	learnset 5, GUST ; Sand Attack → Gust
+	learnset 9, MUD_SLAP ; Gust → GSC TM move
+	learnset 13, QUICK_ATTACK
+	learnset 17, RAGE ; Whirlwind → RBY TM move
+	learnset 21, CHARM ; Twister → egg move
+	learnset 25, SWIFT ; Feather Dance → TM move
+	learnset 29, AGILITY
+	learnset 33, WING_ATTACK
+	learnset 37, ROOST
+	learnset 41, DRILL_PECK ; Tailwind → new move
+	learnset 45, STEEL_WING ; Mirror Move → TM move
+	learnset 49, AIR_SLASH
+	learnset 53, HURRICANE
+
+	evos_attacks Pidgeotto
+	evo_data EVOLVE_LEVEL, 36, PIDGEOT
+	learnset 1, TACKLE
+	learnset 5, GUST ; Sand Attack → Gust
+	learnset 9, MUD_SLAP ; Gust → GSC TM move
+	learnset 13, QUICK_ATTACK
+	learnset 17, RAGE ; Whirlwind → RBY TM move
+	learnset 22, CHARM ; Twister → egg move
+	learnset 27, SWIFT ; Feather Dance → TM move
+	learnset 32, AGILITY
+	learnset 37, WING_ATTACK
+	learnset 42, ROOST
+	learnset 47, DRILL_PECK ; Tailwind → new move
+	learnset 52, STEEL_WING ; Mirror Move → TM move
+	learnset 57, AIR_SLASH
+	learnset 62, HURRICANE
+
+	evos_attacks Pidgeot
+	learnset 1, TACKLE
+	learnset 5, MUD_SLAP ; Sand Attack → similar move
+	learnset 9, GUST
+	learnset 13, QUICK_ATTACK
+	learnset 17, RAGE ; Whirlwind → RBY TM move
+	learnset 22, CHARM ; Twister → egg move
+	learnset 27, SWIFT ; Feather Dance → TM move
+	learnset 32, AGILITY
+	learnset 38, WING_ATTACK
+	learnset 44, ROOST
+	learnset 50, DRILL_PECK ; Tailwind → new move
+	learnset 56, STEEL_WING ; Mirror Move → TM move
+	learnset 62, AIR_SLASH
+	learnset 68, HURRICANE
+
+	evos_attacks RattataPlain
+	evo_data EVOLVE_LEVEL, 20, RATICATE
+	learnset 1, TACKLE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 4, QUICK_ATTACK
+	learnset 7, FOCUS_ENERGY
+	learnset 10, BITE
+	learnset 13, PURSUIT
+	learnset 16, HYPER_FANG
+	learnset 19, SUCKER_PUNCH
+	learnset 22, CRUNCH
+	learnset 25, FEINT_ATTACK ; Assurance → similar move
+	learnset 28, SUPER_FANG
+	learnset 31, DOUBLE_EDGE
+	learnset 34, COUNTER ; Endeavor → egg move
+
+	evos_attacks RattataAlolan
+	evo_data EVOLVE_LEVEL, 20, RATICATE, ALOLAN_FORM
+	learnset 1, TACKLE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 4, QUICK_ATTACK
+	learnset 7, FOCUS_ENERGY
+	learnset 10, BITE
+	learnset 13, PURSUIT
+	learnset 16, HYPER_FANG
+	learnset 19, SUCKER_PUNCH
+	learnset 22, CRUNCH
+	learnset 25, FEINT_ATTACK ; Assurance → similar move
+	learnset 28, SUPER_FANG
+	learnset 31, DOUBLE_EDGE
+	learnset 34, COUNTER ; Endeavor → egg move
+
+	evos_attacks RaticatePlain
+	learnset 1, SCARY_FACE ; evolution move
+	learnset 1, SWORDS_DANCE
+	learnset 1, TACKLE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 4, QUICK_ATTACK
+	learnset 7, FOCUS_ENERGY
+	learnset 10, BITE
+	learnset 13, PURSUIT
+	learnset 16, HYPER_FANG
+	learnset 19, SUCKER_PUNCH
+	learnset 24, CRUNCH
+	learnset 29, FEINT_ATTACK ; Assurance → similar move
+	learnset 34, SUPER_FANG
+	learnset 39, DOUBLE_EDGE
+	learnset 44, COUNTER ; Endeavor → egg move
+
+	evos_attacks Spearow
+	evo_data EVOLVE_LEVEL, 20, FEAROW
+	learnset 1, PECK
+	learnset 1, GROWL
+	learnset 4, LEER
+	learnset 8, PURSUIT
+	learnset 11, FURY_STRIKES ; Fury Attack → similar move
+	learnset 15, AERIAL_ACE
+	learnset 18, SWIFT ; Mirror Move → TM move
+	learnset 22, FEINT_ATTACK ; Assurance → similar move
+	learnset 25, AGILITY
+	learnset 29, FOCUS_ENERGY
+	learnset 32, ROOST
+	learnset 36, DRILL_PECK
+
+	evos_attacks Fearow
+	learnset 1, QUICK_ATTACK ; Pluck → egg move
+	learnset 1, PECK
+	learnset 1, GROWL
+	learnset 4, LEER
+	learnset 8, PURSUIT
+	learnset 11, FURY_STRIKES ; Fury Attack → similar move
+	learnset 15, AERIAL_ACE
+	learnset 18, SWIFT ; Mirror Move → TM move
+	learnset 23, FEINT_ATTACK ; Assurance → similar move
+	learnset 27, AGILITY
+	learnset 32, FOCUS_ENERGY
+	learnset 36, ROOST
+	learnset 41, DRILL_PECK
+	learnset 45, DOUBLE_EDGE ; Drill Run → tutor move
+
+	evos_attacks Ekans
+	evo_data EVOLVE_LEVEL, 22, ARBOK, NO_FORM ; preserve pre-evo form
+	learnset 1, WRAP
+	learnset 1, LEER
+	learnset 4, POISON_STING
+	learnset 9, BITE
+	learnset 12, GLARE
+	learnset 17, SCREECH
+	learnset 20, ACID
+	learnset 25, DISABLE ; Stockpile + Spit Up + Swallow → egg move
+	learnset 28, PURSUIT ; Acid Spray → egg move
+	learnset 35, POISON_JAB ; Mud Bomb → TM move
+	learnset 36, LEECH_LIFE ; Gastro Acid → TM move
+	learnset 38, IRON_TAIL ; Belch → TM move
+	learnset 41, HAZE
+	learnset 44, BULK_UP ; Coil → TM move
+	learnset 49, GUNK_SHOT
+
+	evos_attacks Arbok
+	learnset 1, WRAP
+	learnset 1, LEER
+	learnset 1, CRUNCH ; evolution move
+	learnset 4, POISON_STING
+	learnset 9, BITE
+	learnset 12, GLARE
+	learnset 17, SCREECH
+	learnset 20, ACID
+	learnset 27, DISABLE ; Stockpile + Spit Up + Swallow → egg move
+	learnset 32, PURSUIT ; Acid Spray → egg move
+	learnset 39, POISON_JAB ; Mud Bomb → TM move
+	learnset 44, LEECH_LIFE ; Gastro Acid → TM move
+	learnset 48, IRON_TAIL ; Belch → TM move
+	learnset 51, HAZE
+	learnset 56, BULK_UP ; Coil → TM move
+	learnset 63, GUNK_SHOT
+
+	evos_attacks Pikachu
+	evo_data EVOLVE_ITEM, THUNDERSTONE, RAICHU, PLAIN_FORM
+	evo_data EVOLVE_ITEM, ODD_SOUVENIR, RAICHU, ALOLAN_FORM
+	learnset 1, THUNDERSHOCK
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 5, GROWL
+	learnset 7, CHARM ; Play Nice → Pichu move
+	learnset 10, QUICK_ATTACK
+	learnset 13, DOUBLE_KICK ; Electro Ball → LGPE move
+	learnset 18, THUNDER_WAVE
+	learnset 21, MUD_SLAP ; Feint → GSC TM move
+	learnset 23, DOUBLE_TEAM
+	learnset 26, SPARK
+	learnset 29, IRON_TAIL ; Nuzzle → TM move
+	learnset 34, EXTREMESPEED ; Discharge → event move
+	learnset 37, BODY_SLAM ; Slam → TM move
+	learnset 42, THUNDERBOLT
+	learnset 45, AGILITY
+	learnset 50, WILD_CHARGE
+	learnset 53, LIGHT_SCREEN
+	learnset 58, THUNDER
+
+	evos_attacks RaichuPlain
+	learnset 1, THUNDERSHOCK
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, QUICK_ATTACK
+	learnset 1, THUNDERBOLT ; evolution move
+	learnset 1, REVERSAL ; Sw/Sh move
+
+	evos_attacks RaichuAlolan
+	learnset 1, THUNDERSHOCK
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, QUICK_ATTACK
+	learnset 1, THUNDERBOLT
+	learnset 1, PSYCHIC_M ; evolution move
+	learnset 1, REVERSAL ; Sw/Sh move
+
+	evos_attacks SandshrewPlain
+	evo_data EVOLVE_LEVEL, 22, SANDSLASH, PLAIN_FORM
+	learnset 1, SCRATCH
+	learnset 1, DEFENSE_CURL
+	learnset 3, MUD_SLAP ; Sand Attack → similar move
+	learnset 5, POISON_STING
+	learnset 7, ROLLOUT
+	learnset 9, RAPID_SPIN
+	learnset 11, PIN_MISSILE ; Fury Cutter → new move
+	learnset 14, MAGNITUDE
+	learnset 17, SWIFT
+	learnset 20, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 23, METAL_CLAW ; Sand Tomb → HGSS tutor move
+	learnset 26, SLASH
+	learnset 30, DIG
+	learnset 34, GYRO_BALL
+	learnset 38, SWORDS_DANCE
+	learnset 42, SANDSTORM
+	learnset 46, EARTHQUAKE
+
+	evos_attacks SandshrewAlolan
+	evo_data EVOLVE_ITEM, ICE_STONE, SANDSLASH, ALOLAN_FORM
+	learnset 1, SCRATCH
+	learnset 1, DEFENSE_CURL
+	learnset 3, FOCUS_ENERGY ; Bide → new move
+	learnset 5, ICY_WIND ; Powder Snow → similar move
+	learnset 7, DEFENSE_CURL ; Ice Ball → TM move
+	learnset 9, RAPID_SPIN
+	learnset 11, PIN_MISSILE ; Fury Cutter → new move
+	learnset 14, METAL_CLAW
+	learnset 17, SWIFT
+	learnset 20, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 23, ROLLOUT ; Iron Defense → TM move
+	learnset 26, SLASH
+	learnset 30, IRON_HEAD
+	learnset 34, GYRO_BALL
+	learnset 38, SWORDS_DANCE
+	learnset 42, HAIL
+	learnset 46, BLIZZARD
+
+	evos_attacks SandslashPlain
+	learnset 1, SCRATCH
+	learnset 1, SLASH ; Crush Claw → Slash ; evolution move
+	learnset 1, DEFENSE_CURL
+	learnset 3, MUD_SLAP ; Sand Attack → similar move
+	learnset 5, POISON_STING
+	learnset 7, ROLLOUT
+	learnset 9, RAPID_SPIN
+	learnset 11, PIN_MISSILE ; Fury Cutter → new move
+	learnset 14, MAGNITUDE
+	learnset 17, SWIFT
+	learnset 20, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 24, SUPER_FANG ; Sand Tomb → HGSS tutor move
+	learnset 28, METAL_CLAW ; Slash → TM move
+	learnset 33, DIG
+	learnset 38, GYRO_BALL
+	learnset 43, SWORDS_DANCE
+	learnset 48, SANDSTORM
+	learnset 53, EARTHQUAKE
+
+	evos_attacks SandslashAlolan
+	learnset 1, ICICLE_SPEAR ; evolution move
+	learnset 1, COUNTER ; Metal Burst → similar move
+	learnset 1, MIRROR_COAT ; Metal Burst → similar move
+	learnset 1, ICICLE_CRASH ; evolution move
+	learnset 1, SLASH
+	learnset 1, DEFENSE_CURL
+	learnset 1, ROLLOUT ; Ice Ball → TM move
+	learnset 1, METAL_CLAW
+	learnset 48, HAIL
+	learnset 53, BLIZZARD
+
+	evos_attacks NidoranF
+	evo_data EVOLVE_LEVEL, 16, NIDORINA
+	learnset 1, GROWL
+	learnset 1, SCRATCH
+	learnset 7, LEER ; Tail Whip → similar move
+	learnset 9, DOUBLE_KICK
+	learnset 13, POISON_STING
+	learnset 19, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 21, BITE
+	learnset 25, SWEET_KISS ; Helping Hand → event move
+	learnset 31, TOXIC_SPIKES
+	learnset 33, HEALINGLIGHT ; Flatter → event move (Moonlight)
+	learnset 37, CRUNCH
+	learnset 43, CHARM ; Captivate → egg move
+	learnset 45, POISON_JAB
+
+	evos_attacks Nidorina
+	evo_data EVOLVE_ITEM, MOON_STONE, NIDOQUEEN
+	learnset 1, GROWL
+	learnset 1, SCRATCH
+	learnset 7, LEER ; Tail Whip → similar move
+	learnset 9, DOUBLE_KICK
+	learnset 13, POISON_STING
+	learnset 20, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 23, BITE
+	learnset 28, SWEET_KISS ; Helping Hand → event move
+	learnset 35, TOXIC_SPIKES
+	learnset 38, HEALINGLIGHT ; Flatter → event move (Moonlight)
+	learnset 43, CRUNCH
+	learnset 50, CHARM ; Captivate → egg move
+	learnset 58, POISON_JAB
+
+	evos_attacks Nidoqueen
+	learnset 1, CLOSE_COMBAT ; Superpower → similar move
+	learnset 1, SCRATCH
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, DOUBLE_KICK
+	learnset 1, POISON_STING
+	learnset 23, OUTRAGE ; Chip Away → HGSS tutor move
+	learnset 35, BODY_SLAM
+	learnset 43, EARTH_POWER
+	learnset 58, CLOSE_COMBAT ; Superpower → similar move
+
+	evos_attacks NidoranM
+	evo_data EVOLVE_LEVEL, 16, NIDORINO
+	learnset 1, LEER
+	learnset 1, PECK
+	learnset 7, FOCUS_ENERGY
+	learnset 9, DOUBLE_KICK
+	learnset 13, POISON_STING
+	learnset 19, FURY_STRIKES ; Fury Attack → similar move
+	learnset 21, HORN_ATTACK
+	learnset 25, SWEET_KISS ; Helping Hand → event move
+	learnset 31, TOXIC_SPIKES
+	learnset 33, HEALINGLIGHT ; Flatter → event move (Morning Sun)
+	learnset 37, POISON_JAB
+	learnset 43, CHARM ; Captivate → egg move
+	learnset 45, MEGAHORN ; Horn Drill → Nidoking move
+
+	evos_attacks Nidorino
+	evo_data EVOLVE_ITEM, MOON_STONE, NIDOKING
+	learnset 1, LEER
+	learnset 1, PECK
+	learnset 7, FOCUS_ENERGY
+	learnset 9, DOUBLE_KICK
+	learnset 13, POISON_STING
+	learnset 20, FURY_STRIKES ; Fury Attack → similar move
+	learnset 23, HORN_ATTACK
+	learnset 28, SWEET_KISS ; Helping Hand → event move
+	learnset 35, TOXIC_SPIKES
+	learnset 38, HEALINGLIGHT ; Flatter → event move (Morning Sun)
+	learnset 43, POISON_JAB
+	learnset 50, CHARM ; Captivate → egg move
+	learnset 58, MEGAHORN ; Horn Drill → Nidoking move
+
+	evos_attacks Nidoking
+	learnset 1, MEGAHORN
+	learnset 1, PECK
+	learnset 1, FOCUS_ENERGY
+	learnset 1, DOUBLE_KICK
+	learnset 1, POISON_STING
+	learnset 23, OUTRAGE ; Chip Away → HGSS tutor move
+	learnset 35, THRASH
+	learnset 43, EARTH_POWER
+	learnset 58, MEGAHORN
+
+	evos_attacks Clefairy
+	evo_data EVOLVE_ITEM, MOON_STONE, CLEFABLE
+	learnset 1, DISARM_VOICE
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, GROWL
+	learnset 1, ENCORE
+	learnset 7, SING
+	learnset 10, DOUBLE_SLAP
+	learnset 13, DEFENSE_CURL
+	learnset 16, SWEET_KISS ; Follow Me → new move
+	learnset 19, DIZZY_PUNCH ; Bestow → Crystal unique move
+	learnset 22, TRI_ATTACK ; Wake-Up Slap → RBY TM move
+	learnset 25, MINIMIZE
+	learnset 28, DRAINING_KISS ; Stored Power → Sw/Sh move
+	learnset 31, METRONOME
+	learnset 34, REFLECT ; Cosmic Power → TM move
+	learnset 37, LIGHT_SCREEN ; Lucky Chant → TM move
+	learnset 40, BODY_SLAM
+	learnset 43, HEALINGLIGHT ; Moonlight → similar move
+	learnset 46, MOONBLAST
+	learnset 49, BELLY_DRUM ; Gravity → egg move
+	learnset 50, EXTRASENSORY ; Meteor Mash → new move
+	learnset 55, HEAL_BELL ; Healing Wish → HGSS tutor move
+
+	evos_attacks Clefable
+	learnset 1, HEALINGLIGHT ; Moonlight → similar move
+	learnset 1, DISARM_VOICE
+	learnset 1, PLAY_ROUGH ; LGPE TM move
+	learnset 1, SING
+	learnset 1, MINIMIZE
+	learnset 1, METRONOME
+	learnset 1, DOUBLE_SLAP
+
+	evos_attacks VulpixPlain
+	evo_data EVOLVE_ITEM, FIRE_STONE, NINETALES, PLAIN_FORM
+	learnset 1, EMBER
+	learnset 4, GROWL ; Tail Whip → new move
+	learnset 7, ASTONISH ; Roar → new move
+	learnset 9, CHARM ; Baby-Doll Eyes → similar move
+	learnset 10, QUICK_ATTACK
+	learnset 12, CONFUSE_RAY
+	learnset 15, FIRE_SPIN
+	learnset 18, NIGHT_SHADE ; Payback → new move
+	learnset 20, WILL_O_WISP
+	learnset 23, FEINT_ATTACK
+	learnset 26, HEX
+	learnset 28, PAIN_SPLIT ; Flame Burst → HGSS tutor move
+	learnset 31, EXTRASENSORY
+	learnset 34, SAFEGUARD
+	learnset 36, FLAMETHROWER
+	learnset 39, HYPNOSIS ; Imprison → egg move
+	learnset 42, FIRE_BLAST
+	learnset 44, SHADOW_BALL ; Grudge → TM move
+	learnset 47, DISABLE ; Captivate → egg move
+	learnset 50, FLARE_BLITZ ; Inferno → egg move
+	learnset 53, HEALINGLIGHT ; new move
+
+	evos_attacks VulpixAlolan
+	evo_data EVOLVE_ITEM, ICE_STONE, NINETALES, ALOLAN_FORM
+	learnset 1, ICY_WIND ; Powder Snow → similar move
+	learnset 4, GROWL ; Tail Whip → new move
+	learnset 7, ROAR
+	learnset 9, CHARM ; Baby-Doll Eyes → similar move
+	learnset 10, ICE_SHARD
+	learnset 12, CONFUSE_RAY
+	learnset 15, DISARM_VOICE ; Icy Wind → new move
+	learnset 18, NIGHT_SHADE ; Payback → new move
+	learnset 20, HAIL ; Mist → TM move
+	learnset 23, FEINT_ATTACK
+	learnset 26, HEX
+	learnset 28, AURORA_BEAM
+	learnset 31, EXTRASENSORY
+	learnset 34, SAFEGUARD
+	learnset 36, ICE_BEAM
+	learnset 39, HYPNOSIS ; Imprison → egg move
+	learnset 42, BLIZZARD
+	learnset 44, SHADOW_BALL ; Grudge → TM move
+	learnset 47, DISABLE ; Captivate → egg move
+	learnset 50, MOONBLAST ; Sheer Cold → egg move
+	learnset 53, HEALINGLIGHT ; new move
+
+	evos_attacks NinetalesPlain
+	learnset 1, NASTY_PLOT ; evolution move
+	learnset 1, FLAMETHROWER
+	learnset 1, QUICK_ATTACK
+	learnset 1, CONFUSE_RAY
+	learnset 1, SAFEGUARD
+
+	evos_attacks NinetalesAlolan
+	learnset 1, DAZZLINGLEAM ; evolution move
+	learnset 1, NASTY_PLOT
+	learnset 1, ICE_BEAM
+	learnset 1, ICE_SHARD
+	learnset 1, CONFUSE_RAY
+	learnset 1, SAFEGUARD
+
+	evos_attacks Jigglypuff
+	evo_data EVOLVE_ITEM, MOON_STONE, WIGGLYTUFF
+	learnset 1, SING
+	learnset 1, SWEET_KISS ; Igglybuff move
+	learnset 3, DEFENSE_CURL
+	learnset 5, TACKLE ; Pound → similar move
+	learnset 9, DIZZY_PUNCH ; Play Nice → Crystal unique move
+	learnset 11, DISARM_VOICE
+	learnset 14, DISABLE
+	learnset 17, DOUBLE_SLAP
+	learnset 20, ROLLOUT
+	learnset 22, CHARM ; Round → Igglybuff move
+	learnset 27, MEAN_LOOK ; Wake-Up Slap → new move
+	learnset 30, REST
+	learnset 32, BODY_SLAM
+	learnset 35, GYRO_BALL
+	learnset 38, HEAL_BELL ; Mimic → HGSS tutor move
+	learnset 41, HYPER_VOICE
+	learnset 45, DOUBLE_EDGE
+
+	evos_attacks Wigglytuff
+	learnset 1, MINIMIZE ; LGPE move
+	learnset 1, NASTY_PLOT ; SV TM move
+	learnset 1, DOUBLE_EDGE
+	learnset 1, PLAY_ROUGH
+	learnset 1, SING
+	learnset 1, DEFENSE_CURL
+	learnset 1, DISABLE
+	learnset 1, DOUBLE_SLAP
+
+	evos_attacks Zubat
+	evo_data EVOLVE_LEVEL, 22, GOLBAT
+	learnset 1, ABSORB
+	learnset 5, SUPERSONIC
+	learnset 7, ASTONISH
+	learnset 11, BITE
+	learnset 13, GUST ; Wing Attack → egg move
+	learnset 17, CONFUSE_RAY
+	learnset 19, WING_ATTACK ; Air Cutter → Wing Attack
+	learnset 23, SWIFT
+	learnset 25, SUPER_FANG ; Poison Fang → HGSS tutor move
+	learnset 29, MEAN_LOOK
+	learnset 31, LEECH_LIFE
+	learnset 35, HAZE
+	learnset 37, VENOSHOCK
+	learnset 41, AIR_SLASH
+	learnset 43, PURSUIT ; Quick Guard → egg move
+
+	evos_attacks Golbat
+	evo_data EVOLVE_HAPPINESS, TR_ANYTIME, CROBAT
+	learnset 1, SCREECH
+	learnset 1, ABSORB
+	learnset 1, CRUNCH ; LGPE move
+	learnset 5, SUPERSONIC
+	learnset 7, ASTONISH
+	learnset 11, BITE
+	learnset 13, GUST ; Wing Attack → egg move
+	learnset 17, CONFUSE_RAY
+	learnset 19, WING_ATTACK ; Air Cutter → Wing Attack
+	learnset 24, SWIFT
+	learnset 27, SUPER_FANG ; Poison Fang → HGSS tutor move
+	learnset 32, MEAN_LOOK
+	learnset 35, LEECH_LIFE
+	learnset 40, HAZE
+	learnset 43, VENOSHOCK
+	learnset 48, AIR_SLASH
+	learnset 51, PURSUIT ; Quick Guard → egg move
+
+	evos_attacks Oddish
+	evo_data EVOLVE_LEVEL, 21, GLOOM
+	learnset 1, ABSORB
+	learnset 1, GROWTH
+	learnset 5, LEECH_SEED ; Sweet Scent → event move
+	learnset 9, ACID
+	learnset 13, POISONPOWDER
+	learnset 14, STUN_SPORE
+	learnset 15, SLEEP_POWDER
+	learnset 19, MEGA_DRAIN
+	learnset 23, CHARM ; Lucky Chant → egg move
+	learnset 27, HEALINGLIGHT ; Moonlight → similar move
+	learnset 31, GIGA_DRAIN
+	learnset 35, TOXIC
+	learnset 39, HYPER_VOICE ; Natural Gift → tutor move
+	learnset 43, MOONBLAST
+	learnset 47, GROWTH ; Grassy Terrain → GSC move
+	learnset 51, PETAL_DANCE
+
+	evos_attacks Gloom
+	evo_data EVOLVE_ITEM, LEAF_STONE, VILEPLUME
+	evo_data EVOLVE_ITEM, SUN_STONE, BELLOSSOM
+	learnset 1, ABSORB
+	learnset 5, LEECH_SEED ; Sweet Scent → event move
+	learnset 9, ACID
+	learnset 13, POISONPOWDER
+	learnset 14, STUN_SPORE
+	learnset 15, SLEEP_POWDER
+	learnset 19, MEGA_DRAIN
+	learnset 24, CHARM ; Lucky Chant → egg move
+	learnset 29, HEALINGLIGHT ; Moonlight → similar move
+	learnset 34, GIGA_DRAIN
+	learnset 39, TOXIC
+	learnset 44, HYPER_VOICE ; Natural Gift → tutor move
+	learnset 49, MOONBLAST
+	learnset 54, GROWTH ; Grassy Terrain → Crystal move
+	learnset 59, PETAL_DANCE
+
+	evos_attacks Vileplume
+	learnset 1, MEGA_DRAIN
+	learnset 1, HEAL_BELL ; Aromatherapy → similar move
+	learnset 1, POISONPOWDER
+	learnset 1, STUN_SPORE
+	learnset 39, GROWTH
+	learnset 49, MOONBLAST ; Petal Blizzard → Gloom move
+	learnset 59, PETAL_DANCE
+	learnset 69, SOLAR_BEAM
+
+	evos_attacks Paras
+	evo_data EVOLVE_LEVEL, 24, PARASECT
+	learnset 1, SCRATCH
+	learnset 2, SLEEP_POWDER ; LGPE move
+	learnset 4, STUN_SPORE
+	learnset 6, POISONPOWDER
+	learnset 11, ABSORB
+	learnset 17, BUG_BITE ; Fury Cutter → egg move
+	learnset 22, SPORE
+	learnset 27, SLASH
+	learnset 33, GROWTH
+	learnset 38, GIGA_DRAIN
+	learnset 43, LEECH_LIFE ; Aromatherapy → TM move
+	learnset 49, HEALINGLIGHT ; Rage Powder → new move
+	learnset 54, X_SCISSOR
+
+	evos_attacks Parasect
+	learnset 1, SHADOW_CLAW ; evolution move
+	learnset 1, SCRATCH
+	learnset 2, SLEEP_POWDER ; LGPE move
+	learnset 4, STUN_SPORE
+	learnset 6, POISONPOWDER
+	learnset 11, ABSORB
+	learnset 17, BUG_BITE ; Fury Cutter → egg move
+	learnset 22, SPORE
+	learnset 29, SLASH
+	learnset 37, GROWTH
+	learnset 44, GIGA_DRAIN
+	learnset 51, LEECH_LIFE ; Aromatherapy → TM move
+	learnset 59, HEALINGLIGHT ; Rage Powder → new move
+	learnset 66, X_SCISSOR
+
+	evos_attacks Venonat
+	evo_data EVOLVE_LEVEL, 31, VENOMOTH
+	learnset 1, TACKLE
+	learnset 1, DISABLE
+	learnset 1, FORESIGHT
+	learnset 5, SUPERSONIC
+	learnset 11, CONFUSION
+	learnset 13, POISONPOWDER
+	learnset 17, PSYBEAM
+	learnset 23, BUG_BITE ; Stun Spore → HGSS tutor move
+	learnset 25, STUN_SPORE ; Signal Beam → Stun Spore
+	learnset 29, SLEEP_POWDER
+	learnset 35, LEECH_LIFE
+	learnset 37, ZEN_HEADBUTT
+	learnset 41, BATON_PASS ; Poison Fang → egg move
+	learnset 47, PSYCHIC_M
+
+	evos_attacks Venomoth
+	learnset 1, BUG_BUZZ
+	learnset 1, TACKLE
+	learnset 1, DISABLE
+	learnset 1, FORESIGHT
+	learnset 5, SUPERSONIC
+	learnset 11, CONFUSION
+	learnset 13, POISONPOWDER
+	learnset 17, PSYBEAM
+	learnset 23, BUG_BITE ; Stun Spore → HGSS tutor move
+	learnset 25, STUN_SPORE ; Signal Beam → Stun Spore
+	learnset 29, SLEEP_POWDER
+	learnset 31, GUST
+	learnset 37, LEECH_LIFE
+	learnset 41, ZEN_HEADBUTT
+	learnset 47, BATON_PASS ; Poison Fang → egg move
+	learnset 55, PSYCHIC_M
+	learnset 59, BUG_BUZZ
+
+	evos_attacks DiglettPlain
+	evo_data EVOLVE_LEVEL, 26, DUGTRIO, PLAIN_FORM
+	learnset 1, MUD_SLAP ; Sand Attack → Mud-Slap
+	learnset 1, SCRATCH
+	learnset 1, CHARM ; XD move
+	learnset 4, GROWL
+	learnset 7, ASTONISH
+	learnset 10, AGILITY ; Mud-Slap → LGPE move
+	learnset 14, MAGNITUDE
+	learnset 18, BULLDOZE
+	learnset 22, SUCKER_PUNCH
+	learnset 25, ANCIENTPOWER ; Mud Bomb → egg move
+	learnset 28, EARTH_POWER
+	learnset 31, DIG
+	learnset 35, SLASH
+	learnset 39, EARTHQUAKE
+	learnset 43, NIGHT_SLASH ; Fissure → Dugtrio move
+
+	evos_attacks DiglettAlolan
+	evo_data EVOLVE_LEVEL, 26, DUGTRIO, ALOLAN_FORM
+	learnset 1, MUD_SLAP ; Sand Attack → Mud-Slap
+	learnset 1, METAL_CLAW
+	learnset 1, CHARM ; XD move
+	learnset 4, GROWL
+	learnset 7, ASTONISH
+	learnset 10, AGILITY ; Mud-Slap → LGPE move
+	learnset 14, MAGNITUDE
+	learnset 18, BULLDOZE
+	learnset 22, SUCKER_PUNCH
+	learnset 25, ANCIENTPOWER ; Mud Bomb → egg move
+	learnset 28, EARTH_POWER
+	learnset 31, DIG
+	learnset 35, IRON_HEAD
+	learnset 39, EARTHQUAKE
+	learnset 43, NIGHT_SLASH ; Fissure → Dugtrio move
+
+	evos_attacks DugtrioPlain
+	learnset 1, TRI_ATTACK ; Sand Tomb → Tri Attack ; evolution move
+	learnset 1, NIGHT_SLASH
+	learnset 1, MUD_SLAP ; Sand Attack → Mud-Slap
+	learnset 1, SCRATCH
+	learnset 1, CHARM ; XD move
+	learnset 4, GROWL
+	learnset 7, ASTONISH
+	learnset 10, AGILITY ; Mud-Slap → LGPE move
+	learnset 14, MAGNITUDE
+	learnset 18, BULLDOZE
+	learnset 22, SUCKER_PUNCH
+	learnset 25, ANCIENTPOWER ; Mud Bomb → egg move
+	learnset 30, EARTH_POWER
+	learnset 35, DIG
+	learnset 41, SLASH
+	learnset 47, EARTHQUAKE
+	learnset 53, NIGHT_SLASH ; Fissure → Night Slash
+
+	evos_attacks DugtrioAlolan
+	learnset 1, TRI_ATTACK ; Sand Tomb → Tri Attack ; evolution move
+	learnset 1, NIGHT_SLASH
+	learnset 1, MUD_SLAP ; Sand Attack → Mud-Slap
+	learnset 1, METAL_CLAW
+	learnset 1, CHARM ; XD move
+	learnset 4, GROWL
+	learnset 7, ASTONISH
+	learnset 10, AGILITY ; Mud-Slap → LGPE move
+	learnset 14, MAGNITUDE
+	learnset 18, BULLDOZE
+	learnset 22, SUCKER_PUNCH
+	learnset 25, ANCIENTPOWER ; Mud Bomb → egg move
+	learnset 30, EARTH_POWER
+	learnset 35, DIG
+	learnset 41, IRON_HEAD
+	learnset 47, EARTHQUAKE
+	learnset 53, NIGHT_SLASH ; Fissure → Night Slash
+
+	evos_attacks MeowthPlain
+	evo_data EVOLVE_LEVEL, 28, PERSIAN, PLAIN_FORM
+	learnset 1, SCRATCH
+	learnset 1, GROWL
+	learnset 6, BITE
+	learnset 9, ASTONISH ; Fake Out → new move
+	learnset 14, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 17, SCREECH
+	learnset 22, FEINT_ATTACK
+	learnset 25, PURSUIT ; Taunt → egg move
+	learnset 30, PAY_DAY
+	learnset 33, SLASH
+	learnset 38, NASTY_PLOT
+	learnset 41, THIEF ; Assurance → TM move
+	learnset 46, CHARM ; Captivate → egg move
+	learnset 49, NIGHT_SLASH
+
+	evos_attacks MeowthAlolan
+	evo_data EVOLVE_LEVEL, 28, PERSIAN, ALOLAN_FORM
+	learnset 1, SCRATCH
+	learnset 1, GROWL
+	learnset 6, BITE
+	learnset 9, ASTONISH ; Fake Out → new move
+	learnset 14, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 17, SCREECH
+	learnset 22, FEINT_ATTACK
+	learnset 25, PURSUIT ; Taunt → egg move
+	learnset 30, PAY_DAY
+	learnset 33, SLASH
+	learnset 38, NASTY_PLOT
+	learnset 41, THIEF ; Assurance → TM move
+	learnset 46, CHARM ; Captivate → egg move
+	learnset 49, NIGHT_SLASH
+	learnset 55, DARK_PULSE
+
+	evos_attacks MeowthGalarian
+	evo_data EVOLVE_LEVEL, 28, PERRSERKER, PLAIN_FORM
+	learnset 1, ASTONISH ; Fake Out → new move
+	learnset 1, GROWL
+	learnset 4, HONE_CLAWS
+	learnset 8, SCRATCH
+	learnset 12, PAY_DAY
+	learnset 16, METAL_CLAW
+	learnset 20, PURSUIT ; Taunt → new move
+	learnset 24, SWAGGER
+	learnset 29, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 32, SCREECH
+	learnset 36, SLASH
+	learnset 40, CRUNCH ; Metal Sound → TR move
+	learnset 44, THRASH
+
+	evos_attacks PersianPlain
+	learnset 1, BUBBLE_BEAM ; RBY TM move
+	learnset 1, PLAY_ROUGH
+	learnset 1, SWIFT ; evolution move
+	learnset 1, SCRATCH
+	learnset 1, GROWL
+	learnset 6, BITE
+	learnset 9, ASTONISH ; Fake Out → new move
+	learnset 14, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 17, SCREECH
+	learnset 22, FEINT_ATTACK
+	learnset 25, PURSUIT ; Taunt → egg move
+	learnset 32, POWER_GEM
+	learnset 37, SLASH
+	learnset 44, NASTY_PLOT
+	learnset 49, THIEF ; Assurance → TM move
+	learnset 56, CHARM ; Captivate → egg move
+	learnset 61, NIGHT_SLASH
+
+	evos_attacks PersianAlolan
+	learnset 1, BUBBLE_BEAM ; RBY TM move
+	learnset 1, PLAY_ROUGH
+	learnset 1, SWIFT ; evolution move
+	learnset 1, SCRATCH
+	learnset 1, GROWL
+	learnset 6, BITE
+	learnset 9, ASTONISH ; Fake Out → new move
+	learnset 14, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 17, SCREECH
+	learnset 22, FEINT_ATTACK
+	learnset 25, PURSUIT ; Taunt → egg move
+	learnset 32, POWER_GEM
+	learnset 37, SLASH
+	learnset 44, NASTY_PLOT
+	learnset 49, THIEF ; Assurance → TM move
+	learnset 56, CHARM ; Captivate → egg move
+	learnset 61, NIGHT_SLASH
+	learnset 65, DARK_PULSE
+
+	evos_attacks Psyduck
+	evo_data EVOLVE_LEVEL, 33, GOLDUCK
+	learnset 1, SCRATCH
+	learnset 4, LEER ; Tail Whip → similar move
+	learnset 7, WATER_GUN
+	learnset 10, CONFUSION
+	learnset 13, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 16, WATER_PULSE
+	learnset 19, DISABLE
+	learnset 22, SCREECH
+	learnset 25, ZEN_HEADBUTT
+	learnset 28, AQUA_TAIL
+	learnset 31, RAIN_DANCE ; Soak → TM move
+	learnset 34, PSYBEAM ; Psych Up → egg move
+	learnset 37, AMNESIA
+	learnset 40, HYDRO_PUMP
+	learnset 43, NASTY_PLOT ; Wonder Room → SV TM move
+	learnset 46, PSYCHIC_M ; TM move
+
+	evos_attacks Golduck
+	learnset 1, SCRATCH
+	learnset 1, AQUA_JET
+	learnset 4, LEER ; Tail Whip → similar move
+	learnset 7, WATER_GUN
+	learnset 10, CONFUSION
+	learnset 13, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 16, WATER_PULSE
+	learnset 19, DISABLE
+	learnset 22, SCREECH
+	learnset 25, ZEN_HEADBUTT
+	learnset 28, AQUA_TAIL
+	learnset 31, RAIN_DANCE ; Soak → TM move
+	learnset 36, PSYBEAM ; Psych Up → egg move
+	learnset 41, AMNESIA
+	learnset 46, HYDRO_PUMP
+	learnset 51, NASTY_PLOT ; Wonder Room → SV TM move
+	learnset 56, PSYCHIC_M ; TM move
+
+	evos_attacks Mankey
+	evo_data EVOLVE_LEVEL, 28, PRIMEAPE
+	learnset 1, SCRATCH
+	learnset 1, LOW_KICK
+	learnset 1, LEER
+	learnset 1, FOCUS_ENERGY
+	learnset 5, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 8, KARATE_CHOP
+	learnset 12, PURSUIT
+	learnset 15, SEISMIC_TOSS
+	learnset 19, SWAGGER
+	learnset 22, CROSS_CHOP
+	learnset 26, REVERSAL ; Assurance → egg move
+	learnset 29, FEINT_ATTACK ; Punishment → new move
+	learnset 33, THRASH
+	learnset 36, CLOSE_COMBAT
+	learnset 40, SCREECH
+	learnset 43, GUNK_SHOT ; Stomping Tantrum → HGSS tutor move
+	learnset 47, OUTRAGE
+
+	evos_attacks Primeape
+	evo_data EVOLVE_MOVE, OUTRAGE, ANNIHILAPE
+	learnset 1, OUTRAGE
+	learnset 1, RAGE ; evolution move
+	learnset 1, SCRATCH
+	learnset 1, LOW_KICK
+	learnset 1, LEER
+	learnset 1, FOCUS_ENERGY
+	learnset 5, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 8, KARATE_CHOP
+	learnset 12, PURSUIT
+	learnset 15, SEISMIC_TOSS
+	learnset 19, SWAGGER
+	learnset 22, CROSS_CHOP
+	learnset 26, REVERSAL ; Assurance → egg move
+	learnset 30, FEINT_ATTACK ; Punishment → new move
+	learnset 35, THRASH
+	learnset 39, CLOSE_COMBAT
+	learnset 44, SCREECH
+	learnset 48, GUNK_SHOT ; Stomping Tantrum → HGSS tutor move
+	learnset 53, OUTRAGE
+
+	evos_attacks GrowlithePlain
+	evo_data EVOLVE_ITEM, FIRE_STONE, ARCANINE
+	learnset 1, GROWL
+	learnset 1, BITE
+	learnset 1, ROAR
+	learnset 6, EMBER
+	learnset 8, LEER
+	learnset 10, SAFEGUARD ; Odor Sleuth → egg move
+	learnset 12, BATON_PASS ; Helping Hand → new move
+	learnset 17, FIRE_SPIN ; Flame Wheel → egg move
+	learnset 19, REVERSAL
+	learnset 21, DOUBLE_KICK ; Fire Fang → egg move
+	learnset 23, TAKE_DOWN
+	learnset 28, FLAME_CHARGE ; Flame Burst → TM move
+	learnset 30, AGILITY
+	learnset 32, THRASH ; Retaliate → egg move
+	learnset 34, FLAMETHROWER
+	learnset 39, CRUNCH
+	learnset 41, SUNNY_DAY ; Heat Wave → TM move
+	learnset 43, OUTRAGE
+	learnset 45, PLAY_ROUGH ; Flare Blitz → LGPE move
+	learnset 49, FLARE_BLITZ
+
+	evos_attacks ArcaninePlain
+	learnset 1, DRAGON_DANCE ; new move
+	learnset 1, GROWL
+	learnset 1, BITE
+	learnset 1, ROAR
+	learnset 1, FLAME_CHARGE
+	learnset 1, TAKE_DOWN
+	learnset 1, EXTREMESPEED ; evolution move
+
+	evos_attacks GrowlitheHisuian
+	evo_data EVOLVE_ITEM, FIRE_STONE, ARCANINE, HISUIAN_FORM
+	learnset 1, GROWL
+	learnset 1, BITE
+	learnset 1, ROAR
+	learnset 6, EMBER
+	learnset 8, LEER
+	learnset 10, SAFEGUARD ; Odor Sleuth → egg move
+	learnset 12, BATON_PASS ; Helping Hand → new move
+	learnset 17, FIRE_SPIN ; Flame Wheel → egg move
+	learnset 19, REVERSAL
+	learnset 21, ROCK_BLAST ; Fire Fang → new move
+	learnset 23, TAKE_DOWN
+	learnset 28, FLAME_CHARGE ; Flame Burst → TM move
+	learnset 30, AGILITY
+	learnset 32, ROCK_SLIDE
+	learnset 34, FLAMETHROWER
+	learnset 39, CRUNCH
+	learnset 41, POWER_GEM ; Heat Wave → new move
+	learnset 43, OUTRAGE
+	learnset 45, PLAY_ROUGH ; Flare Blitz → LGPE move
+	learnset 49, FLARE_BLITZ
+
+	evos_attacks ArcanineHisuian
+	learnset 1, BULK_UP ; new move
+	learnset 1, GROWL
+	learnset 1, BITE
+	learnset 1, ROAR
+	learnset 1, FLAME_CHARGE
+	learnset 1, TAKE_DOWN
+	learnset 1, EXTREMESPEED ; evolution move
+
+	evos_attacks Poliwag
+	evo_data EVOLVE_LEVEL, 25, POLIWHIRL
+	learnset 1, SWEET_KISS ; event move
+	learnset 1, WATER_GUN ; Water Sport → Water Gun
+	learnset 5, HYPNOSIS ; Water Gun → Hypnosis
+	learnset 8, DOUBLE_SLAP ; Hypnosis → Double Slap
+	learnset 11, AQUA_JET ; Bubble → new move
+	learnset 15, MUD_SLAP ; Double Slap → TM move
+	learnset 18, RAIN_DANCE
+	learnset 21, BODY_SLAM
+	learnset 25, BUBBLE_BEAM
+	learnset 28, LOW_KICK ; Mud Shot → LGPE move
+	learnset 31, BELLY_DRUM
+	learnset 35, GROWTH ; Wake-Up Slap → event move
+	learnset 38, HYDRO_PUMP
+	learnset 41, EARTH_POWER ; Mud Bomb → similar move
+
+	evos_attacks Poliwhirl
+	evo_data EVOLVE_TRADE, KINGS_ROCK, POLITOED
+	evo_data EVOLVE_ITEM, WATER_STONE, POLIWRATH
+	learnset 1, SWEET_KISS ; event move
+	learnset 1, WATER_GUN ; Water Sport → Water Gun
+	learnset 5, HYPNOSIS ; Water Gun → Hypnosis
+	learnset 8, DOUBLE_SLAP ; Hypnosis → Double Slap
+	learnset 11, AQUA_JET ; Bubble → new move
+	learnset 15, MUD_SLAP ; Double Slap → TM move
+	learnset 18, RAIN_DANCE
+	learnset 21, BODY_SLAM
+	learnset 27, BUBBLE_BEAM
+	learnset 32, LOW_KICK ; Mud Shot → LGPE move
+	learnset 37, BELLY_DRUM
+	learnset 43, GROWTH ; Wake-Up Slap → event move
+	learnset 48, HYDRO_PUMP
+	learnset 53, EARTH_POWER ; Mud Bomb → similar move
+
+	evos_attacks Poliwrath
+	learnset 1, BUBBLE_BEAM
+	learnset 1, HYPNOSIS
+	learnset 1, DOUBLE_SLAP
+	learnset 1, CLOSE_COMBAT ; evolution move
+	learnset 32, DYNAMICPUNCH
+	learnset 43, EARTH_POWER ; Mind Reader → Poliwhirl move
+	learnset 53, CROSS_CHOP ; Circle Throw → similar move
+
+	evos_attacks Abra
+	evo_data EVOLVE_LEVEL, 16, KADABRA
+	learnset 1, TELEPORT
+
+	evos_attacks Kadabra
+	evo_data EVOLVE_TRADE, LINKING_CORD, ALAKAZAM
+	learnset 1, TELEPORT
+	learnset 1, FORESIGHT ; evolution move
+	learnset 16, CONFUSION
+	learnset 18, DISABLE
+	learnset 21, PSYBEAM
+	learnset 23, NIGHT_SHADE ; Miracle Eye → LGPE move
+	learnset 26, REFLECT
+	learnset 28, LIGHT_SCREEN ; Psycho Cut → egg move
+	learnset 31, RECOVER
+	learnset 33, BARRIER ; Telekinesis → egg move
+	learnset 36, BATON_PASS ; Ally Switch → new move
+	learnset 38, PSYCHIC_M
+	learnset 41, CALM_MIND
+	learnset 43, CONFUSE_RAY ; Role Play → new move
+	learnset 46, FUTURE_SIGHT
+
+	evos_attacks Alakazam
+	learnset 1, TRI_ATTACK ; RBY TM move
+	learnset 1, TELEPORT
+	learnset 1, FORESIGHT ; evolution move
+	learnset 16, CONFUSION
+	learnset 18, DISABLE
+	learnset 21, PSYBEAM
+	learnset 23, NIGHT_SHADE ; Miracle Eye → LGPE move
+	learnset 26, REFLECT
+	learnset 28, LIGHT_SCREEN ; Psycho Cut → egg move
+	learnset 31, RECOVER
+	learnset 33, BARRIER ; Telekinesis → egg move
+	learnset 36, BATON_PASS ; Ally Switch → new move
+	learnset 38, PSYCHIC_M
+	learnset 41, CALM_MIND
+	learnset 43, CONFUSE_RAY ; Role Play → new move
+	learnset 46, FUTURE_SIGHT
+
+	evos_attacks Machop
+	evo_data EVOLVE_LEVEL, 28, MACHOKE
+	learnset 1, LOW_KICK
+	learnset 1, LEER
+	learnset 3, FOCUS_ENERGY
+	learnset 7, KARATE_CHOP
+	learnset 9, FORESIGHT
+	learnset 13, RAGE ; Low Sweep → RBY TM move
+	learnset 15, SEISMIC_TOSS
+	learnset 19, REVERSAL ; Revenge → Sw/Sh move
+	learnset 21, KNOCK_OFF
+	learnset 25, MACH_PUNCH ; Vital Throw → egg move
+	learnset 27, BULLET_PUNCH ; Wake-Up Slap → egg move
+	learnset 31, THRASH ; Dual Chop → event move
+	learnset 33, CLOSE_COMBAT ; Submission → new move
+	learnset 37, BULK_UP
+	learnset 39, CROSS_CHOP
+	learnset 43, SCARY_FACE
+	learnset 45, DYNAMICPUNCH
+
+	evos_attacks Machoke
+	evo_data EVOLVE_TRADE, LINKING_CORD, MACHAMP
+	learnset 1, LOW_KICK
+	learnset 1, LEER
+	learnset 3, FOCUS_ENERGY
+	learnset 7, KARATE_CHOP
+	learnset 9, FORESIGHT
+	learnset 13, RAGE ; Low Sweep → RBY TM move
+	learnset 15, SEISMIC_TOSS
+	learnset 19, REVERSAL ; Revenge → Sw/Sh move
+	learnset 21, KNOCK_OFF
+	learnset 25, MACH_PUNCH ; Vital Throw → egg move
+	learnset 27, BULLET_PUNCH ; Wake-Up Slap → egg move
+	learnset 33, THRASH ; Dual Chop → event move
+	learnset 37, CLOSE_COMBAT ; Submission → new move
+	learnset 43, BULK_UP
+	learnset 47, CROSS_CHOP
+	learnset 53, SCARY_FACE
+	learnset 57, DYNAMICPUNCH
+
+	evos_attacks Machamp
+	learnset 1, STRENGTH ; evolution move
+	learnset 1, ROCK_BLAST ; Sw/Sh move
+	learnset 1, LOW_KICK
+	learnset 1, LEER
+	learnset 3, FOCUS_ENERGY
+	learnset 7, KARATE_CHOP
+	learnset 9, FORESIGHT
+	learnset 13, RAGE ; Low Sweep → RBY TM move
+	learnset 15, SEISMIC_TOSS
+	learnset 19, REVERSAL ; Revenge → Sw/Sh TM move
+	learnset 21, KNOCK_OFF
+	learnset 25, MACH_PUNCH ; Vital Throw → egg move
+	learnset 27, BULLET_PUNCH ; Wake-Up Slap → egg move
+	learnset 33, THRASH ; Dual Chop → event move
+	learnset 37, CLOSE_COMBAT ; Submission → new move
+	learnset 43, BULK_UP
+	learnset 47, CROSS_CHOP
+	learnset 53, SCARY_FACE
+	learnset 57, DYNAMICPUNCH
+
+	evos_attacks Bellsprout
+	evo_data EVOLVE_LEVEL, 21, WEEPINBELL
+	learnset 1, VINE_WHIP
+	learnset 7, GROWTH
+	learnset 11, WRAP
+	learnset 13, SLEEP_POWDER
+	learnset 15, POISONPOWDER
+	learnset 17, STUN_SPORE
+	learnset 23, ACID
+	learnset 27, KNOCK_OFF
+	learnset 29, SWEET_KISS ; Sweet Scent → event move
+	learnset 35, HEALINGLIGHT ; Gastro Acid → new move
+	learnset 39, RAZOR_LEAF
+	learnset 41, POISON_JAB
+	learnset 47, SUCKER_PUNCH ; Slam → HGSS tutor move
+	learnset 50, SWORDS_DANCE ; Wring Out → egg move
+
+	evos_attacks Weepinbell
+	evo_data EVOLVE_ITEM, LEAF_STONE, VICTREEBEL
+	learnset 1, VINE_WHIP
+	learnset 7, GROWTH
+	learnset 11, WRAP
+	learnset 13, SLEEP_POWDER
+	learnset 15, POISONPOWDER
+	learnset 17, STUN_SPORE
+	learnset 24, ACID
+	learnset 29, KNOCK_OFF
+	learnset 32, SWEET_KISS ; Sweet Scent → event move
+	learnset 39, HEALINGLIGHT ; Gastro Acid → new move
+	learnset 44, RAZOR_LEAF
+	learnset 47, POISON_JAB
+	learnset 54, SUCKER_PUNCH ; Slam → HGSS tutor move
+	learnset 58, SWORDS_DANCE ; Wring Out → egg move
+
+	evos_attacks Victreebel
+	learnset 1, VINE_WHIP
+	learnset 1, SLEEP_POWDER
+	learnset 1, HEALINGLIGHT ; Sweet Scent → new move
+	learnset 1, RAZOR_LEAF
+	learnset 32, SUCKER_PUNCH ; Leaf Storm → prior move
+	learnset 44, SWORDS_DANCE ; Leaf Blade → prior move
+
+	evos_attacks Tentacool
+	evo_data EVOLVE_LEVEL, 30, TENTACRUEL
+	learnset 1, POISON_STING
+	learnset 4, SUPERSONIC
+	learnset 7, WATER_GUN ; Constrict → new move
+	learnset 10, ACID
+	learnset 13, TOXIC_SPIKES
+	learnset 16, WATER_PULSE
+	learnset 19, WRAP
+	learnset 22, CONFUSE_RAY ; Acid Spray → event move
+	learnset 25, BUBBLE_BEAM
+	learnset 28, BARRIER
+	learnset 31, POISON_JAB
+	learnset 34, VENOSHOCK ; Brine → tutor move
+	learnset 37, SCREECH
+	learnset 40, HEX
+	learnset 43, SLUDGE_BOMB ; Sludge Wave → TM move
+	learnset 46, HYDRO_PUMP
+
+	evos_attacks Tentacruel
+	learnset 1, POWER_WHIP ; evolution move
+	learnset 1, POISON_STING
+	learnset 4, SUPERSONIC
+	learnset 7, WATER_GUN ; Constrict → new move
+	learnset 10, ACID
+	learnset 13, TOXIC_SPIKES
+	learnset 16, WATER_PULSE
+	learnset 19, WRAP
+	learnset 22, CONFUSE_RAY ; Acid Spray → event move
+	learnset 25, BUBBLE_BEAM
+	learnset 28, BARRIER
+	learnset 32, POISON_JAB
+	learnset 36, VENOSHOCK ; Brine → tutor move
+	learnset 40, SCREECH
+	learnset 44, HEX
+	learnset 48, SLUDGE_BOMB ; Sludge Wave → TM move
+	learnset 52, HYDRO_PUMP
+
+	evos_attacks GeodudePlain
+	evo_data EVOLVE_LEVEL, 25, GRAVELER, PLAIN_FORM
+	learnset 1, TACKLE
+	learnset 1, DEFENSE_CURL
+	learnset 4, MUD_SLAP ; Mud Sport → TM move
+	learnset 6, RAPID_SPIN ; Rock Polish → event move
+	learnset 10, ROLLOUT
+	learnset 12, MAGNITUDE
+	learnset 16, ROCK_THROW
+	learnset 18, ANCIENTPOWER ; Smack Down → HGSS tutor move
+	learnset 22, BULLDOZE
+	learnset 24, ROCK_BLAST ; Self-Destruct → Rock Blast
+	learnset 28, SANDSTORM ; Stealth Rock → TM move
+	learnset 30, ROCK_SLIDE ; Rock Blast → TM move
+	learnset 34, EARTHQUAKE
+	learnset 36, EXPLOSION
+	learnset 40, DOUBLE_EDGE
+	learnset 42, STONE_EDGE
+
+	evos_attacks GravelerPlain
+	evo_data EVOLVE_TRADE, LINKING_CORD, GOLEM, PLAIN_FORM
+	learnset 1, TACKLE
+	learnset 1, DEFENSE_CURL
+	learnset 4, MUD_SLAP ; Mud Sport → TM move
+	learnset 6, RAPID_SPIN ; Rock Polish → event move
+	learnset 10, ROLLOUT
+	learnset 12, MAGNITUDE
+	learnset 16, ROCK_THROW
+	learnset 18, ANCIENTPOWER ; Smack Down → HGSS tutor move
+	learnset 22, BULLDOZE
+	learnset 24, ROCK_BLAST ; Self-Destruct → Rock Blast
+	learnset 30, SANDSTORM ; Stealth Rock → TM move
+	learnset 34, ROCK_SLIDE ; Rock Blast → TM move
+	learnset 40, EARTHQUAKE
+	learnset 44, EXPLOSION
+	learnset 50, DOUBLE_EDGE
+	learnset 54, STONE_EDGE
+
+	evos_attacks GolemPlain
+	learnset 1, TACKLE
+	learnset 1, DEFENSE_CURL
+	learnset 4, MUD_SLAP ; Mud Sport → TM move
+	learnset 6, RAPID_SPIN ; Rock Polish → event move
+	learnset 10, ROLLOUT
+	learnset 12, MAGNITUDE
+	learnset 16, ROCK_THROW
+	learnset 18, ANCIENTPOWER ; Smack Down → HGSS tutor move
+	learnset 22, BULLDOZE
+	learnset 24, ROCK_BLAST ; Self-Destruct → Rock Blast
+	learnset 30, SANDSTORM ; Stealth Rock → TM move
+	learnset 34, ROCK_SLIDE ; Rock Blast → TM move
+	learnset 40, EARTHQUAKE
+	learnset 44, EXPLOSION
+	learnset 50, DOUBLE_EDGE
+	learnset 54, STONE_EDGE
+	learnset 60, GYRO_BALL ; Heavy Slam → similar move
+
+	evos_attacks GeodudeAlolan
+	evo_data EVOLVE_LEVEL, 25, GRAVELER, ALOLAN_FORM
+	learnset 1, TACKLE
+	learnset 1, DEFENSE_CURL
+	learnset 4, THUNDERSHOCK ; Charge → new move
+	learnset 6, RAPID_SPIN ; Rock Polish → event move
+	learnset 10, ROLLOUT
+	learnset 12, SPARK
+	learnset 16, ROCK_THROW
+	learnset 18, ANCIENTPOWER ; Smack Down → HGSS tutor move
+	learnset 22, THUNDERPUNCH
+	learnset 24, ROCK_BLAST ; Self-Destruct → Rock Blast
+	learnset 28, SANDSTORM ; Stealth Rock → TM move
+	learnset 30, ROCK_SLIDE ; Rock Blast → TM move
+	learnset 34, WILD_CHARGE ; Discharge → new move
+	learnset 36, EXPLOSION
+	learnset 40, DOUBLE_EDGE
+	learnset 42, STONE_EDGE
+
+	evos_attacks GravelerAlolan
+	evo_data EVOLVE_TRADE, LINKING_CORD, GOLEM, ALOLAN_FORM
+	learnset 1, TACKLE
+	learnset 1, DEFENSE_CURL
+	learnset 4, THUNDERSHOCK ; Charge → new move
+	learnset 6, RAPID_SPIN ; Rock Polish → event move
+	learnset 10, ROLLOUT
+	learnset 12, SPARK
+	learnset 16, ROCK_THROW
+	learnset 18, ANCIENTPOWER ; Smack Down → HGSS tutor move
+	learnset 22, THUNDERPUNCH
+	learnset 24, ROCK_BLAST ; Self-Destruct → Rock Blast
+	learnset 30, SANDSTORM ; Stealth Rock → TM move
+	learnset 34, ROCK_SLIDE ; Rock Blast → TM move
+	learnset 40, WILD_CHARGE ; Discharge → new move
+	learnset 44, EXPLOSION
+	learnset 50, DOUBLE_EDGE
+	learnset 54, STONE_EDGE
+
+	evos_attacks GolemAlolan
+	learnset 1, TACKLE
+	learnset 1, DEFENSE_CURL
+	learnset 4, THUNDERSHOCK ; Charge → new move
+	learnset 6, RAPID_SPIN ; Rock Polish → event move
+	learnset 10, ROLLOUT
+	learnset 12, SPARK
+	learnset 16, ROCK_THROW
+	learnset 18, ANCIENTPOWER ; Smack Down → HGSS tutor move
+	learnset 22, THUNDERPUNCH
+	learnset 24, ROCK_BLAST ; Self-Destruct → Rock Blast
+	learnset 30, SANDSTORM ; Stealth Rock → TM move
+	learnset 34, ROCK_SLIDE ; Rock Blast → TM move
+	learnset 40, WILD_CHARGE ; Discharge → new move
+	learnset 44, EXPLOSION
+	learnset 50, DOUBLE_EDGE
+	learnset 54, STONE_EDGE
+	learnset 60, GYRO_BALL ; Heavy Slam → similar move
+
+	evos_attacks PonytaPlain
+	evo_data EVOLVE_LEVEL, 40, RAPIDASH, PLAIN_FORM
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 4, LEER ; Tail Whip → similar move
+	learnset 9, EMBER
+	learnset 13, STOMP ; Flame Wheel → Stomp
+	learnset 17, FLAME_CHARGE ; Stomp → Flame Charge
+	learnset 21, LOW_KICK ; Flame Charge → event move
+	learnset 25, FIRE_SPIN
+	learnset 29, TAKE_DOWN
+	learnset 33, DOUBLE_KICK ; Inferno → egg move
+	learnset 37, AGILITY
+	learnset 41, FIRE_BLAST
+	learnset 45, EXTREMESPEED ; Bounce → new move
+	learnset 49, FLARE_BLITZ
+
+	evos_attacks PonytaGalarian
+	evo_data EVOLVE_LEVEL, 40, RAPIDASH, GALARIAN_FORM
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 4, LEER ; Tail Whip → similar move
+	learnset 9, CONFUSION
+	learnset 13, DISARM_VOICE ; Fairy Wind → similar move
+	learnset 17, STOMP
+	learnset 21, HEALINGLIGHT ; Heal Pulse → similar move
+	learnset 25, PSYBEAM
+	learnset 29, TAKE_DOWN
+	learnset 33, DAZZLINGLEAM
+	learnset 37, AGILITY
+	learnset 41, PSYCHIC_M
+	learnset 45, EXTREMESPEED ; Bounce → new move
+	learnset 49, MOONBLAST ; Healing Wish → new move
+
+	evos_attacks RapidashPlain
+	learnset 1, PLAY_ROUGH ; evolution move
+	learnset 1, POISON_JAB
+	learnset 1, MEGAHORN
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 4, LEER ; Tail Whip → similar move
+	learnset 9, EMBER
+	learnset 13, STOMP ; Flame Wheel → Stomp
+	learnset 17, FLAME_CHARGE ; Stomp → Flame Charge
+	learnset 21, LOW_KICK ; Flame Charge → event move
+	learnset 25, FIRE_SPIN
+	learnset 29, TAKE_DOWN
+	learnset 33, DOUBLE_KICK ; Inferno → egg move
+	learnset 37, AGILITY
+	learnset 41, FIRE_BLAST
+	learnset 45, EXTREMESPEED ; Bounce → new move
+	learnset 49, FLARE_BLITZ
+
+	evos_attacks RapidashGalarian
+	learnset 1, PLAY_ROUGH ; evolution move
+	learnset 1, MEGAHORN
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 4, LEER ; Tail Whip → similar move
+	learnset 9, CONFUSION
+	learnset 13, DISARM_VOICE ; Fairy Wind → similar move
+	learnset 17, STOMP
+	learnset 21, HEALINGLIGHT ; Heal Pulse → similar move
+	learnset 25, PSYBEAM
+	learnset 29, TAKE_DOWN
+	learnset 33, DAZZLINGLEAM
+	learnset 37, AGILITY
+	learnset 41, PSYCHIC_M
+	learnset 45, EXTREMESPEED ; Bounce → new move
+	learnset 49, MOONBLAST ; Healing Wish → new move
+
+	evos_attacks SlowpokePlain
+	evo_data EVOLVE_TRADE, KINGS_ROCK, SLOWKING, PLAIN_FORM
+	evo_data EVOLVE_LEVEL, 37, SLOWBRO, PLAIN_FORM
+	learnset 1, CURSE
+	learnset 1, TACKLE
+	learnset 5, GROWL
+	learnset 9, WATER_GUN
+	learnset 14, CONFUSION
+	learnset 19, DISABLE
+	learnset 23, HEADBUTT
+	learnset 28, WATER_PULSE
+	learnset 32, ZEN_HEADBUTT
+	learnset 36, SAFEGUARD ; Slack Off → egg move
+	learnset 41, AMNESIA
+	learnset 45, PSYCHIC_M
+	learnset 49, RAIN_DANCE
+	learnset 54, BELLY_DRUM ; Psych Up → egg move
+	learnset 58, RECOVER ; Heal Pulse → similar move
+
+	evos_attacks SlowpokeGalarian
+	evo_data EVOLVE_TRADE, KINGS_ROCK, SLOWKING, GALARIAN_FORM
+	evo_data EVOLVE_LEVEL, 37, SLOWBRO, GALARIAN_FORM
+	learnset 1, CURSE
+	learnset 1, TACKLE
+	learnset 5, GROWL
+	learnset 9, ACID
+	learnset 14, CONFUSION
+	learnset 19, DISABLE
+	learnset 23, HEADBUTT
+	learnset 28, WATER_PULSE
+	learnset 32, ZEN_HEADBUTT
+	learnset 36, SAFEGUARD ; Slack Off → egg move
+	learnset 41, AMNESIA
+	learnset 45, PSYCHIC_M
+	learnset 49, RAIN_DANCE
+	learnset 54, BELLY_DRUM ; Psych Up → egg move
+	learnset 58, RECOVER ; Heal Pulse → similar move
+
+	evos_attacks SlowbroPlain
+	learnset 1, DEFENSE_CURL ; Withdraw → similar move ; evolution move
+	learnset 1, CURSE
+	learnset 1, TACKLE
+	learnset 5, GROWL
+	learnset 9, WATER_GUN
+	learnset 14, CONFUSION
+	learnset 19, DISABLE
+	learnset 23, HEADBUTT
+	learnset 28, WATER_PULSE
+	learnset 32, ZEN_HEADBUTT
+	learnset 36, SAFEGUARD ; Slack Off → egg move
+	learnset 43, AMNESIA
+	learnset 49, PSYCHIC_M
+	learnset 55, RAIN_DANCE
+	learnset 62, BELLY_DRUM ; Psych Up → egg move
+	learnset 68, RECOVER ; Heal Pulse → similar move
+
+	evos_attacks SlowbroGalarian
+	learnset 1, GUNK_SHOT ; Shell Side Arm → similar move ; evolution move
+	learnset 1, CURSE
+	learnset 1, TACKLE
+	learnset 5, GROWL
+	learnset 9, ACID
+	learnset 14, CONFUSION
+	learnset 19, DISABLE
+	learnset 23, HEADBUTT
+	learnset 28, WATER_PULSE
+	learnset 32, ZEN_HEADBUTT
+	learnset 36, SAFEGUARD ; Slack Off → egg move
+	learnset 43, AMNESIA
+	learnset 49, PSYCHIC_M
+	learnset 55, RAIN_DANCE
+	learnset 62, BELLY_DRUM ; Psych Up → egg move
+	learnset 68, RECOVER ; Heal Pulse → similar move
+
+	evos_attacks Magnemite
+	evo_data EVOLVE_LEVEL, 30, MAGNETON
+	learnset 1, SUPERSONIC
+	learnset 1, TACKLE
+	learnset 5, THUNDERSHOCK
+	learnset 7, THUNDER_WAVE
+	learnset 11, QUICK_ATTACK ; Magnet Bomb → TCG move
+	learnset 13, LIGHT_SCREEN
+	learnset 17, SONIC_BOOM
+	learnset 19, SPARK
+	learnset 23, SWIFT ; Mirror Shot → TM move
+	learnset 25, SCREECH ; Metal Sound → Screech
+	learnset 29, THUNDERBOLT ; Electro Ball → TM move
+	learnset 31, FLASH_CANNON
+	learnset 35, EXPLOSION ; Screech → TM move
+	learnset 37, HIDDEN_POWER ; Discharge → TM move
+	learnset 41, AGILITY ; Lock-On → event move
+	learnset 43, GYRO_BALL ; Magnet Rise → Gyro Ball
+	learnset 47, THUNDER ; Gyro Ball → TM move
+	learnset 49, ZAP_CANNON
+
+	evos_attacks Magneton
+	evo_data EVOLVE_ITEM, THUNDERSTONE, MAGNEZONE
+	evo_data EVOLVE_LOCATION, MAGNET_TUNNEL, MAGNEZONE
+	evo_data EVOLVE_LOCATION, DIM_CAVE, MAGNEZONE
+	learnset 1, TRI_ATTACK ; evolution move
+	learnset 1, SUPERSONIC
+	learnset 1, TACKLE
+	learnset 5, THUNDERSHOCK
+	learnset 7, THUNDER_WAVE
+	learnset 11, QUICK_ATTACK ; Magnet Bomb → TCG move
+	learnset 13, LIGHT_SCREEN
+	learnset 17, SONIC_BOOM
+	learnset 19, SPARK
+	learnset 23, SWIFT ; Mirror Shot → TM move
+	learnset 25, SCREECH ; Metal Sound → Screech
+	learnset 29, THUNDERBOLT ; Electro Ball → TM move
+	learnset 33, FLASH_CANNON
+	learnset 39, EXPLOSION ; Screech → TM move
+	learnset 43, HIDDEN_POWER ; Discharge → TM move
+	learnset 49, AGILITY ; Lock-On → event move
+	learnset 53, GYRO_BALL ; Magnet Rise → Gyro Ball
+	learnset 59, THUNDER ; Gyro Ball → TM move
+	learnset 63, ZAP_CANNON
+
+	evos_attacks FarfetchDPlain
+	learnset 1, POISON_JAB
+	learnset 1, BATON_PASS ; Brave Bird → event move
+	learnset 1, PECK
+	learnset 1, MUD_SLAP ; Sand Attack → similar move
+	learnset 1, LEER
+	learnset 7, FURY_STRIKES ; Fury Attack → similar move
+	learnset 9, AERIAL_ACE
+	learnset 13, KNOCK_OFF
+	learnset 15, RAZOR_LEAF ; LGPE move
+	learnset 19, SLASH
+	learnset 21, KARATE_CHOP ; Air Cutter → new move
+	learnset 25, SWORDS_DANCE
+	learnset 31, AGILITY
+	learnset 33, NIGHT_SLASH
+	learnset 37, ACROBATICS
+	learnset 43, HI_JUMP_KICK ; Feint → new move
+	learnset 45, FALSE_SWIPE
+	learnset 49, AIR_SLASH
+	learnset 55, BRAVE_BIRD
+
+	evos_attacks FarfetchDGalarian
+	evo_data EVOLVE_CRIT, TR_ANYTIME, SIRFETCH_D, PLAIN_FORM
+	learnset 1, PECK
+	learnset 1, MUD_SLAP ; Sand Attack → similar move
+	learnset 5, LEER
+	learnset 10, QUICK_ATTACK ; Fury Cutter → egg move
+if DEF(FAITHFUL)
+	learnset 15, ROCK_SMASH
+else
+	learnset 15, REVERSAL ; Rock Smash → TM move
+endc
+	learnset 20, FEINT_ATTACK ; Brutal Swing → similar move
+	learnset 25, PROTECT ; Detect → similar move
+	learnset 30, KNOCK_OFF
+	learnset 35, STEEL_WING ; Defog → TM move
+if DEF(FAITHFUL)
+	learnset 40, NIGHT_SLASH ; Brick Break → egg move
+else
+	learnset 40, ROCK_SMASH ; Brick Break
+endc
+	learnset 45, SWORDS_DANCE
+	learnset 50, BODY_SLAM ; Slam → TR move
+	learnset 55, POISON_JAB ; Leaf Blade → TR move
+	learnset 60, CLOSE_COMBAT ; Final Gambit → TR move
+	learnset 65, BRAVE_BIRD
+
+	evos_attacks Doduo
+	evo_data EVOLVE_LEVEL, 31, DODRIO
+	learnset 1, PECK
+	learnset 1, GROWL
+	learnset 5, QUICK_ATTACK
+	learnset 8, RAGE
+	learnset 12, FURY_STRIKES ; Fury Attack → similar move
+	learnset 15, PURSUIT
+	learnset 19, BATON_PASS ; Pluck → XD move
+	learnset 22, DOUBLE_KICK ; Double Hit → new move
+	learnset 26, AGILITY
+	learnset 29, DOUBLE_TEAM ; Uproar → TM move
+	learnset 33, TRI_ATTACK ; Acupressure → Crystal move
+	learnset 36, SWORDS_DANCE
+	learnset 40, HI_JUMP_KICK ; Jump Kick → similar move
+	learnset 43, DRILL_PECK
+	learnset 47, REVERSAL ; Endeavor → new move
+	learnset 50, THRASH
+
+	evos_attacks Dodrio
+	learnset 1, TRI_ATTACK ; evolution move
+	learnset 1, PECK
+	learnset 1, GROWL
+	learnset 5, QUICK_ATTACK
+	learnset 8, RAGE
+	learnset 12, FURY_STRIKES ; Fury Attack → similar move
+	learnset 15, PURSUIT
+	learnset 19, BATON_PASS ; Pluck → XD move
+	learnset 22, DOUBLE_KICK ; Double Hit → new move
+	learnset 26, AGILITY
+	learnset 29, DOUBLE_TEAM ; Uproar → TM move
+	learnset 34, BULLDOZE ; Acupressure → TM move
+	learnset 38, SWORDS_DANCE
+	learnset 43, HI_JUMP_KICK ; Jump Kick → similar move
+	learnset 47, DRILL_PECK
+	learnset 52, REVERSAL ; Endeavor → new move
+	learnset 56, THRASH
+
+	evos_attacks Seel
+	evo_data EVOLVE_LEVEL, 34, DEWGONG
+	learnset 1, HEADBUTT
+	learnset 3, GROWL
+	learnset 7, WATER_GUN ; Water Sport → RBY TM move
+	learnset 11, ICY_WIND
+	learnset 13, ENCORE
+	learnset 17, ICE_SHARD
+	learnset 21, REST
+	learnset 23, SLEEP_TALK ; Aqua Ring → TM move
+	learnset 27, AURORA_BEAM
+	learnset 31, AQUA_JET
+	learnset 33, BUBBLE_BEAM ; Brine → RBY TM move
+	learnset 37, TAKE_DOWN
+	learnset 41, PERISH_SONG ; Dive →  new move
+	learnset 43, AQUA_TAIL
+	learnset 47, ICE_BEAM
+	learnset 51, SAFEGUARD
+	learnset 53, HAIL
+
+	evos_attacks Dewgong
+	learnset 1, ICICLE_SPEAR ; Sheer Cold → egg move ; evolution move
+	learnset 1, HEADBUTT
+	learnset 3, GROWL
+	learnset 7, WATER_GUN ; Signal Beam → RBY TM move
+	learnset 11, ICY_WIND
+	learnset 13, ENCORE
+	learnset 17, ICE_SHARD
+	learnset 21, REST
+	learnset 23, SLEEP_TALK ; Aqua Ring → TM move
+	learnset 27, AURORA_BEAM
+	learnset 31, AQUA_JET
+	learnset 33, BUBBLE_BEAM ; Brine → RBY TM move
+	learnset 39, TAKE_DOWN
+	learnset 45, PERISH_SONG ; Dive → new move
+	learnset 49, AQUA_TAIL
+	learnset 55, ICE_BEAM
+	learnset 61, SAFEGUARD
+	learnset 65, HAIL
+	learnset 69, MEGAHORN ; LGPE move
+
+	evos_attacks GrimerPlain
+	evo_data EVOLVE_LEVEL, 38, MUK, PLAIN_FORM
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, ACID ; Poison Gas → new move
+	learnset 4, DEFENSE_CURL ; Harden → similar move
+	learnset 7, MUD_SLAP
+	learnset 12, DISABLE
+	learnset 15, VENOSHOCK ; Sludge → tutor move
+	learnset 18, HAZE ; Mud Bomb → egg move
+	learnset 21, MINIMIZE
+	learnset 26, FEINT_ATTACK ; Fling → new move
+	learnset 29, SLUDGE_BOMB
+	learnset 32, SCARY_FACE ; Sludge Wave → egg move
+	learnset 37, SCREECH
+	learnset 40, GUNK_SHOT
+	learnset 43, PAIN_SPLIT ; Acid Armor → HGSS tutor move
+	learnset 46, TOXIC_SPIKES ; Belch → SV TM move
+
+	evos_attacks GrimerAlolan
+	evo_data EVOLVE_LEVEL, 38, MUK, ALOLAN_FORM
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, ACID ; Poison Gas → new move
+	learnset 4, DEFENSE_CURL ; Harden → similar move
+	learnset 7, BITE
+	learnset 12, DISABLE
+	learnset 15, VENOSHOCK ; Acid Spray → tutor move
+	learnset 18, HAZE ; Poison Fang → egg move
+	learnset 21, MINIMIZE
+	learnset 26, FEINT_ATTACK ; Fling → new move
+	learnset 29, KNOCK_OFF
+	learnset 32, CRUNCH
+	learnset 37, SCREECH
+	learnset 40, GUNK_SHOT
+	learnset 43, PAIN_SPLIT ; Acid Armor → HGSS tutor move
+	learnset 46, TOXIC_SPIKES ; Belch → SV TM move
+
+	evos_attacks MukPlain
+	learnset 1, MOONBLAST ; LGPE move
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, ACID ; Poison Gas → new move
+	learnset 4, DEFENSE_CURL ; Harden → similar move
+	learnset 7, MUD_SLAP
+	learnset 12, DISABLE
+	learnset 15, VENOSHOCK ; Sludge → tutor move
+	learnset 18, HAZE ; Mud Bomb → egg move
+	learnset 21, MINIMIZE
+	learnset 26, FEINT_ATTACK ; Fling → new move
+	learnset 29, SLUDGE_BOMB
+	learnset 32, SCARY_FACE ; Sludge Wave → egg move
+	learnset 37, SCREECH
+	learnset 40, GUNK_SHOT
+	learnset 46, PAIN_SPLIT ; Acid Armor → HGSS tutor move
+	learnset 52, TOXIC_SPIKES ; Belch → SV TM move
+
+	evos_attacks MukAlolan
+	learnset 1, MOONBLAST ; LGPE move
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, ACID ; Poison Gas → new move
+	learnset 4, DEFENSE_CURL ; Harden → similar move
+	learnset 7, BITE
+	learnset 12, DISABLE
+	learnset 15, VENOSHOCK ; Acid Spray → tutor move
+	learnset 18, HAZE ; Poison Fang → egg move
+	learnset 21, MINIMIZE
+	learnset 26, FEINT_ATTACK ; Fling → new move
+	learnset 29, KNOCK_OFF
+	learnset 32, CRUNCH
+	learnset 37, SCREECH
+	learnset 40, GUNK_SHOT
+	learnset 46, PAIN_SPLIT ; Acid Armor → HGSS tutor move
+	learnset 52, TOXIC_SPIKES ; Belch → SV TM move
+
+	evos_attacks Shellder
+	evo_data EVOLVE_ITEM, WATER_STONE, CLOYSTER
+	learnset 1, TACKLE
+	learnset 4, DEFENSE_CURL ; Withdraw → similar move
+	learnset 8, SUPERSONIC
+	learnset 13, ICICLE_SPEAR
+	learnset 16, PROTECT
+	learnset 20, LEER
+	learnset 25, BITE ; Ice Shard → new move
+	learnset 28, ICE_SHARD ; Clamp → Ice Shard
+	learnset 32, BUBBLE_BEAM ; Razor Shell → egg move
+	learnset 37, AURORA_BEAM
+	learnset 40, WHIRLPOOL
+	learnset 44, EXPLOSION ; Brine → RBY TM move
+	learnset 49, BARRIER ; Iron Defense → egg move
+	learnset 52, ICE_BEAM
+	learnset 56, SHELL_SMASH
+	learnset 61, HYDRO_PUMP
+
+	evos_attacks Cloyster
+	learnset 1, HYDRO_PUMP
+	learnset 1, SHELL_SMASH
+	learnset 1, TOXIC_SPIKES
+	learnset 1, FURY_STRIKES ; Spike Cannon → similar move
+	learnset 1, TRI_ATTACK ; RBY TM move
+	learnset 1, DEFENSE_CURL ; Withdraw → similar move
+	learnset 1, SUPERSONIC
+	learnset 1, PROTECT
+	learnset 1, AURORA_BEAM
+	learnset 1, SPIKES ; evolution move
+	learnset 28, ICICLE_SPEAR ; Spikes → Icicle Spear
+	learnset 32, PIN_MISSILE ; Sw/Sh TM move
+	learnset 50, ICICLE_CRASH
+
+	evos_attacks Gastly
+	evo_data EVOLVE_LEVEL, 25, HAUNTER
+	learnset 1, HYPNOSIS
+	learnset 1, LICK
+	learnset 5, DISABLE ; Spite → egg move
+	learnset 8, MEAN_LOOK
+	learnset 12, CURSE
+	learnset 15, NIGHT_SHADE
+	learnset 19, CONFUSE_RAY
+	learnset 22, SUCKER_PUNCH
+	learnset 26, PAIN_SPLIT ; Payback → HGSS tutor move
+	learnset 29, SHADOW_BALL
+	learnset 33, DREAM_EATER
+	learnset 36, DARK_PULSE
+	learnset 40, DESTINY_BOND
+	learnset 43, HEX
+	learnset 47, PERISH_SONG ; Nightmare → new move
+
+	evos_attacks Haunter
+	evo_data EVOLVE_TRADE, LINKING_CORD, GENGAR
+	learnset 1, SHADOW_CLAW ; Shadow Punch → TM move ; evolution move
+	learnset 1, HYPNOSIS
+	learnset 1, LICK
+	learnset 5, DISABLE ; Spite → egg move
+	learnset 8, MEAN_LOOK
+	learnset 12, CURSE
+	learnset 15, NIGHT_SHADE
+	learnset 19, CONFUSE_RAY
+	learnset 22, SUCKER_PUNCH
+	learnset 28, PAIN_SPLIT ; Payback → HGSS tutor move
+	learnset 33, SHADOW_BALL
+	learnset 39, DREAM_EATER
+	learnset 44, DARK_PULSE
+	learnset 50, DESTINY_BOND
+	learnset 55, HEX
+	learnset 61, PERISH_SONG ; Nightmare → new move
+
+	evos_attacks Gengar
+	learnset 1, SHADOW_CLAW ; Shadow Punch → TM move ; evolution move
+	learnset 1, HYPNOSIS
+	learnset 1, LICK
+	learnset 5, DISABLE ; Spite → egg move
+	learnset 8, MEAN_LOOK
+	learnset 12, CURSE
+	learnset 15, NIGHT_SHADE
+	learnset 19, CONFUSE_RAY
+	learnset 22, SUCKER_PUNCH
+	learnset 28, PAIN_SPLIT ; Payback → HGSS tutor move
+	learnset 33, SHADOW_BALL
+	learnset 39, DREAM_EATER
+	learnset 44, DARK_PULSE
+	learnset 50, DESTINY_BOND
+	learnset 55, HEX
+	learnset 61, PERISH_SONG ; Nightmare → new move
+
+	evos_attacks Onix
+	evo_data EVOLVE_TRADE, METAL_COAT, STEELIX
+	learnset 1, TACKLE
+	learnset 1, DEFENSE_CURL ; Harden → similar move
+	learnset 1, WRAP ; Bind → similar move
+	learnset 4, CURSE
+	learnset 7, ROCK_THROW
+	learnset 10, RAGE
+	learnset 13, ROCK_BLAST ; Rock Tomb → egg move
+	learnset 16, BODY_SLAM ; Stealth Rock → TM move
+	learnset 19, SANDSTORM ; Rock Polish → Sandstorm
+	learnset 22, ANCIENTPOWER ; Smack Down → HGSS tutor move
+	learnset 25, DRAGONBREATH
+	learnset 28, HEADBUTT ; Slam → tutor move
+	learnset 31, SCREECH
+	learnset 34, ROCK_SLIDE
+	learnset 37, CRUNCH ; Sand Tomb → Steelix move
+	learnset 40, IRON_TAIL
+	learnset 43, DIG
+	learnset 46, STONE_EDGE
+	learnset 49, DOUBLE_EDGE
+	learnset 52, EARTHQUAKE ; Sandstorm → TM move
+
+	evos_attacks Drowzee
+	evo_data EVOLVE_LEVEL, 26, HYPNO
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, HYPNOSIS
+	learnset 5, DISABLE
+	learnset 9, CONFUSION
+	learnset 13, HEADBUTT
+	learnset 17, LOW_KICK ; Poison Gas → HGSS tutor move
+	learnset 21, CALM_MIND ; Meditate → TM move
+	learnset 25, PSYBEAM
+	learnset 29, TRI_ATTACK ; Wake-Up Slap → RBY TM move
+	learnset 33, BARRIER ; Psych Up → egg move
+	learnset 37, BELLY_DRUM ; Synchronoise → event move
+	learnset 41, ZEN_HEADBUTT
+	learnset 45, SWAGGER
+	learnset 49, PSYCHIC_M
+	learnset 53, NASTY_PLOT
+	learnset 57, TOXIC ; Psyshock → TM move
+	learnset 61, FUTURE_SIGHT
+
+	evos_attacks Hypno
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, HYPNOSIS
+	learnset 5, DISABLE
+	learnset 9, CONFUSION
+	learnset 13, HEADBUTT
+	learnset 17, LOW_KICK ; Poison Gas → HGSS tutor move
+	learnset 21, CALM_MIND ; Meditate → TM move
+	learnset 25, PSYBEAM
+	learnset 29, TRI_ATTACK ; Wake-Up Slap → RBY TM move
+	learnset 33, BARRIER ; Psych Up → egg move
+	learnset 37, BELLY_DRUM ; Synchronoise → event move
+	learnset 41, ZEN_HEADBUTT
+	learnset 45, SWAGGER
+	learnset 49, PSYCHIC_M
+	learnset 53, NASTY_PLOT
+	learnset 57, TOXIC ; Psyshock → TM move
+	learnset 61, FUTURE_SIGHT
+
+	evos_attacks Krabby
+	evo_data EVOLVE_LEVEL, 28, KINGLER
+	learnset 1, AQUA_JET ; Bubble → new move
+	learnset 5, SCRATCH ; Vice Grip → new move
+	learnset 9, LEER
+	learnset 11, DEFENSE_CURL ; Harden → similar move
+	learnset 15, BUBBLE_BEAM
+	learnset 19, DIG ; Mud Shot → egg move
+	learnset 21, METAL_CLAW
+	learnset 25, STOMP
+	learnset 29, PROTECT
+	learnset 31, X_SCISSOR ; Guillotine → TM move
+	learnset 35, CLOSE_COMBAT ; Slam → new move
+	learnset 39, CRABHAMMER ; Brine → Crabhammer
+	learnset 41, ANCIENTPOWER ; Crabhammer → HGSS tutor move
+	learnset 45, REVERSAL ; Flail → similar move
+
+	evos_attacks Kingler
+	learnset 1, AQUA_JET ; Bubble → new move
+	learnset 5, SCRATCH ; Vice Grip → new move
+	learnset 9, LEER
+	learnset 11, DEFENSE_CURL ; Harden → similar move
+	learnset 15, BUBBLE_BEAM
+	learnset 19, DIG ; Mud Shot → egg move
+	learnset 21, METAL_CLAW
+	learnset 25, STOMP
+	learnset 32, PROTECT
+	learnset 37, X_SCISSOR ; Guillotine → TM move
+	learnset 44, CLOSE_COMBAT ; Slam → new move
+	learnset 51, CRABHAMMER ; Brine → Crabhammer
+	learnset 56, ANCIENTPOWER ; Crabhammer → HGSS tutor move
+	learnset 63, REVERSAL ; Flail → new move
+
+	evos_attacks VoltorbPlain
+	evo_data EVOLVE_LEVEL, 30, ELECTRODE
+	learnset 1, TACKLE
+	learnset 1, THUNDERSHOCK ; LGPE move
+	learnset 4, SONIC_BOOM
+	learnset 6, AGILITY ; Eerie Impulse → event move
+	learnset 9, SPARK
+	learnset 11, ROLLOUT
+	learnset 13, SCREECH
+	learnset 16, THUNDER_WAVE ; Charge Beam → TM move
+	learnset 20, SWIFT
+	learnset 22, THUNDERBOLT ; Electro Ball → TM move
+	learnset 26, REFLECT ; Self-Destruct → TM move
+	learnset 29, LIGHT_SCREEN
+	learnset 34, EXPLOSION ; Magnet Rise → Explosion
+	learnset 37, THUNDER ; Discharge → TM move
+	learnset 41, BUG_BUZZ ; Explosion → new move
+	learnset 46, GYRO_BALL
+	learnset 48, MIRROR_COAT
+
+	evos_attacks ElectrodePlain
+	learnset 1, TACKLE
+	learnset 1, THUNDERSHOCK ; LGPE move
+	learnset 4, SONIC_BOOM
+	learnset 6, AGILITY ; Eerie Impulse → event move
+	learnset 9, SPARK
+	learnset 11, ROLLOUT
+	learnset 13, SCREECH
+	learnset 16, THUNDER_WAVE ; Charge Beam → TM move
+	learnset 20, SWIFT
+	learnset 22, THUNDERBOLT ; Electro Ball → TM move
+	learnset 26, REFLECT ; Self-Destruct → TM move
+	learnset 29, LIGHT_SCREEN
+	learnset 36, EXPLOSION ; Magnet Rise → Explosion
+	learnset 41, THUNDER ; Discharge → TM move
+	learnset 47, BUG_BUZZ ; Explosion → new move
+	learnset 54, GYRO_BALL
+	learnset 58, MIRROR_COAT
+
+	evos_attacks VoltorbHisuian
+	evo_data EVOLVE_ITEM, LEAF_STONE, ELECTRODE, HISUIAN_FORM
+	learnset 1, TACKLE
+	learnset 1, THUNDERSHOCK ; LGPE move
+	learnset 1, ABSORB ; new move
+	learnset 4, SONIC_BOOM
+	learnset 6, AGILITY ; Eerie Impulse → event move
+	learnset 9, SPARK
+	learnset 11, ROLLOUT
+	learnset 13, SCREECH
+	learnset 16, THUNDER_WAVE ; Charge Beam → TM move
+	learnset 20, SWIFT
+	learnset 22, THUNDERBOLT ; Electro Ball → TM move
+	learnset 26, ENERGY_BALL
+	learnset 29, LIGHT_SCREEN
+	learnset 34, EXPLOSION ; Magnet Rise → Explosion
+	learnset 37, THUNDER ; Discharge → TM move
+	learnset 41, SOLAR_BEAM ; Chloroblast → TM move
+	learnset 46, GYRO_BALL
+	learnset 48, MIRROR_COAT
+
+	evos_attacks ElectrodeHisuian
+	learnset 1, TACKLE
+	learnset 1, THUNDERSHOCK ; LGPE move
+	learnset 1, ABSORB ; new move
+	learnset 4, SONIC_BOOM
+	learnset 6, AGILITY ; Eerie Impulse → event move
+	learnset 9, SPARK
+	learnset 11, ROLLOUT
+	learnset 13, SCREECH
+	learnset 16, THUNDER_WAVE ; Charge Beam → TM move
+	learnset 20, SWIFT
+	learnset 22, THUNDERBOLT ; Electro Ball → TM move
+	learnset 26, ENERGY_BALL
+	learnset 29, LIGHT_SCREEN
+	learnset 36, EXPLOSION ; Magnet Rise → Explosion
+	learnset 41, THUNDER ; Discharge → TM move
+	learnset 47, SOLAR_BEAM ; Chloroblast → TM move
+	learnset 54, GYRO_BALL
+	learnset 58, MIRROR_COAT
+
+	evos_attacks Exeggcute
+	evo_data EVOLVE_ITEM, LEAF_STONE, EXEGGUTOR, PLAIN_FORM
+	evo_data EVOLVE_ITEM, ODD_SOUVENIR, EXEGGUTOR, ALOLAN_FORM
+	learnset 1, TACKLE ; Barrage → new move
+	learnset 1, HYPNOSIS
+	learnset 7, REFLECT
+	learnset 11, LEECH_SEED
+	learnset 14, CONFUSION
+	learnset 17, RAGE ; Bullet Seed → RBY TM move
+	learnset 19, STUN_SPORE
+	learnset 21, POISONPOWDER
+	learnset 23, SLEEP_POWDER
+	learnset 27, PSYBEAM ; Confusion → LGPE move
+	learnset 33, ANCIENTPOWER ; Worry Seed → HGSS tutor move
+	learnset 37, HEALINGLIGHT ; Natural Gift → new move
+	learnset 43, SOLAR_BEAM
+	learnset 47, EXTRASENSORY
+	learnset 50, PSYCHIC_M ; Bestow → TM move
+
+	evos_attacks ExeggutorPlain
+	learnset 1, TACKLE ; Barrage → new move
+	learnset 1, HYPNOSIS
+	learnset 1, CONFUSION
+	learnset 1, STOMP ; evolution move
+	learnset 17, LOW_KICK ; Psyshock → HGSS tutor move
+	learnset 27, ZEN_HEADBUTT ; Egg Bomb → tutor move
+	learnset 37, POWER_WHIP ; Wood Hammer → new move
+	learnset 47, PETAL_DANCE ; Leaf Storm → new move
+
+	evos_attacks ExeggutorAlolan
+	learnset 1, TACKLE ; Barrage → new move
+	learnset 1, HYPNOSIS
+	learnset 1, CONFUSION
+	learnset 1, DRAGON_PULSE ; evolution move
+	learnset 17, DRAGON_RAGE ; Psyshock → new move
+	learnset 27, ZEN_HEADBUTT ; Egg Bomb → tutor move
+	learnset 37, POWER_WHIP ; Wood Hammer → new move
+	learnset 47, OUTRAGE ; Leaf Storm → S/M TM move
+
+	evos_attacks Cubone
+	evo_data EVOLVE_LEVEL, 28, MAROWAK, PLAIN_FORM
+	evo_data EVOLVE_ITEM, ODD_SOUVENIR, MAROWAK, ALOLAN_FORM
+	learnset 1, GROWL
+	learnset 3, TACKLE ; Tail Whip → new move
+	learnset 7, MUD_SLAP ; Bone Club → TM move
+	learnset 11, HEADBUTT
+	learnset 13, LEER
+	learnset 17, FOCUS_ENERGY
+	learnset 21, BONEMERANG
+	learnset 23, RAGE
+	learnset 27, LOW_KICK ; False Swipe → HGSS tutor move
+	learnset 31, FALSE_SWIPE ; Thrash → False Swipe
+	learnset 33, THRASH ; Fling → Thrash
+	learnset 37, MAGNITUDE ; Stomping Tantrum → new move
+	learnset 41, ROCK_SMASH ; Endeavor → TM move
+	learnset 43, DOUBLE_EDGE
+	learnset 47, REVERSAL ; Retaliate → new move
+	learnset 51, OUTRAGE ; Bone Rush → HGSS tutor move
+
+	evos_attacks MarowakPlain
+	learnset 1, SWORDS_DANCE ; evolution move
+	learnset 1, GROWL
+	learnset 3, TACKLE ; Tail Whip → new move
+	learnset 7, MUD_SLAP ; Bone Club → TM move
+	learnset 11, HEADBUTT
+	learnset 13, LEER
+	learnset 17, FOCUS_ENERGY
+	learnset 21, BONEMERANG
+	learnset 23, RAGE
+	learnset 27, LOW_KICK ; False Swipe → HGSS tutor move
+	learnset 33, THRASH
+	learnset 37, KNOCK_OFF ; Fling → TM move
+	learnset 43, MAGNITUDE ; Stomping Tantrum → new move
+	learnset 49, ROCK_SMASH ; Endeavor → TM move
+	learnset 53, DOUBLE_EDGE
+	learnset 59, REVERSAL ; Retaliate → new move
+	learnset 65, OUTRAGE ; Bone Rush → HGSS tutor move
+
+	evos_attacks MarowakAlolan
+	learnset 1, SWORDS_DANCE ; evolution move
+	learnset 1, GROWL
+	learnset 3, TACKLE ; Tail Whip → new move
+	learnset 7, ASTONISH ; Bone Club → new move
+	learnset 11, FIRE_SPIN ; Flame Wheel → LGPE move
+	learnset 13, LEER
+	learnset 17, HEX
+	learnset 21, BONEMERANG
+	learnset 23, WILL_O_WISP
+	learnset 27, SHADOW_CLAW ; Shadow Bone → similar move
+	learnset 33, THRASH
+	learnset 37, KNOCK_OFF ; Fling → TM move
+	learnset 43, ACROBATICS ; Stomping Tantrum → new move
+	learnset 49, ROCK_SMASH ; Endeavor → TM move
+	learnset 53, FLARE_BLITZ
+	learnset 59, PAIN_SPLIT ; Retaliate → S/M tutor move
+	learnset 65, OUTRAGE ; Bone Rush → HGSS tutor move
+
+	evos_attacks Hitmonlee
+	learnset 1, DOUBLE_KICK ; evolution move
+	learnset 1, BULK_UP ; Revenge → TM move
+	learnset 5, AGILITY ; Meditate → new move
+	learnset 9, PURSUIT ; Rolling Kick → egg move
+	learnset 13, LOW_KICK ; Jump Kick → HGSS tutor move
+	learnset 17, STOMP ; Brick Break → new move
+if DEF(FAITHFUL)
+	learnset 21, ENDURE ; Focus Energy → TM move
+else
+	learnset 21, ROCK_SMASH ; Focus Energy → "Brick Break"
+endc
+	learnset 25, AERIAL_ACE ; Feint → new move
+	learnset 29, HI_JUMP_KICK
+	learnset 33, DOUBLE_TEAM ; Mind Reader → TM move
+	learnset 37, FORESIGHT
+	learnset 41, FOCUS_ENERGY ; Wide Guard → LGPE move
+	learnset 45, REVERSAL ; Blaze Kick → Reversal
+	learnset 49, ENDURE
+	learnset 53, FOCUS_BLAST ; Mega Kick → TM move
+	learnset 57, CLOSE_COMBAT
+	learnset 61, COUNTER ; Reversal → TM move
+
+	evos_attacks Hitmonchan
+	learnset 1, DIZZY_PUNCH ; Comet Punch → Dizzy Punch ; evolution move
+	learnset 1, BULK_UP ; Revenge → TM move
+	learnset 6, AGILITY
+	learnset 11, PURSUIT
+	learnset 13, MACH_PUNCH
+	learnset 17, BULLET_PUNCH
+	learnset 21, AERIAL_ACE ; Feint → new move
+	learnset 26, SEISMIC_TOSS ; Vacuum Wave → RBY TM move
+	learnset 31, FORESIGHT ; Quick Guard → new move
+	learnset 36, THUNDERPUNCH
+	learnset 36, ICE_PUNCH
+	learnset 36, FIRE_PUNCH
+	learnset 41, FOCUS_ENERGY ; Sky Uppercut → LGPE move
+	learnset 46, DYNAMICPUNCH ; Mega Punch → TM move
+	learnset 51, PROTECT ; Detect → TM move
+	learnset 56, FOCUS_BLAST ; Focus Punch → TM move
+	learnset 61, COUNTER
+	learnset 66, CLOSE_COMBAT
+
+	evos_attacks Lickitung
+	evo_data EVOLVE_MOVE, ROLLOUT, LICKILICKY
+	learnset 1, LICK
+	learnset 5, SUPERSONIC
+	learnset 9, DEFENSE_CURL
+	learnset 13, KNOCK_OFF
+	learnset 17, WRAP
+	learnset 21, STOMP
+	learnset 25, DISABLE
+	learnset 29, HEADBUTT ; Slam → TM move
+	learnset 33, ROLLOUT
+	learnset 37, SCREECH ; Chip Away → Screech
+	learnset 41, AMNESIA ; Me First → egg move
+	learnset 45, BODY_SLAM ; Refresh → egg move
+	learnset 49, CURSE ; Screech → egg move
+	learnset 53, POWER_WHIP
+	learnset 57, BELLY_DRUM ; Wring Out → egg move
+
+	evos_attacks Koffing
+	evo_data EVOLVE_TRADE, CHARCOAL, WEEZING, GALARIAN_FORM
+	evo_data EVOLVE_LEVEL, 35, WEEZING, PLAIN_FORM
+	learnset 1, TACKLE
+	learnset 4, ACID ; Smog → new move
+	learnset 7, SMOKESCREEN
+	learnset 12, ENDURE ; Assurance → TM move
+	learnset 15, WILL_O_WISP ; Clear Smog → TM move
+	learnset 18, VENOSHOCK ; Sludge → tutor move
+	learnset 23, RAGE ; Self-Destruct → RBY TM move
+	learnset 26, HAZE
+	learnset 29, GYRO_BALL
+	learnset 34, SLUDGE_BOMB
+	learnset 37, EXPLOSION
+	learnset 40, DESTINY_BOND
+	learnset 42, PAIN_SPLIT ; Belch → HGSS tutor move
+	learnset 45, FIRE_BLAST ; Memento → TM move
+
+	evos_attacks WeezingPlain
+	learnset 1, TACKLE
+	learnset 4, ACID ; Smog → new move
+	learnset 7, SMOKESCREEN
+	learnset 12, ENDURE ; Assurance → TM move
+	learnset 15, WILL_O_WISP ; Clear Smog → TM move
+	learnset 18, VENOSHOCK ; Sludge → tutor move
+	learnset 23, RAGE ; Self-Destruct → RBY TM move
+	learnset 26, HAZE
+	learnset 29, GYRO_BALL
+	learnset 34, SLUDGE_BOMB
+	learnset 40, EXPLOSION
+	learnset 46, DESTINY_BOND
+	learnset 51, PAIN_SPLIT ; Belch → HGSS tutor move
+	learnset 57, FIRE_BLAST ; Memento → TM move
+
+	evos_attacks WeezingGalarian
+	learnset 1, SAFEGUARD ; evolution move
+	learnset 1, TACKLE
+	learnset 4, GUST ; Smog → new move
+	learnset 7, SMOKESCREEN
+	learnset 12, ENDURE ; Assurance → TM move
+	learnset 15, WILL_O_WISP ; Clear Smog → TM move
+	learnset 18, SCREECH ; Sludge → Sw/Sh TM move
+	learnset 23, RAGE ; Self-Destruct → RBY TM move
+	learnset 26, HAZE ; Aromatherapy → Kantonian move
+	learnset 29, GYRO_BALL
+	learnset 34, PLAY_ROUGH ; Sludge Bomb → Sw/Sh TR move
+	learnset 40, EXPLOSION
+	learnset 46, DESTINY_BOND
+	learnset 51, PAIN_SPLIT ; Belch → HGSS tutor move
+	learnset 57, MOONBLAST ; Memento → new move
+
+	evos_attacks Rhyhorn
+	evo_data EVOLVE_LEVEL, 42, RHYDON
+	learnset 1, TACKLE
+	learnset 1, MUD_SLAP ; Sand-Attack → similar move
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 3, HORN_ATTACK
+	learnset 6, FURY_STRIKES ; Fury Attack → similar move
+	learnset 9, SCARY_FACE
+	learnset 13, MAGNITUDE ; Smack Down → egg move
+	learnset 17, STOMP
+	learnset 21, BULLDOZE
+	learnset 25, ANCIENTPOWER ; Chip Away → HGSS tutor move
+	learnset 29, ROCK_BLAST
+	learnset 33, TAKE_DOWN ; Drill Run → Take Down
+	learnset 37, STONE_EDGE ; Take Down → Stone Edge
+	learnset 41, DOUBLE_EDGE ; Double Edge → event move
+	learnset 45, EARTHQUAKE
+	learnset 49, CLOSE_COMBAT ; Megahorn → new move
+	learnset 53, MEGAHORN ; Horn Drill → Megahorn
+
+	evos_attacks Rhydon
+	evo_data EVOLVE_TRADE, PROTECTOR, RHYPERIOR
+	learnset 1, OUTRAGE ; Hammer Arm → HGSS tutor move ; evolution move
+	learnset 1, TACKLE
+	learnset 1, MUD_SLAP ; Sand-Attack → similar move
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 3, HORN_ATTACK
+	learnset 6, FURY_STRIKES ; Fury Attack → similar move
+	learnset 9, SCARY_FACE
+	learnset 13, MAGNITUDE ; Smack Down → egg move
+	learnset 17, STOMP
+	learnset 21, BULLDOZE
+	learnset 25, ANCIENTPOWER ; Chip Away → HGSS tutor move
+	learnset 29, ROCK_BLAST
+	learnset 33, TAKE_DOWN ; Drill Run → Take Down
+	learnset 37, STONE_EDGE ; Take Down → Stone Edge
+	learnset 41, DOUBLE_EDGE ; Double Edge → event move
+	learnset 48, EARTHQUAKE
+	learnset 55, CLOSE_COMBAT ; Megahorn → new move
+	learnset 62, MEGAHORN ; Horn Drill → Megahorn
+
+	evos_attacks Chansey
+	evo_data EVOLVE_HAPPINESS, TR_ANYTIME, BLISSEY
+	learnset 1, DEFENSE_CURL
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, GROWL
+	learnset 5, LEER ; Tail Whip → similar move
+	learnset 9, SWEET_KISS ; Refresh → Happiny move
+	learnset 12, DOUBLE_SLAP
+	learnset 16, FRESH_SNACK ; Soft-Boiled → similar move
+	learnset 20, METRONOME ; Bestow → egg move
+	learnset 23, MINIMIZE
+	learnset 27, TAKE_DOWN
+	learnset 31, SING
+	learnset 35, CHARM ; Fling → Happiny move
+	learnset 39, HEAL_BELL ; Heal Pulse → HGSS tutor move
+	learnset 44, BODY_SLAM ; Egg Bomb → TM move
+	learnset 50, LIGHT_SCREEN
+	learnset 57, SUBSTITUTE ; Healing Wish → TM move
+	learnset 65, DOUBLE_EDGE
+
+	evos_attacks Tangela
+	evo_data EVOLVE_MOVE, ANCIENTPOWER, TANGROWTH
+	learnset 1, WRAP ; Constrict → similar move
+	learnset 4, SLEEP_POWDER
+	learnset 7, VINE_WHIP
+	learnset 10, ABSORB
+	learnset 14, POISONPOWDER
+	learnset 17, PROTECT ; Bind → TM move
+	learnset 20, GROWTH
+	learnset 23, MEGA_DRAIN
+	learnset 27, KNOCK_OFF
+	learnset 30, STUN_SPORE
+	learnset 33, HEALINGLIGHT ; Natural Gift → new move
+	learnset 36, GIGA_DRAIN
+	learnset 38, ANCIENTPOWER
+	learnset 41, BODY_SLAM ; Slam → similar move
+	learnset 44, PAIN_SPLIT ; Tickle → HGSS tutor move
+	learnset 46, SWORDS_DANCE ; Wring Out → TM move
+	learnset 48, BATON_PASS ; Grassy Terrain → new move
+	learnset 50, POWER_WHIP
+
+	evos_attacks Kangaskhan
+	learnset 1, DIZZY_PUNCH ; Comet Punch → Dizzy Punch
+	learnset 1, LEER
+	learnset 7, LOW_KICK ; Fake Out → HGSS tutor move
+	learnset 10, BITE ; Tail Whip → Bite
+	learnset 13, HEADBUTT ; Bite → tutor move
+	learnset 19, DOUBLE_KICK ; Double Hit → new move
+	learnset 22, RAGE
+	learnset 25, TAKE_DOWN ; Mega Punch → RBY TM move
+	learnset 31, STOMP ; Chip Away → egg move
+	learnset 34, MACH_PUNCH ; Dizzy Punch → new move
+	learnset 37, CRUNCH
+	learnset 43, ENDURE
+	learnset 46, OUTRAGE
+	learnset 49, SUCKER_PUNCH
+	learnset 50, REVERSAL
+
+	evos_attacks Horsea
+	evo_data EVOLVE_LEVEL, 32, SEADRA
+	learnset 1, WATER_GUN ; Bubble → similar move
+	learnset 5, SMOKESCREEN
+	learnset 9, LEER
+	learnset 13, BUBBLE_BEAM ; Water Gun → Bubble Beam
+	learnset 17, AQUA_JET ; Twister → new move
+	learnset 21, WATER_PULSE ; Bubble Beam → TM move
+	learnset 26, FOCUS_ENERGY
+	learnset 31, OUTRAGE ; Brine → HGSS tutor move
+	learnset 36, AGILITY
+	learnset 41, DRAGON_PULSE
+	learnset 46, DRAGON_DANCE
+	learnset 52, HYDRO_PUMP
+
+	evos_attacks Seadra
+	evo_data EVOLVE_TRADE, DRAGON_SCALE, KINGDRA
+	learnset 1, WATER_GUN ; Bubble → similar move
+	learnset 5, SMOKESCREEN
+	learnset 9, LEER
+	learnset 13, BUBBLE_BEAM ; Water Gun → Bubble Beam
+	learnset 17, AQUA_JET ; Twister → new move
+	learnset 21, WATER_PULSE ; Bubble Beam → TM move
+	learnset 26, FOCUS_ENERGY
+	learnset 31, OUTRAGE ; Brine → HGSS tutor move
+	learnset 38, AGILITY
+	learnset 45, DRAGON_PULSE
+	learnset 52, DRAGON_DANCE
+	learnset 60, HYDRO_PUMP
+
+	evos_attacks Goldeen
+	evo_data EVOLVE_LEVEL, 33, SEAKING
+	learnset 1, PECK
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, WATER_GUN ; Water Sport → RBY TM move
+	learnset 5, SUPERSONIC
+	learnset 8, HORN_ATTACK
+	learnset 13, REVERSAL ; Flail → similar move
+	learnset 16, WATER_PULSE
+	learnset 21, HAZE ; Aqua Ring → egg move
+	learnset 24, FURY_STRIKES ; Fury Attack → similar moves
+	learnset 29, AGILITY
+	learnset 32, WATERFALL
+	learnset 37, BODY_SLAM ; Horn Drill → tutor move
+	learnset 40, KNOCK_OFF ; Soak → tutor move
+	learnset 45, MEGAHORN
+
+	evos_attacks Seaking
+	learnset 1, POISON_JAB
+	learnset 1, PECK
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, WATER_GUN ; Water Sport → RBY TM move
+	learnset 5, SUPERSONIC
+	learnset 8, HORN_ATTACK
+	learnset 13, REVERSAL ; Flail → similar move
+	learnset 16, WATER_PULSE
+	learnset 21, HAZE ; Aqua Ring → egg move
+	learnset 24, FURY_STRIKES ; Fury Attack → similar moves
+	learnset 29, AGILITY
+	learnset 32, WATERFALL
+	learnset 40, BODY_SLAM ; Horn Drill → tutor move
+	learnset 46, KNOCK_OFF ; Soak → tutor move
+	learnset 54, MEGAHORN
+
+	evos_attacks Staryu
+	evo_data EVOLVE_ITEM, WATER_STONE, STARMIE
+	learnset 1, TACKLE
+	learnset 1, DEFENSE_CURL ; Harden → similar move
+	learnset 4, WATER_GUN
+	learnset 7, RAPID_SPIN
+	learnset 10, RECOVER
+	learnset 13, HYPNOSIS ; Psywave → new move
+	learnset 16, SWIFT
+	learnset 18, BUBBLE_BEAM
+	learnset 22, AGILITY ; Camouflage → new move
+	learnset 24, GYRO_BALL
+	learnset 28, PAIN_SPLIT ; Brine → HGSS tutor move
+	learnset 31, MINIMIZE
+	learnset 35, REFLECT ; Reflect Type → new move
+	learnset 37, POWER_GEM
+	learnset 40, CONFUSE_RAY
+	learnset 42, PSYCHIC_M
+	learnset 46, LIGHT_SCREEN
+	learnset 49, HYDRO_PUMP ; Cosmic Power → Hydro Pump
+
+	evos_attacks Starmie
+	learnset 1, HYDRO_PUMP
+	learnset 1, WATER_GUN
+	learnset 1, RAPID_SPIN
+	learnset 1, RECOVER
+	learnset 1, SWIFT
+	learnset 40, CONFUSE_RAY
+	learnset 60, TRI_ATTACK ; RBY TM move
+
+	evos_attacks MrMimePlain
+	learnset 1, BARRIER
+	learnset 1, CONFUSION
+	learnset 4, HYPNOSIS ; Copycat → egg move
+	learnset 8, CALM_MIND ; Meditate → TM move
+	learnset 11, DOUBLE_SLAP
+	learnset 13, PROTECT ; Mimic → event move
+	learnset 15, METRONOME ; Psywave → RBY TM move
+	learnset 18, ENCORE
+	learnset 22, LIGHT_SCREEN
+	learnset 22, REFLECT
+	learnset 25, PSYBEAM
+	learnset 29, SUBSTITUTE
+	learnset 32, CONFUSE_RAY ; Recycle → egg move
+	learnset 36, TRICK
+	learnset 39, PSYCHIC_M
+	learnset 43, FUTURE_SIGHT ; Role Play → egg move
+	learnset 46, BATON_PASS
+	learnset 50, SAFEGUARD
+
+	evos_attacks Scyther
+	evo_data EVOLVE_TRADE, METAL_COAT, SCIZOR
+	evo_data EVOLVE_HOLDING, HARD_STONE, TR_ANYTIME, KLEAVOR
+	learnset 1, QUICK_ATTACK
+	learnset 1, LEER
+	learnset 5, FOCUS_ENERGY
+	learnset 9, PURSUIT
+	learnset 13, FALSE_SWIPE
+	learnset 17, AGILITY
+	learnset 21, WING_ATTACK
+	learnset 25, BUG_BITE ; Fury Cutter → similar move
+	learnset 29, SLASH
+	learnset 33, GLARE ; Razor Wind → new move
+	learnset 37, DOUBLE_TEAM
+	learnset 41, X_SCISSOR
+	learnset 45, NIGHT_SLASH
+	learnset 49, CLOSE_COMBAT ; Double Hit → SV TM move
+	learnset 50, AIR_SLASH
+	learnset 57, SWORDS_DANCE
+
+	evos_attacks Jynx
+	learnset 1, PETAL_DANCE ; event move
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, LICK
+	learnset 1, CONFUSION ; Smoochum move
+	learnset 1, SWEET_KISS ; Smoochum move
+	learnset 5, SING ; Lovely Kiss → Smoochum move
+	learnset 8, SCREECH ; Lovely Kiss → LGPE move
+	learnset 11, ICY_WIND ; Powder Snow → TM move
+	learnset 15, DOUBLE_SLAP
+	learnset 18, ICE_PUNCH
+	learnset 21, METRONOME ; Heart Stamp → RBY TM move
+	learnset 25, MEAN_LOOK
+	learnset 28, DRAINING_KISS ; Fake Tears → Drain Kiss
+	learnset 33, PSYBEAM ; Wake-Up Slap → new move
+	learnset 39, AVALANCHE
+	learnset 44, BODY_SLAM
+	learnset 49, NASTY_PLOT ; Wring Out → egg move
+	learnset 55, PERISH_SONG
+	learnset 60, BLIZZARD
+
+	evos_attacks Electabuzz
+	evo_data EVOLVE_TRADE, ELECTIRIZER, ELECTIVIRE
+	learnset 1, QUICK_ATTACK
+	learnset 1, LEER
+	learnset 5, THUNDERSHOCK
+	learnset 8, LOW_KICK
+	learnset 12, SWIFT
+	learnset 15, BULK_UP ; Shock Wave → TM move
+	learnset 19, THUNDER_WAVE
+	learnset 22, KARATE_CHOP ; Electro Ball → egg move
+	learnset 26, LIGHT_SCREEN
+	learnset 29, THUNDERPUNCH
+	learnset 36, SCREECH ; Discharge → Screech
+	learnset 42, CROSS_CHOP ; Screech → new move
+	learnset 49, THUNDERBOLT
+	learnset 55, THUNDER
+
+	evos_attacks Magmar
+	evo_data EVOLVE_TRADE, MAGMARIZER, MAGMORTAR
+	learnset 1, HAZE ; Smog → new move
+	learnset 1, LEER
+	learnset 5, EMBER
+	learnset 8, SMOKESCREEN
+	learnset 12, FEINT_ATTACK
+	learnset 15, FIRE_SPIN
+	learnset 19, LOW_KICK ; Clear Smog → HGSS tutor move
+	learnset 22, FLAME_CHARGE ; Flame Burst → TM move
+	learnset 26, CONFUSE_RAY
+	learnset 29, FIRE_PUNCH
+	learnset 36, SUNNY_DAY ; Lava Plume → Sunny Day
+	learnset 42, FOCUS_BLAST ; Sunny Day → TM move
+	learnset 49, FLAMETHROWER
+	learnset 55, FIRE_BLAST
+
+	evos_attacks Pinsir
+	learnset 1, FURY_STRIKES ; Vice Grip → new move
+	learnset 1, FOCUS_ENERGY
+	learnset 4, WRAP ; Bind → similar move
+	learnset 8, SEISMIC_TOSS
+	learnset 12, DEFENSE_CURL ; Harden → similar move
+	learnset 16, RAGE ; Revenge → RBY TM move
+	learnset 20, ROCK_THROW ; Brick Break → event move
+	learnset 26, ROCK_SMASH ; Vital Throw → TM move
+	learnset 29, X_SCISSOR
+	learnset 33, FEINT_ATTACK ; Submission → egg moves
+	learnset 36, OUTRAGE ; Storm Throw → LGPE move
+	learnset 40, SWORDS_DANCE
+	learnset 43, THRASH
+	learnset 47, CLOSE_COMBAT ; Superpower → similar move
+	learnset 50, MEGAHORN ; Guillotine → new move
+
+	evos_attacks TaurosPlain
+	learnset 1, TACKLE
+	learnset 3, LEER ; Tail Whip → similar move
+	learnset 5, RAGE
+	learnset 8, HORN_ATTACK
+	learnset 11, SCARY_FACE
+	learnset 15, PURSUIT
+	learnset 19, REST
+	learnset 24, QUICK_ATTACK ; Payback → event move
+	learnset 29, FOCUS_ENERGY ; Work Up → LGPE move
+	learnset 35, TAKE_DOWN
+	learnset 41, ZEN_HEADBUTT
+	learnset 48, SWAGGER
+	learnset 55, THRASH
+	learnset 63, DOUBLE_EDGE
+	learnset 71, GIGA_IMPACT
+	learnset 80, OUTRAGE ; HGSS tutor move
+
+	evos_attacks TaurosPaldean
+	learnset 1, TACKLE
+	learnset 3, LEER ; Tail Whip → similar move
+	learnset 5, RAGE
+	learnset 8, HEADBUTT
+	learnset 11, SCARY_FACE
+	learnset 15, PURSUIT
+	learnset 19, REST
+	learnset 24, DOUBLE_KICK
+	learnset 29, FOCUS_ENERGY ; Work Up → LGPE move
+	learnset 35, TAKE_DOWN
+	learnset 41, ZEN_HEADBUTT
+	learnset 48, SWAGGER
+	learnset 55, THRASH
+	learnset 63, DOUBLE_EDGE
+	learnset 71, CLOSE_COMBAT
+	learnset 80, OUTRAGE ; HGSS tutor move
+
+	evos_attacks TaurosPaldeanFire
+	learnset 1, TACKLE
+	learnset 3, LEER ; Tail Whip → similar move
+	learnset 5, RAGE
+	learnset 8, HEADBUTT
+	learnset 11, SCARY_FACE
+	learnset 15, FLAME_CHARGE
+	learnset 19, REST
+	learnset 24, DOUBLE_KICK
+	learnset 29, FOCUS_ENERGY ; Work Up → LGPE move
+	learnset 35, TAKE_DOWN
+	learnset 41, ZEN_HEADBUTT
+	learnset 48, SWAGGER
+	learnset 55, THRASH
+	learnset 63, FLARE_BLITZ
+	learnset 71, CLOSE_COMBAT
+	learnset 80, OUTRAGE ; HGSS tutor move
+
+	evos_attacks TaurosPaldeanWater
+	learnset 1, TACKLE
+	learnset 3, LEER ; Tail Whip → similar move
+	learnset 5, RAGE
+	learnset 8, HEADBUTT
+	learnset 11, SCARY_FACE
+	learnset 15, AQUA_JET
+	learnset 19, REST
+	learnset 24, DOUBLE_KICK
+	learnset 29, FOCUS_ENERGY ; Work Up → LGPE move
+	learnset 35, TAKE_DOWN
+	learnset 41, ZEN_HEADBUTT
+	learnset 48, SWAGGER
+	learnset 55, THRASH
+	learnset 63, AQUA_TAIL ; Wave Crash → tutor move
+	learnset 71, CLOSE_COMBAT
+	learnset 80, OUTRAGE ; HGSS tutor move
+
+	evos_attacks Magikarp
+	evo_data EVOLVE_LEVEL, 20, GYARADOS, NO_FORM ; preserve pre-evo form
+	learnset 1, SPLASH
+	learnset 15, TACKLE
+	learnset 30, REVERSAL ; Flail → event move
+
+	evos_attacks Gyarados
+	learnset 1, WATERFALL ; HM move
+	learnset 1, BITE ; evolution move
+	learnset 1, THRASH
+	learnset 1, DRAGON_RAGE
+	learnset 1, WRAP ; Bind → similar move
+	learnset 21, LEER
+	learnset 24, GUST ; Twister → new move
+	learnset 27, DRAGON_RAGE ; Ice Fang → Dragon Rage
+	learnset 30, AQUA_TAIL
+	learnset 33, SCARY_FACE
+	learnset 36, DRAGONBREATH ; Dragon Rage → GSC TM move
+	learnset 39, CRUNCH
+	learnset 42, HYDRO_PUMP
+	learnset 45, DRAGON_DANCE
+	learnset 48, HURRICANE
+	learnset 51, RAIN_DANCE
+	learnset 54, HYPER_BEAM
+	learnset 57, OUTRAGE ; HGSS tutor move
+
+	evos_attacks Lapras
+	learnset 1, ANCIENTPOWER ; HGSS tutor move
+	learnset 1, DRAGON_RAGE ; RBY TM move
+	learnset 1, DRAGONBREATH ; GSC TM move
+	learnset 1, SING
+	learnset 1, GROWL
+	learnset 1, WATER_GUN
+	learnset 4, BITE ; Mist → event move
+	learnset 7, CONFUSE_RAY
+	learnset 10, ICE_SHARD
+	learnset 14, WATER_PULSE
+	learnset 18, BODY_SLAM
+	learnset 22, RAIN_DANCE
+	learnset 27, PERISH_SONG
+	learnset 32, ICE_BEAM
+	learnset 37, FUTURE_SIGHT ; Brine → event move
+	learnset 43, SAFEGUARD
+	learnset 47, HYDRO_PUMP
+	learnset 50, OUTRAGE ; Sheer Cold → HGSS tutor move
+	learnset 54, MEGAHORN ; LGPE TM move
+
+	evos_attacks Ditto
+	learnset 1, TRANSFORM
+
+	evos_attacks Eevee
+	evo_data EVOLVE_ITEM, THUNDERSTONE, JOLTEON
+	evo_data EVOLVE_ITEM, WATER_STONE, VAPOREON
+	evo_data EVOLVE_ITEM, FIRE_STONE, FLAREON
+	evo_data EVOLVE_ITEM, SUN_STONE, ESPEON
+	evo_data EVOLVE_ITEM, MOON_STONE, UMBREON
+	evo_data EVOLVE_ITEM, LEAF_STONE, LEAFEON
+	evo_data EVOLVE_ITEM, ICE_STONE, GLACEON
+	evo_data EVOLVE_ITEM, SHINY_STONE, SYLVEON
+	evo_data EVOLVE_LOCATION, ILEX_FOREST, LEAFEON
+	evo_data EVOLVE_LOCATION, ICE_PATH, GLACEON
+	evo_data EVOLVE_HAPPINESS, TR_MORNDAY, ESPEON
+	evo_data EVOLVE_HAPPINESS, TR_EVENITE, UMBREON
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 5, MUD_SLAP ; Sand Attack → similar move
+	learnset 9, DOUBLE_KICK ; Baby-Doll Eyes → LGPE move
+	learnset 10, SWIFT
+	learnset 13, QUICK_ATTACK
+	learnset 17, BITE
+	learnset 20, HEAL_BELL ; Refresh → HGSS tutor move
+	learnset 23, THIEF ; Covet → TM move
+	learnset 25, TAKE_DOWN
+	learnset 29, CHARM
+	learnset 33, BATON_PASS
+	learnset 37, DOUBLE_EDGE
+	learnset 41, GROWTH ; Last Resort → event move
+	learnset 45, REVERSAL ; Trump Card → new move
+
+	evos_attacks Vaporeon
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, WATER_GUN ; evolution move
+	learnset 5, MUD_SLAP ; Sand Attack → similar move
+	learnset 9, DOUBLE_KICK ; Baby-Doll Eyes → LGPE move
+	learnset 13, QUICK_ATTACK
+	learnset 17, WATER_PULSE
+	learnset 20, AURORA_BEAM
+	learnset 25, RECOVER ; Aqua Ring → similar move
+	learnset 29, BARRIER ; Acid Armor → similar move
+	learnset 33, HAZE
+	learnset 37, SCALD ; Muddy Water → TM move
+	learnset 41, DOUBLE_EDGE ; Last Resort → tutor move
+	learnset 45, HYDRO_PUMP
+
+	evos_attacks Jolteon
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, THUNDERSHOCK ; evolution move
+	learnset 5, MUD_SLAP ; Sand Attack → similar move
+	learnset 9, DOUBLE_KICK ; Baby-Doll Eyes → LGPE move
+	learnset 13, QUICK_ATTACK
+	learnset 17, SPARK ; Double Kick → new move
+	learnset 20, LIGHT_SCREEN ; Thunder Fang → TM move
+	learnset 25, PIN_MISSILE
+	learnset 29, AGILITY
+	learnset 33, THUNDER_WAVE
+	learnset 37, THUNDERBOLT ; Discharge → TM move
+	learnset 41, DOUBLE_EDGE ; Last Resort → tutor move
+	learnset 45, THUNDER
+
+	evos_attacks Flareon
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, EMBER ; evolution move
+	learnset 5, MUD_SLAP ; Sand Attack → similar move
+	learnset 9, DOUBLE_KICK ; Baby-Doll Eyes → LGPE move
+	learnset 13, QUICK_ATTACK
+	learnset 17, BITE
+	learnset 20, FIRE_SPIN ; Fire Fang → Fire Spin
+	learnset 25, FLAME_CHARGE ; Fire Spin → TM move
+	learnset 29, SCARY_FACE
+	learnset 33, SMOKESCREEN ; Smog → new move
+	learnset 37, FLAMETHROWER ; Lava Plume → new move
+	learnset 41, DOUBLE_EDGE ; Last Resort → tutor move
+	learnset 45, FLARE_BLITZ
+
+	evos_attacks Porygon
+	evo_data EVOLVE_TRADE, UPGRADE, PORYGON2
+	learnset 1, TACKLE
+	learnset 1, CONVERSION
+	learnset 1, TELEPORT ; Sharpen → RBY TM move
+	learnset 7, PSYBEAM
+	learnset 12, AGILITY
+	learnset 18, RECOVER
+	learnset 23, GROWTH ; Magnet Rise → new move
+	learnset 29, AURORA_BEAM ; Signal Beam → new move
+	learnset 34, THUNDER_WAVE ; Recycle → TM move
+	learnset 40, BARRIER ; Discharge → event move
+	learnset 45, THUNDERBOLT ; Lock-On → TM move
+	learnset 50, TRI_ATTACK
+	learnset 56, MIRROR_COAT ; Magic Coat → new move
+	learnset 62, ZAP_CANNON
+
+	evos_attacks Omanyte
+	evo_data EVOLVE_LEVEL, 40, OMASTAR
+	learnset 1, WRAP ; Constrict → similar move
+	learnset 1, DEFENSE_CURL ; Withdraw → similar move
+	learnset 7, BITE
+	learnset 10, WATER_GUN
+	learnset 16, ROCK_THROW ; Rollout → event move
+	learnset 19, LEER
+	learnset 25, ROLLOUT ; Mud Shot → Rollout
+	learnset 28, BUBBLE_BEAM ; Brine → egg move
+	learnset 34, PROTECT
+	learnset 37, ANCIENTPOWER
+	learnset 43, AURORA_BEAM ; Tickle → egg move
+	learnset 46, ROCK_BLAST
+	learnset 52, SHELL_SMASH
+	learnset 55, HYDRO_PUMP
+	learnset 61, POWER_GEM ; new move
+
+	evos_attacks Omastar
+	learnset 1, WRAP ; Constrict → similar move
+	learnset 1, DEFENSE_CURL ; Withdraw → similar move
+	learnset 1, ICICLE_SPEAR ; Spike Cannon → new move ; evolution move
+	learnset 7, BITE
+	learnset 10, WATER_GUN
+	learnset 16, ROCK_THROW ; Rollout → event move
+	learnset 19, LEER
+	learnset 25, ROLLOUT ; Mud Shot → Rollout
+	learnset 28, BUBBLE_BEAM ; Brine → egg move
+	learnset 34, PROTECT
+	learnset 37, ANCIENTPOWER
+	learnset 48, SPIKES ; Tickle → new move
+	learnset 56, ROCK_BLAST
+	learnset 67, SHELL_SMASH
+	learnset 75, HYDRO_PUMP
+	learnset 86, POWER_GEM ; new move
+
+	evos_attacks Kabuto
+	evo_data EVOLVE_LEVEL, 40, KABUTOPS
+	learnset 1, SCRATCH
+	learnset 1, DEFENSE_CURL ; Harden → similar move
+	learnset 6, ABSORB
+	learnset 11, MUD_SLAP ; Leer → GSC TM move
+	learnset 16, ROCK_THROW ; Mud Shot → Rock Throw (event move)
+	learnset 21, LEER ; Sand Attack → Leer
+	learnset 26, ENDURE
+	learnset 31, AQUA_JET
+	learnset 36, MEGA_DRAIN
+	learnset 41, SCREECH ; Metal Sound → similar move
+	learnset 46, ANCIENTPOWER
+	learnset 51, GIGA_DRAIN ; Wring Out → TM move
+	learnset 56, IRON_HEAD ; new move
+	learnset 61, SHELL_SMASH ; new move
+
+	evos_attacks Kabutops
+	learnset 1, SLASH ; evolution move
+	learnset 1, LOW_KICK ; HGSS tutor move
+	learnset 1, SCRATCH
+	learnset 1, DEFENSE_CURL ; Harden → similar move
+	learnset 6, ABSORB
+	learnset 11, MUD_SLAP ; Leer → GSC TM move
+	learnset 16, ROCK_THROW ; Mud Shot → Rock Throw (event move)
+	learnset 21, LEER ; Sand Attack → Leer
+	learnset 26, ENDURE
+	learnset 31, AQUA_JET
+	learnset 36, MEGA_DRAIN
+	learnset 45, SCREECH ; Metal Sound → similar move
+	learnset 54, ANCIENTPOWER
+	learnset 63, LEECH_LIFE ; Wring Out → LGPE move
+	learnset 72, NIGHT_SLASH
+	learnset 81, SHELL_SMASH ; new move
+
+	evos_attacks Aerodactyl
+	learnset 1, DRAGON_RAGE ; RBY TM move
+	learnset 1, DRAGONBREATH ; GSC TM move
+	learnset 1, WING_ATTACK
+	learnset 1, SUPERSONIC
+	learnset 1, BITE
+	learnset 1, SCARY_FACE
+	learnset 9, ROAR
+	learnset 13, ROCK_THROW ; LGPE move
+	learnset 17, AGILITY
+	learnset 25, ANCIENTPOWER
+	learnset 33, CRUNCH
+	learnset 41, TAKE_DOWN
+	learnset 49, BRAVE_BIRD ; Sky Drop → new move
+	learnset 57, IRON_HEAD
+	learnset 65, HYPER_BEAM
+	learnset 73, ROCK_SLIDE
+	learnset 81, GIGA_IMPACT
+
+	evos_attacks Snorlax
+	learnset 1, TACKLE
+	learnset 4, DEFENSE_CURL
+	learnset 9, AMNESIA
+	learnset 12, LICK
+	learnset 17, RAGE ; Chip Away → RBY TM move
+	learnset 20, TAKE_DOWN ; Yawn → RBY TM move
+	learnset 25, BODY_SLAM
+	learnset 28, REST
+	learnset 33, SLEEP_TALK
+	learnset 36, ROLLOUT
+	learnset 41, OUTRAGE ; Block → HGSS tutor move
+	learnset 44, BELLY_DRUM
+	learnset 49, CRUNCH
+	learnset 50, CLOSE_COMBAT ; Heavy Slam → new move
+	learnset 57, GIGA_IMPACT
+
+	evos_attacks ArticunoPlain
+	learnset 1, GUST
+	learnset 1, ICY_WIND ; Powder Snow → similar move
+	learnset 1, LEER ; LGPE move
+	learnset 8, ICE_SHARD ; Mist → Ice Shard
+	learnset 15, SAFEGUARD ; Ice Shard → new move
+	learnset 22, EXTRASENSORY ; Mind Reader → event move
+	learnset 29, ANCIENTPOWER
+	learnset 36, AGILITY
+	learnset 43, ICE_BEAM
+	learnset 50, AIR_SLASH ; Reflect → new move
+	learnset 57, HAIL
+	learnset 64, REFLECT ; Tailwind → Reflect
+	learnset 71, BLIZZARD
+	learnset 78, BRAVE_BIRD ; Sheer Cold → new move
+	learnset 85, ROOST
+	learnset 92, HURRICANE
+	learnset 99, AEROBLAST ; new move
+
+	evos_attacks ArticunoGalarian
+	learnset 1, GUST
+	learnset 1, CONFUSION
+	learnset 1, LEER ; LGPE move
+	learnset 8, SAFEGUARD ; Psycho Shift → new move
+	learnset 15, HYPNOSIS
+	learnset 22, EXTRASENSORY ; Mind Reader → event move
+	learnset 29, ANCIENTPOWER
+	learnset 36, AGILITY
+	learnset 43, PSYCHIC_M ; Freezing Glare → TM move
+	learnset 50, AIR_SLASH ; Reflect → new move
+	learnset 57, DREAM_EATER
+	learnset 64, REFLECT ; Tailwind → Reflect
+	learnset 71, FUTURE_SIGHT
+	learnset 78, BRAVE_BIRD ; Sheer Cold → TR move
+	learnset 85, RECOVER
+	learnset 92, HURRICANE
+	learnset 99, AEROBLAST ; new move
+
+	evos_attacks ZapdosPlain
+	learnset 1, PECK
+	learnset 1, THUNDERSHOCK
+	learnset 1, LEER ; LGPE move
+	learnset 8, THUNDER_WAVE
+	learnset 15, PROTECT ; Detect → similar move
+	learnset 22, EXTRASENSORY ; Pluck → event move
+	learnset 29, ANCIENTPOWER
+	learnset 36, AGILITY ; Charge → Agility
+	learnset 43, THUNDERBOLT ; Agility → TM move
+	learnset 50, DRILL_PECK ; Discharge → Drill Peck
+	learnset 57, RAIN_DANCE
+	learnset 64, LIGHT_SCREEN
+	learnset 71, THUNDER ; Drill Peck → Thunder
+	learnset 78, BRAVE_BIRD ; Thunder → new move
+	learnset 85, ROOST
+	learnset 92, HURRICANE ; Zap Cannon → new move
+	learnset 99, ZAP_CANNON
+
+	evos_attacks ZapdosGalarian
+	learnset 1, PECK
+	learnset 1, LOW_KICK ; Rock Smash → TR move
+	learnset 1, LEER ; LGPE move
+	learnset 8, FOCUS_ENERGY
+	learnset 15, PROTECT ; Detect → similar move
+	learnset 22, COUNTER ; Pluck → Counter
+	learnset 29, ANCIENTPOWER
+	learnset 36, AGILITY ; Charge → Agility
+	learnset 43, ROCK_SMASH ; Agility → Rock Smash/Brick Break
+	learnset 50, DRILL_PECK ; Discharge → Drill Peck
+	learnset 57, BULK_UP
+	learnset 64, LIGHT_SCREEN
+	learnset 71, CLOSE_COMBAT
+	learnset 78, BRAVE_BIRD ; Counter → TR move
+	learnset 85, HI_JUMP_KICK ; Quick Guard → new move
+	learnset 92, HURRICANE
+	learnset 99, REVERSAL
+
+	evos_attacks MoltresPlain
+	learnset 1, WING_ATTACK
+	learnset 1, EMBER
+	learnset 1, LEER ; LGPE move
+	learnset 8, FIRE_SPIN
+	learnset 15, SAFEGUARD ; Agility → Safeguard
+	learnset 22, EXTRASENSORY ; Endure → event move
+	learnset 29, ANCIENTPOWER
+	learnset 36, AGILITY ; Flamethrower → Agility
+	learnset 43, FLAMETHROWER ; Safeguard → Flamethrower
+	learnset 50, AIR_SLASH
+	learnset 57, SUNNY_DAY
+	learnset 64, WILL_O_WISP ; Heat Wave → event move
+	learnset 71, FIRE_BLAST ; Solar Beam → TM move
+	learnset 78, BRAVE_BIRD ; Sky Attack → new move
+	learnset 85, ROOST
+	learnset 92, HURRICANE
+	learnset 99, SOLAR_BEAM
+
+	evos_attacks MoltresGalarian
+	learnset 1, GUST
+	learnset 1, PURSUIT ; Payback → new move
+	learnset 1, LEER
+	learnset 8, FEINT_ATTACK ; new move
+	learnset 15, SAFEGUARD
+	learnset 22, WING_ATTACK
+	learnset 29, ANCIENTPOWER
+	learnset 36, AGILITY ; Flamethrower → Agility
+	learnset 43, SUCKER_PUNCH
+	learnset 50, AIR_SLASH
+	learnset 57, NASTY_PLOT ; After You → Nasty Plot
+	learnset 64, DARK_PULSE ; Fiery Wrath → similar move
+	learnset 71, HEX ; Nasty Plot → TR move
+	learnset 78, BRAVE_BIRD ; Sky Attack → new move
+	learnset 85, PAIN_SPLIT ; Memento → new move
+	learnset 92, HURRICANE
+	learnset 99, NIGHT_SLASH ; new move
+
+	evos_attacks Dratini
+	evo_data EVOLVE_LEVEL, 30, DRAGONAIR
+	learnset 1, WRAP
+	learnset 1, LEER
+	learnset 5, THUNDER_WAVE
+	learnset 11, AQUA_JET ; Twister → egg move
+	learnset 15, DRAGON_RAGE
+	learnset 21, HEADBUTT ; Slam → tutor move
+	learnset 25, AGILITY
+	learnset 31, DRAGONBREATH ; Dragon Tail → GSC TM move
+	learnset 35, AQUA_TAIL
+	learnset 41, BARRIER ; Dragon Rush → event move
+	learnset 45, SAFEGUARD
+	learnset 51, DRAGON_DANCE
+	learnset 55, OUTRAGE
+	learnset 61, HYPER_BEAM
+
+	evos_attacks Dragonair
+	evo_data EVOLVE_LEVEL, 55, DRAGONITE
+	learnset 1, WRAP
+	learnset 1, LEER
+	learnset 5, THUNDER_WAVE
+	learnset 11, AQUA_JET ; Twister → egg move
+	learnset 15, DRAGON_RAGE
+	learnset 21, HEADBUTT ; Slam → tutor move
+	learnset 25, AGILITY
+	learnset 33, DRAGONBREATH ; Dragon Tail → GSC TM move
+	learnset 39, AQUA_TAIL
+	learnset 47, BARRIER ; Dragon Rush → event move
+	learnset 53, SAFEGUARD
+	learnset 61, DRAGON_DANCE
+	learnset 67, OUTRAGE
+	learnset 75, HYPER_BEAM
+
+	evos_attacks Dragonite
+	learnset 1, HURRICANE
+	learnset 1, CLOSE_COMBAT
+	learnset 1, FIRE_PUNCH
+	learnset 1, THUNDERPUNCH
+	learnset 1, ROOST
+	learnset 1, WRAP
+	learnset 1, LEER
+	learnset 1, THUNDER_WAVE
+	learnset 1, WING_ATTACK ; evolution move
+	learnset 5, THUNDER_WAVE
+	learnset 11, AQUA_JET ; Twister → egg move
+	learnset 15, DRAGON_RAGE
+	learnset 21, HEADBUTT ; Slam → tutor move
+	learnset 25, AGILITY
+	learnset 33, DRAGONBREATH ; Dragon Tail → GSC TM move
+	learnset 39, AQUA_TAIL
+	learnset 47, BARRIER ; Dragon Rush → event move
+	learnset 53, SAFEGUARD
+	learnset 61, DRAGON_DANCE
+	learnset 67, OUTRAGE
+	learnset 75, HYPER_BEAM
+	learnset 81, HURRICANE
+
+	evos_attacks Mewtwo
+	learnset 1, TELEPORT ; Psywave → RBY TM move
+	learnset 1, AGILITY ; Sw/Sh move
+	learnset 1, FOCUS_ENERGY ; Laser Focus → similar move
+	learnset 1, CONFUSION
+	learnset 1, DISABLE
+	learnset 10, SAFEGUARD
+	learnset 19, SWIFT
+	learnset 28, FUTURE_SIGHT
+	learnset 37, BARRIER ; Psych Up → Barrier
+	learnset 46, RECOVER
+	learnset 55, PSYCHIC_M
+	learnset 64, POWER_GEM ; Barrier → SV TM move
+	learnset 73, AURA_SPHERE
+	learnset 82, AMNESIA
+	learnset 91, NASTY_PLOT ; Mist → Mew move
+	learnset 100, PSYSTRIKE
+
+	evos_attacks Mew
+	learnset 1, SKETCH ; Reflect Type → new move
+	learnset 1, TELEPORT ; event move
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, TRANSFORM
+	learnset 1, CONFUSION ; LGPE move
+	learnset 10, HEADBUTT ; Mega Punch → TM move
+	learnset 20, METRONOME
+	learnset 30, PSYCHIC_M
+	learnset 40, BARRIER
+	learnset 50, ANCIENTPOWER
+	learnset 60, BATON_PASS ; Amnesia → Baton Pass
+	learnset 70, SAFEGUARD ; Me First → Mewtwo move
+	learnset 80, AMNESIA ; Baton Pass → Amnesia
+	learnset 90, NASTY_PLOT
+	learnset 100, AURA_SPHERE
+
+	evos_attacks Chikorita
+	evo_data EVOLVE_LEVEL, 16, BAYLEEF
+	learnset 1, TACKLE
+	learnset 1, GROWL
+	learnset 6, RAZOR_LEAF
+	learnset 9, POISONPOWDER
+	learnset 12, HEALINGLIGHT ; Synthesis → similar move
+	learnset 17, REFLECT
+	learnset 17, LIGHT_SCREEN
+	learnset 20, DISARM_VOICE ; Magical Leaf → new move
+	learnset 23, ENERGY_BALL ; Natural Gift → tutor move
+	learnset 28, ANCIENTPOWER ; Sweet Scent → HGSS tutor move
+	learnset 31, DAZZLINGLEAM ; Light Screen → TM move
+	learnset 34, BODY_SLAM
+	learnset 39, SAFEGUARD
+	learnset 42, PLAY_ROUGH ; Aromatherapy → new move
+	learnset 45, SOLAR_BEAM
+	learnset 48, HEAL_BELL ; Aromatherapy → similar move
+	learnset 51, OUTRAGE ; HGSS tutor move
+	learnset 56, MOONBLAST ; new move
+
+	evos_attacks Bayleef
+	evo_data EVOLVE_LEVEL, 32, MEGANIUM
+	learnset 1, TACKLE
+	learnset 1, GROWL
+	learnset 6, RAZOR_LEAF
+	learnset 9, POISONPOWDER
+	learnset 12, HEALINGLIGHT ; Synthesis → similar move
+	learnset 18, REFLECT
+	learnset 18, LIGHT_SCREEN
+	learnset 22, DISARM_VOICE ; Magical Leaf → new move
+	learnset 26, ENERGY_BALL ; Natural Gift → tutor move
+	learnset 32, ANCIENTPOWER ; Sweet Scent → HGSS tutor move
+	learnset 36, DAZZLINGLEAM ; Light Screen → TM move
+	learnset 40, BODY_SLAM
+	learnset 43, SAFEGUARD
+	learnset 47, PLAY_ROUGH ; Aromatherapy → new move
+	learnset 51, SOLAR_BEAM
+	learnset 54, HEAL_BELL ; Aromatherapy → similar move
+	learnset 58, OUTRAGE ; HGSS tutor move
+	learnset 64, MOONBLAST ; new move
+
+	evos_attacks Meganium
+	learnset 1, PETAL_DANCE ; evolution move
+	learnset 1, TACKLE
+	learnset 1, GROWL
+	learnset 6, RAZOR_LEAF
+	learnset 9, POISONPOWDER
+	learnset 12, HEALINGLIGHT ; Synthesis → similar move
+	learnset 18, REFLECT
+	learnset 18, LIGHT_SCREEN
+	learnset 22, DISARM_VOICE ; Magical Leaf → new move
+	learnset 26, ENERGY_BALL ; Natural Gift → tutor move
+	learnset 34, ANCIENTPOWER ; Sweet Scent → HGSS tutor move
+	learnset 40, DAZZLINGLEAM ; Light Screen → TM move
+	learnset 46, BODY_SLAM
+	learnset 50, SAFEGUARD
+	learnset 56, PLAY_ROUGH ; Aromatherapy → new move
+	learnset 62, SOLAR_BEAM
+	learnset 66, HEAL_BELL ; Aromatherapy → similar move
+	learnset 72, OUTRAGE ; HGSS tutor move
+	learnset 80, MOONBLAST ; new move
+
+	evos_attacks Cyndaquil
+	evo_data EVOLVE_LEVEL, 14, QUILAVA
+	learnset 1, TACKLE
+	learnset 1, LEER
+	learnset 6, SMOKESCREEN
+	learnset 10, EMBER
+	learnset 13, QUICK_ATTACK
+	learnset 19, DEFENSE_CURL ; Flame Wheel → Defense Curl
+	learnset 22, FLAME_CHARGE ; Defense Curl → Flame Charge
+	learnset 28, DIG ; Flame Charge → TM move
+	learnset 31, SWIFT
+	learnset 37, REVERSAL ; Lava Plume → egg move
+	learnset 40, FLAMETHROWER
+	learnset 46, EARTH_POWER ; Inferno → new move
+	learnset 49, ROLLOUT
+	learnset 55, DOUBLE_EDGE
+	learnset 58, EARTHQUAKE ; Burn Up → TM move
+	learnset 64, FLARE_BLITZ ; Eruption → egg move
+
+	evos_attacks Quilava
+	evo_data EVOLVE_LEVEL, 36, TYPHLOSION
+	learnset 1, TACKLE
+	learnset 1, LEER
+	learnset 6, SMOKESCREEN
+	learnset 10, EMBER
+	learnset 13, QUICK_ATTACK
+	learnset 20, DEFENSE_CURL ; Flame Wheel → Defense Curl
+	learnset 24, FLAME_CHARGE ; Defense Curl → Flame Charge
+	learnset 31, SWIFT
+	learnset 35, DIG ; Flame Charge → TM move
+	learnset 42, REVERSAL ; Lava Plume → egg move
+	learnset 46, FLAMETHROWER
+	learnset 53, EARTH_POWER ; Inferno → new move
+	learnset 57, ROLLOUT
+	learnset 64, DOUBLE_EDGE
+	learnset 68, EARTHQUAKE ; Burn Up → TM move
+	learnset 75, FLARE_BLITZ ; Eruption → egg move
+
+	evos_attacks TyphlosionPlain
+	learnset 1, FIRE_PUNCH ; evolution move
+	learnset 1, TACKLE
+	learnset 1, LEER
+	learnset 6, SMOKESCREEN
+	learnset 10, EMBER
+	learnset 13, QUICK_ATTACK
+	learnset 20, DEFENSE_CURL ; Flame Wheel → Defense Curl
+	learnset 24, FLAME_CHARGE ; Defense Curl → Flame Charge
+	learnset 31, SWIFT
+	learnset 35, DIG ; Flame Charge → TM move
+	learnset 43, REVERSAL ; Lava Plume → egg move
+	learnset 48, FLAMETHROWER
+	learnset 56, EARTH_POWER ; Inferno → new move
+	learnset 61, ROLLOUT
+	learnset 69, DOUBLE_EDGE
+	learnset 74, EARTHQUAKE ; Burn Up → TM move
+	learnset 81, FLARE_BLITZ ; Eruption → egg move
+
+	evos_attacks TyphlosionHisuian
+	learnset 1, SHADOW_CLAW ; evolution move
+	learnset 1, ASTONISH ; new move
+	learnset 1, TACKLE
+	learnset 1, LEER
+	learnset 6, SMOKESCREEN
+	learnset 10, EMBER
+	learnset 13, QUICK_ATTACK
+	learnset 20, DEFENSE_CURL ; Flame Wheel → Defense Curl
+	learnset 24, FLAME_CHARGE ; Defense Curl → Flame Charge
+	learnset 31, SWIFT
+	learnset 35, HEX
+	learnset 43, WILL_O_WISP ; Lava Plume → TM move
+	learnset 48, FLAMETHROWER
+	learnset 56, SHADOW_BALL
+	learnset 61, ROLLOUT
+	learnset 69, DOUBLE_EDGE
+	learnset 74, DARK_PULSE ; Infernal Parade → new move
+	learnset 81, FLARE_BLITZ ; Eruption → egg move
+
+	evos_attacks Totodile
+	evo_data EVOLVE_LEVEL, 18, CROCONAW
+	learnset 1, SCRATCH
+	learnset 1, LEER
+	learnset 6, WATER_GUN
+	learnset 8, RAGE
+	learnset 13, BITE
+	learnset 15, SCARY_FACE
+	learnset 20, METAL_CLAW ; Ice Fang → egg move
+	learnset 22, REVERSAL ; Flail → similar move
+	learnset 27, AGILITY ; Feraligatr move
+	learnset 29, CRUNCH
+	learnset 34, ANCIENTPOWER ; Chip Away → HGSS tutor move
+	learnset 36, SLASH
+	learnset 41, SCREECH
+	learnset 43, THRASH
+	learnset 48, AQUA_TAIL
+	learnset 50, CLOSE_COMBAT ; Superpower → similar move
+	learnset 56, HYDRO_PUMP
+
+	evos_attacks Croconaw
+	evo_data EVOLVE_LEVEL, 30, FERALIGATR
+	learnset 1, SCRATCH
+	learnset 1, LEER
+	learnset 6, WATER_GUN
+	learnset 8, RAGE
+	learnset 13, BITE
+	learnset 15, SCARY_FACE
+	learnset 21, METAL_CLAW ; Ice Fang → egg move
+	learnset 24, REVERSAL ; Flail → similar move
+	learnset 30, AGILITY ; Feraligatr move
+	learnset 33, CRUNCH
+	learnset 39, ANCIENTPOWER ; Chip Away → HGSS tutor move
+	learnset 42, SLASH
+	learnset 48, SCREECH
+	learnset 51, THRASH
+	learnset 57, AQUA_TAIL
+	learnset 60, CLOSE_COMBAT ; Superpower → similar move
+	learnset 66, HYDRO_PUMP
+
+	evos_attacks Feraligatr
+	learnset 1, NIGHT_SLASH ; evolution move
+	learnset 1, SCRATCH
+	learnset 1, LEER
+	learnset 6, WATER_GUN
+	learnset 8, RAGE
+	learnset 13, BITE
+	learnset 15, SCARY_FACE
+	learnset 21, METAL_CLAW ; Ice Fang → egg move
+	learnset 24, REVERSAL ; Flail → similar move
+	learnset 32, AGILITY
+	learnset 37, CRUNCH
+	learnset 45, ANCIENTPOWER ; Chip Away → HGSS tutor move
+	learnset 50, SLASH
+	learnset 56, SCREECH
+	learnset 62, THRASH
+	learnset 68, OUTRAGE ; HGSS tutor move
+	learnset 73, AQUA_TAIL
+	learnset 78, CLOSE_COMBAT ; Superpower → similar move
+	learnset 84, HYDRO_PUMP
+
+	evos_attacks Sentret
+	evo_data EVOLVE_LEVEL, 15, FURRET
+	learnset 1, TACKLE
+	learnset 1, FORESIGHT
+	learnset 4, DEFENSE_CURL
+	learnset 7, QUICK_ATTACK
+	learnset 13, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 16, DIZZY_PUNCH ; Helping Hand → event move
+	learnset 19, SUPER_FANG ; Follow Me → HGSS tutor move
+	learnset 25, HEADBUTT ; Slam → tutor move
+	learnset 28, REST
+	learnset 31, SUCKER_PUNCH
+	learnset 36, AMNESIA
+	learnset 39, BATON_PASS
+	learnset 42, SLASH ; Me First → egg move
+	learnset 47, HYPER_VOICE
+
+	evos_attacks Furret
+	learnset 1, TACKLE
+	learnset 1, FORESIGHT
+	learnset 1, AGILITY ; evolution move
+	learnset 4, DEFENSE_CURL
+	learnset 7, QUICK_ATTACK
+	learnset 13, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 17, DIZZY_PUNCH ; Helping Hand → event move
+	learnset 21, SUPER_FANG ; Follow Me → HGSS tutor move
+	learnset 28, HEADBUTT ; Slam → tutor move
+	learnset 32, REST
+	learnset 36, SUCKER_PUNCH
+	learnset 42, AMNESIA
+	learnset 46, BATON_PASS
+	learnset 50, SLASH ; Me First → egg move
+	learnset 56, HYPER_VOICE
+
+	evos_attacks Hoothoot
+	evo_data EVOLVE_LEVEL, 20, NOCTOWL
+	learnset 1, TACKLE
+	learnset 1, GROWL
+	learnset 1, FORESIGHT
+	learnset 4, HYPNOSIS
+	learnset 7, PECK
+	learnset 10, CONFUSION
+	learnset 13, NIGHT_SHADE ; Echoed Voice → event move
+	learnset 16, ZEN_HEADBUTT
+	learnset 19, HEX ; Psycho Shift → new move
+	learnset 22, WING_ATTACK ; Extrasensory → egg move
+	learnset 25, TAKE_DOWN
+	learnset 28, REFLECT
+	learnset 31, AIR_SLASH
+	learnset 34, EXTRASENSORY ; Uproar → Extrasensory
+	learnset 37, ROOST
+	learnset 40, HYPER_VOICE ; Moonblast → tutor move
+	learnset 43, MOONBLAST ; Synchronoise → Moonblast
+	learnset 46, DREAM_EATER
+
+	evos_attacks Noctowl
+	learnset 1, DREAM_EATER
+	learnset 1, TACKLE
+	learnset 1, GROWL
+	learnset 1, FORESIGHT
+	learnset 4, HYPNOSIS
+	learnset 7, PECK
+	learnset 10, CONFUSION
+	learnset 13, NIGHT_SHADE ; Echoed Voice → event move
+	learnset 16, ZEN_HEADBUTT
+	learnset 19, HEX ; Psycho Shift → new move
+	learnset 23, WING_ATTACK ; Extrasensory → egg move
+	learnset 27, TAKE_DOWN
+	learnset 31, REFLECT
+	learnset 35, AIR_SLASH
+	learnset 39, EXTRASENSORY ; Uproar → Extrasensory
+	learnset 43, ROOST
+	learnset 47, HYPER_VOICE ; Moonblast → tutor move
+	learnset 51, MOONBLAST ; Synchronoise → Moonblast
+	learnset 55, DREAM_EATER
+
+	evos_attacks Ledyba
+	evo_data EVOLVE_LEVEL, 18, LEDIAN
+	learnset 1, TACKLE
+	learnset 5, SUPERSONIC
+	learnset 8, SWIFT
+	learnset 12, LIGHT_SCREEN
+	learnset 12, REFLECT
+	learnset 12, SAFEGUARD
+	learnset 15, MACH_PUNCH
+	learnset 19, BARRIER ; Silver Wind → event move
+	learnset 22, DIZZY_PUNCH ; Comet Punch → new move
+	learnset 26, BATON_PASS
+	learnset 29, AGILITY
+	learnset 33, BUG_BUZZ
+	learnset 36, AIR_SLASH
+	learnset 40, DOUBLE_EDGE
+
+	evos_attacks Ledian
+	learnset 1, SWORDS_DANCE ; evolution move
+	learnset 1, TACKLE
+	learnset 5, SUPERSONIC
+	learnset 8, SWIFT
+	learnset 12, LIGHT_SCREEN
+	learnset 12, REFLECT
+	learnset 12, SAFEGUARD
+	learnset 15, MACH_PUNCH
+	learnset 20, BARRIER ; Silver Wind → event move
+	learnset 24, DIZZY_PUNCH ; Comet Punch → new move
+	learnset 29, BATON_PASS
+	learnset 33, AGILITY
+	learnset 38, BUG_BUZZ
+	learnset 42, AIR_SLASH
+	learnset 47, DOUBLE_EDGE
+
+	evos_attacks Spinarak
+	evo_data EVOLVE_LEVEL, 22, ARIADOS
+	learnset 1, POISON_STING
+	learnset 1, STRING_SHOT
+	learnset 1, WRAP ; Constrict → similar move
+	learnset 5, ABSORB
+	learnset 8, GLARE ; Infestation → new move
+	learnset 12, SCARY_FACE
+	learnset 15, NIGHT_SHADE
+	learnset 19, GROWTH ; Shadow Sneak → event move
+	learnset 22, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 26, SUCKER_PUNCH
+	learnset 29, MEAN_LOOK ; Spider Web → similar move
+	learnset 33, AGILITY
+	learnset 36, PIN_MISSILE
+	learnset 40, PSYCHIC_M
+	learnset 43, POISON_JAB
+	learnset 47, LEECH_LIFE ; Cross Poison → TM move
+	learnset 50, FEINT_ATTACK ; Sticky Web → new move
+
+	evos_attacks Ariados
+	learnset 1, BUG_BITE ; evolution move
+	learnset 1, FOCUS_ENERGY
+	learnset 1, POISON_STING
+	learnset 1, STRING_SHOT
+	learnset 1, WRAP ; Constrict → similar move
+	learnset 5, ABSORB
+	learnset 8, GLARE ; Infestation → new move
+	learnset 12, SCARY_FACE
+	learnset 15, NIGHT_SHADE
+	learnset 19, GROWTH ; Shadow Sneak → event move
+	learnset 23, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 28, SUCKER_PUNCH
+	learnset 32, MEAN_LOOK ; Spider Web → similar move
+	learnset 37, AGILITY
+	learnset 41, PIN_MISSILE
+	learnset 46, PSYCHIC_M
+	learnset 50, POISON_JAB
+	learnset 55, LEECH_LIFE ; Cross Poison → TM move
+	learnset 58, FEINT_ATTACK ; Sticky Web → new move
+
+	evos_attacks Crobat
+	learnset 1, X_SCISSOR ; evolution move
+	learnset 1, SCREECH
+	learnset 1, ABSORB
+	learnset 1, CRUNCH ; LGPE move
+	learnset 5, SUPERSONIC
+	learnset 7, ASTONISH
+	learnset 11, BITE
+	learnset 13, GUST ; Wing Attack → egg move
+	learnset 17, CONFUSE_RAY
+	learnset 19, WING_ATTACK ; Air Cutter → Wing Attack
+	learnset 24, SWIFT
+	learnset 27, SUPER_FANG ; Poison Fang → HGSS tutor move
+	learnset 32, MEAN_LOOK
+	learnset 35, LEECH_LIFE
+	learnset 40, HAZE
+	learnset 43, VENOSHOCK
+	learnset 48, AIR_SLASH
+	learnset 51, CRUNCH ; Quick Guard → new move
+
+	evos_attacks Chinchou
+	evo_data EVOLVE_LEVEL, 27, LANTURN
+	learnset 1, WATER_GUN ; Bubble → Water Gun
+	learnset 1, SUPERSONIC
+	learnset 6, THUNDER_WAVE
+	learnset 9, THUNDERSHOCK ; Electro Ball → new move
+	learnset 12, BUBBLE_BEAM ; Water Gun → Bubble Beam
+	learnset 17, CONFUSE_RAY
+	learnset 20, WATER_PULSE ; Bubble Beam → TM move
+	learnset 23, SPARK
+	learnset 28, PSYBEAM ; Signal Beam → egg move
+	learnset 31, REVERSAL ; Flail → similar move
+	learnset 34, THUNDERBOLT ; Discharge → TM move
+	learnset 39, TAKE_DOWN
+	learnset 42, RECOVER ; Aqua Ring → similar move
+	learnset 45, ICE_BEAM ; Hydro Pump → TM move
+	learnset 47, HYDRO_PUMP ; Ion Deluge → Hydro Pump
+	learnset 50, LIGHT_SCREEN ; Charge → event move
+
+	evos_attacks Lanturn
+	learnset 1, WATER_GUN ; Bubble → Water Gun
+	learnset 1, SUPERSONIC
+	learnset 6, THUNDER_WAVE
+	learnset 9, THUNDERSHOCK ; Electro Ball → new move
+	learnset 12, BUBBLE_BEAM ; Water Gun → Bubble Beam
+	learnset 17, CONFUSE_RAY
+	learnset 20, WATER_PULSE ; Bubble Beam → TM move
+	learnset 23, SPARK
+	learnset 29, PSYBEAM ; Signal Beam → egg move
+	learnset 33, REVERSAL ; Flail → similar move
+	learnset 37, THUNDERBOLT ; Discharge → TM move
+	learnset 43, TAKE_DOWN
+	learnset 47, RECOVER ; Aqua Ring → similar move
+	learnset 51, ICE_BEAM ; Hydro Pump → TM move
+	learnset 54, HYDRO_PUMP ; Ion Deluge → Hydro Pump
+	learnset 58, LIGHT_SCREEN ; Charge → event move
+
+	evos_attacks Pichu
+	evo_data EVOLVE_HAPPINESS, TR_ANYTIME, PIKACHU
+	learnset 1, THUNDERSHOCK
+	learnset 1, CHARM
+	learnset 5, LEER ; Tail Whip → similar move
+	learnset 10, SWEET_KISS
+	learnset 13, NASTY_PLOT
+	learnset 18, THUNDER_WAVE
+	learnset 23, SCARY_FACE ; event move
+	learnset 28, SING ; event move
+	learnset 38, PETAL_DANCE ; event move
+
+	evos_attacks Cleffa
+	evo_data EVOLVE_HAPPINESS, TR_ANYTIME, CLEFAIRY
+	learnset 1, SPLASH
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, METRONOME ; Copycat → egg move
+	learnset 4, SING
+	learnset 8, SWEET_KISS
+	learnset 12, DISARM_VOICE
+	learnset 16, ENCORE
+	learnset 20, CHARM
+
+	evos_attacks Igglybuff
+	evo_data EVOLVE_HAPPINESS, TR_ANYTIME, JIGGLYPUFF
+	learnset 1, SING
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, DEFENSE_CURL ; Copycat → Defense Curl
+	learnset 4, ROLLOUT ; Defense Curl → tutor move
+	learnset 8, SWEET_KISS
+	learnset 12, DISARM_VOICE
+	learnset 16, DISABLE
+	learnset 20, CHARM
+
+	evos_attacks Togepi
+	evo_data EVOLVE_HAPPINESS, TR_ANYTIME, TOGETIC
+	learnset 1, GROWL
+	learnset 1, CHARM
+	learnset 5, METRONOME
+	learnset 9, SWEET_KISS
+	learnset 13, SING ; Yawn → similar move
+	learnset 17, ENCORE
+	learnset 21, DIZZY_PUNCH ; Follow Me → new move
+	learnset 25, HEAL_BELL ; Bestow → HGSS tutor move
+	learnset 29, FRESH_SNACK ; Wish → new move
+	learnset 33, ANCIENTPOWER
+	learnset 37, SAFEGUARD
+	learnset 41, BATON_PASS
+	learnset 45, DOUBLE_EDGE
+	learnset 49, EXTRASENSORY ; Last Resort → egg move
+	learnset 53, PLAY_ROUGH ; After You → Sw/Sh move
+
+	evos_attacks Togetic
+	evo_data EVOLVE_ITEM, SHINY_STONE, TOGEKISS
+	learnset 1, GROWL
+	learnset 1, CHARM
+	learnset 1, DISARM_VOICE ; evolution move
+	learnset 5, METRONOME
+	learnset 9, SWEET_KISS
+	learnset 13, SING ; Yawn → similar move
+	learnset 17, ENCORE
+	learnset 21, DIZZY_PUNCH ; Follow Me → new move
+	learnset 25, HEAL_BELL ; Bestow → HGSS tutor move
+	learnset 29, FRESH_SNACK ; Wish → new move
+	learnset 33, ANCIENTPOWER
+	learnset 37, SAFEGUARD
+	learnset 41, BATON_PASS
+	learnset 45, DOUBLE_EDGE
+	learnset 49, EXTRASENSORY ; Last Resort → egg move
+	learnset 53, PLAY_ROUGH ; After You → Sw/Sh move
+
+	evos_attacks Natu
+	evo_data EVOLVE_LEVEL, 25, XATU
+	learnset 1, PECK
+	learnset 1, LEER
+	learnset 6, NIGHT_SHADE
+	learnset 9, TELEPORT
+	learnset 12, SAFEGUARD ; Lucky Chant → event move
+	learnset 17, HYPNOSIS ; Stored Power → new move
+	learnset 20, PAIN_SPLIT ; Ominous Wind → HGSS tutor move
+	learnset 23, CONFUSE_RAY
+	learnset 28, RECOVER ; Wish → similar move
+	learnset 33, PSYCHIC_M
+	learnset 36, ROOST ; Miracle Eye → egg move
+	learnset 39, HAZE ; Psycho Shift → egg move
+	learnset 44, FUTURE_SIGHT
+	learnset 47, HEX ; Power Swap + Guard Swap → new move
+	learnset 50, SUCKER_PUNCH ; Me First → HGSS tutor move
+
+	evos_attacks Xatu
+	learnset 1, AIR_SLASH ; evolution move
+	learnset 1, PECK
+	learnset 1, LEER
+	learnset 6, NIGHT_SHADE
+	learnset 9, TELEPORT
+	learnset 12, SAFEGUARD ; Lucky Chant → event move
+	learnset 17, HYPNOSIS ; Stored Power → new move
+	learnset 20, PAIN_SPLIT ; Ominous Wind → HGSS tutor move
+	learnset 23, CONFUSE_RAY
+	learnset 29, RECOVER ; Wish → similar move
+	learnset 35, PSYCHIC_M
+	learnset 39, ROOST ; Miracle Eye → egg move
+	learnset 43, HAZE ; Psycho Shift → egg move
+	learnset 49, FUTURE_SIGHT
+	learnset 53, HEX ; Power Swap + Guard Swap → new move
+	learnset 57, SUCKER_PUNCH ; Me First → HGSS tutor move
+
+	evos_attacks Mareep
+	evo_data EVOLVE_LEVEL, 15, FLAAFFY
+	learnset 1, TACKLE
+	learnset 1, GROWL
+	learnset 4, THUNDER_WAVE
+	learnset 8, THUNDERSHOCK
+	learnset 11, MUD_SLAP ; Cotton Spore → GSC TM move
+	learnset 15, SPARK ; Charge → new move
+	learnset 18, HEAL_BELL ; Take Down → HGSS tutor move
+	learnset 22, TAKE_DOWN ; Electro Ball → Take Down
+	learnset 25, CONFUSE_RAY
+	learnset 29, POWER_GEM
+	learnset 32, THUNDERBOLT ; Discharge → TM move
+	learnset 36, SAFEGUARD ; Cotton Guard → egg move
+	learnset 39, DAZZLINGLEAM ; Signal Beam → new move
+	learnset 43, LIGHT_SCREEN
+	learnset 46, THUNDER
+
+	evos_attacks Flaaffy
+if DEF(FAITHFUL)
+	evo_data EVOLVE_LEVEL, 30, AMPHAROS
+else
+	evo_data EVOLVE_LEVEL, 36, AMPHAROS
+endc
+	learnset 1, TACKLE
+	learnset 1, GROWL
+	learnset 4, THUNDER_WAVE
+	learnset 8, THUNDERSHOCK
+	learnset 11, MUD_SLAP ; Cotton Spore → GSC TM move
+	learnset 16, SPARK ; Charge → new move
+	learnset 20, HEAL_BELL ; Take Down → HGSS tutor move
+	learnset 25, TAKE_DOWN ; Electro Ball → Take Down
+	learnset 29, CONFUSE_RAY
+	learnset 34, POWER_GEM
+	learnset 38, THUNDERBOLT ; Discharge → TM move
+	learnset 43, SAFEGUARD ; Cotton Guard → egg move
+	learnset 47, DAZZLINGLEAM ; Signal Beam → new move
+	learnset 52, LIGHT_SCREEN
+	learnset 56, THUNDER
+
+	evos_attacks Ampharos
+	learnset 1, THUNDERPUNCH ; evolution move
+	learnset 1, FIRE_PUNCH
+	learnset 1, DRAGON_PULSE
+	learnset 1, TACKLE
+	learnset 1, GROWL
+	learnset 4, THUNDER_WAVE
+	learnset 8, THUNDERSHOCK
+	learnset 11, MUD_SLAP ; Cotton Spore → GSC TM move
+	learnset 16, SPARK ; Charge → new move
+	learnset 20, HEAL_BELL ; Take Down → HGSS tutor move
+	learnset 25, TAKE_DOWN ; Electro Ball → Take Down
+	learnset 29, CONFUSE_RAY
+	learnset 35, POWER_GEM
+	learnset 40, THUNDERBOLT ; Discharge → TM move
+	learnset 46, SAFEGUARD ; Cotton Guard → egg move
+	learnset 51, DAZZLINGLEAM ; Signal Beam → new move
+	learnset 57, LIGHT_SCREEN
+	learnset 62, THUNDER
+	learnset 65, DRAGON_PULSE
+	learnset 71, OUTRAGE ; HGSS tutor move
+
+	evos_attacks Bellossom
+	learnset 1, MEGA_DRAIN
+	learnset 1, HEAL_BELL ; new move
+	learnset 1, SUNNY_DAY
+	learnset 1, STUN_SPORE
+	learnset 39, GROWTH ; Quiver Dance → Growth
+	learnset 49, MOONBLAST ; Petal Blizzard → Gloom move
+	learnset 59, PETAL_DANCE ; evolution move
+	learnset 69, PLAY_ROUGH ; Leaf Storm → Sw/Sh move
+
+	evos_attacks Marill
+	evo_data EVOLVE_LEVEL, 18, AZUMARILL
+	learnset 1, TACKLE
+	learnset 2, GROWL ; Tail Whip → new move
+	learnset 5, FORESIGHT ; Water Sport → egg move
+	learnset 7, AQUA_JET ; Bubble → egg move
+	learnset 10, DEFENSE_CURL
+	learnset 10, ROLLOUT
+	learnset 13, BUBBLE_BEAM
+	learnset 16, DIZZY_PUNCH ; Helping Hand → event move
+	learnset 20, AQUA_TAIL
+	learnset 23, PLAY_ROUGH
+	learnset 28, SCARY_FACE ; Aqua Ring → event move
+	learnset 31, RAIN_DANCE
+	learnset 37, DOUBLE_EDGE
+	learnset 40, CLOSE_COMBAT ; Superpower → similar move
+	learnset 47, HYDRO_PUMP
+
+	evos_attacks Azumarill
+	learnset 1, TACKLE
+	learnset 2, GROWL ; Tail Whip → new move
+	learnset 5, FORESIGHT ; Water Sport → egg move
+	learnset 7, AQUA_JET ; Bubble → egg move
+	learnset 10, DEFENSE_CURL
+	learnset 10, ROLLOUT
+	learnset 13, BUBBLE_BEAM
+	learnset 16, DIZZY_PUNCH ; Helping Hand → event move
+	learnset 21, AQUA_TAIL
+	learnset 25, PLAY_ROUGH
+	learnset 31, SCARY_FACE ; Aqua Ring → event move
+	learnset 35, RAIN_DANCE
+	learnset 42, DOUBLE_EDGE
+	learnset 46, CLOSE_COMBAT ; Superpower → similar move
+	learnset 55, HYDRO_PUMP
+
+	evos_attacks Sudowoodo
+	learnset 1, SUBSTITUTE ; Copycat → event move
+	learnset 5, REVERSAL ; Flail → similar move
+	learnset 8, LOW_KICK
+	learnset 12, LEER ; Rock Throw → new move
+	learnset 15, ROCK_THROW ; Mimic → Rock Throw
+	learnset 19, FEINT_ATTACK
+	learnset 22, ANCIENTPOWER ; Rock Tomb → new move
+	learnset 26, SPIKES ; Block → SV TM move
+	learnset 29, ROCK_SLIDE
+	learnset 33, COUNTER
+	learnset 36, SUCKER_PUNCH
+	learnset 40, DOUBLE_EDGE
+	learnset 43, STONE_EDGE ; evolution move
+	learnset 47, CLOSE_COMBAT ; Hammer Arm → similar move
+	learnset 50, IRON_HEAD ; Head Smash → tutor move
+
+	evos_attacks Politoed
+	learnset 1, GIGA_DRAIN ; Bounce → TM move ; evolution move
+	learnset 1, BUBBLE_BEAM
+	learnset 1, HYPNOSIS
+	learnset 1, DOUBLE_SLAP
+	learnset 1, PERISH_SONG
+	learnset 27, SWAGGER
+	learnset 48, HYPER_VOICE
+
+	evos_attacks Hoppip
+	evo_data EVOLVE_LEVEL, 18, SKIPLOOM
+	learnset 1, ABSORB
+	learnset 1, SPLASH
+	learnset 4, HEALINGLIGHT ; Synthesis → similar move
+	learnset 6, DEFENSE_CURL; Tail Whip → tutor move
+	learnset 8, TACKLE
+	learnset 10, CONFUSION ; Fairy Wind → egg move
+	learnset 12, POISONPOWDER
+	learnset 14, STUN_SPORE
+	learnset 16, SLEEP_POWDER
+	learnset 19, HEADBUTT ; Bullet Seed → tutor move
+	learnset 22, LEECH_SEED
+	learnset 25, MEGA_DRAIN
+	learnset 28, ACROBATICS
+	learnset 31, ENCORE ; Rage Powder → egg move
+	learnset 34, AGILITY ; Cotton Spore → GSC event move
+	learnset 37, U_TURN
+	learnset 40, AMNESIA ; Worry Seed → egg move
+	learnset 43, GIGA_DRAIN
+	learnset 46, DAZZLINGLEAM ; Bounce → TM move
+	learnset 49, ENERGY_BALL ; Memento → TM move
+
+	evos_attacks Skiploom
+	evo_data EVOLVE_LEVEL, 27, JUMPLUFF
+	learnset 1, ABSORB
+	learnset 1, SPLASH
+	learnset 4, HEALINGLIGHT ; Synthesis → similar move
+	learnset 6, DEFENSE_CURL; Tail Whip → tutor move
+	learnset 8, TACKLE
+	learnset 10, CONFUSION ; Fairy Wind → egg move
+	learnset 12, POISONPOWDER
+	learnset 14, STUN_SPORE
+	learnset 16, SLEEP_POWDER
+	learnset 20, HEADBUTT ; Bullet Seed → tutor move
+	learnset 24, LEECH_SEED
+	learnset 28, MEGA_DRAIN
+	learnset 32, ACROBATICS
+	learnset 36, ENCORE ; Rage Powder → egg move
+	learnset 40, AGILITY ; Cotton Spore → GSC event move
+	learnset 44, U_TURN
+	learnset 48, AMNESIA ; Worry Seed → egg move
+	learnset 52, GIGA_DRAIN
+	learnset 56, DAZZLINGLEAM ; Bounce → TM move
+	learnset 60, ENERGY_BALL ; Memento → TM move
+
+	evos_attacks Jumpluff
+	learnset 1, ABSORB
+	learnset 1, SPLASH
+	learnset 4, HEALINGLIGHT ; Synthesis → similar move
+	learnset 6, DEFENSE_CURL; Tail Whip → tutor move
+	learnset 8, TACKLE
+	learnset 10, CONFUSION ; Fairy Wind → egg move
+	learnset 12, POISONPOWDER
+	learnset 14, STUN_SPORE
+	learnset 16, SLEEP_POWDER
+	learnset 20, HEADBUTT ; Bullet Seed → tutor move
+	learnset 24, LEECH_SEED
+	learnset 29, MEGA_DRAIN
+	learnset 34, ACROBATICS
+	learnset 39, ENCORE ; Rage Powder → egg move
+	learnset 44, AGILITY ; Cotton Spore → GSC event move
+	learnset 49, U_TURN
+	learnset 54, AMNESIA ; Worry Seed → egg move
+	learnset 59, GIGA_DRAIN
+	learnset 64, DAZZLINGLEAM ; Bounce → TM move
+	learnset 69, ENERGY_BALL ; nice, Memento → TM move
+
+	evos_attacks Aipom
+	evo_data EVOLVE_MOVE, DOUBLE_SLAP, AMBIPOM
+	learnset 1, SCRATCH
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 4, MUD_SLAP ; Sand Attack → similar move
+	learnset 8, ASTONISH
+	learnset 11, BATON_PASS
+	learnset 15, THIEF ; Tickle → TM move
+	learnset 18, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 22, SWIFT
+	learnset 25, SCREECH
+	learnset 29, AGILITY
+	learnset 32, DOUBLE_SLAP ; Double Hit → egg move
+	learnset 36, ACROBATICS ; Fling → TM move
+	learnset 39, NASTY_PLOT
+	learnset 43, DOUBLE_EDGE ; Last Resort → tutor move
+
+	evos_attacks Sunkern
+	evo_data EVOLVE_ITEM, SUN_STONE, SUNFLORA
+	learnset 1, SPLASH ; Growth → Hoppip move
+	learnset 1, ABSORB
+	learnset 4, GROWTH ; Ingrain → Growth
+	learnset 7, DEFENSE_CURL ; Grass Whistle → TM move
+	learnset 10, MEGA_DRAIN
+	learnset 13, LEECH_SEED
+	learnset 16, RAZOR_LEAF
+	learnset 19, PROTECT ; Worry Seed → TM move
+	learnset 22, GIGA_DRAIN
+	learnset 25, AGILITY ; Endeavor → new move
+	learnset 28, HEALINGLIGHT ; Synthesis → similar move
+	learnset 31, EARTH_POWER ; Natural Gift → tutor move
+	learnset 34, SOLAR_BEAM
+	learnset 37, DOUBLE_EDGE
+	learnset 40, SUNNY_DAY
+	learnset 43, SEED_BOMB
+
+	evos_attacks Sunflora
+	learnset 1, SPLASH ; Growth → Hoppip move
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, ABSORB
+if !DEF(FAITHFUL)
+	learnset 1, EMBER ; evolution move
+endc
+	learnset 4, GROWTH ; Ingrain → Growth
+	learnset 7, DEFENSE_CURL ; Grass Whistle → TM move
+	learnset 10, MEGA_DRAIN
+	learnset 13, LEECH_SEED
+	learnset 16, RAZOR_LEAF
+	learnset 19, PROTECT ; Worry Seed → TM move
+	learnset 22, GIGA_DRAIN
+	learnset 25, AGILITY ; Bullet Seed → TM move
+	learnset 28, PETAL_DANCE
+if DEF(FAITHFUL)
+	learnset 31, EARTH_POWER ; Natural Gift → tutor move
+else
+	learnset 31, FLAMETHROWER ; Natural Gift → TM move
+endc
+	learnset 34, SOLAR_BEAM
+	learnset 37, DOUBLE_EDGE
+	learnset 40, SUNNY_DAY
+	learnset 43, SEED_BOMB ; Leaf Storm → Sunkern move
+if !DEF(FAITHFUL)
+	learnset 50, FIRE_BLAST ; Petal Blizzard → TM move
+endc
+
+	evos_attacks Yanma
+	evo_data EVOLVE_MOVE, ANCIENTPOWER, YANMEGA
+	learnset 1, TACKLE
+	learnset 1, FORESIGHT
+	learnset 1, BUG_BITE
+	learnset 6, QUICK_ATTACK
+	learnset 11, DOUBLE_TEAM
+	learnset 14, SONIC_BOOM
+	learnset 17, PROTECT ; Detect → similar move
+	learnset 22, DRAGON_RAGE ; Supersonic → new move
+	learnset 27, SUPERSONIC ; Uproar → Supersonic
+	learnset 30, PURSUIT
+if DEF(FAITHFUL)
+	learnset 33, ANCIENTPOWER
+else
+	learnset 35, ANCIENTPOWER
+endc
+	learnset 38, HYPNOSIS
+	learnset 43, WING_ATTACK
+	learnset 46, SCREECH
+	learnset 49, U_TURN
+	learnset 54, AIR_SLASH
+	learnset 57, BUG_BUZZ
+	learnset 62, DREAM_EATER ; event move
+
+	evos_attacks WooperPlain
+	evo_data EVOLVE_LEVEL, 20, QUAGSIRE
+	learnset 1, WATER_GUN
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 5, MUD_SLAP ; Mud Sport → TM move
+	learnset 9, SCARY_FACE ; Mud Shot → event move
+	learnset 15, HEADBUTT ; Slam → tutor move
+	learnset 19, RECOVER ; Mud Bomb → egg move
+	learnset 23, AMNESIA
+	learnset 29, BELLY_DRUM ; Yawn → event move
+	learnset 33, EARTHQUAKE
+	learnset 37, RAIN_DANCE
+	learnset 43, HAZE
+	learnset 47, AQUA_TAIL ; Muddy Water → event move
+
+	evos_attacks WooperPaldean
+	evo_data EVOLVE_LEVEL, 20, CLODSIRE
+	learnset 1, MUD_SLAP ; Mud Shot → similar move
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 5, TACKLE
+	learnset 9, POISON_STING ; Poison Tail → similar move
+	learnset 15, HEADBUTT ; Slam → tutor move
+	learnset 19, RECOVER ; Mud Bomb → egg move
+	learnset 23, AMNESIA
+	learnset 29, BELLY_DRUM ; Yawn → event move
+	learnset 33, EARTHQUAKE
+	learnset 37, POISON_JAB
+	learnset 43, TOXIC_SPIKES
+	learnset 47, GUNK_SHOT ; Sludge Wave → similar move
+
+	evos_attacks Quagsire
+	learnset 1, ANCIENTPOWER ; evolution move
+	learnset 1, WATER_GUN
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 5, MUD_SLAP ; Mud Sport → TM move
+	learnset 9, SCARY_FACE ; Mud Shot → event move
+	learnset 15, HEADBUTT ; Slam → tutor move
+	learnset 19, RECOVER ; Mud Bomb → egg move
+	learnset 24, AMNESIA
+	learnset 31, BELLY_DRUM ; Yawn → event move
+	learnset 36, EARTHQUAKE
+	learnset 41, RAIN_DANCE
+	learnset 48, HAZE
+	learnset 53, AQUA_TAIL ; Muddy Water → event move
+
+	evos_attacks Espeon
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, CONFUSION ; evolution move
+	learnset 5, MUD_SLAP ; Sand Attack → similar move
+	learnset 9, DOUBLE_KICK ; Baby-Doll Eyes → LGPE move
+	learnset 13, QUICK_ATTACK
+	learnset 17, SWIFT
+	learnset 20, PSYBEAM
+	learnset 25, FUTURE_SIGHT
+	learnset 29, REFLECT ; Psych Up → event move
+	learnset 33, HEALINGLIGHT ; Morning Sun → similar move
+	learnset 37, PSYCHIC_M
+	learnset 41, DOUBLE_EDGE ; Last Resort → tutor move
+	learnset 45, POWER_GEM ; Power Swap → SV TM move
+
+	evos_attacks Umbreon
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, PURSUIT ; evolution move
+	learnset 5, MUD_SLAP ; Sand Attack → similar move
+	learnset 9, DOUBLE_KICK ; Baby-Doll Eyes → LGPE move
+	learnset 13, QUICK_ATTACK
+	learnset 17, CONFUSE_RAY
+	learnset 20, FEINT_ATTACK
+	learnset 25, TOXIC ; Assurance → TM move
+	learnset 29, SCREECH
+	learnset 33, HEALINGLIGHT ; Moonlight → similar move
+	learnset 37, SUCKER_PUNCH ; Mean Look → tutor move
+	learnset 41, DOUBLE_EDGE ; Last Resort → tutor move
+	learnset 45, MEAN_LOOK ; Guard Swap → Mean Look
+
+	evos_attacks Murkrow
+	evo_data EVOLVE_ITEM, DUSK_STONE, HONCHKROW
+	learnset 1, PECK
+	learnset 1, ASTONISH
+	learnset 5, PURSUIT
+	learnset 11, HAZE
+	learnset 15, WING_ATTACK
+	learnset 21, NIGHT_SHADE
+	learnset 25, THIEF ; Assurance → TM move
+	learnset 31, SWAGGER ; Taunt → TM move
+	learnset 35, FEINT_ATTACK
+	learnset 41, MEAN_LOOK
+	learnset 45, BATON_PASS ; Foul Play → XD move
+	learnset 50, DRILL_PECK ; Tailwind → egg move
+	learnset 55, SUCKER_PUNCH
+	learnset 61, PERISH_SONG ; Torment → egg move
+	learnset 65, BRAVE_BIRD ; Quash → egg move
+
+	evos_attacks SlowkingPlain
+	learnset 1, POWER_GEM
+	learnset 1, HIDDEN_POWER
+	learnset 1, CURSE
+	learnset 1, TACKLE
+	learnset 5, GROWL
+	learnset 9, WATER_GUN
+	learnset 14, CONFUSION
+	learnset 19, DISABLE
+	learnset 23, HEADBUTT
+	learnset 28, WATER_PULSE
+	learnset 32, ZEN_HEADBUTT
+	learnset 36, NASTY_PLOT
+	learnset 41, SWAGGER
+	learnset 45, PSYCHIC_M
+	learnset 49, RAIN_DANCE ; Trump Card → TM move
+	learnset 54, BELLY_DRUM ; Psych Up → egg move
+	learnset 58, RECOVER ; Heal Pulse → similar move
+
+	evos_attacks SlowkingGalarian
+	learnset 1, HEX ; Eerie Spell → Sw/Sh TR move ; evolution move
+	learnset 1, POWER_GEM
+	learnset 1, HIDDEN_POWER
+	learnset 1, CURSE
+	learnset 1, TACKLE
+	learnset 5, GROWL
+	learnset 9, ACID
+	learnset 14, CONFUSION
+	learnset 19, DISABLE
+	learnset 23, HEADBUTT
+	learnset 28, WATER_PULSE
+	learnset 32, ZEN_HEADBUTT
+	learnset 36, NASTY_PLOT
+	learnset 41, SWAGGER
+	learnset 45, PSYCHIC_M
+	learnset 49, RAIN_DANCE ; Trump Card → TM move
+	learnset 54, BELLY_DRUM ; Psych Up → egg move
+	learnset 58, RECOVER ; Heal Pulse → similar move
+
+	evos_attacks Misdreavus
+	evo_data EVOLVE_ITEM, DUSK_STONE, MISMAGIUS
+	learnset 1, GROWL
+	learnset 1, TELEPORT ; Psywave → new move
+	learnset 1, DISARM_VOICE ; new move
+	learnset 5, CONFUSION ; Spite → new move
+	learnset 10, ASTONISH
+	learnset 14, CONFUSE_RAY
+	learnset 19, MEAN_LOOK
+	learnset 23, HEX
+	learnset 28, PSYBEAM
+	learnset 32, PAIN_SPLIT
+	learnset 37, DESTINY_BOND ; Payback → egg move
+	learnset 41, SHADOW_BALL
+	learnset 46, PERISH_SONG
+	learnset 50, DAZZLINGLEAM ; Grudge → TM move
+	learnset 55, POWER_GEM
+	learnset 62, NASTY_PLOT ; egg move
+
+	evos_attacks Unown
+	learnset 1, HIDDEN_POWER
+
+	evos_attacks Wobbuffet
+	learnset 1, SPLASH
+	learnset 1, CHARM
+	learnset 1, ENCORE
+	learnset 1, AMNESIA
+	learnset 1, RECOVER ; evolve move
+	learnset 1, COUNTER
+	learnset 1, MIRROR_COAT
+	learnset 1, SAFEGUARD
+	learnset 1, DESTINY_BOND
+
+	evos_attacks Girafarig
+	evo_data EVOLVE_MOVE, ZEN_HEADBUTT, FARIGIRAF
+	FarigirafEvosAttacks:
+	learnset 1, ASTONISH
+	learnset 1, TACKLE
+	learnset 1, GROWL
+	learnset 1, CONFUSION
+	learnset 5, FORESIGHT ; Odor Sleuth → egg move
+	learnset 10, PURSUIT ; Assurance → new move
+	learnset 14, STOMP
+	learnset 19, PSYBEAM
+	learnset 23, AGILITY
+	learnset 28, DOUBLE_KICK ; Double Hit → egg move
+	learnset 32, ZEN_HEADBUTT
+	learnset 37, CRUNCH
+	learnset 41, BATON_PASS
+	learnset 46, NASTY_PLOT
+	learnset 50, PSYCHIC_M
+if !DEF(FAITHFUL)
+	learnset 55, DARK_PULSE ; new move
+endc
+
+	evos_attacks Pineco
+	evo_data EVOLVE_LEVEL, 31, FORRETRESS
+	learnset 1, TACKLE
+	learnset 1, PROTECT
+	learnset 6, FOCUS_ENERGY ; Self-Destruct → TCG move
+	learnset 9, BUG_BITE
+	learnset 12, SUBSTITUTE ; Take Down → event move
+	learnset 17, RAPID_SPIN
+	learnset 20, DEFENSE_CURL ; Bide → TM move
+	learnset 23, TAKE_DOWN ; Natural Gift → Take Down
+	learnset 28, SPIKES
+	learnset 31, REVERSAL ; Payback → new move
+	learnset 34, EXPLOSION
+	learnset 39, REFLECT ; Iron Defense → egg move
+	learnset 42, GYRO_BALL
+	learnset 45, DOUBLE_EDGE
+
+	evos_attacks Forretress
+	learnset 1, FLASH_CANNON ; Mirror Shot → TM move ; evolution move
+	learnset 1, AGILITY ; Autotomize → similar move
+	learnset 1, TOXIC_SPIKES
+	learnset 1, TACKLE
+	learnset 1, PROTECT
+	learnset 6, FOCUS_ENERGY ; Self-Destruct → TCG move
+	learnset 9, BUG_BITE
+	learnset 12, SUBSTITUTE ; Take Down → event move
+	learnset 17, RAPID_SPIN
+	learnset 20, DEFENSE_CURL ; Bide → TM move
+	learnset 23, TAKE_DOWN ; Natural Gift → Take Down
+	learnset 28, SPIKES
+	learnset 32, REVERSAL ; Payback → new move
+	learnset 36, EXPLOSION
+	learnset 42, REFLECT ; Iron Defense → egg move
+	learnset 46, GYRO_BALL
+	learnset 50, DOUBLE_EDGE
+	learnset 56, ZAP_CANNON
+	learnset 60, IRON_HEAD ; Heavy Slam → new move
+
+	evos_attacks Dunsparce
+	evo_data EVOLVE_LEVEL, 32, DUDUNSPARCE, NO_FORM ; preserve pre-evo form
+	learnset 1, RAGE
+	learnset 1, DEFENSE_CURL
+	learnset 3, ROLLOUT
+	learnset 6, ASTONISH ; Spite → egg move
+	learnset 8, PURSUIT
+	learnset 11, SCREECH
+	learnset 13, MUD_SLAP
+	learnset 16, FURY_STRIKES ; Yawn → event move (Fury Attack)
+	learnset 18, ANCIENTPOWER
+	learnset 21, BODY_SLAM
+	learnset 23, DRAGON_RAGE ; Drill Run → new move
+	learnset 26, ROOST
+	learnset 28, TAKE_DOWN
+	learnset 31, DRAGON_DANCE ; Coil → new move
+	learnset 33, DIG
+	learnset 36, GLARE
+	learnset 38, DOUBLE_EDGE
+	learnset 41, EARTHQUAKE ; Endeavor → TM move
+	learnset 43, AIR_SLASH
+	learnset 46, HEX ; Dragon Rush → egg move
+	learnset 48, ENDURE
+	learnset 51, REVERSAL ; Flail → similar move
+	learnset 53, OUTRAGE ; new move
+
+	evos_attacks Gligar
+	evo_data EVOLVE_HOLDING, RAZOR_FANG, TR_EVENITE, GLISCOR
+	learnset 1, POISON_STING
+	learnset 4, MUD_SLAP ; Sand Attack → similar move
+	learnset 7, DEFENSE_CURL ; Harden → similar move
+	learnset 10, QUICK_ATTACK ; Knock Off → Quick Attack
+	learnset 13, WING_ATTACK ; Quick Attack → egg move
+	learnset 16, BUG_BITE ; Fury Cutter → similar move
+	learnset 19, FEINT_ATTACK
+	learnset 22, ACROBATICS
+	learnset 27, SLASH
+	learnset 30, U_TURN
+	learnset 35, SCREECH
+	learnset 40, X_SCISSOR
+	learnset 45, KNOCK_OFF ; Sky Uppercut → Knock Off
+	learnset 50, SWORDS_DANCE
+	learnset 55, NIGHT_SLASH ; Guillotine → egg move
+
+	evos_attacks Gliscor
+	learnset 1, POISON_JAB
+	learnset 4, MUD_SLAP ; Sand Attack → similar move
+	learnset 7, DEFENSE_CURL ; Harden → similar move
+	learnset 10, QUICK_ATTACK ; Knock Off → Quick Attack
+	learnset 13, WING_ATTACK ; Quick Attack → egg move
+	learnset 16, BUG_BITE ; Fury Cutter → similar move
+	learnset 19, FEINT_ATTACK
+	learnset 22, ACROBATICS
+	learnset 27, SLASH ; Night Slash → Gligar move
+	learnset 30, U_TURN
+	learnset 35, SCREECH
+	learnset 40, X_SCISSOR
+	learnset 45, KNOCK_OFF ; Sky Uppercut → Knock Off
+	learnset 50, SWORDS_DANCE
+	learnset 55, NIGHT_SLASH ; Guillotine → Night Slash
+
+	evos_attacks Steelix
+	learnset 1, IRON_TAIL ; evolution move
+	learnset 1, TACKLE
+	learnset 1, DEFENSE_CURL ; Harden → similar move
+	learnset 1, WRAP ; Bind → similar move
+	learnset 4, CURSE
+	learnset 7, ROCK_THROW
+	learnset 10, RAGE
+	learnset 13, ROCK_BLAST ; Rock Tomb → egg move
+	learnset 16, BODY_SLAM ; Stealth Rock → TM move
+	learnset 19, SANDSTORM ; Autotomize → Sandstorm
+	learnset 22, ANCIENTPOWER ; Smack Down → HGSS tutor move
+	learnset 25, DRAGONBREATH
+	learnset 28, HEADBUTT ; Slam → tutor move
+	learnset 31, SCREECH
+	learnset 34, ROCK_SLIDE
+	learnset 37, CRUNCH
+	learnset 40, IRON_HEAD
+	learnset 43, DIG
+	learnset 46, STONE_EDGE
+	learnset 49, DOUBLE_EDGE
+	learnset 52, EARTHQUAKE ; Sandstorm → TM move
+
+	evos_attacks Snubbull
+	evo_data EVOLVE_LEVEL, 23, GRANBULL
+	learnset 1, TACKLE
+	learnset 1, SCARY_FACE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, CHARM
+	learnset 7, BITE
+	learnset 13, LICK
+	learnset 19, HEADBUTT
+	learnset 25, ROAR
+	learnset 31, RAGE
+	learnset 37, PLAY_ROUGH
+	learnset 43, DOUBLE_EDGE ; Payback → event move
+	learnset 49, CRUNCH
+
+	evos_attacks Granbull
+	learnset 1, TACKLE
+	learnset 1, SCARY_FACE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, CHARM
+	learnset 7, BITE
+	learnset 13, LICK
+	learnset 19, HEADBUTT
+	learnset 27, ROAR
+	learnset 35, RAGE
+	learnset 43, PLAY_ROUGH
+	learnset 51, DOUBLE_EDGE ; Payback → event move
+	learnset 59, CRUNCH
+	learnset 67, OUTRAGE
+
+	evos_attacks QwilfishPlain
+	learnset 1, WATER_GUN
+	learnset 1, SPIKES
+	learnset 1, TACKLE
+	learnset 1, POISON_STING
+	learnset 5, DEFENSE_CURL ; Harden → TM move
+	learnset 9, MINIMIZE
+	learnset 13, BUBBLE_BEAM ; Bubble → similar move
+	learnset 17, ROLLOUT
+	learnset 21, TOXIC_SPIKES
+	learnset 25, PAIN_SPLIT ; Stockpile + Spit Up → HGSS move tutor
+	learnset 29, REVERSAL ; Revenge → Sw/Sh move
+	learnset 33, WATER_PULSE ; Brine → TM move
+	learnset 37, PIN_MISSILE
+	learnset 41, TAKE_DOWN
+	learnset 45, AQUA_TAIL
+	learnset 49, POISON_JAB
+	learnset 53, DESTINY_BOND
+	learnset 57, HYDRO_PUMP
+	learnset 60, DOUBLE_EDGE ; Fell Stinger → event move
+
+	evos_attacks QwilfishHisuian
+	evo_data EVOLVE_LEVEL, 33, OVERQWIL
+	learnset 1, AQUA_JET ; Water Gun → SV TM move
+	learnset 1, SPIKES
+	learnset 1, TACKLE
+	learnset 1, POISON_STING
+	learnset 5, DEFENSE_CURL ; Harden → TM move
+	learnset 9, MINIMIZE
+	learnset 13, PIN_MISSILE
+	learnset 17, ROLLOUT
+	learnset 21, TOXIC_SPIKES
+	learnset 25, PAIN_SPLIT ; Stockpile + Spit Up → HGSS move tutor
+	learnset 29, REVERSAL ; Revenge → Sw/Sh move
+	learnset 33, WATER_PULSE ; Brine → TM move
+	learnset 37, CRUNCH ; Dark Pulse → SV TM move
+	learnset 41, TAKE_DOWN
+	learnset 45, AQUA_TAIL
+	learnset 49, POISON_JAB
+	learnset 53, DESTINY_BOND
+	learnset 57, EXPLOSION ; Self-Destruct → similar move
+	learnset 60, DOUBLE_EDGE ; Fell Stinger → event move
+
+	evos_attacks Scizor
+	learnset 1, METAL_CLAW ; evolution move
+	learnset 1, BULLET_PUNCH
+	learnset 1, QUICK_ATTACK
+	learnset 1, LEER
+	learnset 5, FOCUS_ENERGY
+	learnset 9, PURSUIT
+	learnset 13, FALSE_SWIPE
+	learnset 17, AGILITY
+	learnset 21, WING_ATTACK
+	learnset 25, BUG_BITE ; Fury Cutter → similar move
+	learnset 29, SLASH
+	learnset 33, BUG_BUZZ ; Razor Wind → egg move
+	learnset 37, DEFENSE_CURL ; Iron Defense → similar move
+	learnset 41, X_SCISSOR
+	learnset 45, CRUNCH ; Night Slash → Prism tutor move
+	learnset 49, CLOSE_COMBAT ; Double Hit → SV TM move
+	learnset 50, IRON_HEAD
+	learnset 57, SWORDS_DANCE
+
+	evos_attacks Shuckle
+	learnset 1, MUD_SLAP ; Constrict → GSC TM move
+	learnset 1, DEFENSE_CURL ; Withdraw → similar move
+	learnset 1, ROLLOUT
+	learnset 5, ENCORE
+	learnset 9, WRAP
+	learnset 12, STRING_SHOT ; Struggle Bug → HGSS tutor move
+	learnset 16, SAFEGUARD
+	learnset 20, REST
+	learnset 23, ROCK_THROW
+	learnset 27, ACID ; Gastro Acid → egg move
+	learnset 31, DISABLE ; Power Trick → new move
+	learnset 34, SHELL_SMASH
+	learnset 38, ROCK_BLAST ; Rock Slide → Sw/Sh move
+	learnset 42, BUG_BITE
+	learnset 45, ROCK_SLIDE ; Power Split + Guard Split → Rock Slide
+	learnset 49, REVERSAL ; Stone Edge → Sw/Sh move
+	learnset 53, STONE_EDGE ; Sticky Web → Stone Edge
+
+	evos_attacks Heracross
+	learnset 1, NIGHT_SLASH
+	learnset 1, TACKLE
+	learnset 1, LEER
+	learnset 1, HORN_ATTACK
+	learnset 1, ENDURE
+	learnset 7, BUG_BITE ; Feint → HGSS tutor move
+	learnset 10, FURY_STRIKES ; Aerial Ace → Fury Strikes
+	learnset 16, LOW_KICK ; Chip Away → HGSS tutor move
+	learnset 19, COUNTER
+	learnset 25, AERIAL_ACE ; Fury Attack → Aerial Ace
+	learnset 28, SEISMIC_TOSS ; Brick Break → tutor move
+	learnset 31, PIN_MISSILE
+	learnset 34, TAKE_DOWN
+	learnset 37, MEGAHORN
+	learnset 43, CLOSE_COMBAT
+	learnset 46, REVERSAL
+
+	evos_attacks SneaselPlain
+	evo_data EVOLVE_HOLDING, RAZOR_CLAW, TR_EVENITE, WEAVILE
+	learnset 1, SCRATCH
+	learnset 1, LEER
+	learnset 1, BITE ; Taunt → egg move
+	learnset 8, QUICK_ATTACK
+	learnset 10, FEINT_ATTACK
+	learnset 14, ICE_SHARD ; Icy Wind → Ice Shard
+	learnset 16, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 20, AGILITY
+	learnset 22, METAL_CLAW
+	learnset 25, HONE_CLAWS
+	learnset 28, ICICLE_CRASH ; Beat Up → egg move
+	learnset 32, SCREECH
+	learnset 35, SLASH
+	learnset 40, HEALINGLIGHT ; Snatch → event move (Moonlight)
+	learnset 44, X_SCISSOR ; Punishment → TM move
+	learnset 47, CRUNCH ; Ice Shard → new move
+
+	evos_attacks SneaselHisuian
+	evo_data EVOLVE_HOLDING, RAZOR_CLAW, TR_MORNDAY, SNEASLER
+	learnset 1, SCRATCH
+	learnset 1, LEER
+	learnset 1, BITE ; Taunt → egg move
+	learnset 8, QUICK_ATTACK
+	learnset 10, FEINT_ATTACK
+	learnset 14, LOW_KICK ; Rock Smash → Low Kick
+	learnset 16, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 20, AGILITY
+	learnset 22, METAL_CLAW
+	learnset 25, HONE_CLAWS
+	learnset 28, POISON_JAB
+	learnset 32, SCREECH
+	learnset 35, SLASH
+	learnset 40, SWORDS_DANCE
+	learnset 44, X_SCISSOR ; Punishment → TM move
+	learnset 47, CLOSE_COMBAT
+	learnset 50, GUNK_SHOT ; SV TM move
+
+	evos_attacks Teddiursa
+	evo_data EVOLVE_LEVEL, 30, URSARING
+	learnset 1, THIEF ; Covet → TM move
+	learnset 1, SCRATCH
+	learnset 1, GROWL ; Baby-Doll Eyes → similar move
+	learnset 1, LICK
+	learnset 1, FOCUS_ENERGY ; Fake Tears → egg move
+	learnset 8, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 15, FEINT_ATTACK
+	learnset 22, BELLY_DRUM ; Sweet Scent → egg move
+	learnset 25, PLAY_ROUGH ; Play Nice → egg move
+	learnset 29, SLASH
+	learnset 36, CHARM
+	learnset 43, REST
+	learnset 43, CRUNCH ; Snore → egg move
+	learnset 50, THRASH
+	learnset 57, CLOSE_COMBAT ; Fling → new move
+	learnset 64, DOUBLE_EDGE ; new move
+
+	evos_attacks Ursaring
+	evo_data EVOLVE_ITEM, MOON_STONE, URSALUNA
+	evo_data EVOLVE_LOCATION, SINJOH_RUINS, URSALUNA
+	evo_data EVOLVE_LOCATION, MYSTRI_STAGE, URSALUNA
+	learnset 1, GUNK_SHOT ; HGSS tutor move
+	learnset 1, THIEF ; Covet → TM move
+	learnset 1, SCRATCH
+	learnset 1, LEER
+	learnset 1, LICK
+	learnset 1, FOCUS_ENERGY ; Fake Tears → egg move
+	learnset 8, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 15, FEINT_ATTACK
+	learnset 22, BELLY_DRUM ; Sweet Scent → egg move
+	learnset 25, PLAY_ROUGH ; Play Nice → egg move
+	learnset 29, SLASH
+	learnset 38, SCARY_FACE
+	learnset 47, REST
+	learnset 49, CRUNCH ; Snore → egg move
+	learnset 58, THRASH
+	learnset 67, CLOSE_COMBAT ; Hammer Arm → new move
+	learnset 76, DOUBLE_EDGE ; new move
+
+	evos_attacks Slugma
+	evo_data EVOLVE_LEVEL, 38, MAGCARGO
+	learnset 1, MUD_SLAP ; Smog → TM move
+	learnset 6, EMBER
+	learnset 8, ROCK_THROW
+	learnset 13, DEFENSE_CURL ; Harden → similar move
+	learnset 15, FIRE_SPIN ; Incinerate → new move
+	learnset 20, SMOKESCREEN ; Clear Smog → egg move
+	learnset 22, ANCIENTPOWER
+	learnset 27, FLAME_CHARGE ; Flame Burst → TM move
+	learnset 29, ROCK_SLIDE
+	learnset 34, PAIN_SPLIT ; Lava Plume → HGSS tutor move
+	learnset 36, AMNESIA
+	learnset 41, BODY_SLAM
+	learnset 43, RECOVER
+	learnset 48, FLAMETHROWER
+	learnset 50, EARTH_POWER
+
+	evos_attacks Magcargo
+	learnset 1, SHELL_SMASH ; evolution move
+	learnset 1, MUD_SLAP ; Smog → TM move
+	learnset 6, EMBER
+	learnset 8, ROCK_THROW
+	learnset 13, DEFENSE_CURL ; Harden → similar move
+	learnset 15, FIRE_SPIN ; Incinerate → new move
+	learnset 20, SMOKESCREEN ; Clear Smog → egg move
+	learnset 22, ANCIENTPOWER
+	learnset 27, FLAME_CHARGE ; Flame Burst → TM move
+	learnset 29, ROCK_SLIDE
+	learnset 34, PAIN_SPLIT ; Lava Plume → HGSS tutor move
+	learnset 36, AMNESIA
+	learnset 43, BODY_SLAM
+	learnset 47, RECOVER
+	learnset 54, FLAMETHROWER
+	learnset 58, EARTH_POWER
+
+	evos_attacks Swinub
+	evo_data EVOLVE_LEVEL, 33, PILOSWINE
+	learnset 1, TACKLE
+	learnset 1, FORESIGHT ; Odor Sleuth → similar move
+	learnset 5, BITE ; Mud Sport → egg move
+	learnset 8, ICE_SHARD ; Powder Snow → Ice Shard
+	learnset 11, MUD_SLAP
+	learnset 14, ENDURE
+	learnset 18, MAGNITUDE ; Mud Bomb → new move
+	learnset 21, ICY_WIND
+	learnset 24, ICICLE_CRASH ; Ice Shard → egg move
+	learnset 28, TAKE_DOWN
+	learnset 35, BULLDOZE ; Mist → TM move
+	learnset 37, REVERSAL ; Earthquake → similar move
+	learnset 40, EARTHQUAKE ; Flail → Earthquake
+	learnset 44, BLIZZARD
+	learnset 48, AMNESIA
+
+	evos_attacks Piloswine
+	evo_data EVOLVE_MOVE, ANCIENTPOWER, MAMOSWINE
+	learnset 1, ANCIENTPOWER
+	learnset 1, FURY_STRIKES ; evolution move (Fury Attack)
+	learnset 1, PECK
+	learnset 1, FORESIGHT ; Odor Sleuth → similar move
+	learnset 5, BITE ; Mud Sport → egg move
+	learnset 8, ICE_SHARD ; Powder Snow → Ice Shard
+	learnset 11, MUD_SLAP
+	learnset 14, ENDURE
+	learnset 18, MAGNITUDE ; Mud Bomb → new move
+	learnset 21, ICY_WIND
+	learnset 24, ICICLE_CRASH ; Ice Fang → egg move
+	learnset 28, TAKE_DOWN
+	learnset 37, BULLDOZE ; Mist → TM move
+	learnset 41, THRASH
+	learnset 46, EARTHQUAKE
+	learnset 52, BLIZZARD
+	learnset 58, AMNESIA
+
+	evos_attacks CorsolaPlain
+	learnset 1, TACKLE
+	learnset 1, DEFENSE_CURL ; Harden → similar move
+	learnset 4, WATER_GUN ; Bubble → similar move
+	learnset 8, ROLLOUT ; Recover → TM move
+	learnset 10, BUBBLE_BEAM
+	learnset 13, SAFEGUARD ; Refresh → egg move
+	learnset 17, ANCIENTPOWER
+	learnset 20, ICICLE_SPEAR ; Spike Cannon → egg move
+	learnset 23, CONFUSE_RAY ; Lucky Chant → egg move
+	learnset 27, ENDURE ; Brine → Endure
+	learnset 29, BARRIER ; Iron Defense → similar move
+	learnset 31, ROCK_BLAST
+	learnset 35, RECOVER ; Endure → Recover
+	learnset 38, HYDRO_PUMP ; Aqua Ring → Sw/Sh move
+	learnset 41, POWER_GEM
+	learnset 45, MIRROR_COAT
+	learnset 47, EARTH_POWER
+	learnset 50, REVERSAL ; Flail → similar move
+
+	evos_attacks CorsolaGalarian
+	evo_data EVOLVE_LEVEL, 38, CURSOLA, PLAIN_FORM
+	learnset 1, TACKLE
+	learnset 1, DEFENSE_CURL ; Harden → similar move
+	learnset 5, ASTONISH
+	learnset 10, DISABLE
+	learnset 15, HAZE ; Spite → egg move
+	learnset 20, ANCIENTPOWER
+	learnset 25, HEX
+	learnset 30, CURSE
+	learnset 35, GIGA_DRAIN ; Strength Sap → TM move
+	learnset 40, POWER_GEM
+	learnset 45, NIGHT_SHADE
+	learnset 50, HYDRO_PUMP ; Grudge → TR move
+	learnset 55, MIRROR_COAT
+
+	evos_attacks Remoraid
+	evo_data EVOLVE_LEVEL, 25, OCTILLERY
+	learnset 1, WRAP ; Sw/Sh move
+	learnset 1, WATER_GUN
+	learnset 6, FORESIGHT ; Lock-On → new move
+	learnset 10, PSYBEAM
+	learnset 14, AURORA_BEAM
+	learnset 18, BUBBLE_BEAM
+	learnset 22, FOCUS_ENERGY
+	learnset 26, WATER_PULSE
+	learnset 30, FLAMETHROWER ; Signal Beam → TM move
+	learnset 34, ICE_BEAM
+	learnset 38, SEED_BOMB ; Bullet Seed → tutor move
+	learnset 42, GUNK_SHOT ; Hydro Pump → new move
+	learnset 46, HYDRO_PUMP ; Hyper Beam → Hydro Pump
+	learnset 50, AURA_SPHERE ; Soak → new move
+	learnset 54, HYPER_BEAM
+
+	evos_attacks Octillery
+	learnset 1, OCTAZOOKA ; evolution move
+	learnset 1, ROCK_BLAST
+	learnset 1, POWER_WHIP ; new move
+	learnset 1, WATER_GUN
+	learnset 6, FORESIGHT ; Constrict → new move
+	learnset 10, PSYBEAM
+	learnset 14, AURORA_BEAM
+	learnset 18, BUBBLE_BEAM
+	learnset 22, FOCUS_ENERGY
+	learnset 26, WRAP ; Wring Out → new move
+	learnset 28, WATER_PULSE
+	learnset 34, FLAMETHROWER ; Signal Beam → TM move
+	learnset 40, ICE_BEAM
+	learnset 46, SEED_BOMB ; Bullet Seed → tutor move
+	learnset 52, GUNK_SHOT ; Hydro Pump → new move
+	learnset 58, HYDRO_PUMP ; Hyper Beam → Hydro Pump
+if !DEF(FAITHFUL)
+	learnset 58, FIRE_BLAST ; new move
+endc
+	learnset 64, AURA_SPHERE ; Soak → new move
+	learnset 70, HYPER_BEAM
+
+	evos_attacks Delibird
+; based on Gen V Chatot
+	learnset 1, PECK
+	learnset 5, GROWL
+	learnset 9, PAY_DAY ; Mirror Move → new move
+	learnset 13, SING
+	learnset 17, ICY_WIND
+	learnset 21, WING_ATTACK
+	learnset 25, HAIL
+	learnset 29, DRILL_PECK
+	learnset 33, AURORA_BEAM
+	learnset 37, BODY_SLAM
+	learnset 41, ROOST
+	learnset 45, FLY
+	learnset 49, BELLY_DRUM
+	learnset 53, HURRICANE
+	learnset 57, BLIZZARD
+
+	evos_attacks Mantine
+	learnset 1, GUST ; event move
+	learnset 1, TACKLE
+	learnset 1, WATER_GUN ; Bubble → similar move
+	learnset 3, SUPERSONIC
+	learnset 7, BUBBLE_BEAM
+	learnset 11, CONFUSE_RAY
+	learnset 14, WING_ATTACK
+	learnset 16, HEADBUTT
+	learnset 19, WATER_PULSE
+	learnset 23, AQUA_JET ; Wide Guard → new move
+	learnset 27, TAKE_DOWN
+	learnset 32, AGILITY
+	learnset 36, AIR_SLASH
+	learnset 39, ROOST ; Aqua Ring → similar move
+	learnset 46, MIRROR_COAT ; Bounce → Dream World move
+	learnset 49, HYDRO_PUMP
+
+	evos_attacks Skarmory
+	learnset 1, LEER
+	learnset 1, PECK
+	learnset 6, MUD_SLAP ; Sand Attack → similar move
+	learnset 9, BITE ; Metal Claw → new move
+	learnset 12, METAL_CLAW ; Air Cutter → Metal Claw
+	learnset 17, FURY_STRIKES ; Fury Attack → similar move
+	learnset 20, PURSUIT ; Feint → egg move
+	learnset 23, SWIFT
+	learnset 28, SPIKES
+	learnset 31, AGILITY
+	learnset 34, STEEL_WING
+	learnset 39, SLASH
+	learnset 42, SCREECH ; Metal Sound → similar move
+	learnset 45, AIR_SLASH
+	learnset 50, DRILL_PECK ; Autotomize → egg move
+	learnset 53, NIGHT_SLASH
+
+	evos_attacks Houndour
+	evo_data EVOLVE_LEVEL, 24, HOUNDOOM
+	learnset 1, LEER
+	learnset 1, EMBER
+	learnset 4, PURSUIT ; Howl → egg move
+	learnset 8, SMOKESCREEN ; Smog → new move
+	learnset 13, ROAR
+	learnset 16, BITE
+	learnset 20, FORESIGHT ; Odor Sleuth → similar move
+	learnset 25, SUPER_FANG ; Beat Up → HGSS tutor move
+	learnset 28, FIRE_SPIN ; Fire Fang → egg move
+	learnset 32, FEINT_ATTACK
+	learnset 37, DESTINY_BOND ; Embargo → egg move
+	learnset 40, WILL_O_WISP ; Foul Play → egg move
+	learnset 44, FLAMETHROWER
+	learnset 49, CRUNCH
+	learnset 52, NASTY_PLOT
+	learnset 56, DARK_PULSE ; Inferno → TM move
+
+	evos_attacks Houndoom
+	learnset 1, LEER
+	learnset 1, EMBER
+	learnset 4, PURSUIT ; Howl → egg move
+	learnset 8, SMOKESCREEN ; Smog → new move
+	learnset 13, ROAR
+	learnset 16, BITE
+	learnset 20, FORESIGHT ; Odor Sleuth → similar move
+	learnset 26, SUPER_FANG ; Beat Up → HGSS tutor move
+	learnset 30, FIRE_SPIN ; Fire Fang → egg move
+	learnset 35, FEINT_ATTACK
+	learnset 41, DESTINY_BOND ; Embargo → egg move
+	learnset 45, WILL_O_WISP ; Foul Play → egg move
+	learnset 50, FLAMETHROWER
+	learnset 56, CRUNCH
+	learnset 60, NASTY_PLOT
+	learnset 65, DARK_PULSE ; Inferno → TM move
+
+	evos_attacks Kingdra
+	learnset 1, DRAGONBREATH ; evolution move
+	learnset 1, WATER_GUN ; Bubble → similar move
+	learnset 5, SMOKESCREEN
+	learnset 9, LEER
+	learnset 13, BUBBLE_BEAM ; Water Gun → Bubble Beam
+	learnset 17, AQUA_JET ; Twister → new move
+	learnset 21, WATER_PULSE ; Bubble Beam → TM move
+	learnset 26, FOCUS_ENERGY
+	learnset 31, OUTRAGE ; Brine → HGSS tutor move
+	learnset 38, AGILITY
+	learnset 45, DRAGON_PULSE
+	learnset 52, DRAGON_DANCE
+	learnset 60, HYDRO_PUMP
+
+	evos_attacks Phanpy
+	evo_data EVOLVE_LEVEL, 25, DONPHAN
+	learnset 1, FORESIGHT ; Odor Sleuth → similar move
+	learnset 1, TACKLE
+	learnset 1, GROWL
+	learnset 1, DEFENSE_CURL
+	learnset 6, REVERSAL ; Flail → similar move
+	learnset 10, ROLLOUT
+	learnset 15, MAGNITUDE ; Natural Gift → Donphan move
+	learnset 19, ENDURE
+	learnset 24, TAKE_DOWN ; Slam → Take Down
+	learnset 28, BODY_SLAM ; Take Down → TM move
+	learnset 33, CHARM
+	learnset 37, PLAY_ROUGH ; Last Resort → egg move
+	learnset 42, DOUBLE_EDGE
+
+	evos_attacks Donphan
+	learnset 1, FURY_STRIKES ; evolution move
+	learnset 1, GUNK_SHOT ; HGSS tutor move
+	learnset 1, HORN_ATTACK
+	learnset 1, GROWL
+	learnset 1, DEFENSE_CURL
+	learnset 1, BULLDOZE
+	learnset 6, RAPID_SPIN
+	learnset 10, ROLLOUT
+	learnset 15, MAGNITUDE ; Assurance → Magnitude
+	learnset 19, KNOCK_OFF
+	learnset 24, ANCIENTPOWER ; Slam → HGSS tutor move
+	learnset 30, IRON_TAIL ; Magnitude → TM move
+	learnset 37, SCARY_FACE
+	learnset 43, EARTHQUAKE
+	learnset 50, GIGA_IMPACT
+
+	evos_attacks Porygon2
+	evo_data EVOLVE_TRADE, DUBIOUS_DISC, PORYGON_Z
+	learnset 1, TACKLE
+	learnset 1, CONVERSION
+	learnset 1, DEFENSE_CURL
+	learnset 7, PSYBEAM
+	learnset 12, AGILITY
+	learnset 18, RECOVER
+	learnset 23, GROWTH ; Magnet Rise → new move
+	learnset 29, AURORA_BEAM ; Signal Beam → new move
+	learnset 34, THUNDER_WAVE ; Recycle → TM move
+	learnset 40, BARRIER ; Discharge → event move
+	learnset 45, THUNDERBOLT ; Lock-On → TM move
+	learnset 50, TRI_ATTACK
+	learnset 56, MIRROR_COAT ; Magic Coat → new move
+	learnset 62, ZAP_CANNON
+	learnset 67, HYPER_BEAM
+
+	evos_attacks Stantler
+	evo_data EVOLVE_LOCATION, RUGGED_ROAD, WYRDEER
+	evo_data EVOLVE_LOCATION, SNOWTOP_MOUNTAIN, WYRDEER
+	evo_data EVOLVE_LOCATION, SINJOH_RUINS, WYRDEER
+	evo_data EVOLVE_LOCATION, MYSTRI_STAGE, WYRDEER
+	learnset 1, TACKLE
+	learnset 3, LEER
+	learnset 7, ASTONISH
+	learnset 10, HYPNOSIS
+	learnset 13, STOMP
+	learnset 16, MUD_SLAP ; Sand-Attack → similar move
+	learnset 21, HEADBUTT ; Take Down → tutor move
+	learnset 23, CONFUSE_RAY
+	learnset 27, CALM_MIND
+	learnset 33, TAKE_DOWN ; Role Play → Take Down
+	learnset 38, ZEN_HEADBUTT
+	learnset 43, THRASH ; Jump Kick → egg move
+	learnset 49, SKILL_SWAP ; Imprison → tutor move
+	learnset 50, HI_JUMP_KICK ; Captivate → new move
+	learnset 55, MEGAHORN ; Me First → egg move
+	learnset 60, DOUBLE_EDGE ; new move
+
+	evos_attacks Smeargle
+	learnset 1, SKETCH
+	learnset 11, SKETCH
+	learnset 21, SKETCH
+	learnset 31, SKETCH
+	learnset 41, SKETCH
+	learnset 51, SKETCH
+	learnset 61, SKETCH
+	learnset 71, SKETCH
+	learnset 81, SKETCH
+	learnset 91, SKETCH
+
+	evos_attacks Tyrogue
+	evo_data EVOLVE_STAT, 20, ATK_LT_DEF, HITMONCHAN
+	evo_data EVOLVE_STAT, 20, ATK_GT_DEF, HITMONLEE
+	evo_data EVOLVE_STAT, 20, ATK_EQ_DEF, HITMONTOP
+	learnset 1, TACKLE
+	learnset 1, RAGE ; Fake Out → event move
+	learnset 1, FORESIGHT
+
+	evos_attacks Hitmontop
+	learnset 1, LOW_KICK ; Rolling Kick → HGSS tutor move ; evolution move
+	learnset 1, BULK_UP ; Revenge → TM move
+	learnset 6, FOCUS_ENERGY
+	learnset 10, PURSUIT
+	learnset 15, QUICK_ATTACK
+	learnset 19, RAPID_SPIN
+	learnset 24, FEINT_ATTACK ; Feint → new move
+	learnset 28, COUNTER
+	learnset 33, DOUBLE_KICK ; Triple Kick → similar move
+	learnset 37, AGILITY
+	learnset 42, GYRO_BALL
+	learnset 46, FORESIGHT ; Wide Guard + Quick Guard → new move
+	learnset 50, PROTECT ; Detect → similar move
+	learnset 55, CLOSE_COMBAT
+	learnset 60, REVERSAL ; Endeavor → new move
+
+	evos_attacks Smoochum
+	evo_data EVOLVE_LEVEL, 30, JYNX
+	learnset 1, LICK
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 4, ICY_WIND ; Powder Snow → TM move
+	learnset 8, METRONOME ; Copycat → Jynx RBY TM move
+	learnset 12, CONFUSION
+	learnset 16, THIEF ; Covet → similar move
+	learnset 20, SING
+	learnset 24, MEAN_LOOK ; Fake Tears → Mean Look
+	learnset 28, ICE_PUNCH
+	learnset 32, PSYCHIC_M
+	learnset 36, SWEET_KISS
+	learnset 40, NASTY_PLOT ; Mean Look → egg move
+	learnset 44, PERISH_SONG
+	learnset 48, BLIZZARD
+
+	evos_attacks Elekid
+	evo_data EVOLVE_LEVEL, 30, ELECTABUZZ
+	learnset 1, QUICK_ATTACK
+	learnset 1, LEER
+	learnset 5, THUNDERSHOCK
+	learnset 8, LOW_KICK
+	learnset 12, SWIFT
+	learnset 15, BULK_UP ; Shock Wave → TM move
+	learnset 19, THUNDER_WAVE
+	learnset 22, KARATE_CHOP ; Electro Ball → egg move
+	learnset 26, LIGHT_SCREEN
+	learnset 29, THUNDERPUNCH
+	learnset 33, SCREECH ; Discharge → Screech
+	learnset 36, CROSS_CHOP ; Screech → new move
+	learnset 40, THUNDERBOLT
+	learnset 43, THUNDER
+
+	evos_attacks Magby
+	evo_data EVOLVE_LEVEL, 30, MAGMAR
+	learnset 1, HAZE ; Smog → new move
+	learnset 1, LEER
+	learnset 5, EMBER
+	learnset 8, SMOKESCREEN
+	learnset 12, FEINT_ATTACK
+	learnset 15, FIRE_SPIN
+	learnset 19, LOW_KICK ; Clear Smog → HGSS tutor move
+	learnset 22, FLAME_CHARGE ; Flame Burst → TM move
+	learnset 26, CONFUSE_RAY
+	learnset 29, FIRE_PUNCH
+	learnset 33, SUNNY_DAY ; Lava Plume → Sunny Day
+	learnset 36, FOCUS_BLAST ; Sunny Day → TM move
+	learnset 40, FLAMETHROWER
+	learnset 43, FIRE_BLAST
+
+	evos_attacks Miltank
+	learnset 1, TACKLE
+	learnset 3, GROWL
+	learnset 5, DEFENSE_CURL
+	learnset 8, STOMP
+	learnset 11, FRESH_SNACK ; Milk Drink → similar move
+	learnset 15, DIZZY_PUNCH ; Bide → egg move
+	learnset 19, ROLLOUT
+	learnset 24, BODY_SLAM
+	learnset 29, ZEN_HEADBUTT
+	learnset 35, SEISMIC_TOSS ; Captivate → egg move
+	learnset 41, GYRO_BALL
+	learnset 48, HEAL_BELL
+	learnset 50, REVERSAL ; Wake-Up Slap → egg move
+
+	evos_attacks Blissey
+	learnset 1, DEFENSE_CURL
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, GROWL
+	learnset 5, LEER ; Tail Whip → similar move
+	learnset 9, SWEET_KISS ; Refresh → Happiny move
+	learnset 12, DOUBLE_SLAP
+	learnset 16, FRESH_SNACK ; Soft-Boiled → similar move
+	learnset 20, METRONOME ; Bestow → egg move
+	learnset 23, MINIMIZE
+	learnset 27, TAKE_DOWN
+	learnset 31, SING
+	learnset 35, CHARM ; Fling → Happiny move
+	learnset 39, HEAL_BELL ; Heal Pulse → HGSS tutor move
+	learnset 44, BODY_SLAM ; Egg Bomb → TM move
+	learnset 50, LIGHT_SCREEN
+	learnset 57, SUBSTITUTE ; Healing Wish → TM move
+	learnset 65, DOUBLE_EDGE
+
+	evos_attacks Raikou
+	learnset 1, BITE
+	learnset 1, LEER
+	learnset 8, THUNDERSHOCK
+	learnset 15, ROAR
+	learnset 22, QUICK_ATTACK
+	learnset 29, SPARK
+	learnset 36, REFLECT
+	learnset 43, CRUNCH
+	learnset 50, WILD_CHARGE ; Thunder Fang → TM move
+	learnset 57, EXTREMESPEED ; Discharge → event move
+	learnset 64, EXTRASENSORY
+	learnset 71, RAIN_DANCE
+	learnset 78, CALM_MIND
+	learnset 85, AURA_SPHERE ; Thunder → event move
+	learnset 92, THUNDER
+	learnset 99, HIDDEN_POWER ; TM move
+
+	evos_attacks Entei
+	learnset 1, BITE
+	learnset 1, LEER
+	learnset 8, EMBER
+	learnset 15, ROAR
+	learnset 22, FIRE_SPIN
+	learnset 29, STOMP
+	learnset 36, FLAMETHROWER
+	learnset 43, SWAGGER
+	learnset 50, FLAME_CHARGE ; Fire Fang → TM move
+	learnset 57, EXTREMESPEED ; Lava Plume → event move
+	learnset 64, EXTRASENSORY
+	learnset 71, FIRE_BLAST
+	learnset 78, CALM_MIND
+	learnset 85, FLARE_BLITZ ; Eruption → event move
+	learnset 92, SACRED_FIRE
+	learnset 99, HIDDEN_POWER ; TM move
+
+	evos_attacks Suicune
+	learnset 1, BITE
+	learnset 1, LEER
+	learnset 8, BUBBLE_BEAM
+	learnset 15, RAIN_DANCE
+	learnset 22, GUST
+	learnset 29, AURORA_BEAM
+	learnset 36, LIGHT_SCREEN ; Mist → new move
+	learnset 43, MIRROR_COAT
+	learnset 50, AIR_SLASH ; Ice Fang → event move
+	learnset 57, EXTREMESPEED ; Tailwind → event move
+	learnset 64, EXTRASENSORY
+	learnset 71, HYDRO_PUMP
+	learnset 78, CALM_MIND
+	learnset 85, HYPER_BEAM ; Blizzard → TM move
+	learnset 92, BLIZZARD
+	learnset 99, HIDDEN_POWER ; TM move
+
+	evos_attacks Larvitar
+	evo_data EVOLVE_LEVEL, 30, PUPITAR
+	learnset 1, TACKLE ; Sw/Sh move
+	learnset 1, BITE
+	learnset 1, LEER
+	learnset 5, SANDSTORM
+	learnset 10, SCREECH
+	learnset 14, RAGE ; Chip Away → event move
+	learnset 19, ROCK_SLIDE
+	learnset 23, SCARY_FACE
+	learnset 28, THRASH
+	learnset 32, DARK_PULSE
+	learnset 37, ANCIENTPOWER ; Payback → HGSS tutor move
+	learnset 41, CRUNCH
+	learnset 46, EARTHQUAKE
+	learnset 50, STONE_EDGE
+	learnset 55, OUTRAGE ; Hyper Beam → HGSS tutor move
+	learnset 61, HYPER_BEAM
+	learnset 68, CLOSE_COMBAT ; new move
+
+	evos_attacks Pupitar
+	evo_data EVOLVE_LEVEL, 55, TYRANITAR
+	learnset 1, DEFENSE_CURL ; evolution move
+	learnset 1, TACKLE ; Sw/Sh move
+	learnset 1, BITE
+	learnset 1, LEER
+	learnset 5, SANDSTORM
+	learnset 10, SCREECH
+	learnset 14, RAGE ; Chip Away → event move
+	learnset 19, ROCK_SLIDE
+	learnset 23, SCARY_FACE
+	learnset 28, THRASH
+	learnset 34, DARK_PULSE
+	learnset 41, ANCIENTPOWER ; Payback → HGSS tutor move
+	learnset 47, CRUNCH
+	learnset 54, EARTHQUAKE
+	learnset 60, STONE_EDGE
+	learnset 67, OUTRAGE ; Hyper Beam → HGSS tutor move
+	learnset 75, HYPER_BEAM
+	learnset 84, CLOSE_COMBAT ; new move
+
+	evos_attacks Tyranitar
+	learnset 1, STOMP ; evolution move
+	learnset 1, LOW_KICK ; HGSS tutor move
+	learnset 1, DRAGONBREATH ; GSC TM move
+	learnset 1, TACKLE ; Sw/Sh move
+	learnset 1, BITE
+	learnset 1, LEER
+	learnset 5, SANDSTORM
+	learnset 10, SCREECH
+	learnset 14, RAGE ; Chip Away → event move
+	learnset 19, ROCK_SLIDE
+	learnset 23, SCARY_FACE
+	learnset 28, THRASH
+	learnset 34, DARK_PULSE
+	learnset 41, ANCIENTPOWER ; Payback → HGSS tutor move
+	learnset 47, CRUNCH
+	learnset 54, EARTHQUAKE
+	learnset 63, STONE_EDGE
+	learnset 73, OUTRAGE ; Hyper Beam → HGSS tutor move
+	learnset 82, HYPER_BEAM
+	learnset 92, CLOSE_COMBAT ; new move
+
+	evos_attacks Lugia
+	learnset 1, ROAR ; Whirlwind → similar move
+	learnset 9, GUST
+	learnset 15, DRAGONBREATH ; Dragon Rush → GSC TM move
+	learnset 23, EXTRASENSORY
+	learnset 29, RAIN_DANCE
+	learnset 37, HYDRO_PUMP
+	learnset 43, DRAGON_PULSE ; Aeroblast → TM move
+	learnset 50, AEROBLAST ; Punishment → Aeroblast
+	learnset 57, ANCIENTPOWER
+	learnset 65, SAFEGUARD
+	learnset 71, RECOVER
+	learnset 79, FUTURE_SIGHT
+	learnset 85, REFLECT ; Natural Gift → TM move
+	learnset 93, CALM_MIND
+	learnset 99, HURRICANE ; Sky Attack → new move
+
+	evos_attacks HoOh
+	learnset 1, ROAR ; Whirlwind → similar move
+	learnset 9, GUST
+	learnset 15, DRAGONBREATH ; Brave Bird → GSC TM move
+	learnset 23, EXTRASENSORY
+	learnset 29, SUNNY_DAY
+	learnset 37, FIRE_BLAST
+	learnset 43, SOLAR_BEAM ; Sacred Fire → Solar Beam
+	learnset 50, SACRED_FIRE ; Punishment → Sacred Fire
+	learnset 57, ANCIENTPOWER
+	learnset 65, SAFEGUARD
+	learnset 71, RECOVER
+	learnset 79, FUTURE_SIGHT
+	learnset 85, LIGHT_SCREEN ; Natural Gift → TM move
+	learnset 93, CALM_MIND
+	learnset 99, BRAVE_BIRD ; Sky Attack → Brave Bird
+
+	evos_attacks Celebi
+	learnset 1, LEECH_SEED
+	learnset 1, CONFUSION
+	learnset 1, RECOVER
+	learnset 1, METRONOME ; Heal Bell → new move
+	learnset 10, SAFEGUARD
+	learnset 19, ENERGY_BALL ; Magical Leaf → TM move
+	learnset 28, ANCIENTPOWER
+	learnset 37, BATON_PASS
+	learnset 46, MOONBLAST ; Natural Gift → new move
+	learnset 55, LIGHT_SCREEN ; Heal Block → TM move
+	learnset 64, FUTURE_SIGHT
+	learnset 73, HEAL_BELL ; Healing Wish → Heal Bell
+	learnset 82, NASTY_PLOT ; Leaf Storm → event move
+	learnset 91, PERISH_SONG
+	learnset 100, AURA_SPHERE ; Sw/Sh move
+
+	evos_attacks Azurill
+	evo_data EVOLVE_HAPPINESS, TR_ANYTIME, MARILL
+	learnset 1, SPLASH
+	learnset 1, WATER_GUN
+	learnset 2, GROWL ; Tail Whip → new move
+	learnset 5, FORESIGHT ; Water Sport → Marill egg move
+	learnset 7, AQUA_JET ; Bubble → egg move
+	learnset 10, CHARM
+	learnset 13, BUBBLE_BEAM
+	learnset 16, SING ; Helping Hand → egg move
+	learnset 20, ROLLOUT ; Slam → tutor move
+	learnset 23, BODY_SLAM ; Bounce → egg move
+
+	evos_attacks Wynaut
+	evo_data EVOLVE_LEVEL, 15, WOBBUFFET
+	learnset 1, SPLASH
+	learnset 1, CHARM
+	learnset 1, ENCORE
+	learnset 1, AMNESIA
+	learnset 1, COUNTER
+	learnset 1, MIRROR_COAT
+	learnset 1, SAFEGUARD
+	learnset 1, DESTINY_BOND
+
+	evos_attacks Ambipom
+	learnset 1, HEADBUTT ; Dual Chop → tutor move
+	learnset 1, SCRATCH
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 4, MUD_SLAP ; Sand Attack → similar move
+	learnset 8, ASTONISH
+	learnset 11, BATON_PASS
+	learnset 15, THIEF ; Tickle → TM move
+	learnset 18, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 22, SWIFT
+	learnset 25, SCREECH
+	learnset 29, AGILITY
+	learnset 32, DOUBLE_SLAP ; Double Hit → egg move
+	learnset 36, ACROBATICS ; Fling → TM move
+	learnset 39, NASTY_PLOT
+	learnset 43, DOUBLE_EDGE ; Last Resort → tutor move
+
+	evos_attacks Mismagius
+	learnset 1, POWER_GEM
+	learnset 1, SHADOW_BALL ; Phantom Force → TM move
+	learnset 1, FLAMETHROWER ; Mystical Fire → TM move
+	learnset 1, DAZZLINGLEAM ; Magical Leaf → TM move ; evolution move
+	learnset 1, GROWL
+	learnset 1, TELEPORT ; Psywave → new move
+	learnset 1, DISARM_VOICE ; new move
+	learnset 1, CONFUSION ; Spite → new move
+	learnset 1, ASTONISH
+
+	evos_attacks Honchkrow
+	learnset 1, SUCKER_PUNCH
+	learnset 1, ASTONISH
+	learnset 1, PURSUIT
+	learnset 1, HAZE
+	learnset 1, WING_ATTACK
+	learnset 25, SWAGGER
+	learnset 35, NASTY_PLOT
+	learnset 45, NIGHT_SLASH ; Foul Play → Night Slash
+	learnset 55, PERISH_SONG ; Night Slash → egg move
+	learnset 65, BRAVE_BIRD ; Quash → egg move
+	learnset 75, DARK_PULSE
+
+	evos_attacks Bonsly
+	evo_data EVOLVE_MOVE, ROCK_THROW, SUDOWOODO
+	learnset 1, CHARM ; Fake Tears → new move
+	learnset 1, SUBSTITUTE ; Copycat → Sudowoodo event move
+	learnset 5, REVERSAL ; Flail → similar move
+	learnset 8, LOW_KICK
+	learnset 12, LEER ; Rock Throw → new move
+	learnset 15, ROCK_THROW ; Mimic → Rock Throw
+	learnset 19, FEINT_ATTACK
+	learnset 22, ANCIENTPOWER ; Rock Tomb → new move
+	learnset 26, PROTECT ; Block → TM move
+	learnset 29, ROCK_SLIDE
+	learnset 33, COUNTER
+	learnset 36, SUCKER_PUNCH
+	learnset 40, DOUBLE_EDGE
+
+	evos_attacks MimeJr
+	evo_data EVOLVE_LOCATION, ICE_PATH, MR__MIME, GALARIAN_FORM
+	evo_data EVOLVE_LEVEL, 30, MR__MIME, PLAIN_FORM
+	evo_data EVOLVE_ITEM, ICE_STONE, MR__MIME, GALARIAN_FORM
+	learnset 1, BARRIER
+	learnset 1, CONFUSION
+	learnset 1, TACKLE  ; Pound → similar move
+	learnset 4, HYPNOSIS ; Copycat → egg move
+	learnset 8, CALM_MIND ; Meditate → TM move
+	learnset 11, DOUBLE_SLAP
+	learnset 13, PROTECT ; Mimic → event move
+	learnset 15, METRONOME ; Psywave → RBY TM move
+	learnset 18, ENCORE
+	learnset 22, LIGHT_SCREEN
+	learnset 22, REFLECT
+	learnset 25, PSYBEAM
+	learnset 29, SUBSTITUTE
+	learnset 32, CONFUSE_RAY ; Recycle → egg move
+	learnset 36, TRICK
+	learnset 39, PSYCHIC_M
+	learnset 43, FUTURE_SIGHT ; Role Play → egg move
+	learnset 46, BATON_PASS
+	learnset 50, SAFEGUARD
+
+	evos_attacks Happiny
+	evo_data EVOLVE_HOLDING, OVAL_STONE, TR_MORNDAY, CHANSEY
+	learnset 1, MINIMIZE
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, METRONOME ; Copycat → egg move
+	learnset 4, DEFENSE_CURL
+	learnset 8, SWEET_KISS
+	learnset 12, DISARM_VOICE
+	learnset 16, ROLLOUT ; Covet → tutor move
+	learnset 20, CHARM
+
+	evos_attacks Munchlax
+	evo_data EVOLVE_HAPPINESS, TR_ANYTIME, SNORLAX
+	learnset 1, SWEET_KISS ; Recycle → event move
+	learnset 1, METRONOME
+	learnset 1, TACKLE
+	learnset 4, DEFENSE_CURL
+	learnset 9, AMNESIA
+	learnset 12, LICK
+	learnset 17, RAGE ; Chip Away → RBY TM move
+	learnset 20, TAKE_DOWN ; Screech → RBY TM move
+	learnset 25, BODY_SLAM
+	learnset 28, SCREECH ; Stockpile → Screech
+	learnset 33, PROTECT ; Swallow → TM move
+	learnset 36, ROLLOUT
+	learnset 41, OUTRAGE ; Fling → HGSS tutor move
+	learnset 44, BELLY_DRUM
+	learnset 49, CRUNCH ; Natural Gift → Snorlax move
+	learnset 50, GUNK_SHOT ; Snatch → egg move
+	learnset 57, DOUBLE_EDGE ; Last Resort → egg move
+
+	evos_attacks Mantyke
+	evo_data EVOLVE_PARTY, REMORAID, MANTINE
+	learnset 1, GUST ; event move
+	learnset 1, TACKLE
+	learnset 1, WATER_GUN ; Bubble → similar move
+	learnset 3, SUPERSONIC
+	learnset 7, BUBBLE_BEAM
+	learnset 11, CONFUSE_RAY
+	learnset 14, WING_ATTACK
+	learnset 16, HEADBUTT
+	learnset 19, WATER_PULSE
+	learnset 23, AQUA_JET ; Wide Guard → new move
+	learnset 27, TAKE_DOWN
+	learnset 32, AGILITY
+	learnset 36, AIR_SLASH
+	learnset 39, ROOST ; Aqua Ring → similar move
+	learnset 46, MIRROR_COAT ; Bounce → Dream World move
+	learnset 49, HYDRO_PUMP
+
+	evos_attacks Weavile
+	learnset 1, SCRATCH
+	learnset 1, LEER
+	learnset 1, BITE ; Taunt → egg move
+	learnset 8, QUICK_ATTACK
+	learnset 10, FEINT_ATTACK
+	learnset 14, ICE_SHARD ; Icy Wind → Ice Shard
+	learnset 16, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 20, NASTY_PLOT
+	learnset 22, METAL_CLAW
+	learnset 25, HONE_CLAWS
+	learnset 28, ICICLE_CRASH ; Fling → egg move
+	learnset 32, SCREECH
+	learnset 35, NIGHT_SLASH
+	learnset 40, HEALINGLIGHT ; Snatch → event move (Moonlight)
+	learnset 44, X_SCISSOR ; Punishment → TM move
+	learnset 47, CRUNCH ; Dark Pulse → new move
+
+	evos_attacks Magnezone
+	learnset 1, TRI_ATTACK ; evolution move
+	learnset 1, MIRROR_COAT
+	learnset 1, BARRIER
+	learnset 1, SUPERSONIC
+	learnset 1, TACKLE
+	learnset 5, THUNDERSHOCK
+	learnset 7, THUNDER_WAVE
+	learnset 11, QUICK_ATTACK ; Magnet Bomb → TCG move
+	learnset 13, LIGHT_SCREEN
+	learnset 17, SONIC_BOOM
+	learnset 19, SPARK
+	learnset 23, SWIFT ; Mirror Shot → TM move
+	learnset 25, SCREECH ; Metal Sound → Screech
+	learnset 29, THUNDERBOLT ; Electro Ball → TM move
+	learnset 33, FLASH_CANNON
+	learnset 39, EXPLOSION ; Screech → TM move
+	learnset 43, HIDDEN_POWER ; Discharge → TM move
+	learnset 49, AGILITY ; Lock-On → event move
+	learnset 53, GYRO_BALL ; Magnet Rise → Gyro Ball
+	learnset 59, THUNDER ; Gyro Ball → TM move
+	learnset 63, ZAP_CANNON
+
+	evos_attacks Lickilicky
+	learnset 1, LICK
+	learnset 5, SUPERSONIC
+	learnset 9, DEFENSE_CURL
+	learnset 13, KNOCK_OFF
+	learnset 17, WRAP
+	learnset 21, STOMP
+	learnset 25, DISABLE
+	learnset 29, HEADBUTT ; Slam → TM move
+	learnset 33, ROLLOUT
+	learnset 37, SCREECH ; Chip Away → Screech
+	learnset 41, AMNESIA ; Me First → egg move
+	learnset 45, BODY_SLAM ; Refresh → egg move
+	learnset 49, CURSE ; Screech → egg move
+	learnset 53, POWER_WHIP
+	learnset 57, BELLY_DRUM ; Wring Out → egg move
+	learnset 61, GYRO_BALL
+
+	evos_attacks Rhyperior
+	learnset 1, OUTRAGE ; Hammer Arm → HGSS tutor move ; evolution move
+	learnset 1, POISON_JAB
+	learnset 1, TACKLE
+	learnset 1, MUD_SLAP ; Sand-Attack → similar move
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 3, HORN_ATTACK
+	learnset 6, FURY_STRIKES ; Fury Attack → similar move
+	learnset 9, SCARY_FACE
+	learnset 13, MAGNITUDE ; Smack Down → egg move
+	learnset 17, STOMP
+	learnset 21, BULLDOZE
+	learnset 25, ANCIENTPOWER ; Chip Away → HGSS tutor move
+	learnset 29, ROCK_BLAST
+	learnset 33, TAKE_DOWN ; Drill Run → Take Down
+	learnset 37, STONE_EDGE ; Take Down → Stone Edge
+	learnset 41, DOUBLE_EDGE ; Double Edge → event move
+	learnset 48, EARTHQUAKE
+	learnset 55, CLOSE_COMBAT ; Megahorn → new move
+	learnset 62, MEGAHORN ; Horn Drill → Megahorn
+	learnset 69, ROCK_SLIDE ; Rock Wrecker → similar move
+
+	evos_attacks Tangrowth
+	learnset 1, WRAP ; Constrict → similar move
+	learnset 4, SLEEP_POWDER
+	learnset 7, VINE_WHIP
+	learnset 10, ABSORB
+	learnset 14, POISONPOWDER
+	learnset 17, PROTECT ; Bind → TM move
+	learnset 20, GROWTH
+	learnset 23, MEGA_DRAIN
+	learnset 27, KNOCK_OFF
+	learnset 30, STUN_SPORE
+	learnset 33, HEALINGLIGHT ; Natural Gift → new move
+	learnset 36, GIGA_DRAIN
+	learnset 40, ANCIENTPOWER
+	learnset 43, BODY_SLAM ; Slam → similar move
+	learnset 46, PAIN_SPLIT ; Tickle → HGSS tutor move
+	learnset 48, SWORDS_DANCE ; Wring Out → TM move
+	learnset 50, BATON_PASS ; Grassy Terrain → new move
+	learnset 53, POWER_WHIP
+
+	evos_attacks Electivire
+	learnset 1, CLOSE_COMBAT ; evolution move
+	learnset 1, FIRE_PUNCH
+	learnset 1, QUICK_ATTACK
+	learnset 1, LEER
+	learnset 5, THUNDERSHOCK
+	learnset 8, LOW_KICK
+	learnset 12, SWIFT
+	learnset 15, BULK_UP ; Shock Wave → TM move
+	learnset 19, THUNDER_WAVE
+	learnset 22, KARATE_CHOP ; Electro Ball → egg move
+	learnset 26, LIGHT_SCREEN
+	learnset 29, THUNDERPUNCH
+	learnset 36, SCREECH ; Discharge → Screech
+	learnset 42, CROSS_CHOP ; Screech → new move
+	learnset 49, THUNDERBOLT
+	learnset 55, THUNDER
+	learnset 62, GIGA_IMPACT
+
+	evos_attacks Magmortar
+	learnset 1, FLASH_CANNON ; evolution move
+	learnset 1, THUNDERPUNCH
+	learnset 1, HAZE ; Smog → new move
+	learnset 1, LEER
+	learnset 5, EMBER
+	learnset 8, SMOKESCREEN
+	learnset 12, FEINT_ATTACK
+	learnset 15, FIRE_SPIN
+	learnset 19, LOW_KICK ; Clear Smog → HGSS tutor move
+	learnset 22, FLAME_CHARGE ; Flame Burst → TM move
+	learnset 26, CONFUSE_RAY
+	learnset 29, FIRE_PUNCH
+	learnset 36, SUNNY_DAY ; Lava Plume → Sunny Day
+	learnset 42, FOCUS_BLAST ; Sunny Day → TM move
+	learnset 49, FLAMETHROWER
+	learnset 55, FIRE_BLAST
+	learnset 62, HYPER_BEAM
+
+	evos_attacks Togekiss
+	learnset 1, DISARM_VOICE ; evolution move
+	learnset 1, HURRICANE ; Sky Attack → new move
+	learnset 1, EXTREMESPEED
+	learnset 1, AURA_SPHERE
+	learnset 1, AIR_SLASH
+	learnset 1, PLAY_ROUGH ; Sw/Sh move
+	learnset 1, FUTURE_SIGHT ; Sw/Sh move
+
+	evos_attacks Yanmega
+	learnset 1, DRAGONBREATH ; evolution move
+	learnset 1, NIGHT_SLASH
+	learnset 1, TACKLE
+	learnset 1, FORESIGHT
+	learnset 1, BUG_BITE
+	learnset 6, QUICK_ATTACK
+	learnset 11, DOUBLE_TEAM
+	learnset 14, SONIC_BOOM
+	learnset 17, PROTECT ; Detect → similar move
+	learnset 22, DRAGON_RAGE ; Supersonic → new move
+	learnset 27, SUPERSONIC ; Uproar → Supersonic
+	learnset 30, PURSUIT
+if DEF(FAITHFUL)
+	learnset 33, ANCIENTPOWER
+else
+	learnset 35, ANCIENTPOWER
+endc
+	learnset 38, SLASH ; Feint → Slash
+	learnset 43, WING_ATTACK ; Slash → Wing Attack
+	learnset 46, SCREECH
+	learnset 49, U_TURN
+	learnset 54, AIR_SLASH
+	learnset 57, BUG_BUZZ
+	learnset 62, FLY ; new move
+
+	evos_attacks Leafeon
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, RAZOR_LEAF ; evolution move
+	learnset 5, MUD_SLAP ; Sand Attack → similar move
+	learnset 9, DOUBLE_KICK ; Baby-Doll Eyes → LGPE move
+	learnset 13, QUICK_ATTACK
+	learnset 17, BITE ; Grass Whistle → new move
+	learnset 20, ENERGY_BALL ; Magical Leaf → TM move
+	learnset 25, GIGA_DRAIN
+	learnset 29, SWORDS_DANCE
+	learnset 33, HEALINGLIGHT ; Synthesis → similar move
+	learnset 37, SEED_BOMB ; Sunny Day → tutor move
+	learnset 41, DOUBLE_EDGE ; Last Resort → tutor move
+	learnset 45, SUNNY_DAY ; Leaf Blade → Sunny Day
+
+	evos_attacks Glaceon
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, ICY_WIND ; evolution move
+	learnset 5, MUD_SLAP ; Sand Attack → similar move
+	learnset 9, DOUBLE_KICK ; Baby-Doll Eyes → LGPE move
+	learnset 13, QUICK_ATTACK
+	learnset 17, BITE
+	learnset 20, ICE_SHARD ; Ice Fang → Ice Shard
+	learnset 25, HAIL ; Ice Shard → Hail
+	learnset 29, BARRIER
+	learnset 33, MIRROR_COAT
+	learnset 37, ICE_BEAM ; Hail → TM move
+	learnset 41, DOUBLE_EDGE ; Last Resort → tutor move
+	learnset 45, BLIZZARD
+
+	evos_attacks Mamoswine
+	learnset 1, ANCIENTPOWER
+	learnset 1, PECK
+	learnset 1, FORESIGHT ; Odor Sleuth → similar move
+	learnset 5, BITE ; Mud Sport → egg move
+	learnset 8, ICE_SHARD ; Powder Snow → Ice Shard
+	learnset 11, MUD_SLAP
+	learnset 14, ENDURE
+	learnset 18, MAGNITUDE ; Mud Bomb → new move
+	learnset 21, HAIL
+	learnset 24, AVALANCHE ; Ice Fang → egg move
+	learnset 28, TAKE_DOWN
+	learnset 34, ROCK_BLAST ; Double Hit → Sw/Sh move
+	learnset 37, BULLDOZE ; Mist → TM move
+	learnset 41, THRASH
+	learnset 46, EARTHQUAKE
+	learnset 52, BLIZZARD
+	learnset 58, SCARY_FACE
+
+	evos_attacks PorygonZ
+	learnset 1, TRICK_ROOM
+	learnset 1, TACKLE
+	learnset 1, CONVERSION
+	learnset 1, NASTY_PLOT ; evolution move
+	learnset 7, PSYBEAM
+	learnset 12, AGILITY
+	learnset 18, RECOVER
+	learnset 23, GROWTH ; Magnet Rise → new move
+	learnset 29, AURORA_BEAM ; Signal Beam → new move
+	learnset 34, PAIN_SPLIT ; Embargo → HGSS tutor move
+	learnset 40, BARRIER ; Discharge → event move
+	learnset 45, THUNDERBOLT ; Lock-On → TM move
+	learnset 50, TRI_ATTACK
+	learnset 56, MIRROR_COAT ; Magic Coat → new move
+	learnset 62, ZAP_CANNON
+	learnset 67, HYPER_BEAM
+
+	evos_attacks Sylveon
+	learnset 1, GROWL
+	learnset 1, TACKLE
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 1, DISARM_VOICE ; evolution move
+	learnset 5, MUD_SLAP ; Sand Attack → similar move
+	learnset 9, DOUBLE_KICK ; Baby-Doll Eyes → LGPE move
+	learnset 13, QUICK_ATTACK
+	learnset 17, SWIFT
+	learnset 20, DRAINING_KISS
+	learnset 25, SKILL_SWAP
+	learnset 29, HEAL_BELL ; Misty Terrain → HGSS tutor move
+	learnset 33, LIGHT_SCREEN
+	learnset 37, MOONBLAST
+	learnset 41, DOUBLE_EDGE ; Last Resort → tutor move
+	learnset 45, PLAY_ROUGH ; Psych Up → new move
+
+	evos_attacks Perrserker
+	learnset 1, IRON_HEAD ; evolution move
+	learnset 1, COUNTER ; Metal Burst → similar move
+	learnset 1, PLAY_ROUGH ; Iron Defense → TR move
+	learnset 1, ASTONISH ; Fake Out → new move
+	learnset 1, GROWL
+	learnset 1, HONE_CLAWS
+	learnset 1, SCRATCH
+	learnset 12, PAY_DAY
+	learnset 16, METAL_CLAW
+	learnset 20, PURSUIT ; Taunt → new move
+	learnset 24, SWAGGER
+	learnset 31, FURY_STRIKES
+	learnset 36, SCREECH
+	learnset 42, SLASH
+	learnset 48, CRUNCH ; Metal Sound → TR move
+	learnset 54, THRASH
+	learnset 60, CLOSE_COMBAT ; TR move
+
+	evos_attacks Cursola
+	learnset 1, PERISH_SONG
+	learnset 1, TACKLE
+	learnset 1, DEFENSE_CURL ; Harden → similar move
+	learnset 1, ASTONISH
+	learnset 1, DISABLE
+	learnset 15, HAZE ; Spite → egg move
+	learnset 20, ANCIENTPOWER
+	learnset 25, HEX
+	learnset 30, CURSE
+	learnset 35, GIGA_DRAIN ; Strength Sap → TM move
+	learnset 40, POWER_GEM
+	learnset 45, NIGHT_SHADE
+	learnset 50, HYDRO_PUMP ; Grudge → TR move
+	learnset 55, MIRROR_COAT
+
+	evos_attacks SirfetchD
+	learnset 1, CUT ; Fury Cutter → HM move
+	learnset 1, COUNTER ; Iron Defense → egg move ; evolution move
+	learnset 1, QUICK_ATTACK ; First Impression → egg move
+	learnset 1, PECK
+	learnset 1, MUD_SLAP ; Sand Attack → similar move
+	learnset 1, LEER
+if DEF(FAITHFUL)
+	learnset 15, ROCK_SMASH
+else
+	learnset 15, REVERSAL ; Rock Smash → TM move
+endc
+	learnset 20, FEINT_ATTACK ; Brutal Swing → similar move
+	learnset 25, PROTECT ; Detect → similar move
+	learnset 30, KNOCK_OFF
+	learnset 35, STEEL_WING ; Defog → TM move
+if DEF(FAITHFUL)
+	learnset 40, NIGHT_SLASH ; Brick Break → egg move
+else
+	learnset 40, ROCK_SMASH ; Brick Break
+endc
+	learnset 45, SWORDS_DANCE
+	learnset 50, BODY_SLAM ; Slam → TR move
+	learnset 55, POISON_JAB ; Leaf Blade → TR move
+	learnset 60, CLOSE_COMBAT ; Final Gambit → TR move
+	learnset 65, BRAVE_BIRD
+	learnset 70, GIGA_IMPACT ; Meteor Assault → similar move
+
+	evos_attacks MrMimeGalarian
+	evo_data EVOLVE_LEVEL, 42, MR__RIME
+	MrRimeEvosAttacks:
+	learnset 1, RECOVER ; Slack Off → similar move
+	learnset 1, ENCORE
+	learnset 1, PROTECT
+	learnset 1, LIGHT_SCREEN
+	learnset 1, REFLECT
+	learnset 1, SAFEGUARD
+	learnset 1, DAZZLINGLEAM
+	learnset 1, TACKLE ; Pound → similar move
+	learnset 1, RAPID_SPIN
+	learnset 1, BATON_PASS
+	learnset 1, ICE_SHARD
+	learnset 12, CONFUSION
+	learnset 16, METRONOME ; Ally Switch → TR move
+	learnset 20, ICY_WIND
+	learnset 24, DOUBLE_KICK
+	learnset 28, PSYBEAM
+	learnset 32, HYPNOSIS
+	learnset 36, MIRROR_COAT
+	learnset 40, SUCKER_PUNCH
+	learnset 44, ICE_BEAM ; Freeze-Dry → TR move
+	learnset 48, PSYCHIC_M
+	learnset 52, CONFUSE_RAY ; Teeter Dance → egg move
+
+	evos_attacks Wyrdeer
+	learnset 1, EXTRASENSORY ; evolution move
+	learnset 1, TACKLE
+	learnset 3, LEER
+	learnset 7, ASTONISH
+	learnset 10, HYPNOSIS
+	learnset 13, STOMP
+	learnset 16, MUD_SLAP ; Sand-Attack → similar move
+	learnset 21, HEADBUTT ; Take Down → tutor move
+	learnset 23, CONFUSE_RAY
+	learnset 27, CALM_MIND
+	learnset 33, TAKE_DOWN ; Role Play → Take Down
+	learnset 38, ZEN_HEADBUTT
+	learnset 43, THRASH ; Jump Kick → egg move
+	learnset 49, SKILL_SWAP ; Imprison → tutor move
+	learnset 55, HI_JUMP_KICK ; Captivate → new move
+	learnset 60, MEGAHORN ; Me First → egg move
+	learnset 65, DOUBLE_EDGE ; new move
+
+	evos_attacks Kleavor
+	learnset 1, ROCK_THROW ; evolution move
+	learnset 1, QUICK_ATTACK
+	learnset 1, LEER
+	learnset 5, FOCUS_ENERGY
+	learnset 9, PURSUIT
+	learnset 13, FALSE_SWIPE
+	learnset 17, AGILITY
+	learnset 21, AERIAL_ACE
+	learnset 25, BUG_BITE ; Fury Cutter → similar move
+	learnset 29, SLASH
+	learnset 33, GLARE ; Razor Wind → new move
+	learnset 37, DEFENSE_CURL ; Stealth Rock → new move
+	learnset 41, X_SCISSOR
+	learnset 45, CRUNCH ; Night Slash → Prism tutor move
+	learnset 49, CLOSE_COMBAT ; Double Hit → SV TM move
+	learnset 50, STONE_EDGE ; Stone Axe → new move
+	learnset 57, SWORDS_DANCE
+
+	evos_attacks UrsalunaPlain
+	learnset 1, BULLDOZE ; evolution move
+	learnset 1, GUNK_SHOT ; HGSS tutor move
+	learnset 1, THIEF ; Covet → TM move
+	learnset 1, SCRATCH
+	learnset 1, LEER
+	learnset 1, LICK
+	learnset 1, FOCUS_ENERGY ; Fake Tears → egg move
+	learnset 8, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 15, FEINT_ATTACK
+	learnset 22, BELLY_DRUM ; Sweet Scent → egg move
+	learnset 25, PLAY_ROUGH ; Play Nice → egg move
+	learnset 29, SLASH
+	learnset 38, SCARY_FACE
+	learnset 47, REST
+	learnset 49, EARTHQUAKE ; High Horsepower → TM move
+	learnset 58, THRASH
+	learnset 67, CLOSE_COMBAT ; Hammer Arm → SV TM move
+	learnset 76, DOUBLE_EDGE ; new move
+	learnset 85, GUNK_SHOT ; SV TM move
+
+	evos_attacks UrsalunaBloodmoon
+	learnset 1, BULLDOZE ; evolution move
+	learnset 1, GUNK_SHOT ; HGSS tutor move
+	learnset 1, THIEF ; Covet → TM move
+	learnset 1, SCRATCH
+	learnset 1, LEER
+	learnset 1, LICK
+	learnset 1, HEALINGLIGHT ; Moonlight → similar move
+	learnset 8, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 15, FEINT_ATTACK
+	learnset 22, DEFENSE_CURL ; Harden → similar move
+	learnset 25, SHADOW_BALL ; new move
+	learnset 29, SLASH
+	learnset 38, SCARY_FACE
+	learnset 47, REST
+	learnset 49, EARTH_POWER
+	learnset 58, MOONBLAST
+	learnset 67, FOCUS_BLAST ; Hammer Arm → SV TM move
+	learnset 76, HYPER_BEAM ; Blood Moon → SV TM move
+	learnset 85, GUNK_SHOT ; SV TM move
+
+	evos_attacks Sneasler
+	learnset 1, SCRATCH
+	learnset 1, LEER
+	learnset 1, BITE ; Taunt → egg move
+	learnset 8, QUICK_ATTACK
+	learnset 10, FEINT_ATTACK
+	learnset 14, LOW_KICK ; Rock Smash → Low Kick
+	learnset 16, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 20, AGILITY
+	learnset 22, METAL_CLAW
+	learnset 25, HONE_CLAWS
+	learnset 28, POISON_JAB
+	learnset 32, SCREECH
+	learnset 35, SLASH
+	learnset 40, SWORDS_DANCE
+	learnset 44, X_SCISSOR ; Punishment → TM move
+	learnset 47, CLOSE_COMBAT
+	learnset 50, GUNK_SHOT ; SV TM move
+
+	evos_attacks Overqwil
+	learnset 1, AQUA_JET ; Water Gun → SV TM move
+	learnset 1, SPIKES
+	learnset 1, TACKLE
+	learnset 1, POISON_STING
+	learnset 5, DEFENSE_CURL ; Harden → TM move
+	learnset 9, MINIMIZE
+	learnset 13, PIN_MISSILE
+	learnset 17, ROLLOUT
+	learnset 21, TOXIC_SPIKES
+	learnset 25, PAIN_SPLIT ; Stockpile + Spit Up → HGSS move tutor
+	learnset 29, REVERSAL ; Revenge → Sw/Sh move
+	learnset 33, WATER_PULSE ; Brine → TM move
+	learnset 37, CRUNCH ; Dark Pulse → SV TM move
+	learnset 41, TAKE_DOWN
+	learnset 45, AQUA_TAIL
+	learnset 49, POISON_JAB
+	learnset 53, DESTINY_BOND
+	learnset 57, EXPLOSION ; Self-Destruct → similar move
+	learnset 60, DOUBLE_EDGE ; Fell Stinger → event move
+
+	evos_attacks Dudunsparce
+	learnset 1, RAGE
+	learnset 1, DEFENSE_CURL
+	learnset 3, ROLLOUT
+	learnset 6, ASTONISH ; Spite → egg move
+	learnset 8, PURSUIT
+	learnset 11, SCREECH
+	learnset 13, MUD_SLAP
+	learnset 16, FURY_STRIKES ; Yawn → event move (Fury Attack)
+	learnset 18, ANCIENTPOWER
+	learnset 21, BODY_SLAM
+	learnset 23, DRAGON_RAGE ; Drill Run → new move
+	learnset 26, ROOST
+	learnset 28, TAKE_DOWN
+	learnset 31, DRAGON_DANCE ; Coil → new move
+	learnset 33, DIG
+	learnset 36, GLARE
+	learnset 38, DOUBLE_EDGE
+	learnset 41, EARTHQUAKE ; Endeavor → TM move
+	learnset 43, AIR_SLASH
+	learnset 46, HEX ; Dragon Rush → egg move
+	learnset 48, ENDURE
+	learnset 51, REVERSAL ; Flail → similar move
+	learnset 53, HURRICANE
+	learnset 56, HYPER_VOICE ; Boomburst → similar move
+	learnset 58, OUTRAGE ; new move
+
+	evos_attacks Clodsire
+	learnset 1, MEGAHORN ; evolution move
+	learnset 1, MUD_SLAP ; Mud Shot → similar move
+	learnset 1, LEER ; Tail Whip → similar move
+	learnset 5, TACKLE
+	learnset 9, POISON_STING ; Poison Tail → similar move
+	learnset 15, HEADBUTT ; Slam → tutor move
+	learnset 19, RECOVER ; Mud Bomb → egg move
+	learnset 24, AMNESIA
+	learnset 31, BELLY_DRUM ; Yawn → event move
+	learnset 36, EARTHQUAKE
+	learnset 41, POISON_JAB
+	learnset 48, TOXIC_SPIKES
+	learnset 53, GUNK_SHOT ; Sludge Wave → similar move
+
+	evos_attacks Annihilape
+	learnset 1, SHADOW_CLAW ; Shadow Punch → similar move ; evolution move
+	learnset 1, OUTRAGE
+	learnset 1, RAGE
+	learnset 1, SCRATCH
+	learnset 1, LOW_KICK
+	learnset 1, LEER
+	learnset 1, FOCUS_ENERGY
+	learnset 5, FURY_STRIKES ; Fury Swipes → similar move
+	learnset 8, KARATE_CHOP
+	learnset 12, PURSUIT
+	learnset 15, SEISMIC_TOSS
+	learnset 19, SWAGGER
+	learnset 22, CROSS_CHOP
+	learnset 26, REVERSAL ; Assurance → egg move
+	learnset 30, FEINT_ATTACK ; Punishment → new move
+	learnset 35, THRASH
+	learnset 39, CLOSE_COMBAT
+	learnset 44, SCREECH
+	learnset 48, GUNK_SHOT ; Stomping Tantrum → HGSS tutor move
+	learnset 53, OUTRAGE
+
+	; Also terminates previous mon's learnset
+	EggEvosAttacks:
+	db -1 ; no more evolutions
+	db -1 ; no more level-up moves
+

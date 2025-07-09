@@ -1,5 +1,5 @@
 _SacredAsh:
-	ld a, $0
+	xor a
 	ld [wItemEffectSucceeded], a
 	call CheckAnyFaintedMon
 	ret nc
@@ -12,7 +12,6 @@ _SacredAsh:
 
 CheckAnyFaintedMon:
 	ld de, PARTYMON_STRUCT_LENGTH
-	ld bc, wPartySpecies
 	ld hl, wPartyMon1HP
 	ld a, [wPartyCount]
 	and a
@@ -21,10 +20,12 @@ CheckAnyFaintedMon:
 .loop
 	push af
 	push hl
-	ld a, [bc]
-	inc bc
-	cp EGG
-	jr z, .next
+	ld bc, wPartyMon1IsEgg - wPartyMon1HP
+	add hl, bc
+	bit MON_IS_EGG_F, [hl]
+	pop hl
+	push hl
+	jr nz, .next
 
 	ld a, [hli]
 	or [hl]
@@ -49,20 +50,14 @@ SacredAshScript:
 	special HealParty
 	refreshmap
 	playsound SFX_WARP_TO
-	special FadeOutToWhite
-	special FadeInFromWhite
-	special FadeOutToWhite
-	special FadeInFromWhite
-	special FadeOutToWhite
-	special FadeInFromWhite
+rept 3
+	special FadeOutPalettes
+	special LoadMapPalettes
+	special FadeInPalettes_EnableDynNoApply
+endr
 	waitsfx
-	writetext .UseSacredAshText
+	opentext
+	farwritetext _UseSacredAshText
 	playsound SFX_CAUGHT_MON
 	waitsfx
-	waitbutton
-	closetext
-	end
-
-.UseSacredAshText:
-	text_far _UseSacredAshText
-	text_end
+	waitendtext

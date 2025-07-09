@@ -1,53 +1,50 @@
 BattleTowerText::
-; Print text c for trainer [wBT_OTTrainerClass]
+; Print text c for trainer [wOtherTrainerClass]
 ; 1: Intro text
 ; 2: Player lost
 ; 3: Player won
-	ldh a, [rWBK]
-	push af
-	ld a, BANK(wBT_OTTrainerClass)
-	ldh [rWBK], a
-if DEF(_CRYSTAL11)
-	ld hl, wBT_OTTrainerClass
-else
-; BUG: Instead of loading the trainer class,
-; Crystal 1.0 loads the 6th character in the trainer's
-; name, then uses it to get the trainer's gender.
-; As a consequence, the enemy trainer's dialog will
-; always be sampled from the female array.
-	ld hl, wBT_OTName + NAME_LENGTH_JAPANESE - 1
-endc
-	ld a, [hl]
+	ld a, [wOtherTrainerClass]
+	cp TOWERTYCOON
+	jr z, .tycoon
+	cp FACTORYHEAD
+	jr z, .head
+
+	push bc
 	dec a
-	ld e, a
-	ld d, 0
+	ld c, a
+	ld b, CHECK_FLAG
 	ld hl, BTTrainerClassGenders
-	add hl, de
-	ld a, [hl]
+	ld d, BANK(BTTrainerClassGenders)
+	predef FlagPredef
+	ld a, c
+	pop bc
 	and a
 	jr nz, .female
-	; generate a random number between 0 and 24
-	ldh a, [hRandomAdd]
-	and $1f
-	cp 25
-	jr c, .okay0
-	sub 25
 
-.okay0
+	; generate a random number between 0 and 24
+	ld a, 25
+	call RandomRange
 	ld hl, BTMaleTrainerTexts
+	jr .proceed
+
+.tycoon
+	; always use the number 0
+	xor a
+	ld hl, BTTycoonTexts
+	jr .proceed
+
+.head
+	; always use the number 0
+	xor a
+	ld hl, BFHeadTexts
 	jr .proceed
 
 .female
 	; generate a random number between 0 and 14
-	ldh a, [hRandomAdd]
-	and $f
-	cp 15
-	jr c, .okay1
-	sub 15
-
-.okay1
+	ld a, 15
+	call RandomRange
 	ld hl, BTFemaleTrainerTexts
-
+	; fallthrough
 .proceed
 	ld b, 0
 	dec c
@@ -78,12 +75,7 @@ endc
 	ld l, c
 	ld h, a
 	bccoord 1, 14
-	pop af
-	ldh [rWBK], a
-	call PrintTextboxTextAt
-	ret
-
-INCLUDE "mobile/fixed_words.asm"
+	jmp PlaceWholeStringInBoxAtOnce
 
 INCLUDE "data/trainers/genders.asm"
 
@@ -93,85 +85,85 @@ BTMaleTrainerTexts:
 	dw .PlayerWon
 
 .Greetings:
-	dw BTGreetingM1Text
-	dw BTGreetingM2Text
-	dw BTGreetingM3Text
-	dw BTGreetingM4Text
-	dw BTGreetingM5Text
-	dw BTGreetingM6Text
-	dw BTGreetingM7Text
-	dw BTGreetingM8Text
-	dw BTGreetingM9Text
-	dw BTGreetingM10Text
-	dw BTGreetingM11Text
-	dw BTGreetingM12Text
-	dw BTGreetingM13Text
-	dw BTGreetingM14Text
-	dw BTGreetingM15Text
-	dw BTGreetingM16Text
-	dw BTGreetingM17Text
-	dw BTGreetingM18Text
-	dw BTGreetingM19Text
-	dw BTGreetingM20Text
-	dw BTGreetingM21Text
-	dw BTGreetingM22Text
-	dw BTGreetingM23Text
-	dw BTGreetingM24Text
-	dw BTGreetingM25Text
+	dw BTGreetingM1
+	dw BTGreetingM2
+	dw BTGreetingM3
+	dw BTGreetingM4
+	dw BTGreetingM5
+	dw BTGreetingM6
+	dw BTGreetingM7
+	dw BTGreetingM8
+	dw BTGreetingM9
+	dw BTGreetingM10
+	dw BTGreetingM11
+	dw BTGreetingM12
+	dw BTGreetingM13
+	dw BTGreetingM14
+	dw BTGreetingM15
+	dw BTGreetingM16
+	dw BTGreetingM17
+	dw BTGreetingM18
+	dw BTGreetingM19
+	dw BTGreetingM20
+	dw BTGreetingM21
+	dw BTGreetingM22
+	dw BTGreetingM23
+	dw BTGreetingM24
+	dw BTGreetingM25
 
 .PlayerLost:
-	dw BTLossM1Text
-	dw BTLossM2Text
-	dw BTLossM3Text
-	dw BTLossM4Text
-	dw BTLossM5Text
-	dw BTLossM6Text
-	dw BTLossM7Text
-	dw BTLossM8Text
-	dw BTLossM9Text
-	dw BTLossM10Text
-	dw BTLossM11Text
-	dw BTLossM12Text
-	dw BTLossM13Text
-	dw BTLossM14Text
-	dw BTLossM15Text
-	dw BTLossM16Text
-	dw BTLossM17Text
-	dw BTLossM18Text
-	dw BTLossM19Text
-	dw BTLossM20Text
-	dw BTLossM21Text
-	dw BTLossM22Text
-	dw BTLossM23Text
-	dw BTLossM24Text
-	dw BTLossM25Text
+	dw BTLossM1
+	dw BTLossM2
+	dw BTLossM3
+	dw BTLossM4
+	dw BTLossM5
+	dw BTLossM6
+	dw BTLossM7
+	dw BTLossM8
+	dw BTLossM9
+	dw BTLossM10
+	dw BTLossM11
+	dw BTLossM12
+	dw BTLossM13
+	dw BTLossM14
+	dw BTLossM15
+	dw BTLossM16
+	dw BTLossM17
+	dw BTLossM18
+	dw BTLossM19
+	dw BTLossM20
+	dw BTLossM21
+	dw BTLossM22
+	dw BTLossM23
+	dw BTLossM24
+	dw BTLossM25
 
 .PlayerWon:
-	dw BTWinM1Text
-	dw BTWinM2Text
-	dw BTWinM3Text
-	dw BTWinM4Text
-	dw BTWinM5Text
-	dw BTWinM6Text
-	dw BTWinM7Text
-	dw BTWinM8Text
-	dw BTWinM9Text
-	dw BTWinM10Text
-	dw BTWinM11Text
-	dw BTWinM12Text
-	dw BTWinM13Text
-	dw BTWinM14Text
-	dw BTWinM15Text
-	dw BTWinM16Text
-	dw BTWinM17Text
-	dw BTWinM18Text
-	dw BTWinM19Text
-	dw BTWinM20Text
-	dw BTWinM21Text
-	dw BTWinM22Text
-	dw BTWinM23Text
-	dw BTWinM24Text
-	dw BTWinM25Text
+	dw BTWinM1
+	dw BTWinM2
+	dw BTWinM3
+	dw BTWinM4
+	dw BTWinM5
+	dw BTWinM6
+	dw BTWinM7
+	dw BTWinM8
+	dw BTWinM9
+	dw BTWinM10
+	dw BTWinM11
+	dw BTWinM12
+	dw BTWinM13
+	dw BTWinM14
+	dw BTWinM15
+	dw BTWinM16
+	dw BTWinM17
+	dw BTWinM18
+	dw BTWinM19
+	dw BTWinM20
+	dw BTWinM21
+	dw BTWinM22
+	dw BTWinM23
+	dw BTWinM24
+	dw BTWinM25
 
 BTFemaleTrainerTexts:
 	dw .Greetings
@@ -179,532 +171,584 @@ BTFemaleTrainerTexts:
 	dw .PlayerWon
 
 .Greetings:
-	dw BTGreetingF1Text
-	dw BTGreetingF2Text
-	dw BTGreetingF3Text
-	dw BTGreetingF4Text
-	dw BTGreetingF5Text
-	dw BTGreetingF6Text
-	dw BTGreetingF7Text
-	dw BTGreetingF8Text
-	dw BTGreetingF9Text
-	dw BTGreetingF10Text
-	dw BTGreetingF11Text
-	dw BTGreetingF12Text
-	dw BTGreetingF13Text
-	dw BTGreetingF14Text
-	dw BTGreetingF15Text
+	dw BTGreetingF1
+	dw BTGreetingF2
+	dw BTGreetingF3
+	dw BTGreetingF4
+	dw BTGreetingF5
+	dw BTGreetingF6
+	dw BTGreetingF7
+	dw BTGreetingF8
+	dw BTGreetingF9
+	dw BTGreetingF10
+	dw BTGreetingF11
+	dw BTGreetingF12
+	dw BTGreetingF13
+	dw BTGreetingF14
+	dw BTGreetingF15
 
 .PlayerLost:
-	dw BTLossF1Text
-	dw BTLossF2Text
-	dw BTLossF3Text
-	dw BTLossF4Text
-	dw BTLossF5Text
-	dw BTLossF6Text
-	dw BTLossF7Text
-	dw BTLossF8Text
-	dw BTLossF9Text
-	dw BTLossF10Text
-	dw BTLossF11Text
-	dw BTLossF12Text
-	dw BTLossF13Text
-	dw BTLossF14Text
-	dw BTLossF15Text
+	dw BTLossF1
+	dw BTLossF2
+	dw BTLossF3
+	dw BTLossF4
+	dw BTLossF5
+	dw BTLossF6
+	dw BTLossF7
+	dw BTLossF8
+	dw BTLossF9
+	dw BTLossF10
+	dw BTLossF11
+	dw BTLossF12
+	dw BTLossF13
+	dw BTLossF14
+	dw BTLossF15
 
 .PlayerWon:
-	dw BTWinF1Text
-	dw BTWinF2Text
-	dw BTWinF3Text
-	dw BTWinF4Text
-	dw BTWinF5Text
-	dw BTWinF6Text
-	dw BTWinF7Text
-	dw BTWinF8Text
-	dw BTWinF9Text
-	dw BTWinF10Text
-	dw BTWinF11Text
-	dw BTWinF12Text
-	dw BTWinF13Text
-	dw BTWinF14Text
-	dw BTWinF15Text
+	dw BTWinF1
+	dw BTWinF2
+	dw BTWinF3
+	dw BTWinF4
+	dw BTWinF5
+	dw BTWinF6
+	dw BTWinF7
+	dw BTWinF8
+	dw BTWinF9
+	dw BTWinF10
+	dw BTWinF11
+	dw BTWinF12
+	dw BTWinF13
+	dw BTWinF14
+	dw BTWinF15
 
-BTGreetingM1Text:
+BTTycoonTexts:
+	dw .Greetings
+	dw .PlayerLost
+	dw .PlayerWon
+
+.Greetings:
+	dw BTGreetingTycoon
+
+.PlayerLost:
+	dw BTLossTycoon
+
+.PlayerWon:
+	dw BTWinTycoon
+
+BFHeadTexts:
+	dw .Greetings
+	dw .PlayerLost
+	dw .PlayerWon
+
+.Greetings:
+	dw BTGreetingHead
+
+.PlayerLost:
+	dw BTLossHead
+
+.PlayerWon:
+	dw BTWinHead
+
+BTGreetingM1:
 	text_far _BTGreetingM1Text
 	text_end
 
-BTLossM1Text:
+BTLossM1:
 	text_far _BTLossM1Text
 	text_end
 
-BTWinM1Text:
+BTWinM1:
 	text_far _BTWinM1Text
 	text_end
 
-BTGreetingM2Text:
+BTGreetingM2:
 	text_far _BTGreetingM2Text
 	text_end
 
-BTLossM2Text:
+BTLossM2:
 	text_far _BTLossM2Text
 	text_end
 
-BTWinM2Text:
+BTWinM2:
 	text_far _BTWinM2Text
 	text_end
 
-BTGreetingM3Text:
+BTGreetingM3:
 	text_far _BTGreetingM3Text
 	text_end
 
-BTLossM3Text:
+BTLossM3:
 	text_far _BTLossM3Text
 	text_end
 
-BTWinM3Text:
+BTWinM3:
 	text_far _BTWinM3Text
 	text_end
 
-BTGreetingM4Text:
+BTGreetingM4:
 	text_far _BTGreetingM4Text
 	text_end
 
-BTLossM4Text:
+BTLossM4:
 	text_far _BTLossM4Text
 	text_end
 
-BTWinM4Text:
+BTWinM4:
 	text_far _BTWinM4Text
 	text_end
 
-BTGreetingM5Text:
+BTGreetingM5:
 	text_far _BTGreetingM5Text
 	text_end
 
-BTLossM5Text:
+BTLossM5:
 	text_far _BTLossM5Text
 	text_end
 
-BTWinM5Text:
+BTWinM5:
 	text_far _BTWinM5Text
 	text_end
 
-BTGreetingM6Text:
+BTGreetingM6:
 	text_far _BTGreetingM6Text
 	text_end
 
-BTLossM6Text:
+BTLossM6:
 	text_far _BTLossM6Text
 	text_end
 
-BTWinM6Text:
+BTWinM6:
 	text_far _BTWinM6Text
 	text_end
 
-BTGreetingM7Text:
+BTGreetingM7:
 	text_far _BTGreetingM7Text
 	text_end
 
-BTLossM7Text:
+BTLossM7:
 	text_far _BTLossM7Text
 	text_end
 
-BTWinM7Text:
+BTWinM7:
 	text_far _BTWinM7Text
 	text_end
 
-BTGreetingM8Text:
+BTGreetingM8:
 	text_far _BTGreetingM8Text
 	text_end
 
-BTLossM8Text:
+BTLossM8:
 	text_far _BTLossM8Text
 	text_end
 
-BTWinM8Text:
+BTWinM8:
 	text_far _BTWinM8Text
 	text_end
 
-BTGreetingM9Text:
+BTGreetingM9:
 	text_far _BTGreetingM9Text
 	text_end
 
-BTLossM9Text:
+BTLossM9:
 	text_far _BTLossM9Text
 	text_end
 
-BTWinM9Text:
+BTWinM9:
 	text_far _BTWinM9Text
 	text_end
 
-BTGreetingM10Text:
+BTGreetingM10:
 	text_far _BTGreetingM10Text
 	text_end
 
-BTLossM10Text:
+BTLossM10:
 	text_far _BTLossM10Text
 	text_end
 
-BTWinM10Text:
+BTWinM10:
 	text_far _BTWinM10Text
 	text_end
 
-BTGreetingM11Text:
+BTGreetingM11:
 	text_far _BTGreetingM11Text
 	text_end
 
-BTLossM11Text:
+BTLossM11:
 	text_far _BTLossM11Text
 	text_end
 
-BTWinM11Text:
+BTWinM11:
 	text_far _BTWinM11Text
 	text_end
 
-BTGreetingM12Text:
+BTGreetingM12:
 	text_far _BTGreetingM12Text
 	text_end
 
-BTLossM12Text:
+BTLossM12:
 	text_far _BTLossM12Text
 	text_end
 
-BTWinM12Text:
+BTWinM12:
 	text_far _BTWinM12Text
 	text_end
 
-BTGreetingM13Text:
+BTGreetingM13:
 	text_far _BTGreetingM13Text
 	text_end
 
-BTLossM13Text:
+BTLossM13:
 	text_far _BTLossM13Text
 	text_end
 
-BTWinM13Text:
+BTWinM13:
 	text_far _BTWinM13Text
 	text_end
 
-BTGreetingM14Text:
+BTGreetingM14:
 	text_far _BTGreetingM14Text
 	text_end
 
-BTLossM14Text:
+BTLossM14:
 	text_far _BTLossM14Text
 	text_end
 
-BTWinM14Text:
+BTWinM14:
 	text_far _BTWinM14Text
 	text_end
 
-BTGreetingM15Text:
+BTGreetingM15:
 	text_far _BTGreetingM15Text
 	text_end
 
-BTLossM15Text:
+BTLossM15:
 	text_far _BTLossM15Text
 	text_end
 
-BTWinM15Text:
+BTWinM15:
 	text_far _BTWinM15Text
 	text_end
 
-BTGreetingM16Text:
+BTGreetingM16:
 	text_far _BTGreetingM16Text
 	text_end
 
-BTLossM16Text:
+BTLossM16:
 	text_far _BTLossM16Text
 	text_end
 
-BTWinM16Text:
+BTWinM16:
 	text_far _BTWinM16Text
 	text_end
 
-BTGreetingM17Text:
+BTGreetingM17:
 	text_far _BTGreetingM17Text
 	text_end
 
-BTLossM17Text:
+BTLossM17:
 	text_far _BTLossM17Text
 	text_end
 
-BTWinM17Text:
+BTWinM17:
 	text_far _BTWinM17Text
 	text_end
 
-BTGreetingM18Text:
+BTGreetingM18:
 	text_far _BTGreetingM18Text
 	text_end
 
-BTLossM18Text:
+BTLossM18:
 	text_far _BTLossM18Text
 	text_end
 
-BTWinM18Text:
+BTWinM18:
 	text_far _BTWinM18Text
 	text_end
 
-BTGreetingM19Text:
+BTGreetingM19:
 	text_far _BTGreetingM19Text
 	text_end
 
-BTLossM19Text:
+BTLossM19:
 	text_far _BTLossM19Text
 	text_end
 
-BTWinM19Text:
+BTWinM19:
 	text_far _BTWinM19Text
 	text_end
 
-BTGreetingM20Text:
+BTGreetingM20:
 	text_far _BTGreetingM20Text
 	text_end
 
-BTLossM20Text:
+BTLossM20:
 	text_far _BTLossM20Text
 	text_end
 
-BTWinM20Text:
+BTWinM20:
 	text_far _BTWinM20Text
 	text_end
 
-BTGreetingM21Text:
+BTGreetingM21:
 	text_far _BTGreetingM21Text
 	text_end
 
-BTLossM21Text:
+BTLossM21:
 	text_far _BTLossM21Text
 	text_end
 
-BTWinM21Text:
+BTWinM21:
 	text_far _BTWinM21Text
 	text_end
 
-BTGreetingM22Text:
+BTGreetingM22:
 	text_far _BTGreetingM22Text
 	text_end
 
-BTLossM22Text:
+BTLossM22:
 	text_far _BTLossM22Text
 	text_end
 
-BTWinM22Text:
+BTWinM22:
 	text_far _BTWinM22Text
 	text_end
 
-BTGreetingM23Text:
+BTGreetingM23:
 	text_far _BTGreetingM23Text
 	text_end
 
-BTLossM23Text:
+BTLossM23:
 	text_far _BTLossM23Text
 	text_end
 
-BTWinM23Text:
+BTWinM23:
 	text_far _BTWinM23Text
 	text_end
 
-BTGreetingM24Text:
+BTGreetingM24:
 	text_far _BTGreetingM24Text
 	text_end
 
-BTLossM24Text:
+BTLossM24:
 	text_far _BTLossM24Text
 	text_end
 
-BTWinM24Text:
+BTWinM24:
 	text_far _BTWinM24Text
 	text_end
 
-BTGreetingM25Text:
+BTGreetingM25:
 	text_far _BTGreetingM25Text
 	text_end
 
-BTLossM25Text:
+BTLossM25:
 	text_far _BTLossM25Text
 	text_end
 
-BTWinM25Text:
+BTWinM25:
 	text_far _BTWinM25Text
 	text_end
 
-BTGreetingF1Text:
+BTGreetingF1:
 	text_far _BTGreetingF1Text
 	text_end
 
-BTLossF1Text:
+BTLossF1:
 	text_far _BTLossF1Text
 	text_end
 
-BTWinF1Text:
+BTWinF1:
 	text_far _BTWinF1Text
 	text_end
 
-BTGreetingF2Text:
+BTGreetingF2:
 	text_far _BTGreetingF2Text
 	text_end
 
-BTLossF2Text:
+BTLossF2:
 	text_far _BTLossF2Text
 	text_end
 
-BTWinF2Text:
+BTWinF2:
 	text_far _BTWinF2Text
 	text_end
 
-BTGreetingF3Text:
+BTGreetingF3:
 	text_far _BTGreetingF3Text
 	text_end
 
-BTLossF3Text:
+BTLossF3:
 	text_far _BTLossF3Text
 	text_end
 
-BTWinF3Text:
+BTWinF3:
 	text_far _BTWinF3Text
 	text_end
 
-BTGreetingF4Text:
+BTGreetingF4:
 	text_far _BTGreetingF4Text
 	text_end
 
-BTLossF4Text:
+BTLossF4:
 	text_far _BTLossF4Text
 	text_end
 
-BTWinF4Text:
+BTWinF4:
 	text_far _BTWinF4Text
 	text_end
 
-BTGreetingF5Text:
+BTGreetingF5:
 	text_far _BTGreetingF5Text
 	text_end
 
-BTLossF5Text:
+BTLossF5:
 	text_far _BTLossF5Text
 	text_end
 
-BTWinF5Text:
+BTWinF5:
 	text_far _BTWinF5Text
 	text_end
 
-BTGreetingF6Text:
+BTGreetingF6:
 	text_far _BTGreetingF6Text
 	text_end
 
-BTLossF6Text:
+BTLossF6:
 	text_far _BTLossF6Text
 	text_end
 
-BTWinF6Text:
+BTWinF6:
 	text_far _BTWinF6Text
 	text_end
 
-BTGreetingF7Text:
+BTGreetingF7:
 	text_far _BTGreetingF7Text
 	text_end
 
-BTLossF7Text:
+BTLossF7:
 	text_far _BTLossF7Text
 	text_end
 
-BTWinF7Text:
+BTWinF7:
 	text_far _BTWinF7Text
 	text_end
 
-BTGreetingF8Text:
+BTGreetingF8:
 	text_far _BTGreetingF8Text
 	text_end
 
-BTLossF8Text:
+BTLossF8:
 	text_far _BTLossF8Text
 	text_end
 
-BTWinF8Text:
+BTWinF8:
 	text_far _BTWinF8Text
 	text_end
 
-BTGreetingF9Text:
+BTGreetingF9:
 	text_far _BTGreetingF9Text
 	text_end
 
-BTLossF9Text:
+BTLossF9:
 	text_far _BTLossF9Text
 	text_end
 
-BTWinF9Text:
+BTWinF9:
 	text_far _BTWinF9Text
 	text_end
 
-BTGreetingF10Text:
+BTGreetingF10:
 	text_far _BTGreetingF10Text
 	text_end
 
-BTLossF10Text:
+BTLossF10:
 	text_far _BTLossF10Text
 	text_end
 
-BTWinF10Text:
+BTWinF10:
 	text_far _BTWinF10Text
 	text_end
 
-BTGreetingF11Text:
+BTGreetingF11:
 	text_far _BTGreetingF11Text
 	text_end
 
-BTLossF11Text:
+BTLossF11:
 	text_far _BTLossF11Text
 	text_end
 
-BTWinF11Text:
+BTWinF11:
 	text_far _BTWinF11Text
 	text_end
 
-BTGreetingF12Text:
+BTGreetingF12:
 	text_far _BTGreetingF12Text
 	text_end
 
-BTLossF12Text:
+BTLossF12:
 	text_far _BTLossF12Text
 	text_end
 
-BTWinF12Text:
+BTWinF12:
 	text_far _BTWinF12Text
 	text_end
 
-BTGreetingF13Text:
+BTGreetingF13:
 	text_far _BTGreetingF13Text
 	text_end
 
-BTLossF13Text:
+BTLossF13:
 	text_far _BTLossF13Text
 	text_end
 
-BTWinF13Text:
+BTWinF13:
 	text_far _BTWinF13Text
 	text_end
 
-BTGreetingF14Text:
+BTGreetingF14:
 	text_far _BTGreetingF14Text
 	text_end
 
-BTLossF14Text:
+BTLossF14:
 	text_far _BTLossF14Text
 	text_end
 
-BTWinF14Text:
+BTWinF14:
 	text_far _BTWinF14Text
 	text_end
 
-BTGreetingF15Text:
+BTGreetingF15:
 	text_far _BTGreetingF15Text
 	text_end
 
-BTLossF15Text:
+BTLossF15:
 	text_far _BTLossF15Text
 	text_end
 
-BTWinF15Text:
+BTWinF15:
 	text_far _BTWinF15Text
+	text_end
+
+BTGreetingTycoon:
+	text_far BattleTowerText_GreetingTycoon
+	text_end
+
+BTLossTycoon:
+	text_far BattleTowerText_LossTycoon
+	text_end
+
+BTWinTycoon:
+	text_far BattleTowerText_WinTycoon
+	text_end
+
+BTGreetingHead:
+	text_far BattleFactoryText_GreetingHead
+	text_end
+
+BTLossHead:
+	text_far BattleFactoryText_LossHead
+	text_end
+
+BTWinHead:
+	text_far BattleFactoryText_WinHead
 	text_end

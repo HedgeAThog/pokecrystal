@@ -22,27 +22,27 @@ Music_ProfOak_Ch1:
 	note G#, 8
 	volume_envelope 9, 7
 	note G#, 8
-.loop1:
+Music_ProfOak_branch_f4e10:
 	volume_envelope 9, 1
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub2
-	sound_loop 2, .loop1
-.mainloop:
-	sound_call .sub3
-	sound_call .sub3
-	sound_call .sub4
-	sound_call .sub4
+	sound_call Music_ProfOak_branch_f4e42
+	sound_call Music_ProfOak_branch_f4e42
+	sound_call Music_ProfOak_branch_f4e4d
+	sound_call Music_ProfOak_branch_f4e4d
+	sound_loop 2, Music_ProfOak_branch_f4e10
+Music_ProfOak_branch_f4e22:
+	sound_call Music_ProfOak_branch_f4e58
+	sound_call Music_ProfOak_branch_f4e58
+	sound_call Music_ProfOak_branch_f4e6c
+	sound_call Music_ProfOak_branch_f4e6c
 	transpose 0, 2
-	sound_call .sub3
-	sound_call .sub3
+	sound_call Music_ProfOak_branch_f4e58
+	sound_call Music_ProfOak_branch_f4e58
 	transpose 0, 0
-	sound_call .sub4
-	sound_call .sub4
-	sound_loop 0, .mainloop
+	sound_call Music_ProfOak_branch_f4e6c
+	sound_call Music_ProfOak_branch_f4e6c
+	sound_jump Music_ProfOak_branch_f4e22
 
-.sub1:
+Music_ProfOak_branch_f4e42:
 	octave 2
 	note B_, 2
 	octave 3
@@ -55,7 +55,7 @@ Music_ProfOak_Ch1:
 	note E_, 2
 	sound_ret
 
-.sub2:
+Music_ProfOak_branch_f4e4d:
 	octave 2
 	note B_, 2
 	octave 3
@@ -68,7 +68,7 @@ Music_ProfOak_Ch1:
 	note D#, 2
 	sound_ret
 
-.sub3:
+Music_ProfOak_branch_f4e58:
 	octave 2
 	note A_, 2
 	octave 3
@@ -86,7 +86,7 @@ Music_ProfOak_Ch1:
 	volume_envelope 9, 1
 	sound_ret
 
-.sub4:
+Music_ProfOak_branch_f4e6c:
 	octave 2
 	note B_, 1
 	octave 3
@@ -116,7 +116,7 @@ Music_ProfOak_Ch2:
 	volume_envelope 10, 7
 	note B_, 10
 	duty_cycle 2
-.loop1:
+Music_ProfOak_branch_f4e92:
 	volume_envelope 11, 2
 	octave 3
 	note B_, 2
@@ -151,10 +151,10 @@ Music_ProfOak_Ch2:
 	note A_, 4
 	note B_, 2
 	note B_, 4
-	sound_loop 2, .loop1
+	sound_loop 2, Music_ProfOak_branch_f4e92
 	rest 6
 	volume_envelope 11, 4
-.mainloop:
+Music_ProfOak_branch_f4ebf:
 	note C#, 6
 	octave 3
 	note A_, 1
@@ -202,7 +202,7 @@ Music_ProfOak_Ch2:
 	octave 4
 	note E_, 1
 	note G#, 16
-	sound_loop 0, .mainloop
+	sound_jump Music_ProfOak_branch_f4ebf
 
 Music_ProfOak_Ch3:
 	stereo_panning FALSE, TRUE
@@ -223,27 +223,27 @@ Music_ProfOak_Ch3:
 	note B_, 1
 	rest 1
 	note E_, 2
-	sound_call .sub1
-.loop1:
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub2
-	sound_loop 2, .loop1
-.mainloop:
-	sound_call .sub3
-	sound_call .sub3
-	sound_call .sub4
-	sound_call .sub4
+	sound_call Music_ProfOak_branch_f4f3d
+Music_ProfOak_branch_f4f0d:
+	sound_call Music_ProfOak_branch_f4f3d
+	sound_call Music_ProfOak_branch_f4f3d
+	sound_call Music_ProfOak_branch_f4f4c
+	sound_call Music_ProfOak_branch_f4f4c
+	sound_loop 2, Music_ProfOak_branch_f4f0d
+Music_ProfOak_branch_f4f1d:
+	sound_call Music_ProfOak_branch_f4f5a
+	sound_call Music_ProfOak_branch_f4f5a
+	sound_call Music_ProfOak_branch_f4f69
+	sound_call Music_ProfOak_branch_f4f69
 	transpose 0, 2
-	sound_call .sub3
-	sound_call .sub3
+	sound_call Music_ProfOak_branch_f4f5a
+	sound_call Music_ProfOak_branch_f4f5a
 	transpose 0, 0
-	sound_call .sub4
-	sound_call .sub4
-	sound_loop 0, .mainloop
+	sound_call Music_ProfOak_branch_f4f69
+	sound_call Music_ProfOak_branch_f4f69
+	sound_jump Music_ProfOak_branch_f4f1d
 
-.sub1:
+Music_ProfOak_branch_f4f3d:
 	note E_, 2
 	rest 2
 	octave 4
@@ -260,7 +260,7 @@ Music_ProfOak_Ch3:
 	note E_, 2
 	sound_ret
 
-.sub2:
+Music_ProfOak_branch_f4f4c:
 	octave 2
 	note B_, 2
 	rest 2
@@ -276,7 +276,7 @@ Music_ProfOak_Ch3:
 	note D#, 2
 	sound_ret
 
-.sub3:
+Music_ProfOak_branch_f4f5a:
 	octave 2
 	note A_, 2
 	rest 2
@@ -293,7 +293,7 @@ Music_ProfOak_Ch3:
 	note C#, 2
 	sound_ret
 
-.sub4:
+Music_ProfOak_branch_f4f69:
 	octave 2
 	note G#, 2
 	rest 2

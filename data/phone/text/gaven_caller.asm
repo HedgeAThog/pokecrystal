@@ -1,12 +1,11 @@
 GavenMonGreaterThanImaginedText:
-	text "My @"
+	text "My "
 	text_ram wStringBuffer4
-	text_start
 	line "might be greater"
 	cont "than I imagined."
 
 	para "I doubt I'll see a"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text " that's"
 	cont "better than mine."
@@ -16,13 +15,13 @@ GavenDefeatedMonText:
 	text "Oh, and I managed"
 	line "to barely defeat"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text " the"
 	line "other day."
 
 	para "I've never seen a"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text " get"
 	cont "that strong…"
@@ -31,14 +30,14 @@ GavenDefeatedMonText:
 	line "your guard down,"
 
 	para "even against a"
-	line "#MON you're"
+	line "#mon you're"
 	cont "used to seeing."
 	done
 
 GavenLostAMonText:
 	text "And a while back,"
 	line "I tried to catch a"
-	cont "wild @"
+	cont "wild "
 	text_ram wStringBuffer4
 	text "."
 
@@ -56,7 +55,7 @@ GavenBattleRematchText:
 	text "Let's battle!"
 
 	para "I'll be waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 
@@ -75,11 +74,11 @@ GavenHangUpNotThursdayText:
 	done
 
 GavenReminderText:
-	text "<PLAY_G>, why"
+	text "<PLAYER>, why"
 	line "aren't you here?"
 
 	para "I'll take you down"
-	line "with @"
+	line "with "
 	text_ram wStringBuffer5
 	text "!"
 	done

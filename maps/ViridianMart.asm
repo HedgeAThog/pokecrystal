@@ -1,41 +1,7 @@
-	object_const_def
-	const VIRIDIANMART_CLERK
-	const VIRIDIANMART_LASS
-	const VIRIDIANMART_COOLTRAINER_M
-
-ViridianMart_MapScripts:
+ViridianMart_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
-
-ViridianMartClerkScript:
-	opentext
-	pokemart MARTTYPE_STANDARD, MART_VIRIDIAN
-	closetext
-	end
-
-ViridianMartLassScript:
-	jumptextfaceplayer ViridianMartLassText
-
-ViridianMartCooltrainerMScript:
-	jumptextfaceplayer ViridianMartCooltrainerMText
-
-ViridianMartLassText:
-	text "The GYM LEADER"
-	line "here is totally"
-	cont "cool."
-	done
-
-ViridianMartCooltrainerMText:
-	text "Have you been to"
-	line "CINNABAR?"
-
-	para "It's an island way"
-	line "south of here."
-	done
-
-ViridianMart_MapEvents:
-	db 0, 0 ; filler
 
 	def_warp_events
 	warp_event  2,  7, VIRIDIAN_CITY, 4
@@ -46,6 +12,27 @@ ViridianMart_MapEvents:
 	def_bg_events
 
 	def_object_events
-	object_event  1,  3, SPRITE_CLERK, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, ViridianMartClerkScript, -1
-	object_event  7,  2, SPRITE_LASS, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 2, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, ViridianMartLassScript, -1
-	object_event  1,  6, SPRITE_COOLTRAINER_M, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, ViridianMartCooltrainerMScript, -1
+	mart_clerk_event  1,  3, MARTTYPE_STANDARD, MART_VIRIDIAN
+	object_event  7,  2, SPRITE_CUTE_GIRL, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, PAL_NPC_RED, OBJECTTYPE_COMMAND, jumptextfaceplayer, ViridianMartLassText, -1
+	object_event  1,  6, SPRITE_COOL_DUDE, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, ViridianMartCooltrainerMText, -1
+
+ViridianMartLassText:
+	text "The Gym Leader"
+	line "here is totally"
+	cont "cool."
+
+	para "He's the only one"
+	line "without a type"
+	cont "specialty."
+
+	para "He likes to keep"
+	line "people guessing."
+	done
+
+ViridianMartCooltrainerMText:
+	text "Have you been to"
+	line "Cinnabar?"
+
+	para "It's an island way"
+	line "south of here."
+	done

@@ -1,23 +1,19 @@
-BattleCommand_Pursuit:
-; Double damage if the opponent is switching.
+BattleCommand_pursuit:
+; Sets up the alternate animation branch and plays the withdrawal animation
 
-	ld hl, wEnemyIsSwitching
-	ldh a, [hBattleTurn]
-	and a
-	jr z, .ok
-	ld hl, wPlayerIsSwitching
-.ok
-	ld a, [hl]
+	ld a, [wDeferredSwitch]
 	and a
 	ret z
 
-	ld hl, wCurDamage + 1
-	sla [hl]
-	dec hl
-	rl [hl]
-	ret nc
+	; Don't play the anim if battle effects are off, because this causes the
+	; animation to play twice (here + the switch-out code) with nothing for
+	; the actual Pursuit anim.
+	call CheckBattleEffects
+	ret c
 
-	ld a, $ff
-	ld [hli], a
-	ld [hl], a
-	ret
+	ld a, 1
+	ld [wBattleAnimParam], a
+	call StackCallOpponentTurn
+.Function:
+	ld de, ANIM_RETURN_MON
+	farjp PlayBattleAnimDE

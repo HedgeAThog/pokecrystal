@@ -24,24 +24,23 @@ Music_Evolution_Ch1:
 	rest 4
 	duty_cycle 3
 	stereo_panning FALSE, TRUE
-.mainloop:
-.loop1:
-	sound_call .sub1
+Music_Evolution_branch_f0713:
+	sound_call Music_Evolution_branch_f0737
 	note_type 12, 10, 4
 	note F#, 4
-	sound_call .sub1
+	sound_call Music_Evolution_branch_f0737
 	note_type 12, 10, 4
 	note F#, 4
-	sound_loop 2, .loop1
-	sound_call .sub2
+	sound_loop 2, Music_Evolution_branch_f0713
+	sound_call Music_Evolution_branch_f0743
 	note_type 12, 10, 4
 	note G#, 4
-	sound_call .sub2
+	sound_call Music_Evolution_branch_f0743
 	note_type 12, 10, 4
 	note G#, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_Evolution_branch_f0713
 
-.sub1:
+Music_Evolution_branch_f0737:
 	note_type 12, 10, 2
 	octave 3
 	note C_, 4
@@ -53,7 +52,7 @@ Music_Evolution_Ch1:
 	note C_, 4
 	sound_ret
 
-.sub2:
+Music_Evolution_branch_f0743:
 	note_type 12, 10, 2
 	octave 3
 	note D_, 4
@@ -77,26 +76,25 @@ Music_Evolution_Ch2:
 	rest 4
 	duty_cycle 3
 	stereo_panning TRUE, FALSE
-.mainloop:
-.loop1:
-	sound_call .sub1
+Music_Evolution_branch_f0761:
+	sound_call Music_Evolution_branch_f0787
 	note_type 12, 11, 5
 	note A_, 4
-	sound_call .sub1
+	sound_call Music_Evolution_branch_f0787
 	note_type 12, 11, 5
 	note B_, 4
-	sound_loop 2, .loop1
-	sound_call .sub2
+	sound_loop 2, Music_Evolution_branch_f0761
+	sound_call Music_Evolution_branch_f0793
 	note_type 12, 11, 5
 	note B_, 4
-	sound_call .sub2
+	sound_call Music_Evolution_branch_f0793
 	note_type 12, 11, 5
 	octave 4
 	note C#, 4
 	octave 3
-	sound_loop 0, .mainloop
+	sound_jump Music_Evolution_branch_f0761
 
-.sub1:
+Music_Evolution_branch_f0787:
 	note_type 12, 11, 2
 	octave 3
 	note G_, 4
@@ -108,7 +106,7 @@ Music_Evolution_Ch2:
 	note G_, 4
 	sound_ret
 
-.sub2:
+Music_Evolution_branch_f0793:
 	note_type 12, 11, 2
 	octave 3
 	note A_, 4
@@ -123,24 +121,23 @@ Music_Evolution_Ch2:
 Music_Evolution_Ch3:
 	note_type 12, 1, 6
 	rest 8
-.mainloop:
-.loop1:
-	sound_call .sub1
+Music_Evolution_branch_f07a3:
+	sound_call Music_Evolution_branch_f07bf
 	octave 3
 	note A_, 4
-	sound_call .sub1
+	sound_call Music_Evolution_branch_f07bf
 	octave 3
 	note B_, 4
-	sound_loop 2, .loop1
-	sound_call .sub2
+	sound_loop 2, Music_Evolution_branch_f07a3
+	sound_call Music_Evolution_branch_f07d5
 	octave 3
 	note B_, 4
-	sound_call .sub2
+	sound_call Music_Evolution_branch_f07d5
 	octave 4
 	note C#, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_Evolution_branch_f07a3
 
-.sub1:
+Music_Evolution_branch_f07bf:
 	octave 2
 	note A_, 2
 	rest 2
@@ -164,7 +161,7 @@ Music_Evolution_Ch3:
 	rest 2
 	sound_ret
 
-.sub2:
+Music_Evolution_branch_f07d5:
 	octave 2
 	note B_, 2
 	rest 2
@@ -192,7 +189,7 @@ Music_Evolution_Ch4:
 	toggle_noise 5
 	drum_speed 12
 	rest 8
-.mainloop:
+Music_Evolution_branch_f07f0:
 	stereo_panning TRUE, FALSE
 	drum_note 11, 6
 	drum_note 11, 4
@@ -200,4 +197,4 @@ Music_Evolution_Ch4:
 	drum_note 5, 2
 	drum_note 5, 2
 	drum_note 5, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_Evolution_branch_f07f0

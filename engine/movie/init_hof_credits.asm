@@ -1,35 +1,31 @@
 InitDisplayForHallOfFame:
-	call ClearBGPalettes
-	call ClearTilemap
-	call ClearSprites
-	call DisableLCD
-	call LoadStandardFont
-	call LoadFontsBattleExtra
-	hlbgcoord 0, 0
-	ld bc, vBGMap1 - vBGMap0
-	ld a, " "
-	call ByteFill
-	hlcoord 0, 0, wAttrmap
-	ld bc, SCREEN_AREA
-	xor a
-	call ByteFill
+	call ClearDisplayForEndgame
 	xor a
 	ldh [hSCY], a
 	ldh [hSCX], a
 	call EnableLCD
-	ld hl, .SavingRecordText
+	ld hl, .SavingRecordDontTurnOff
 	call PrintText
-	call WaitBGMap2
-	call SetDefaultBGPAndOBP
-	ret
+	jr FinishDisplayForEndgame
 
-.SavingRecordText:
+.SavingRecordDontTurnOff:
+	; SAVING RECORD… DON'T TURN OFF!
 	text_far _SavingRecordText
 	text_end
 
-InitDisplayForRedCredits:
+InitDisplayForLeafCredits:
+	call ClearDisplayForEndgame
+	xor a
+	ldh [hSCY], a
+	ldh [hSCX], a
+	call EnableLCD
+FinishDisplayForEndgame:
+	call ApplyAttrAndTilemapInVBlank
+	jmp SetDefaultBGPAndOBP
+
+ClearDisplayForEndgame:
 	call ClearBGPalettes
-	call ClearTilemap
+	call ClearTileMap
 	call ClearSprites
 	call DisableLCD
 	call LoadStandardFont
@@ -37,41 +33,25 @@ InitDisplayForRedCredits:
 	hlbgcoord 0, 0
 	ld bc, vBGMap1 - vBGMap0
 	ld a, " "
-	call ByteFill
+	rst ByteFill
 	hlcoord 0, 0, wAttrmap
 	ld bc, SCREEN_AREA
 	xor a
-	call ByteFill
-	ld hl, wBGPals1
-	ld c, 4 tiles
-.load_white_palettes
-	ld a, LOW(PALRGB_WHITE)
-	ld [hli], a
-	ld a, HIGH(PALRGB_WHITE)
-	ld [hli], a
-	dec c
-	jr nz, .load_white_palettes
-	xor a
-	ldh [hSCY], a
-	ldh [hSCX], a
-	call EnableLCD
-	call WaitBGMap2
-	call SetDefaultBGPAndOBP
+	rst ByteFill
 	ret
 
 ResetDisplayBetweenHallOfFameMons:
 	ldh a, [rWBK]
 	push af
-	ld a, BANK(wDecompressScratch)
+	ld a, $6
 	ldh [rWBK], a
-	ld hl, wDecompressScratch
-	ld bc, wScratchAttrmap - wDecompressScratch
+	ld hl, wScratchTileMap
+	ld bc, TILEMAP_AREA
 	ld a, " "
-	call ByteFill
+	rst ByteFill
 	hlbgcoord 0, 0
-	ld de, wDecompressScratch
-	ld b, 0
-	ld c, 4 tiles
+	ld de, wScratchTileMap
+	lb bc, $0, $40
 	call Request2bpp
 	pop af
 	ldh [rWBK], a

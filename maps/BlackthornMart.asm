@@ -1,51 +1,7 @@
-	object_const_def
-	const BLACKTHORNMART_CLERK
-	const BLACKTHORNMART_COOLTRAINER_M
-	const BLACKTHORNMART_BLACK_BELT
-
-BlackthornMart_MapScripts:
+BlackthornMart_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
-
-BlackthornMartClerkScript:
-	opentext
-	pokemart MARTTYPE_STANDARD, MART_BLACKTHORN
-	closetext
-	end
-
-BlackthornMartCooltrainerMScript:
-	jumptextfaceplayer BlackthornMartCooltrainerMText
-
-BlackthornMartBlackBeltScript:
-	jumptextfaceplayer BlackthornMartBlackBeltText
-
-BlackthornMartCooltrainerMText:
-	text "You can't buy MAX"
-	line "REVIVE, but it"
-
-	para "fully restores a"
-	line "fainted #MON."
-
-	para "Beware--it won't"
-	line "restore PP, the"
-
-	para "POWER POINTS"
-	line "needed for moves."
-	done
-
-BlackthornMartBlackBeltText:
-	text "MAX REPEL keeps"
-	line "weak #MON away"
-	cont "from you."
-
-	para "It's the longest"
-	line "lasting of the"
-	cont "REPEL sprays."
-	done
-
-BlackthornMart_MapEvents:
-	db 0, 0 ; filler
 
 	def_warp_events
 	warp_event  2,  7, BLACKTHORN_CITY, 4
@@ -56,6 +12,40 @@ BlackthornMart_MapEvents:
 	def_bg_events
 
 	def_object_events
-	object_event  1,  3, SPRITE_CLERK, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, BlackthornMartClerkScript, -1
-	object_event  7,  6, SPRITE_COOLTRAINER_M, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 2, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, BlackthornMartCooltrainerMScript, -1
-	object_event  5,  2, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, BlackthornMartBlackBeltScript, -1
+	mart_clerk_event  1,  3, MARTTYPE_STANDARD, MART_BLACKTHORN
+	object_event  7,  6, SPRITE_ACE_TRAINER_M, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, PAL_NPC_BLUE, OBJECTTYPE_COMMAND, jumptextfaceplayer, BlackthornMartCooltrainermText, -1
+	object_event  5,  2, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_COMMAND, jumptextfaceplayer, BlackthornMartBlackbeltText, -1
+	object_event 11,  3, SPRITE_POKEMANIAC, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, BlackthornMartSuperNerdText, -1
+
+BlackthornMartCooltrainermText:
+	text "You can't buy Max"
+	line "Revive, but it"
+
+	para "fully restores a"
+	line "fainted #mon."
+
+	para "Beware--it won't"
+	line "restore PP, the"
+
+	para "Power Points"
+	line "needed for moves."
+	done
+
+BlackthornMartBlackbeltText:
+	text "Max Repel keeps"
+	line "weak #mon away"
+	cont "from you."
+
+	para "It's the longest"
+	line "lasting of the"
+	cont "Repel sprays."
+	done
+
+BlackthornMartSuperNerdText:
+	text "The towns in Johto"
+	line "are all named"
+	cont "after plants."
+
+	para "Did you ever"
+	line "notice?"
+	done

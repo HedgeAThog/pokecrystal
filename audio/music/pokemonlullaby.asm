@@ -9,7 +9,7 @@ Music_PokemonLullaby_Ch1:
 	volume 7, 7
 	duty_cycle 3
 	pitch_offset 1
-.mainloop:
+Music_PokemonLullaby_branch_f6d8c:
 	note_type 12, 10, 7
 	octave 3
 	note G_, 16
@@ -52,13 +52,13 @@ Music_PokemonLullaby_Ch1:
 	note C_, 8
 	octave 3
 	note B_, 8
-	sound_loop 0, .mainloop
+	sound_jump Music_PokemonLullaby_branch_f6d8c
 
 Music_PokemonLullaby_Ch2:
 	vibrato 16, 1, 4
 	duty_cycle 0
 	note_type 12, 11, 4
-.mainloop:
+Music_PokemonLullaby_branch_f6dcc:
 	rest 16
 	rest 10
 	octave 4
@@ -102,11 +102,11 @@ Music_PokemonLullaby_Ch2:
 	note D#, 2
 	note E_, 16
 	rest 14
-	sound_loop 0, .mainloop
+	sound_jump Music_PokemonLullaby_branch_f6dcc
 
 Music_PokemonLullaby_Ch3:
 	note_type 12, 1, 1
-.mainloop:
+Music_PokemonLullaby_branch_f6e06:
 	stereo_panning TRUE, FALSE
 	octave 4
 	note C_, 2
@@ -130,4 +130,4 @@ Music_PokemonLullaby_Ch3:
 	octave 4
 	note B_, 2
 	note A_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_PokemonLullaby_branch_f6e06

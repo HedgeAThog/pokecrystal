@@ -1,5 +1,5 @@
 TiffanyMonIsAdorableText:
-	text "My @"
+	text "My "
 	text_ram wStringBuffer4
 	text "'s"
 	line "adorable, don't"
@@ -15,18 +15,18 @@ TiffanyDefeatedMonText:
 	text "Oh, and we had to"
 	line "battle a wild"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text " a while"
 	line "ago…"
 
-	para "My CLEFAIRY came"
+	para "My Clefairy came"
 	line "close to fainting!"
 
 	para "Isn't that awful?"
 
 	para "I hate those nasty"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text "!"
 	done
@@ -35,12 +35,12 @@ TiffanyLostAMonText:
 	text "Oh, and we had to"
 	line "battle a wild"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text " a while"
 	line "ago…"
 
-	para "My CLEFAIRY got"
+	para "My Clefairy got"
 	line "frightened, so we"
 
 	para "ran away as fast"
@@ -48,7 +48,7 @@ TiffanyLostAMonText:
 
 	para "I just can't help"
 	line "feeling protective"
-	cont "of my CLEFAIRY."
+	cont "of my Clefairy."
 	done
 
 TiffanyBattleRematchText:
@@ -59,8 +59,8 @@ TiffanyBattleRematchText:
 	line "battle?"
 
 	para "I'll be waiting"
-	line "with CLEFAIRY on"
-	cont "@"
+	line "with Clefairy on"
+	cont ""
 	text_ram wStringBuffer5
 	text "."
 	done
@@ -70,9 +70,9 @@ TiffanyItsAwfulText:
 	text "!"
 
 	para "It's awful."
-	line "My CLEFAIRY…"
+	line "My Clefairy…"
 
-	para "Huh? <PLAY_G>?"
+	para "Huh? <PLAYER>?"
 
 	para "Oh, sorry! I was"
 	line "in a hurry, and I…"
@@ -86,38 +86,38 @@ TiffanyHangUpText:
 	done
 
 TiffanyFoundItemText:
-	text "I bought some PINK"
-	line "BOWS at GOLDENROD"
+	text "I bought some Pink"
+	line "Bows at Goldenrod"
 
-	para "DEPT.STORE for my"
-	line "CLEFAIRY."
+	para "Dept.Store for my"
+	line "Clefairy."
 
 	para "I got too many, so"
 	line "I'll give you one!"
 
 	para "Come collect it on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 	done
 
 TiffanyNoItemText:
 	text "I love dressing up"
-	line "my CLEFAIRY!"
+	line "my Clefairy!"
 	done
 
 TiffanyAsleepText:
 	text "What's wrong?"
 	line "Can't you visit?"
 
-	para "CLEFAIRY got tired"
+	para "Clefairy got tired"
 	line "and fell asleep."
 
 	para "I'm not sure if I"
 	line "can wake it up…"
 
 	para "Please hurry to"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done
@@ -128,10 +128,10 @@ TiffanyHurryText:
 
 	para "I'm sure this will"
 	line "look good on your"
-	cont "CLEFAIRY."
+	cont "Clefairy."
 
 	para "Please hurry to"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done

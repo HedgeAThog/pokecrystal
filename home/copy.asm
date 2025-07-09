@@ -1,84 +1,89 @@
-CopyBytes::
+FarCopyBytesToColorWRAM::
+; Copy bc bytes from a:hl to de in color WRAM
+	call StackCallInBankA
+.Function:
+	ld a, BANK("GBC Video")
+	call StackCallInWRAMBankA
+	jr _CopyBytes
+
+FarCopyBytes::
+	call StackCallInBankA
+	; fallthrough
+_CopyBytes::
 ; copy bc bytes from hl to de
-	inc b ; we bail the moment b hits 0, so include the last run
-	inc c ; same thing; include last byte
-	jr .HandleLoop
-.CopyByte:
+	inc b  ; we bail the moment b hits 0, so include the last run
+
+	srl c
+	jr nc, .skip1
 	ld a, [hli]
 	ld [de], a
 	inc de
-.HandleLoop:
-	dec c
-	jr nz, .CopyByte
-	dec b
-	jr nz, .CopyByte
-	ret
 
-SwapBytes::
-; swap bc bytes between hl and de
-.Loop:
-	; stash [hl] away on the stack
-	ld a, [hl]
-	push af
-
-	; copy a byte from [de] to [hl]
-	ld a, [de]
-	ld [hli], a
-
-	; retrieve the previous value of [hl]; put it in [de]
-	pop af
+.skip1
+	srl c
+	jr nc, .skip2
+rept 2
+	ld a, [hli]
 	ld [de], a
 	inc de
+endr
 
-	; handle loop stuff
-	dec bc
-	ld a, b
-	or c
-	jr nz, .Loop
-	ret
+.skip2
+	jr z, .next
+.loop
+rept 4
+	ld a, [hli]
+	ld [de], a
+	inc de
+endr
 
-ByteFill::
-; fill bc bytes with the value of a, starting at hl
-	inc b ; we bail the moment b hits 0, so include the last run
-	inc c ; same thing; include last byte
-	jr .HandleLoop
-.PutByte:
-	ld [hli], a
-.HandleLoop:
 	dec c
-	jr nz, .PutByte
+	jr nz, .loop
+
+.next
 	dec b
-	jr nz, .PutByte
-	ret
+	ret z
 
-GetFarByte::
-; retrieve a single byte from a:hl, and return it in a.
-	; bankswitch to new bank
-	ldh [hTempBank], a
-	ldh a, [hROMBank]
-	push af
-	ldh a, [hTempBank]
-	rst Bankswitch
+	ld c, $40
+	jr .loop
 
-	; get byte from new bank
-	ld a, [hl]
-	ldh [hFarByte], a
+_ByteFill::
+; fill bc bytes with the value of a, starting at hl
+	inc b  ; we bail the moment b hits 0, so include the last run
+	srl c
+	jr nc, .skip1
+	ld [hli], a
 
-	; bankswitch to previous bank
-	pop af
-	rst Bankswitch
+.skip1
+	srl c
+	jr nc, .skip2
+	ld [hli], a
+	ld [hli], a
 
-	; return retrieved value in a
-	ldh a, [hFarByte]
-	ret
+.skip2
+	jr z, .next
+.loop
+rept 4
+	ld [hli], a
+endr
+	dec c
+	jr nz, .loop
+
+.next
+	dec b
+	ret z
+
+	ld c, $40
+	jr .loop
 
 GetFarWord::
 ; retrieve a word from a:hl, and return it in hl.
 	; bankswitch to new bank
-	ldh [hTempBank], a
+	push bc
+	ld b, a
 	ldh a, [hROMBank]
-	push af
-	ldh a, [hTempBank]
+	ld c, a
+	ld a, b
 	rst Bankswitch
 
 	; get word from new bank, put it in hl
@@ -87,48 +92,7 @@ GetFarWord::
 	ld l, a
 
 	; bankswitch to previous bank and return
-	pop af
+	ld a, c
 	rst Bankswitch
-	ret
-
-FarCopyWRAM::
-; copy bc bytes from hl to a:de
-	ldh [hTempBank], a
-	ldh a, [rWBK]
-	push af
-	ldh a, [hTempBank]
-	ldh [rWBK], a
-
-	call CopyBytes
-
-	pop af
-	ldh [rWBK], a
-	ret
-
-GetFarWRAMByte::
-; retrieve a single byte from a:hl, and return it in a.
-	ldh [hTempBank], a
-	ldh a, [rWBK]
-	push af
-	ldh a, [hTempBank]
-	ldh [rWBK], a
-	ld a, [hl]
-	ldh [hFarByte], a
-	pop af
-	ldh [rWBK], a
-	ldh a, [hFarByte]
-	ret
-
-GetFarWRAMWord:: ; unreferenced
-; retrieve a word from a:hl, and return it in hl.
-	ldh [hTempBank], a
-	ldh a, [rWBK]
-	push af
-	ldh a, [hTempBank]
-	ldh [rWBK], a
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	pop af
-	ldh [rWBK], a
+	pop bc
 	ret

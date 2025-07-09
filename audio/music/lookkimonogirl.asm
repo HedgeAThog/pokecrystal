@@ -4,8 +4,6 @@ Music_LookKimonoGirl:
 	channel 2, Music_LookKimonoGirl_Ch2
 	channel 3, Music_LookKimonoGirl_Ch3
 
-	db $3 ; unused, leftover from a channel 4
-
 Music_LookKimonoGirl_Ch1:
 	tempo 160
 	volume 7, 7
@@ -13,17 +11,17 @@ Music_LookKimonoGirl_Ch1:
 	duty_cycle 1
 	note_type 6, 8, 7
 	pitch_offset 1
-	sound_call Music_LookKimonoGirl_Ch2.sub2
+	sound_call Music_LookKimonoGirl_branch_f7aa8
 	pitch_offset 0
-.mainloop:
+Music_LookKimonoGirl_branch_f79d7:
 	note_type 12, 11, 2
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub2
+	sound_call Music_LookKimonoGirl_branch_f7a13
+	sound_call Music_LookKimonoGirl_branch_f7a13
+	sound_call Music_LookKimonoGirl_branch_f7a34
+	sound_call Music_LookKimonoGirl_branch_f7a34
+	sound_call Music_LookKimonoGirl_branch_f7a13
+	sound_call Music_LookKimonoGirl_branch_f7a13
+	sound_call Music_LookKimonoGirl_branch_f7a34
 	volume_envelope 11, 4
 	octave 3
 	note E_, 1
@@ -48,9 +46,9 @@ Music_LookKimonoGirl_Ch1:
 	volume_envelope 5, 4
 	octave 3
 	note A_, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_LookKimonoGirl_branch_f79d7
 
-.sub1:
+Music_LookKimonoGirl_branch_f7a13:
 	volume_envelope 11, 4
 	octave 2
 	note F_, 1
@@ -77,7 +75,7 @@ Music_LookKimonoGirl_Ch1:
 	note D_, 1
 	sound_ret
 
-.sub2:
+Music_LookKimonoGirl_branch_f7a34:
 	volume_envelope 11, 4
 	octave 2
 	note E_, 1
@@ -108,8 +106,8 @@ Music_LookKimonoGirl_Ch2:
 	duty_cycle 0
 	note_type 6, 10, 7
 	stereo_panning TRUE, FALSE
-	sound_call .sub2
-.mainloop:
+	sound_call Music_LookKimonoGirl_branch_f7aa8
+Music_LookKimonoGirl_branch_f7a5f:
 	duty_cycle 3
 	note_type 12, 9, 1
 	octave 5
@@ -131,7 +129,7 @@ Music_LookKimonoGirl_Ch2:
 	note A_, 1
 	note E_, 1
 	note D_, 1
-	sound_call .sub1
+	sound_call Music_LookKimonoGirl_branch_f7a94
 	octave 5
 	note F_, 1
 	note D_, 1
@@ -151,10 +149,10 @@ Music_LookKimonoGirl_Ch2:
 	note A_, 1
 	note E_, 1
 	note D_, 1
-	sound_call .sub1
-	sound_loop 0, .mainloop
+	sound_call Music_LookKimonoGirl_branch_f7a94
+	sound_jump Music_LookKimonoGirl_branch_f7a5f
 
-.sub1:
+Music_LookKimonoGirl_branch_f7a94:
 	octave 5
 	note B_, 1
 	note A_, 1
@@ -176,7 +174,7 @@ Music_LookKimonoGirl_Ch2:
 	note E_, 1
 	sound_ret
 
-.sub2:
+Music_LookKimonoGirl_branch_f7aa8:
 	octave 4
 	note E_, 1
 	octave 5
@@ -227,7 +225,7 @@ Music_LookKimonoGirl_Ch3:
 	octave 5
 	note D_, 2
 	note E_, 2
-.mainloop:
+Music_LookKimonoGirl_branch_f7aec:
 	octave 5
 	note D_, 4
 	note E_, 4
@@ -263,4 +261,4 @@ Music_LookKimonoGirl_Ch3:
 	note E_, 2
 	note D_, 8
 	note E_, 8
-	sound_loop 0, .mainloop
+	sound_jump Music_LookKimonoGirl_branch_f7aec

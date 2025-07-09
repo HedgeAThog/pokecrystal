@@ -1,26 +1,16 @@
 AskRememberPassword:
-	call .DoMenu
-	ld a, $0
-	jr c, .okay
-	ld a, $1
-
-.okay
-	ld [wScriptVar], a
-	ret
-
-.DoMenu:
 	lb bc, 14, 7
+	ld hl, YesNoMenuDataHeader
 	push bc
-	ld hl, YesNoMenuHeader
 	call CopyMenuHeader
 	pop bc
 	ld a, b
 	ld [wMenuBorderLeftCoord], a
-	add $5
+	add 5
 	ld [wMenuBorderRightCoord], a
 	ld a, c
 	ld [wMenuBorderTopCoord], a
-	add $4
+	add 4
 	ld [wMenuBorderBottomCoord], a
 	call PushWindow
 	call VerticalMenu
@@ -33,13 +23,15 @@ AskRememberPassword:
 	ld a, [wMenuCursorY]
 	cp $2
 	jr z, .refused
-	and a
+	ld a, TRUE
+	ldh [hScriptVar], a
 	ret
 
 .refused
 	ld a, $2
 	ld [wMenuCursorY], a
-	scf
+	xor a ; FALSE
+	ldh [hScriptVar], a
 	ret
 
 Buena_ExitMenu:

@@ -1,37 +1,21 @@
 SECTION "HRAM", HRAM
 
-hROMBankBackup:: db
-hFarByte::
-hTempBank:: db
-hSRAMBank:: db
-
-hRTCDayHi::   db
-hRTCDayLo::   db
-hRTCHours::   db
-hRTCMinutes:: db
-hRTCSeconds:: db
-
-	ds 2
-
-hHours:: db
-	ds 1
-hMinutes:: db
-	ds 1
-hSeconds:: db
-	ds 1
-
-	ds 1
-
-hVBlankCounter:: db
-
-	ds 1
+hScriptVar:: dw
 
 hROMBank:: db
-hVBlank:: db
-hMapEntryMethod:: db
+hROMBankBackup:: db
+	ds 1 ; unused
 
+hHours:: db
+hMinutes:: db
+hSeconds:: db
+
+hVBlank:: db
+hVBlankCounter:: db
+hVBlankOccurred:: db
+
+hMapEntryMethod:: db
 hMenuReturn:: db
-hUnusedByte:: db
 
 hJoypadReleased:: db
 hJoypadPressed::  db
@@ -44,21 +28,24 @@ hJoyLast::        db
 
 hInMenu:: db
 
-	ds 1
-
-hPrinter:: db
-hGraphicStartTile:: db
-hMoveMon:: db
-
 UNION
-hMapObjectIndex:: db
-hObjectStructIndex:: db
+hGraphicStartTile:: db
+hIsMapObject:: db ; 0 = object, 1 = mapobject
+hMapObjectIndexBuffer:: db
+hObjectStructIndexBuffer:: db
 NEXTU
+hMapBorderBlock:: db
+hMapWidthPlus6:: db
 hConnectionStripLength:: db
 hConnectedMapWidth:: db
+NEXTU
+	ds 1
+hMoveMon:: db
 ENDU
 
-hEnemyMonSpeed:: dw
+hPrinter:: db
+
+	ds 2 ; unused
 
 UNION
 ; math-related values
@@ -77,7 +64,8 @@ hDividend::     ds 4
 hDivisor::      db
 NEXTU
 ; results of Divide
-hQuotient::     ds 4
+	ds 1
+hQuotient::     ds 3
 hRemainder::    db
 ENDU
 
@@ -85,23 +73,13 @@ hMathBuffer:: ds 5
 
 NEXTU
 ; PrintNum scratch space
-hPrintNumBuffer:: ds 10
-
-NEXTU
-; Mystery Gift
-hMGExchangedByte:: db
-hMGExchangedWord:: dw
-hMGNumBits:: db
-hMGChecksum:: dw
-	ds 1
-hMGUnusedMsgLength:: db
-hMGRole:: db
-hMGStatusFlags:: db
+hPrintNum:: ds 5
 ENDU
 
 UNION
 hUsedSpriteIndex:: db
 hUsedSpriteTile::  db
+	ds 4
 NEXTU
 hCurSpriteXCoord::   db
 hCurSpriteYCoord::   db
@@ -109,72 +87,143 @@ hCurSpriteXPixel::   db
 hCurSpriteYPixel::   db
 hCurSpriteTile::     db
 hCurSpriteOAMFlags:: db
+NEXTU
+hChartValues::
+hChartHP::  db
+hChartAtk:: db
+hChartDef:: db
+hChartSpe:: db
+hChartSat:: db
+hChartSdf:: db
 ENDU
 
-UNION
 hMoneyTemp:: ds 3
-NEXTU
-hMGJoypadPressed::  db
-hMGJoypadReleased:: db
-hMGPrevTIMA::       db
-ENDU
 
 hLCDCPointer::     db
 hLYOverrideStart:: db
 hLYOverrideEnd::   db
+hLYOverrideStackCopyAmount:: db
 
-hMobileReceive::             db
-hSerialReceivedNewData::     db
-hSerialConnectionStatus::    db
-hSerialIgnoringInitialData:: db
-hSerialSend::                db
-hSerialReceive::             db
+hSCX:: db
+hSCY:: db
+hWX::  db
+hWY::  db
 
-hSCX::           db
-hSCY::           db
-hWX::            db
-hWY::            db
-hTilesPerCycle:: db
-hBGMapMode::     db
-hBGMapThird::    db
+hTilesPerCycle::
+; 0 - no update
+; 1 - vBGMap0 tiles
+; 2 - vBGMap0 attributes
+; 3 - vBGMap0 tiles
+; 4 - vBGMap0 attributes
+	db
+hBGMapMode::
+; 0 - top third
+; 1 - middle third
+; 2 - bottom third
+	db
+hBGMapHalf::     db
 hBGMapAddress::  dw
-
-hOAMUpdate:: db
-
-hSPBuffer::  dw
 
 hBGMapUpdate::    db
 hBGMapTileCount:: db
 
-	ds 1
+hOAMUpdate:: db
 
 hMapAnims::      db
 hTileAnimFrame:: db
 
 hLastTalked:: db
 
+hRandom::
 hRandomAdd:: db
 hRandomSub:: db
 
-hUnusedBackup:: db
+hSerialReceivedNewData::     db
+hSerialConnectionStatus::    db
+	vc_assert hSerialConnectionStatus == $ffcb, \
+		"hSerialConnectionStatus is no longer located at 00:ffcb."
+hSerialIgnoringInitialData:: db
+hSerialSend::                db
+hSerialReceive::             db
 
-hBattleTurn::
-; Which trainer's turn is it? 0: player, 1: opponent trainer
-	db
+hSPBuffer:: dw
+
+UNION
+; 0 - player
+; 1 - opponent trainer
+hBattleTurn:: db
+hBattlePalFadeMode:: db
+hTimeOfDayPalOffset:: db
+NEXTU
+hChartScreen:: db
+hChartFillCoord:: db
+hChartLineCoord:: db
+NEXTU
+hPokedexAreaMode:: ; %xyyyzzzz, x: area unknown, y: region, z: location type
+hPokedexStatsCurAbil:: db
+	ds 2
+ENDU
 
 hCGBPalUpdate:: db
 hCGB::          db
-hSGB::          db
 
 hDMATransfer:: db
-hMobile:: db
-hSystemBooted:: db
 
-if DEF(_DEBUG)
-hDebugRoomMenuPage::
-endc
+hDelayFrameLY:: db
+
 hClockResetTrigger:: db
 
-	ds 19
+hMPState::  db
+hMPBuffer:: db
 
-ENDSECTION
+hRequested2bpp::        db
+hRequested1bpp::        db
+hRequestedVTileDest::   dw
+hRequestedVTileSource:: dw
+hRequestOpaque1bpp::    db
+
+UNION
+hTmpd:: db
+hTmpe:: db
+	ds 1
+NEXTU
+hDX::  db
+hDY::  db
+hErr:: db
+ENDU
+
+hCrashCode:: db
+
+hStopPrintingString:: db
+
+UNION
+; vwf
+hAppendVWFText:: ds 4
+NEXTU
+; ctxt
+hPlaceStringCoords:: dw
+hCompressedTextBuffer:: ds 2 ; one character and "@"
+ENDU
+
+hScriptBank:: db
+hScriptPos:: dw
+
+hUsedWeatherSpriteIndex:: db
+hUsedOAMIndex:: db
+
+	ds 7 ; unused
+
+hLCDInterruptFunction::
+hFunctionJump::     db ; $c3 jp
+hFunctionTarget::
+hFunctionTargetLo:: db ; LOW(target)
+hFunctionTargetHi:: db ; HIGH(target)
+
+hBitwiseOperation::
+hBitwisePrefix:: db ; $cb prefix
+hBitwiseOpcode:: db ; opcode
+hBitwiseRet::    db ; $c9 ret
+
+hSingleOperation::
+hSingleOpcode:: db ; opcode
+hSingleRet::    db ; $c9 ret

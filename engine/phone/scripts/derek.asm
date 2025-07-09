@@ -1,16 +1,16 @@
-DerekPhoneCalleeScript:
-	gettrainername STRING_BUFFER_3, POKEFANM, DEREK1
+DerekPhoneScript1:
+	gettrainername POKEFANM, DEREK1, STRING_BUFFER_3
 	farscall PhoneScript_AnswerPhone_Male
 	checkflag ENGINE_DEREK_HAS_NUGGET
-	iftrue .Nugget
+	iftruefwd .Nugget
 	farscall PhoneScript_Random2
-	ifequal 0, .NoContest
+	ifequalfwd $0, .NoContest
 	checkflag ENGINE_DAILY_BUG_CONTEST
-	iftrue .NoContest
+	iftruefwd .NoContest
 	readvar VAR_WEEKDAY
-	ifequal TUESDAY, .ContestToday
-	ifequal THURSDAY, .ContestToday
-	ifequal SATURDAY, .ContestToday
+	ifequalfwd TUESDAY, .ContestToday
+	ifequalfwd THURSDAY, .ContestToday
+	ifequalfwd SATURDAY, .ContestToday
 
 .NoContest:
 	farsjump DerekHangUpScript
@@ -19,24 +19,24 @@ DerekPhoneCalleeScript:
 	farsjump PhoneScript_BugCatchingContest
 
 .Nugget:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_39
+	getlandmarkname ROUTE_39, STRING_BUFFER_5
 	farsjump DerekComePickUpScript
 
-DerekPhoneCallerScript:
-	gettrainername STRING_BUFFER_3, POKEFANM, DEREK1
+DerekPhoneScript2:
+	gettrainername POKEFANM, DEREK1, STRING_BUFFER_3
 	farscall PhoneScript_GreetPhone_Male
 	farscall PhoneScript_Random2
-	ifequal 0, .NoContest
+	ifequalfwd $0, .NoContest
 	checkflag ENGINE_DAILY_BUG_CONTEST
-	iftrue .NoContest
+	iftruefwd .NoContest
 	readvar VAR_WEEKDAY
-	ifequal TUESDAY, .ContestToday
-	ifequal THURSDAY, .ContestToday
-	ifequal SATURDAY, .ContestToday
+	ifequalfwd TUESDAY, .ContestToday
+	ifequalfwd THURSDAY, .ContestToday
+	ifequalfwd SATURDAY, .ContestToday
 
 .NoContest:
 	farscall PhoneScript_Random4
-	ifequal 0, .Nugget
+	ifequalfwd $0, .Nugget
 	farsjump Phone_GenericCall_Male
 
 .ContestToday:
@@ -44,5 +44,5 @@ DerekPhoneCallerScript:
 
 .Nugget:
 	setflag ENGINE_DEREK_HAS_NUGGET
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_39
+	getlandmarkname ROUTE_39, STRING_BUFFER_5
 	farsjump PhoneScript_FoundItem_Male

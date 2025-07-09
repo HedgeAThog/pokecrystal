@@ -1,110 +1,119 @@
-BattleCommand_Thief:
-	ldh a, [hBattleTurn]
-	and a
-	jr nz, .enemy
-
-; The player needs to be able to steal an item.
-
-	call .playeritem
-	ld a, [hl]
-	and a
+BattleCommand_thief:
+	; Substitute prevents this move from working.
+	call CheckSubstituteOpp
 	ret nz
 
-; The enemy needs to have an item to steal.
+	; Pickpocket uses this too
+	call CanStealItem
+	jr z, .ok
+	ret nc
+	; Can't due to an ability. Maybe do ability display.
 
-	call .enemyitem
-	ld a, [hl]
-	and a
-	ret z
-
-; Can't steal mail.
-
-	ld [wNamedObjectIndex], a
-	ld d, a
-	farcall ItemIsMail
-	ret c
-
-	ld a, [wEffectFailed]
-	and a
+	call CheckStickyHold
 	ret nz
 
-	ld a, [wLinkMode]
-	and a
-	jr z, .stealenemyitem
-
-	ld a, [wBattleMode]
-	dec a
-	ret z
-
-.stealenemyitem
-	call .enemyitem
+.ok
+	; Steal item
+	ld [hl], d
 	xor a
-	ld [hl], a
-	ld [de], a
-
-	call .playeritem
-	ld a, [wNamedObjectIndex]
-	ld [hl], a
-	ld [de], a
-	jr .stole
-
-.enemy
-
-; The enemy can't already have an item.
-
-	call .enemyitem
-	ld a, [hl]
-	and a
-	ret nz
-
-; The player must have an item to steal.
-
-	call .playeritem
-	ld a, [hl]
-	and a
-	ret z
-
-; Can't steal mail!
-
+	ld [bc], a
+	ld a, d
 	ld [wNamedObjectIndex], a
-	ld d, a
-	farcall ItemIsMail
-	ret c
-
-	ld a, [wEffectFailed]
-	and a
-	ret nz
-
-; If the enemy steals your item,
-; it's gone for good if you don't get it back.
-
-	call .playeritem
-	xor a
-	ld [hl], a
-	ld [de], a
-
-	call .enemyitem
-	ld a, [wNamedObjectIndex]
-	ld [hl], a
-	ld [de], a
-
-.stole
 	call GetItemName
 	ld hl, StoleText
-	jp StdBattleTextbox
+	call StdBattleTextbox
 
-.playeritem
-	ld a, MON_ITEM
-	call BattlePartyAttr
-	ld d, h
-	ld e, l
-	ld hl, wBattleMonItem
+	; Update parties
+	ld a, [wCurBattleMon]
+	ld hl, wPartyMon1Item
+	call GetPartyLocation
+	ld a, [wBattleMonItem]
+	ld [hl], a
+	ld b, a
+
+	; Update backup item if we stole from wildmon
+	ld a, [wBattleMode]
+	dec a
+	call z, SetBackupItem
+
+	ld a, [wCurOTMon]
+	ld hl, wOTPartyMon1Item
+	call GetPartyLocation
+	ld a, [wEnemyMonItem]
+	ld [hl], a
 	ret
 
-.enemyitem
-	ld a, MON_ITEM
-	call OTPartyAttr
-	ld d, h
-	ld e, l
+CheckStickyHold:
+; Returns nz if opponent Sticky Hold is in effect.
+	call HasOpponentFainted
+	ret z
+	call GetOpponentAbilityAfterMoldBreaker
+	cp STICKY_HOLD
+	jr nz, .no_sticky_hold
+
+	; Don't display anything if we're in Pickpocket
+	ld a, [wInAbility]
+	and a
+	ret nz
+
+	farcall BeginAbility
+	farcall ShowEnemyAbilityActivation
+	ld hl, ItemCantBeStolenText
+	call StdBattleTextbox
+	farcall EndAbility
+	or 1
+	ret
+
+.no_sticky_hold
+	xor a
+	ret
+
+CanStealItem:
+; Returns z if we can and put item into d, target item addr into bc,
+; user item addr into hl. Returns nz if we can't, and c if we can't
+; because of an ability.
+	; Maybe Substitute/Sheer Force prevents the steal
+	ld a, [wEffectFailed]
+	and a
+	ret nz
+
+	; Sticky Hold prevents item theft unless fainted
+	call HasOpponentFainted
+	jr z, .sticky_hold_done
+	call GetOpponentAbilityAfterMoldBreaker
+	cp STICKY_HOLD
+	jr z, .cant_ability
+
+.sticky_hold_done
+	call OpponentCanLoseItem
+	jr z, .cant
+
+	ldh a, [hBattleTurn]
+	and a
+	ld hl, wBattleMonItem
+	ld bc, wEnemyMonItem
+	jr z, .got_target
+
+	; Wildmons can't steal items
+	ld a, [wBattleMode]
+	dec a
+	jr z, .cant
+
 	ld hl, wEnemyMonItem
+	ld bc, wBattleMonItem
+.got_target
+	; Check if user is holding an item already
+	ld a, [bc]
+	ld d, a
+	ld a, [hl]
+	and a
+	ret
+
+.cant_ability
+	or 1
+	scf
+	ret
+
+.cant
+	or 1
 	ret

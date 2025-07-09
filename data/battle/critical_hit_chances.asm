@@ -1,8 +1,5 @@
 CriticalHitChances:
-	db 1 out_of 15 ;  0
-	db 1 out_of 8  ; +1
-	db 1 out_of 4  ; +2
-	db 1 out_of 3  ; +3
-	db 1 out_of 2  ; +4
-	db 1 out_of 2  ; +5
-	db 1 out_of 2  ; +6
+	db 1  ; 0 = 1/24
+	db 3  ; 1 = 3/24 (1/8)
+	db 12 ; 2 = 12/24 (1/2)
+	db 24 ; 3+ = 24/24 (always)

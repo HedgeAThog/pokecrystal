@@ -1,70 +1,85 @@
-	object_const_def
-	const ROUTE33_POKEFAN_M
-	const ROUTE33_LASS
-	const ROUTE33_FRUIT_TREE
-
-Route33_MapScripts:
+Route33_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
+	callback MAPCALLBACK_TILES, Route33RainScript
 
-Route33LassScript:
-	jumptextfaceplayer Route33LassText
+	def_warp_events
+	warp_event 11,  9, UNION_CAVE_1F, 3
+
+	def_coord_events
+
+	def_bg_events
+	bg_event 11, 11, BGEVENT_JUMPTEXT, Route33SignText
+
+	def_object_events
+	object_event  6, 13, SPRITE_HIKER, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_TRAINER, 2, TrainerHikerAnthony, -1
+	object_event 12, 17, SPRITE_SCHOOLGIRL, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSchoolgirlImogen, -1
+	fruittree_event 14, 16, FRUITTREE_ROUTE_33, PECHA_BERRY, PAL_NPC_PINK
+
+Route33RainScript:
+	special Special_GetOvercastIndex
+	ifequalfwd AZALEA_OVERCAST, .rain
+	changemapblocks Route33_BlockData
+	endcallback
+
+.rain
+	changemapblocks Route33Raining_BlockData
+	endcallback
 
 TrainerHikerAnthony:
-	trainer HIKER, ANTHONY2, EVENT_BEAT_HIKER_ANTHONY, HikerAnthony2SeenText, HikerAnthony2BeatenText, 0, .Script
+	trainer HIKER, ANTHONY1, EVENT_BEAT_HIKER_ANTHONY, HikerAnthony1SeenText, HikerAnthony1BeatenText, 0, .Script
 
 .Script:
 	loadvar VAR_CALLERID, PHONE_HIKER_ANTHONY
-	endifjustbattled
 	opentext
 	checkflag ENGINE_ANTHONY_READY_FOR_REMATCH
-	iftrue .Rematch
+	iftruefwd .Rematch
 	checkflag ENGINE_DUNSPARCE_SWARM
-	iftrue .Swarm
+	iftrue_jumpopenedtext HikerAnthonyDunsparceText
 	checkcellnum PHONE_HIKER_ANTHONY
-	iftrue .NumberAccepted
+	iftruefwd .NumberAccepted
 	checkevent EVENT_ANTHONY_ASKED_FOR_PHONE_NUMBER
-	iftrue .AskAgain
-	writetext HikerAnthony2AfterText
+	iftruefwd .AskAgain
+	writetext HikerAnthony1AfterText
 	promptbutton
 	setevent EVENT_ANTHONY_ASKED_FOR_PHONE_NUMBER
-	scall .AskNumber1
-	sjump .AskForPhoneNumber
+	callstd asknumber1m
+	sjumpfwd .AskForPhoneNumber
 
 .AskAgain:
-	scall .AskNumber2
+	callstd asknumber2m
 .AskForPhoneNumber:
 	askforphonenumber PHONE_HIKER_ANTHONY
-	ifequal PHONE_CONTACTS_FULL, .PhoneFull
-	ifequal PHONE_CONTACT_REFUSED, .NumberDeclined
-	gettrainername STRING_BUFFER_3, HIKER, ANTHONY2
-	scall .RegisteredNumber
-	sjump .NumberAccepted
+	ifequalfwd $1, .PhoneFull
+	ifequalfwd $2, .NumberDeclined
+	gettrainername HIKER, ANTHONY1, STRING_BUFFER_3
+	callstd registerednumberm
+	jumpstd numberacceptedm
 
 .Rematch:
-	scall .RematchStd
-	winlosstext HikerAnthony2BeatenText, 0
+	callstd rematchm
+	winlosstext HikerAnthony1BeatenText, 0
 	readmem wAnthonyFightCount
-	ifequal 4, .Fight4
-	ifequal 3, .Fight3
-	ifequal 2, .Fight2
-	ifequal 1, .Fight1
-	ifequal 0, .LoadFight0
+	ifequalfwd 4, .Fight4
+	ifequalfwd 3, .Fight3
+	ifequalfwd 2, .Fight2
+	ifequalfwd 1, .Fight1
+	ifequalfwd 0, .LoadFight0
 .Fight4:
 	checkevent EVENT_RESTORED_POWER_TO_KANTO
-	iftrue .LoadFight4
+	iftruefwd .LoadFight4
 .Fight3:
 	checkevent EVENT_BEAT_ELITE_FOUR
-	iftrue .LoadFight3
+	iftruefwd .LoadFight3
 .Fight2:
 	checkevent EVENT_CLEARED_RADIO_TOWER
-	iftrue .LoadFight2
+	iftruefwd .LoadFight2
 .Fight1:
 	checkflag ENGINE_FLYPOINT_OLIVINE
-	iftrue .LoadFight1
+	iftruefwd .LoadFight1
 .LoadFight0:
-	loadtrainer HIKER, ANTHONY2
+	loadtrainer HIKER, ANTHONY1
 	startbattle
 	reloadmapafterbattle
 	loadmem wAnthonyFightCount, 1
@@ -72,7 +87,7 @@ TrainerHikerAnthony:
 	end
 
 .LoadFight1:
-	loadtrainer HIKER, ANTHONY1
+	loadtrainer HIKER, ANTHONY2
 	startbattle
 	reloadmapafterbattle
 	loadmem wAnthonyFightCount, 2
@@ -102,47 +117,24 @@ TrainerHikerAnthony:
 	clearflag ENGINE_ANTHONY_READY_FOR_REMATCH
 	end
 
-.Swarm:
-	writetext HikerAnthonyDunsparceText
-	waitbutton
-	closetext
-	end
-
-.AskNumber1:
-	jumpstd AskNumber1MScript
-	end
-
-.AskNumber2:
-	jumpstd AskNumber2MScript
-	end
-
-.RegisteredNumber:
-	jumpstd RegisteredNumberMScript
-	end
-
 .NumberAccepted:
-	jumpstd NumberAcceptedMScript
-	end
+	jumpstd numberacceptedm
 
 .NumberDeclined:
-	jumpstd NumberDeclinedMScript
-	end
+	jumpstd numberdeclinedm
 
 .PhoneFull:
-	jumpstd PhoneFullMScript
-	end
+	jumpstd phonefullm
 
-.RematchStd:
-	jumpstd RematchMScript
-	end
+GenericTrainerSchoolgirlImogen:
+	generictrainer SCHOOLGIRL, IMOGEN, EVENT_BEAT_SCHOOLGIRL_IMOGEN, SchoolgirlImogenSeenText, SchoolgirlImogenBeatenText
 
-Route33Sign:
-	jumptext Route33SignText
+	text "I'm trying hard so"
+	line "I can be the star"
+	cont "in my class."
+	done
 
-Route33FruitTree:
-	fruittree FRUITTREE_ROUTE_33
-
-HikerAnthony2SeenText:
+HikerAnthony1SeenText:
 	text "I came through the"
 	line "tunnel, but I"
 
@@ -150,20 +142,20 @@ HikerAnthony2SeenText:
 	line "of energy left."
 	done
 
-HikerAnthony2BeatenText:
+HikerAnthony1BeatenText:
 	text "Whoa! You've got"
 	line "more zip than me!"
 	done
 
-HikerAnthony2AfterText:
-	text "We HIKERS are at"
+HikerAnthony1AfterText:
+	text "We Hikers are at"
 	line "our best in the"
 	cont "mountains."
 	done
 
 HikerAnthonyDunsparceText:
 	text "Hey, did you get a"
-	line "DUNSPARCE?"
+	line "Dunsparce?"
 
 	para "I caught one too."
 
@@ -172,38 +164,16 @@ HikerAnthonyDunsparceText:
 	cont "got a funny face!"
 	done
 
-Route33LassText:
-	text "Pant, pant…"
+SchoolgirlImogenSeenText:
+	text "I'm the best in my"
+	line "class at #mon."
+	done
 
-	para "I finally got"
-	line "through that cave."
-
-	para "It was much bigger"
-	line "than I'd expected."
-
-	para "I got too tired to"
-	line "explore the whole"
-
-	para "thing, so I came"
-	line "outside."
+SchoolgirlImogenBeatenText:
+	text "So there are bet-"
+	line "ter trainers…"
 	done
 
 Route33SignText:
-	text "ROUTE 33"
+	text "Route 33"
 	done
-
-Route33_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event 11,  9, UNION_CAVE_1F, 3
-
-	def_coord_events
-
-	def_bg_events
-	bg_event 11, 11, BGEVENT_READ, Route33Sign
-
-	def_object_events
-	object_event  6, 13, SPRITE_POKEFAN_M, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_TRAINER, 2, TrainerHikerAnthony, -1
-	object_event 13, 16, SPRITE_LASS, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, Route33LassScript, -1
-	object_event 14, 16, SPRITE_FRUIT_TREE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, Route33FruitTree, -1

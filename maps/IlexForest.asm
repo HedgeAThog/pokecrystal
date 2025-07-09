@@ -1,117 +1,152 @@
-	object_const_def
-	const ILEXFOREST_FARFETCHD
-	const ILEXFOREST_YOUNGSTER1
-	const ILEXFOREST_BLACK_BELT
-	const ILEXFOREST_ROCKER
-	const ILEXFOREST_POKE_BALL1
-	const ILEXFOREST_KURT
-	const ILEXFOREST_LASS
-	const ILEXFOREST_YOUNGSTER2
-	const ILEXFOREST_POKE_BALL2
-	const ILEXFOREST_POKE_BALL3
-	const ILEXFOREST_POKE_BALL4
-
-IlexForest_MapScripts:
+IlexForest_MapScriptHeader:
 	def_scene_scripts
+	scene_script IlexForestTrigger0
+	scene_script IlexForestTrigger1
 
 	def_callbacks
 	callback MAPCALLBACK_OBJECTS, IlexForestFarfetchdCallback
 
+	def_warp_events
+	warp_event  3,  7, ROUTE_34_ILEX_FOREST_GATE, 3
+	warp_event  5, 44, ILEX_FOREST_AZALEA_GATE, 1
+	warp_event  5, 45, ILEX_FOREST_AZALEA_GATE, 2
+	warp_event 25, 24, HIDDEN_TREE_GROTTO, 1
+
+	def_coord_events
+	coord_event  9, 31, 2, IlexForestApprenticeTrigger
+
+	def_bg_events
+	bg_event  5, 19, BGEVENT_JUMPTEXT, IlexForestSignpost
+	bg_event 17, 33, BGEVENT_JUMPTEXT, IlexForestTrainerTips
+	bg_event 13,  9, BGEVENT_ITEM + ETHER, EVENT_ILEX_FOREST_HIDDEN_ETHER
+	bg_event 24, 16, BGEVENT_ITEM + SUPER_POTION, EVENT_ILEX_FOREST_HIDDEN_SUPER_POTION
+	bg_event  3, 19, BGEVENT_ITEM + FULL_HEAL, EVENT_ILEX_FOREST_HIDDEN_FULL_HEAL
+	bg_event 20,  9, BGEVENT_JUMPTEXT, Text_IlexForestMossRock
+	bg_event 10, 24, BGEVENT_UP, IlexForestShrineScript
+	bg_event 25, 24, BGEVENT_ITEM + SILVER_LEAF, EVENT_ILEX_FOREST_HIDDEN_SILVER_LEAF_1
+	bg_event 19,  8, BGEVENT_ITEM + SILVER_LEAF, EVENT_ILEX_FOREST_HIDDEN_SILVER_LEAF_2
+	bg_event 25, 23, BGEVENT_JUMPSTD, treegrotto, HIDDENGROTTO_ILEX_FOREST
+	bg_event 26, 23, BGEVENT_JUMPSTD, treegrotto, HIDDENGROTTO_ILEX_FOREST
+
+	def_object_events
+	object_event 16, 33, SPRITE_FARFETCH_D, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, IlexForestFarfetchdScript, EVENT_ILEX_FOREST_FARFETCHD
+	object_event  7, 30, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, IlexForestCharcoalMasterScript, EVENT_ILEX_FOREST_CHARCOAL_MASTER
+	object_event 10, 31, SPRITE_KURT, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_ILEX_FOREST_KURT
+	object_event  5, 26, SPRITE_PICNICKER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, Text_IlexForestLass, EVENT_ILEX_FOREST_LASS
+	object_event 10, 26, SPRITE_CELEBI, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_ILEX_FOREST_CELEBI
+	object_event  9, 25, SPRITE_LYRA, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, IlexForestLyraScript, EVENT_ILEX_FOREST_LYRA
+	object_event  9, 30, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, IlexForestCharcoalApprenticeScript, EVENT_ILEX_FOREST_APPRENTICE
+	object_event 17, 16, SPRITE_ROCKER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, IlexForestHeadbuttGuyScript, -1
+	object_event 14,  3, SPRITE_BUG_CATCHER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 0, GenericTrainerBugCatcherWayne, -1
+	object_event  4, 16, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_COMMAND, jumptextfaceplayer, IlexForestHoneyBoyText, EVENT_ROUTE_34_ILEX_FOREST_GATE_LASS
+	cuttree_event 10, 27, EVENT_ILEX_FOREST_CUT_TREE
+	itemball_event 22, 34, REVIVE, 1, EVENT_ILEX_FOREST_REVIVE
+	itemball_event 11, 19, X_ATTACK, 1, EVENT_ILEX_FOREST_X_ATTACK
+	itemball_event 25, 17, ANTIDOTE, 1, EVENT_ILEX_FOREST_ANTIDOTE
+	itemball_event 29,  3, MULCH, 1, EVENT_ILEX_FOREST_MULCH
+
+	object_const_def
+	const ILEXFOREST_FARFETCHD
+	const ILEXFOREST_BLACK_BELT
+	const ILEXFOREST_KURT
+	const ILEXFOREST_LASS
+	const ILEXFOREST_CELEBI
+	const ILEXFOREST_LYRA
+	const ILEXFOREST_YOUNGSTER
+
+IlexForestTrigger1:
+	sdefer IlexForestFinishCelebiEventScript
+IlexForestTrigger0:
+	end
+
 IlexForestFarfetchdCallback:
 	checkevent EVENT_GOT_HM01_CUT
-	iftrue .Static
+	iftruefwd .Static
 	readmem wFarfetchdPosition
-	ifequal  1, .PositionOne
-	ifequal  2, .PositionTwo
-	ifequal  3, .PositionThree
-	ifequal  4, .PositionFour
-	ifequal  5, .PositionFive
-	ifequal  6, .PositionSix
-	ifequal  7, .PositionSeven
-	ifequal  8, .PositionEight
-	ifequal  9, .PositionNine
-	ifequal 10, .PositionTen
+	ifequalfwd  1, .PositionOne
+	ifequalfwd  2, .PositionTwo
+	ifequalfwd  3, .PositionThree
+	ifequalfwd  4, .PositionFour
+	ifequalfwd  5, .PositionFive
+	ifequalfwd  6, .PositionSix
+	ifequalfwd  7, .PositionSeven
+	ifequalfwd  8, .PositionEight
+	ifequalfwd  9, .PositionNine
+	ifequalfwd 10, .PositionTen
 .Static:
 	endcallback
 
 .PositionOne:
-	moveobject ILEXFOREST_FARFETCHD, 14, 31
+	moveobject ILEXFOREST_FARFETCHD, 16, 33
 	appear ILEXFOREST_FARFETCHD
 	endcallback
 
 .PositionTwo:
-	moveobject ILEXFOREST_FARFETCHD, 15, 25
+	moveobject ILEXFOREST_FARFETCHD, 17, 27
 	appear ILEXFOREST_FARFETCHD
 	endcallback
 
 .PositionThree:
-	moveobject ILEXFOREST_FARFETCHD, 20, 24
+	moveobject ILEXFOREST_FARFETCHD, 22, 26
 	appear ILEXFOREST_FARFETCHD
 	endcallback
 
 .PositionFour:
-	moveobject ILEXFOREST_FARFETCHD, 29, 22
+	moveobject ILEXFOREST_FARFETCHD, 31, 24
 	appear ILEXFOREST_FARFETCHD
 	endcallback
 
 .PositionFive:
-	moveobject ILEXFOREST_FARFETCHD, 28, 31
+	moveobject ILEXFOREST_FARFETCHD, 30, 33
 	appear ILEXFOREST_FARFETCHD
 	endcallback
 
 .PositionSix:
-	moveobject ILEXFOREST_FARFETCHD, 24, 35
+	moveobject ILEXFOREST_FARFETCHD, 26, 37
 	appear ILEXFOREST_FARFETCHD
 	endcallback
 
 .PositionSeven:
-	moveobject ILEXFOREST_FARFETCHD, 22, 31
+	moveobject ILEXFOREST_FARFETCHD, 24, 33
 	appear ILEXFOREST_FARFETCHD
 	endcallback
 
 .PositionEight:
-	moveobject ILEXFOREST_FARFETCHD, 15, 29
+	moveobject ILEXFOREST_FARFETCHD, 17, 31
 	appear ILEXFOREST_FARFETCHD
 	endcallback
 
 .PositionNine:
-	moveobject ILEXFOREST_FARFETCHD, 10, 35
+	moveobject ILEXFOREST_FARFETCHD, 12, 37
 	appear ILEXFOREST_FARFETCHD
 	endcallback
 
 .PositionTen:
-	moveobject ILEXFOREST_FARFETCHD, 6, 28
+	moveobject ILEXFOREST_FARFETCHD, 8, 30
 	appear ILEXFOREST_FARFETCHD
 	endcallback
 
 IlexForestCharcoalApprenticeScript:
-	faceplayer
-	opentext
 	checkevent EVENT_HERDED_FARFETCHD
-	iftrue .DoneFarfetchd
-	writetext IlexForestApprenticeIntroText
-	waitbutton
-	closetext
-	end
-
-.DoneFarfetchd:
-	writetext IlexForestApprenticeAfterText
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer IlexForestApprenticeAfterText
+	setscene $0
+	jumptextfaceplayer IlexForestApprenticeIntroText
 
 IlexForestFarfetchdScript:
+	faceplayer
 	readmem wFarfetchdPosition
-	ifequal  1, .Position1
-	ifequal  2, .Position2
-	ifequal  3, .Position3
-	ifequal  4, .Position4
-	ifequal  5, .Position5
-	ifequal  6, .Position6
-	ifequal  7, .Position7
-	ifequal  8, .Position8
-	ifequal  9, .Position9
-	ifequal 10, .Position10
+	ifequalfwd  0, .Position1
+	showcrytext Text_Kwaaaa, FARFETCH_D
+	readmem wFarfetchdPosition
+	ifequalfwd  2, .Position2
+	ifequalfwd  3, .Position3
+	ifequalfwd  4, .Position4
+	ifequalfwd  5, .Position5
+	ifequalfwd  6, .Position6
+	ifequalfwd  7, .Position7
+	ifequalfwd  8, .Position8
+	ifequalfwd  9, .Position9
+	ifequal 10, DoNothingScript
 
 .Position1:
 	faceplayer
@@ -123,233 +158,204 @@ IlexForestFarfetchdScript:
 	waitbutton
 	closetext
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetchd_Pos1_Pos2
-	moveobject ILEXFOREST_FARFETCHD, 15, 25
+.NewPosition2:
+	moveobject ILEXFOREST_FARFETCHD, 17, 27
+	setval 2
+.NewPosition:
 	disappear ILEXFOREST_FARFETCHD
 	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 2
+	writemem wFarfetchdPosition
 	end
 
 .Position2:
-	scall .CryAndCheckFacing
-	ifequal DOWN, .Position2_Down
+	readvar VAR_FACING
+	ifequalfwd DOWN, .Position2_Down
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetchd_Pos2_Pos3
-	moveobject ILEXFOREST_FARFETCHD, 20, 24
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 3
-	end
+.NewPosition3:
+	moveobject ILEXFOREST_FARFETCHD, 22, 26
+	setval 3
+	sjump .NewPosition
 
 .Position2_Down:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetchd_Pos2_Pos8
-	moveobject ILEXFOREST_FARFETCHD, 15, 29
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 8
-	end
+.NewPosition8:
+	moveobject ILEXFOREST_FARFETCHD, 17, 31
+	setval 8
+	sjump .NewPosition
 
 .Position3:
-	scall .CryAndCheckFacing
-	ifequal LEFT, .Position3_Left
+	readvar VAR_FACING
+	ifequalfwd LEFT, .Position3_Left
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetchd_Pos3_Pos4
-	moveobject ILEXFOREST_FARFETCHD, 29, 22
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 4
-	end
+.NewPosition4:
+	moveobject ILEXFOREST_FARFETCHD, 31, 24
+	setval 4
+	sjump .NewPosition
 
 .Position3_Left:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetchd_Pos3_Pos2
-	moveobject ILEXFOREST_FARFETCHD, 15, 25
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 2
-	end
+	sjump .NewPosition2
 
 .Position4:
-	scall .CryAndCheckFacing
-	ifequal UP, .Position4_Up
+	readvar VAR_FACING
+	ifequalfwd UP, .Position4_Up
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetchd_Pos4_Pos5
-	moveobject ILEXFOREST_FARFETCHD, 28, 31
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 5
-	end
+.NewPosition5:
+	moveobject ILEXFOREST_FARFETCHD, 30, 33
+	setval 5
+	sjump .NewPosition
 
 .Position4_Up:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetchd_Pos4_Pos3
-	moveobject ILEXFOREST_FARFETCHD, 20, 24
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 3
-	end
+	sjump .NewPosition3
 
 .Position5:
-	scall .CryAndCheckFacing
-	ifequal UP, .Position5_Up
-	ifequal LEFT, .Position5_Left
-	ifequal RIGHT, .Position5_Right
+	readvar VAR_FACING
+	ifequalfwd UP, .Position5_Up
+	ifequalfwd LEFT, .Position5_Left
+	ifequalfwd RIGHT, .Position5_Right
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetchd_Pos5_Pos6
-	moveobject ILEXFOREST_FARFETCHD, 24, 35
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 6
-	end
+.NewPosition6:
+	moveobject ILEXFOREST_FARFETCHD, 26, 37
+	setval 6
+	sjump .NewPosition
 
 .Position5_Left:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetchd_Pos5_Pos7
-	moveobject ILEXFOREST_FARFETCHD, 22, 31
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 7
-	end
+.NewPosition7:
+	moveobject ILEXFOREST_FARFETCHD, 24, 33
+	setval 7
+	sjump .NewPosition
 
 .Position5_Up:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos5_Pos4_Up
-	moveobject ILEXFOREST_FARFETCHD, 29, 22
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 4
-	end
+	sjump .NewPosition4
 
 .Position5_Right:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos5_Pos4_Right
-	moveobject ILEXFOREST_FARFETCHD, 29, 22
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 4
-	end
+	sjump .NewPosition4
 
 .Position6:
-	scall .CryAndCheckFacing
-	ifequal RIGHT, .Position6_Right
+	readvar VAR_FACING
+	ifequalfwd RIGHT, .Position6_Right
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos6_Pos7
-	moveobject ILEXFOREST_FARFETCHD, 22, 31
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 7
-	end
+	sjump .NewPosition7
 
 .Position6_Right:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos6_Pos5
-	moveobject ILEXFOREST_FARFETCHD, 28, 31
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 5
-	end
+	sjump .NewPosition5
 
 .Position7:
-	scall .CryAndCheckFacing
-	ifequal DOWN, .Position7_Down
-	ifequal LEFT, .Position7_Left
+	readvar VAR_FACING
+	ifequalfwd DOWN, .Position7_Down
+	ifequalfwd LEFT, .Position7_Left
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos7_Pos8
-	moveobject ILEXFOREST_FARFETCHD, 15, 29
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 8
-	end
+	sjump .NewPosition8
 
 .Position7_Left:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos7_Pos6
-	moveobject ILEXFOREST_FARFETCHD, 24, 35
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 6
-	end
+	sjump .NewPosition6
 
 .Position7_Down:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos7_Pos5
-	moveobject ILEXFOREST_FARFETCHD, 28, 31
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 5
-	end
+	sjump .NewPosition5
 
 .Position8:
-	scall .CryAndCheckFacing
-	ifequal UP, .Position8_Up
-	ifequal LEFT, .Position8_Left
-	ifequal RIGHT, .Position8_Right
+	readvar VAR_FACING
+	ifequalfwd UP, .Position8_Up
+	ifequalfwd LEFT, .Position8_Left
+	ifequalfwd RIGHT, .Position8_Right
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos8_Pos9
-	moveobject ILEXFOREST_FARFETCHD, 10, 35
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 9
-	end
+	moveobject ILEXFOREST_FARFETCHD, 12, 37
+	setval 9
+	sjump .NewPosition
 
 .Position8_Right:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos8_Pos7
-	moveobject ILEXFOREST_FARFETCHD, 22, 31
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 7
-	end
+	sjump .NewPosition7
 
 .Position8_Up:
 .Position8_Left:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos8_Pos2
-	moveobject ILEXFOREST_FARFETCHD, 15, 25
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 2
-	end
+	sjump .NewPosition2
 
 .Position9:
-	scall .CryAndCheckFacing
-	ifequal DOWN, .Position9_Down
-	ifequal RIGHT, .Position9_Right
+	readvar VAR_FACING
+	ifequalfwd DOWN, .Position9_Down
+	ifequalfwd RIGHT, .Position9_Right
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos9_Pos10
-	moveobject ILEXFOREST_FARFETCHD, 6, 28
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 10
 	appear ILEXFOREST_BLACK_BELT
 	setevent EVENT_CHARCOAL_KILN_BOSS
 	setevent EVENT_HERDED_FARFETCHD
-	end
+	moveobject ILEXFOREST_FARFETCHD, 8, 30
+	setval 10
+	sjump .NewPosition
 
 .Position9_Right:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos9_Pos8_Right
-	moveobject ILEXFOREST_FARFETCHD, 15, 29
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 8
-	end
+	sjump .NewPosition8
 
 .Position9_Down:
 	applymovement ILEXFOREST_FARFETCHD, MovementData_Farfetched_Pos9_Pos8_Down
-	moveobject ILEXFOREST_FARFETCHD, 15, 29
-	disappear ILEXFOREST_FARFETCHD
-	appear ILEXFOREST_FARFETCHD
-	loadmem wFarfetchdPosition, 8
-	end
+	sjump .NewPosition8
 
-.Position10:
-	faceplayer
+IlexForestFinishCelebiEventScript:
+	setevent EVENT_TIME_TRAVEL_FINISHED
+	clearevent EVENT_TIME_TRAVELING
+	setscene $0
+	pause 30
+	showemote EMOTE_SHOCK, ILEXFOREST_LYRA, 15
+	applyonemovement ILEXFOREST_LYRA, slow_step_down
+	turnobject ILEXFOREST_LYRA, RIGHT
+	turnobject PLAYER, LEFT
 	opentext
-	writetext Text_Kwaaaa
-	cry FARFETCH_D
+	writetext Text_IlexForestLyraWorried
+	waitbutton
+	writetext Text_IlexForestLyraArmorSuit
 	waitbutton
 	closetext
-	end
+	follow ILEXFOREST_LYRA, PLAYER
+	applyonemovement ILEXFOREST_LYRA, slow_step_up
+	stopfollow
+	turnobject PLAYER, UP
+	turnobject ILEXFOREST_LYRA, DOWN
+	setlasttalked ILEXFOREST_LYRA
+	opentext
+	sjumpfwd IlexForestLyraContinueScript
 
-.CryAndCheckFacing:
+IlexForestLyraScript:
 	faceplayer
 	opentext
-	writetext Text_Kwaaaa
-	cry FARFETCH_D
+	writetext Text_IlexForestLyraArmorSuit
+	promptbutton
+IlexForestLyraContinueScript:
+	verbosegiveitem ARMOR_SUIT
+	iffalse_endtext
+	setevent EVENT_GOT_ARMOR_SUIT
+	writetext Text_IlexForestLyraGoodbye
 	waitbutton
 	closetext
 	readvar VAR_FACING
+	ifequalfwd LEFT, .NotBlockingPath
+	applymovement PLAYER, MovementData_PlayerStepAside
+.NotBlockingPath
+	applymovement ILEXFOREST_LYRA, MovementData_IlexForestLyraLeaves
+	disappear ILEXFOREST_LYRA
 	end
 
+IlexForestApprenticeTrigger:
+	showemote EMOTE_SHOCK, ILEXFOREST_YOUNGSTER, 15
+	turnobject PLAYER, UP
+	sjump IlexForestCharcoalApprenticeScript
+
 IlexForestCharcoalMasterScript:
+	checkevent EVENT_GOT_HM01_CUT
+	iftrue_jumptextfaceplayer Text_CharcoalMasterTalkAfter
 	faceplayer
 	opentext
-	checkevent EVENT_GOT_HM01_CUT
-	iftrue .AlreadyGotCut
 	writetext Text_CharcoalMasterIntro
 	promptbutton
-	verbosegiveitem HM_CUT
+	verbosegivetmhm HM_CUT
 	setevent EVENT_GOT_HM01_CUT
 	writetext Text_CharcoalMasterOutro
 	waitbutton
@@ -362,91 +368,76 @@ IlexForestCharcoalMasterScript:
 	clearevent EVENT_CHARCOAL_KILN_BOSS
 	end
 
-.AlreadyGotCut:
-	writetext Text_CharcoalMasterTalkAfter
-	waitbutton
-	closetext
-	end
-
 IlexForestHeadbuttGuyScript:
 	faceplayer
 	opentext
-	checkevent EVENT_GOT_TM02_HEADBUTT
-	iftrue .AlreadyGotHeadbutt
+	checkkeyitem WING_CASE
+	iftruefwd IlexForestTutorHeadbuttScript
 	writetext Text_HeadbuttIntro
 	promptbutton
-	verbosegiveitem TM_HEADBUTT
-	iffalse .BagFull
-	setevent EVENT_GOT_TM02_HEADBUTT
-.AlreadyGotHeadbutt:
-	writetext Text_HeadbuttOutro
+	verbosegivekeyitem WING_CASE
+	writetext Text_HeadbuttIntro2
 	waitbutton
-.BagFull:
-	closetext
-	end
-
-TrainerBugCatcherWayne:
-	trainer BUG_CATCHER, WAYNE, EVENT_BEAT_BUG_CATCHER_WAYNE, BugCatcherWayneSeenText, BugCatcherWayneBeatenText, 0, .Script
-
-.Script:
-	endifjustbattled
-	opentext
-	writetext BugCatcherWayneAfterBattleText
+	setevent EVENT_LISTENED_TO_HEADBUTT_INTRO
+IlexForestTutorHeadbuttScript:
+	writetext Text_IlexForestTutorHeadbutt
 	waitbutton
-	closetext
-	end
+	checkitem SILVER_LEAF
+	iffalsefwd .NoSilverLeaf
+	writetext Text_IlexForestTutorQuestion
+	yesorno
+	iffalsefwd .TutorRefused
+	setval HEADBUTT
+	writetext ClearText
+	special Special_MoveTutor
+	ifequalfwd $0, .TeachMove
+.TutorRefused
+	jumpopenedtext Text_IlexForestTutorRefused
 
-IlexForestLassScript:
-	jumptextfaceplayer Text_IlexForestLass
+.NoSilverLeaf
+	jumpopenedtext Text_IlexForestTutorNoSilverLeaf
 
-IlexForestRevive:
-	itemball REVIVE
+.TeachMove
+	takeitem SILVER_LEAF
+	jumpopenedtext Text_IlexForestTutorTaught
 
-IlexForestXAttack:
-	itemball X_ATTACK
+GenericTrainerBugCatcherWayne:
+	generictrainer BUG_CATCHER, WAYNE, EVENT_BEAT_BUG_CATCHER_WAYNE, BugCatcherWayneSeenText, BugCatcherWayneBeatenText
 
-IlexForestAntidote:
-	itemball ANTIDOTE
+	text "A #mon I've"
+	line "never seen before"
 
-IlexForestEther:
-	itemball ETHER
+	para "fell out of the"
+	line "tree when I used"
+	cont "Headbutt."
 
-IlexForestHiddenEther:
-	hiddenitem ETHER, EVENT_ILEX_FOREST_HIDDEN_ETHER
-
-IlexForestHiddenSuperPotion:
-	hiddenitem SUPER_POTION, EVENT_ILEX_FOREST_HIDDEN_SUPER_POTION
-
-IlexForestHiddenFullHeal:
-	hiddenitem FULL_HEAL, EVENT_ILEX_FOREST_HIDDEN_FULL_HEAL
-
-IlexForestBoulder: ; unreferenced
-	jumpstd StrengthBoulderScript
-
-IlexForestSignpost:
-	jumptext IlexForestSignpostText
+	para "I ought to use"
+	line "Headbutt in other"
+	cont "places too."
+	done
 
 IlexForestShrineScript:
 	checkevent EVENT_FOREST_IS_RESTLESS
-	iftrue .ForestIsRestless
-	sjump .DontDoCelebiEvent
-
-.ForestIsRestless:
-	checkitem GS_BALL
-	iftrue .AskCelebiEvent
+	iffalsefwd .DontDoCelebiEvent
+	checkkeyitem GS_BALL
+	iftruefwd .AskCelebiEvent
 .DontDoCelebiEvent:
+	checkevent EVENT_TIME_TRAVEL_FINISHED
+	iftruefwd .DontDoGiovanniEvent
+	checkpoke CELEBI
+	iftruefwd .StartGiovanniEvent
+.DontDoGiovanniEvent
 	jumptext Text_IlexForestShrine
 
 .AskCelebiEvent:
 	opentext
 	writetext Text_ShrineCelebiEvent
 	yesorno
-	iftrue .CelebiEvent
-	closetext
-	end
+	iftruefwd .CelebiEvent
+	endtext
 
 .CelebiEvent:
-	takeitem GS_BALL
+	takekeyitem GS_BALL
 	clearevent EVENT_FOREST_IS_RESTLESS
 	setevent EVENT_AZALEA_TOWN_KURT
 	disappear ILEXFOREST_LASS
@@ -456,283 +447,372 @@ IlexForestShrineScript:
 	closetext
 	pause 20
 	showemote EMOTE_SHOCK, PLAYER, 20
-	special FadeOutMusic
+	special Special_FadeOutMusic
 	applymovement PLAYER, IlexForestPlayerStepsDownMovement
 	pause 30
 	turnobject PLAYER, DOWN
 	pause 20
-	clearflag ENGINE_FOREST_IS_RESTLESS
-	special CelebiShrineEvent
+	clearflag ENGINE_HAVE_EXAMINED_GS_BALL
+	special Special_CelebiShrineEvent
 	loadwildmon CELEBI, 30
 	startbattle
 	reloadmapafterbattle
 	pause 20
-	special CheckCaughtCelebi
-	iffalse .DidntCatchCelebi
+	special CheckBattleCaughtResult
+	iffalse DoNothingScript
+	setflag ENGINE_PLAYER_CAUGHT_CELEBI
 	appear ILEXFOREST_KURT
 	applymovement ILEXFOREST_KURT, IlexForestKurtStepsUpMovement
-	opentext
-	writetext Text_KurtCaughtCelebi
-	waitbutton
-	closetext
-	applymovement ILEXFOREST_KURT, IlexForestKurtStepsDownMovement
+	showtext Text_KurtCaughtCelebi
+	applymovement ILEXFOREST_KURT, IlexFOrestKurtStepsDownMovement
 	disappear ILEXFOREST_KURT
-.DidntCatchCelebi:
+	end
+
+.StartGiovanniEvent:
+	showtext Text_IlexForestShrine
+	showemote EMOTE_SHOCK, PLAYER, 15
+	appear ILEXFOREST_CELEBI
+	playsound SFX_BALL_POOF
+	turnobject PLAYER, DOWN
+	waitsfx
+	pause 15
+	cry CELEBI
+	waitsfx
+	pause 15
+	applymovement ILEXFOREST_CELEBI, MovementData_CelebiDance
+	pause 15
+	showtext Text_CelebiDancedBeautifully
+	playsound SFX_JUMP_OVER_LEDGE
+	applymovement ILEXFOREST_CELEBI, MovementData_CelebiHop
+	applyonemovement PLAYER, slow_step_down
+	waitsfx
+	special Special_FadeOutMusic
+	playmusic MUSIC_LYRA_ENCOUNTER_HGSS
+	moveobject ILEXFOREST_LYRA, 5, 26
+	appear ILEXFOREST_LYRA
+	applymovement ILEXFOREST_LYRA, MovementData_IlexForestLyraApproaches
+	turnobject PLAYER, LEFT
+	showtext Text_IlexForestLyraHello
+	special RestartMapMusic
+	pause 30
+	playsound SFX_GAME_FREAK_LOGO_GS
+	special FadeOutPalettes
+	special LoadMapPalettes
+	turnobject ILEXFOREST_CELEBI, DOWN
+	pause 30
+	special FadeInPalettes_EnableDynNoApply
+	waitsfx
+	showemote EMOTE_SHOCK, PLAYER, 15
+	turnobject PLAYER, UP
+	pause 15
+	turnobject ILEXFOREST_LYRA, UP
+	turnobject PLAYER, DOWN
+	pause 15
+	turnobject ILEXFOREST_LYRA, RIGHT
+	turnobject PLAYER, LEFT
+	showtext Text_IlexForestLyraWhatWasThat
+	cry CELEBI
+	showemote EMOTE_SHOCK, PLAYER, 15
+	applymovement PLAYER, MovementData_PlayerStepBack
+	waitsfx
+	playsound SFX_PROTECT
+	applymovement ILEXFOREST_CELEBI, MovementData_CelebiFloat
+	waitsfx
+	playsound SFX_GAME_FREAK_LOGO_GS
+	special FadeOutPalettes
+	pause 30
+	waitsfx
+	disappear ILEXFOREST_CELEBI
+	disappear ILEXFOREST_LYRA
+	setevent EVENT_TIME_TRAVELING
+	warp ROUTE_22_PAST, 6, 7
 	end
 
 MovementData_Farfetchd_Pos1_Pos2:
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
+	big_step_up
+MovementData_Farfetched_Pos8_Pos2:
+	big_step_up
+	big_step_up
+	big_step_up
+	big_step_up
 	step_end
 
 MovementData_Farfetchd_Pos2_Pos3:
-	big_step UP
-	big_step UP
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step DOWN
-	step_end
-
-MovementData_Farfetchd_Pos2_Pos8:
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
-	step_end
-
-MovementData_Farfetchd_Pos3_Pos4:
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	step_end
-
-MovementData_Farfetchd_Pos3_Pos2:
-	big_step UP
-	big_step LEFT
-	big_step LEFT
-	big_step LEFT
-	big_step LEFT
+	run_step_up
+	run_step_up
+	run_step_right
+	run_step_right
+	run_step_right
+	run_step_right
+	run_step_right
+	run_step_down
 	step_end
 
 MovementData_Farfetchd_Pos4_Pos5:
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
+	big_step_down
+MovementData_Farfetchd_Pos2_Pos8:
+	run_step_down
+	run_step_down
+	run_step_down
+	run_step_down
+	run_step_down
+	step_end
+
+MovementData_Farfetchd_Pos3_Pos4:
+MovementData_Farfetched_Pos7_Pos5:
+	big_step_right
+MovementData_Farfetched_Pos8_Pos7:
+	big_step_right
+	big_step_right
+	big_step_right
+	big_step_right
+	big_step_right
+	step_end
+
+MovementData_Farfetchd_Pos3_Pos2:
+	run_step_up
+	run_step_left
+	run_step_left
+	run_step_left
+	run_step_left
 	step_end
 
 MovementData_Farfetchd_Pos4_Pos3:
-	big_step LEFT
-	jump_step LEFT
-	big_step LEFT
-	big_step LEFT
+	run_step_left
+	jump_step_left
+	run_step_left
+	run_step_left
 	step_end
 
 MovementData_Farfetchd_Pos5_Pos6:
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
-	big_step LEFT
-	big_step LEFT
-	big_step LEFT
-	big_step LEFT
-	step_end
-
+	big_step_down
+	big_step_down
+	big_step_down
+	big_step_down
+	big_step_down
 MovementData_Farfetchd_Pos5_Pos7:
-	big_step LEFT
-	big_step LEFT
-	big_step LEFT
-	big_step LEFT
+	run_step_left
+	run_step_left
+	run_step_left
+	run_step_left
 	step_end
 
 MovementData_Farfetched_Pos5_Pos4_Up:
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step RIGHT
-	big_step UP
+	run_step_up
+	run_step_up
+	run_step_up
+	run_step_right
+	run_step_up
 	step_end
 
 MovementData_Farfetched_Pos5_Pos4_Right:
-	big_step RIGHT
-	turn_head UP
-	step_sleep 1
-	turn_head DOWN
-	step_sleep 1
-	turn_head UP
-	step_sleep 1
-	big_step DOWN
-	big_step DOWN
+	run_step_right
+	turn_head_up
+	step_sleep_1
+	turn_head_down
+	step_sleep_1
+	turn_head_up
+	step_sleep_1
+	run_step_down
+	run_step_down
 	fix_facing
-	jump_step UP
-	step_sleep 8
-	step_sleep 8
+	jump_step_up
+	step_sleep_8
+	step_sleep_8
 	remove_fixed_facing
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
+	run_step_up
+	run_step_up
+	run_step_up
+	run_step_up
+	run_step_up
 	step_end
 
 MovementData_Farfetched_Pos6_Pos7:
-	big_step LEFT
-	big_step LEFT
-	big_step LEFT
-	big_step UP
-	big_step UP
-	big_step RIGHT
-	big_step UP
-	big_step UP
+	run_step_left
+	run_step_left
+	run_step_left
+	run_step_up
+	run_step_up
+	run_step_right
+	run_step_up
+	run_step_up
 	step_end
 
 MovementData_Farfetched_Pos6_Pos5:
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
+	run_step_right
+	run_step_right
+	run_step_right
+	run_step_right
+	run_step_up
+	run_step_up
+	run_step_up
+	run_step_up
 	step_end
 
 MovementData_Farfetched_Pos7_Pos8:
-	big_step UP
-	big_step UP
-	big_step LEFT
-	big_step LEFT
-	big_step LEFT
-	big_step LEFT
-	big_step LEFT
+	run_step_up
+	run_step_up
+	run_step_left
+	run_step_left
+	run_step_left
+	run_step_left
+	run_step_left
 	step_end
 
 MovementData_Farfetched_Pos7_Pos6:
-	big_step DOWN
-	big_step DOWN
-	big_step LEFT
-	big_step DOWN
-	big_step DOWN
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	step_end
-
-MovementData_Farfetched_Pos7_Pos5:
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
+	run_step_down
+	run_step_down
+	run_step_left
+	run_step_down
+	run_step_down
+	run_step_right
+	run_step_right
+	run_step_right
 	step_end
 
 MovementData_Farfetched_Pos8_Pos9:
-	big_step DOWN
-	big_step LEFT
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
-	big_step DOWN
-	step_end
-
-MovementData_Farfetched_Pos8_Pos7:
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	step_end
-
-MovementData_Farfetched_Pos8_Pos2:
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
+	run_step_down
+	run_step_left
+	run_step_down
+	run_step_down
+	run_step_down
+	run_step_down
+	run_step_down
 	step_end
 
 MovementData_Farfetched_Pos9_Pos10:
-	big_step LEFT
-	big_step LEFT
+	run_step_left
+	run_step_left
 	fix_facing
-	jump_step RIGHT
-	step_sleep 8
-	step_sleep 8
+	jump_step_right
+	step_sleep_8
+	step_sleep_8
 	remove_fixed_facing
-	big_step LEFT
-	big_step LEFT
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
+	run_step_left
+	run_step_left
+	run_step_up
+	run_step_up
+	run_step_up
+	run_step_up
+	run_step_up
+	run_step_up
 	step_end
 
 MovementData_Farfetched_Pos9_Pos8_Right:
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
+	run_step_right
+	run_step_right
+	run_step_right
+	run_step_right
+	run_step_up
+	run_step_up
+	run_step_up
+	run_step_up
+	run_step_up
 	step_end
 
 MovementData_Farfetched_Pos9_Pos8_Down:
-	big_step LEFT
-	big_step LEFT
+	run_step_left
+	run_step_left
 	fix_facing
-	jump_step RIGHT
-	step_sleep 8
-	step_sleep 8
+	jump_step_right
+	step_sleep_8
+	step_sleep_8
 	remove_fixed_facing
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step RIGHT
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
-	big_step UP
+	run_step_right
+	run_step_right
+	run_step_right
+	run_step_right
+	run_step_up
+	run_step_up
+	run_step_up
+	run_step_up
+	run_step_up
 	step_end
 
 IlexForestKurtStepsUpMovement:
-	step UP
-	step UP
-	step UP
-	step UP
+	step_up
+	step_up
+	step_up
+	step_up
 	step_end
 
-IlexForestKurtStepsDownMovement:
-	step DOWN
-	step DOWN
-	step DOWN
-	step DOWN
+IlexFOrestKurtStepsDownMovement:
+	step_down
+	step_down
+	step_down
+	step_down
 	step_end
 
 IlexForestPlayerStepsDownMovement:
 	fix_facing
-	slow_step DOWN
+	slow_step_down
 	remove_fixed_facing
+	step_end
+
+MovementData_CelebiDance:
+	slow_step_left
+	slow_step_right
+	slow_step_right
+	slow_step_left
+	step_sleep_4
+	turn_head_up
+	step_sleep_4
+	turn_head_left
+	step_sleep_4
+	turn_head_down
+	step_sleep_4
+	turn_head_right
+	step_sleep_4
+	turn_head_up
+	step_sleep_4
+	turn_head_left
+	step_sleep_4
+	turn_head_down
+	step_sleep_4
+	turn_head_right
+	step_sleep_4
+	turn_head_up
+	step_sleep_4
+	step_end
+
+MovementData_CelebiHop:
+	jump_step_down
+	slow_step_up
+	step_end
+
+MovementData_CelebiFloat:
+	turn_head_down
+	fix_facing
+	slow_step_up
+	slow_step_up
+	slow_step_up
+	remove_fixed_facing
+	step_end
+
+MovementData_PlayerStepBack:
+	fix_facing
+	slow_step_right
+	remove_fixed_facing
+	step_end
+
+MovementData_IlexForestLyraApproaches:
+	slow_step_right
+	slow_step_right
+	slow_step_right
+	slow_step_right
+	step_end
+
+MovementData_PlayerStepAside:
+	slow_step_right
+	turn_head_left
+	step_end
+
+MovementData_IlexForestLyraLeaves:
+	slow_step_down
+	slow_step_left
+	slow_step_left
+	slow_step_left
+	slow_step_left
 	step_end
 
 IlexForestApprenticeIntroText:
@@ -740,15 +820,15 @@ IlexForestApprenticeIntroText:
 	line "is going to be"
 	cont "steaming…"
 
-	para "The FARFETCH'D"
-	line "that CUTS trees"
+	para "The Farfetch'd"
+	line "that Cuts trees"
 
 	para "for charcoal took"
 	line "off on me."
 
 	para "I can't go looking"
 	line "for it here in the"
-	cont "ILEX FOREST."
+	cont "Ilex Forest."
 
 	para "It's too big, dark"
 	line "and scary for me…"
@@ -758,23 +838,23 @@ IlexForestApprenticeAfterText:
 	text "Wow! Thanks a"
 	line "whole bunch!"
 
-	para "My boss's #MON"
+	para "My boss's #mon"
 	line "won't obey me be-"
 	cont "cause I don't have"
-	cont "a BADGE."
+	cont "a Badge."
 	done
 
 Text_ItsTheMissingPokemon:
 	text "It's the missing"
-	line "#MON!"
+	line "#mon!"
 	done
 
 Text_Kwaaaa:
-	text "FARFETCH'D: Kwaa!"
+	text "Farfetch'd: Kwaa!"
 	done
 
 Text_CharcoalMasterIntro:
-	text "Ah! My FARFETCH'D!"
+	text "Ah! My Farfetch'd!"
 
 	para "You found it for"
 	line "us, kid?"
@@ -782,7 +862,7 @@ Text_CharcoalMasterIntro:
 	para "Without it, we"
 	line "wouldn't be able"
 
-	para "to CUT trees for"
+	para "to Cut trees for"
 	line "charcoal."
 
 	para "Thanks, kid!"
@@ -795,17 +875,28 @@ Text_CharcoalMasterIntro:
 	done
 
 Text_CharcoalMasterOutro:
-	text "That's the CUT HM."
-	line "Teach that to a"
+	text "That's the Cut HM."
+	line "Any #mon you"
 
-	para "#MON to clear"
+	para "have that's compat-"
+	line "ible with it can"
+
+	para "use Cut to clear"
 	line "small trees."
+
+	para "You don't have to"
+	line "teach it to them"
+
+	para "unless you want"
+	line "them to use Cut"
+	cont "in a battle."
 
 	para "Of course, you"
 	line "have to have the"
 
-	para "GYM BADGE from"
-	line "AZALEA to use it."
+	para "Gym Badge from"
+	line "Azalea to use it"
+	cont "outside of battle."
 	done
 
 Text_CharcoalMasterTalkAfter:
@@ -823,17 +914,73 @@ Text_HeadbuttIntro:
 	text "What am I doing?"
 
 	para "I'm shaking trees"
-	line "using HEADBUTT."
+	line "using Headbutt."
+
+	para "Sometimes I flush"
+	line "out a #mon,"
+
+	para "sometimes just"
+	line "their feathers."
+
+	para "But even those"
+	line "are useful!"
+
+	para "They seem to make"
+	line "my own #mon"
+	cont "a little stronger."
 
 	para "It's fun. Here,"
 	line "you try it too!"
+
+	para "You'll just need a"
+	line "Case to hold any"
+	cont "delicate Wings…"
 	done
 
-Text_HeadbuttOutro:
+Text_HeadbuttIntro2:
+	text "Oh, and if none"
+	line "of your #mon"
+	cont "know Headbutt?"
+
+	para "No problem!"
+	done
+
+Text_IlexForestTutorHeadbutt:
+	text "I can teach your"
+	line "#mon to use"
+
+	para "Headbutt in ex-"
+	line "change for a"
+	cont "Silver Leaf."
+	done
+
+Text_IlexForestTutorNoSilverLeaf:
+	text "Oh, but you don't"
+	line "have any Silver"
+	cont "Leaves."
+
+	para "Sometimes you can"
+	line "find them on wild"
+
+	para "Oddish, or lying"
+	line "on the ground."
+	done
+
+Text_IlexForestTutorQuestion:
+	text "Should I teach"
+	line "your #mon"
+	cont "Headbutt?"
+	done
+
+Text_IlexForestTutorRefused:
+	text "Alright then."
+	done
+
+Text_IlexForestTutorTaught:
 	text "Rattle trees with"
-	line "HEADBUTT. Some-"
+	line "Headbutt. Some-"
 	cont "times, sleeping"
-	cont "#MON fall out."
+	cont "#mon fall out."
 	done
 
 Text_IlexForestLass:
@@ -842,8 +989,16 @@ Text_IlexForestLass:
 	cont "forest's guardian?"
 	done
 
-IlexForestSignpostText:
-	text "ILEX FOREST is"
+Text_IlexForestMossRock:
+	text "The rock is cover-"
+	line "ed in moss."
+
+	para "It feels pleasant-"
+	line "ly cool."
+	done
+
+IlexForestSignpost:
+	text "Ilex Forest is"
 	line "so overgrown with"
 
 	para "trees that you"
@@ -854,9 +1009,29 @@ IlexForestSignpostText:
 	cont "have been dropped."
 	done
 
+IlexForestTrainerTips:
+	text "Trainer Tips!"
+
+	para "As long as you"
+	line "have the HM in"
+	cont "your bag,"
+
+	para "and #mon in"
+	line "your party that"
+
+	para "are compatible"
+	line "with that HM can"
+
+	para "use the move out-"
+	line "of battle. You"
+
+	para "don't even have to"
+	line "teach it!"
+	done
+
 Text_IlexForestShrine:
-	text "ILEX FOREST"
-	line "SHRINE…"
+	text "Ilex Forest"
+	line "Shrine…"
 
 	para "It's in honor of"
 	line "the forest's"
@@ -864,8 +1039,8 @@ Text_IlexForestShrine:
 	done
 
 Text_ShrineCelebiEvent:
-	text "ILEX FOREST"
-	line "SHRINE…"
+	text "Ilex Forest"
+	line "Shrine…"
 
 	para "It's in honor of"
 	line "the forest's"
@@ -876,16 +1051,16 @@ Text_ShrineCelebiEvent:
 	para "It's a hole."
 	line "It looks like the"
 
-	para "GS BALL would fit"
+	para "GS Ball would fit"
 	line "inside it."
 
 	para "Want to put the GS"
-	line "BALL here?"
+	line "Ball here?"
 	done
 
 Text_InsertGSBall:
 	text "<PLAYER> put in the"
-	line "GS BALL."
+	line "GS Ball."
 	done
 
 Text_KurtCaughtCelebi:
@@ -896,16 +1071,92 @@ Text_KurtCaughtCelebi:
 	line "fantastic. Thanks!"
 
 	para "The legends about"
-	line "that SHRINE were"
+	line "that Shrine were"
 	cont "real after all."
+
+	para "Maybe the legend"
+	line "that people who"
+	cont "tamper with it"
+
+	para "disappear is"
+	line "true, too…"
 
 	para "I feel inspired by"
 	line "what I just saw."
 
 	para "It motivates me to"
-	line "make better BALLS!"
+	line "make better Balls!"
 
 	para "I'm going!"
+	done
+
+Text_CelebiDancedBeautifully:
+	text "Celebi danced"
+	line "beautifully!"
+	done
+
+Text_IlexForestLyraHello:
+	text "Lyra: Hi, <PLAYER>."
+	line "Have you heard of"
+
+	para "the legend of the"
+	line "shrine?"
+
+	para "They say that"
+	line "people disappear"
+
+	para "when they tamper"
+	line "with it."
+	done
+
+Text_IlexForestLyraWhatWasThat:
+	text "Lyra: …"
+	line "What was that?"
+	done
+
+Text_IlexForestLyraWorried:
+	text "Lyra: …<PLAYER>?"
+	line "You're really back?"
+
+	para "I missed you so"
+	line "much! Celebi sent"
+
+	para "me here and you"
+	line "were missing…"
+
+	para "I thought you'd be"
+	line "stuck in the past"
+	cont "forever!"
+
+	para "…"
+
+	para "At least now we're"
+	line "both safely back"
+	cont "to our time."
+	done
+
+Text_IlexForestLyraArmorSuit:
+	text "Lyra: What strange"
+	line "adventure did you"
+	cont "have by yourself?"
+
+	para "You dropped this…"
+	line "thing when Celebi"
+	cont "brought you back…"
+	done
+
+Text_IlexForestLyraGoodbye:
+	text "Lyra: This sure"
+	line "was a bizarre day."
+
+	para "I'm exhausted, I"
+	line "had better get"
+	cont "going."
+
+	para "You should rest"
+	line "too, <PLAYER>."
+
+	para "See you!"
 	done
 
 BugCatcherWayneSeenText:
@@ -913,53 +1164,31 @@ BugCatcherWayneSeenText:
 	line "me like that!"
 
 	para "You frightened a"
-	line "#MON away!"
+	line "#mon away!"
 	done
 
 BugCatcherWayneBeatenText:
 	text "I hadn't seen that"
-	line "#MON before…"
+	line "#mon before…"
 	done
 
-BugCatcherWayneAfterBattleText:
-	text "A #MON I've"
-	line "never seen before"
+IlexForestHoneyBoyText:
+	text "I'm slathering"
+if DEF(FAITHFUL)
+	line "Honey on the"
+	cont "ground."
+else
+	line "Sweet Honey"
+	cont "on the ground."
+endc
 
-	para "fell out of the"
-	line "tree when I used"
-	cont "HEADBUTT."
+	para "My sister's #-"
+	line "mon collects it."
 
-	para "I ought to use"
-	line "HEADBUTT in other"
-	cont "places too."
+	para "It helps attract"
+	line "#mon at the"
+
+	para "same level as my"
+	line "own, so they're"
+	cont "a fair fight."
 	done
-
-IlexForest_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  1,  5, ROUTE_34_ILEX_FOREST_GATE, 3
-	warp_event  3, 42, ILEX_FOREST_AZALEA_GATE, 1
-	warp_event  3, 43, ILEX_FOREST_AZALEA_GATE, 2
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  3, 17, BGEVENT_READ, IlexForestSignpost
-	bg_event 11,  7, BGEVENT_ITEM, IlexForestHiddenEther
-	bg_event 22, 14, BGEVENT_ITEM, IlexForestHiddenSuperPotion
-	bg_event  1, 17, BGEVENT_ITEM, IlexForestHiddenFullHeal
-	bg_event  8, 22, BGEVENT_UP, IlexForestShrineScript
-
-	def_object_events
-	object_event 14, 31, SPRITE_BIRD, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, IlexForestFarfetchdScript, EVENT_ILEX_FOREST_FARFETCHD
-	object_event  7, 28, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, IlexForestCharcoalApprenticeScript, EVENT_ILEX_FOREST_APPRENTICE
-	object_event  5, 28, SPRITE_BLACK_BELT, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, IlexForestCharcoalMasterScript, EVENT_ILEX_FOREST_CHARCOAL_MASTER
-	object_event 15, 14, SPRITE_ROCKER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, IlexForestHeadbuttGuyScript, -1
-	object_event 20, 32, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, IlexForestRevive, EVENT_ILEX_FOREST_REVIVE
-	object_event  8, 29, SPRITE_KURT, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_ILEX_FOREST_KURT
-	object_event  3, 24, SPRITE_LASS, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, IlexForestLassScript, EVENT_ILEX_FOREST_LASS
-	object_event 12,  1, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_TRAINER, 0, TrainerBugCatcherWayne, -1
-	object_event  9, 17, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, IlexForestXAttack, EVENT_ILEX_FOREST_X_ATTACK
-	object_event 17,  7, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, IlexForestAntidote, EVENT_ILEX_FOREST_ANTIDOTE
-	object_event 27,  1, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, IlexForestEther, EVENT_ILEX_FOREST_ETHER

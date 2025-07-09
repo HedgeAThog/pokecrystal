@@ -22,8 +22,7 @@ Music_HallOfFame_Ch1:
 	note E_, 1
 	note F_, 1
 	note F#, 1
-.mainloop:
-.loop1:
+Music_HallOfFame_branch_f05e6:
 	volume_envelope 9, 7
 	octave 4
 	note C_, 8
@@ -41,17 +40,17 @@ Music_HallOfFame_Ch1:
 	note F_, 8
 	volume_envelope 5, 7
 	note F_, 8
-	sound_loop 3, .loop1
+	sound_loop 3, Music_HallOfFame_branch_f05e6
 	rest 16
 	rest 16
 	rest 16
 	rest 16
-	sound_loop 0, .mainloop
+	sound_jump Music_HallOfFame_branch_f05e6
 
 Music_HallOfFame_Ch2:
 	vibrato 8, 2, 5
 	duty_cycle 3
-.mainloop:
+Music_HallOfFame_branch_f0610:
 	note_type 12, 12, 4
 	octave 3
 	note G_, 2
@@ -76,12 +75,12 @@ Music_HallOfFame_Ch2:
 	note A#, 4
 	note A_, 4
 	note F_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_HallOfFame_branch_f0610
 
 Music_HallOfFame_Ch3:
-.mainloop:
+Music_HallOfFame_branch_f062e:
 	note_type 12, 2, 8
-.loop1:
+Music_HallOfFame_branch_f0631:
 	octave 3
 	note D_, 2
 	note G_, 2
@@ -118,7 +117,7 @@ Music_HallOfFame_Ch3:
 	note F_, 2
 	note C_, 2
 	note F_, 2
-	sound_loop 3, .loop1
+	sound_loop 3, Music_HallOfFame_branch_f0631
 	note D_, 4
 	note G_, 4
 	note D_, 4
@@ -135,7 +134,7 @@ Music_HallOfFame_Ch3:
 	note G_, 4
 	note E_, 4
 	note G_, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_HallOfFame_branch_f062e
 
 Music_HallOfFame_Ch4:
 	toggle_noise 5
@@ -145,7 +144,7 @@ Music_HallOfFame_Ch4:
 	rest 16
 	rest 16
 	drum_speed 6
-.mainloop:
+Music_HallOfFame_branch_f0677:
 	stereo_panning FALSE, TRUE
 	drum_note 11, 4
 	drum_note 11, 8
@@ -171,4 +170,4 @@ Music_HallOfFame_Ch4:
 	drum_note 11, 1
 	drum_note 11, 1
 	drum_note 11, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_HallOfFame_branch_f0677

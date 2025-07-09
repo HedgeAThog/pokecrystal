@@ -1,36 +1,58 @@
-BattleCommand_PerishSong:
-	ld hl, wPlayerSubStatus1
-	ld de, wEnemySubStatus1
-	bit SUBSTATUS_PERISH, [hl]
-	jr z, .ok
+BattleCommand_perishsong:
+	; Track if we have afflicted anyone with Perish
+	ld b, 1
 
+	; Set hl to user perish, de to opponent perish
+	ld hl, wPlayerPerishCount
+	ld de, wEnemyPerishCount
+	ldh a, [hBattleTurn]
+	and a
+	call nz, SwapHLDE
+
+	; Handle user Perish
+	ld a, [hl]
+	and a
+	jr nz, .user_done
+	ld [hl], 4
+	inc b
+
+.user_done
+	; Handle opponent Perish
 	ld a, [de]
-	bit SUBSTATUS_PERISH, a
-	jr nz, .failed
+	and a
+	jr nz, .opponent_done
 
-.ok
-	bit SUBSTATUS_PERISH, [hl]
-	jr nz, .enemy
+	; Check if opponent has immunity to this move in some way.
+	; This will, if applicable, print an immunity message, so
+	; we shouldn't do that here too.
+	push de
+	push bc
+	call BattleCommand_checkpriority
+	pop bc
+	pop de
 
-	set SUBSTATUS_PERISH, [hl]
+	ld a, [wAttackMissed]
+	and a
+	jr nz, .immune
+
 	ld a, 4
-	ld [wPlayerPerishCount], a
-
-.enemy
-	ld a, [de]
-	bit SUBSTATUS_PERISH, a
-	jr nz, .done
-
-	set SUBSTATUS_PERISH, a
 	ld [de], a
-	ld a, 4
-	ld [wEnemyPerishCount], a
+	inc b
 
-.done
+.immune
+	; Don't print a failure message if Soundproof suppressed the effect
+	dec b
+	ret z
+	inc b
+
+.opponent_done
+	dec b
+	jr z, .failed ; nobody was afflicted
+
 	call AnimateCurrentMove
-	ld hl, StartPerishText
-	jp StdBattleTextbox
+	ld hl, StartPerishSongText
+	jmp StdBattleTextbox
 
 .failed
 	call AnimateFailedMove
-	jp PrintButItFailed
+	jmp PrintButItFailed

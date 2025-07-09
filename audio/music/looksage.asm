@@ -11,7 +11,7 @@ Music_LookSage_Ch1:
 	note_type 12, 11, 3
 	rest 2
 	rest 16
-	sound_call .sub1
+	sound_call Music_LookSage_branch_ee3fa
 	volume_envelope 11, 3
 	octave 3
 	note D_, 2
@@ -29,7 +29,7 @@ Music_LookSage_Ch1:
 	note F_, 2
 	volume_envelope 9, 3
 	note F_, 2
-.mainloop:
+Music_LookSage_branch_ee38e:
 	volume_envelope 11, 3
 	note D_, 2
 	volume_envelope 9, 3
@@ -99,10 +99,10 @@ Music_LookSage_Ch1:
 	note B_, 2
 	volume_envelope 9, 3
 	note B_, 2
-	sound_call .sub1
-	sound_loop 0, .mainloop
+	sound_call Music_LookSage_branch_ee3fa
+	sound_jump Music_LookSage_branch_ee38e
 
-.sub1:
+Music_LookSage_branch_ee3fa:
 	volume_envelope 11, 3
 	octave 2
 	note E_, 2
@@ -142,7 +142,7 @@ Music_LookSage_Ch3:
 	note E_, 14
 	note G_, 1
 	note G#, 1
-.mainloop:
+Music_LookSage_branch_ee430:
 	note A_, 12
 	note B_, 4
 	note D_, 9
@@ -176,4 +176,4 @@ Music_LookSage_Ch3:
 	note E_, 14
 	note G_, 1
 	note G#, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_LookSage_branch_ee430

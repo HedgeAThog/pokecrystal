@@ -1,20 +1,22 @@
-	db DITTO ; 132
-
-	db  48,  48,  48,  48,  48,  48
-	;   hp  atk  def  spd  sat  sdf
+if DEF(FAITHFUL)
+	db  48,  48,  48,  48,  48,  48 ; 288 BST
+	;   hp  atk  def  spe  sat  sdf
+else
+	db  78,  28,  48, 108,  28,  48 ; 338 BST
+	;   hp  atk  def  spe  sat  sdf
+endc
 
 	db NORMAL, NORMAL ; type
 	db 35 ; catch rate
 	db 61 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_UNKNOWN ; gender ratio
-	db 100 ; unknown 1
-	db 20 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/ditto/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db QUICK_POWDER, METAL_POWDER ; held items
+	dn GENDER_UNKNOWN, HATCH_MEDIUM_FAST ; gender ratio, step cycles to hatch
+
+	abilities_for DITTO, LIMBER, LIMBER, IMPOSTER
 	db GROWTH_MEDIUM_FAST ; growth rate
 	dn EGG_DITTO, EGG_DITTO ; egg groups
+
+	ev_yield 1 HP
 
 	; tm/hm learnset
 	tmhm

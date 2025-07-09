@@ -1,23 +1,19 @@
-; strings correspond to UNOWNWORDS_* constants (see constants/script_constants.asm)
-DEF UNOWNWORD_{d:UNOWNWORDS_ESCAPE} EQUS "ESCAPE"
-DEF UNOWNWORD_{d:UNOWNWORDS_LIGHT}  EQUS "LIGHT"
-DEF UNOWNWORD_{d:UNOWNWORDS_WATER}  EQUS "WATER"
-DEF UNOWNWORD_{d:UNOWNWORDS_HO_OH}  EQUS "HO-OH"
-
 UnownWalls:
-; entries correspond to UNOWNWORDS_* constants
-	list_start
-	for x, NUM_UNOWN_WALLS
-		li "{UNOWNWORD_{d:x}}"
-	endr
-	assert_list_length NUM_UNOWN_WALLS
+	db $08, $44, $04, $00, $2e, $08, $ff ; E, S, C, A, P, E
+	db $26, $20, $0c, $0e, $46, $ff ; L, I, G, H, T
+	db $4c, $00, $46, $08, $42, $ff ; W, A, T, E, R
+	db $0a, $00, $20, $42, $60, $ff ; F, A, I, R, Y
 
 MenuHeaders_UnownWalls:
-; entries correspond to UNOWNWORDS_* constants
-	table_width UNOWN_WALL_MENU_HEADER_SIZE
-	for x, NUM_UNOWN_WALLS
-		DEF n = CHARLEN("{UNOWNWORD_{d:x}}")
-		db MENU_BACKUP_TILES ; flags
-		menu_coords 9 - n, 4, 10 + n, 9
-	endr
-	assert_table_length NUM_UNOWN_WALLS
+; ESCAPE
+	db MENU_BACKUP_TILES
+	menu_coords 3, 4, 16, 9
+; LIGHT
+	db MENU_BACKUP_TILES
+	menu_coords 4, 4, 15, 9
+; WATER
+	db MENU_BACKUP_TILES
+	menu_coords 4, 4, 15, 9
+; FAIRY
+	db MENU_BACKUP_TILES
+	menu_coords 4, 4, 15, 9

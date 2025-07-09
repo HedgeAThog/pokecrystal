@@ -1,14 +1,11 @@
-TinTower2F_MapScripts:
+TinTower2F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-TinTower2F_MapEvents:
-	db 0, 0 ; filler
-
 	def_warp_events
-	warp_event 10, 14, TIN_TOWER_3F, 1
-	warp_event 10,  2, TIN_TOWER_1F, 3
+	warp_event  8, 14, TIN_TOWER_3F, 1
+	warp_event  8,  2, TIN_TOWER_1F, 3
 
 	def_coord_events
 

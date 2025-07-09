@@ -1,10 +1,10 @@
 TalkToTrainerScript::
 	faceplayer
 	trainerflagaction CHECK_FLAG
-	iftrue AlreadyBeatenTrainerScript
+	iftruefwd AlreadyBeatenTrainerScript
 	loadtemptrainer
 	encountermusic
-	sjump StartBattleWithMapTrainerScript
+	sjumpfwd StartBattleWithMapTrainerScript
 
 SeenByTrainerScript::
 	loadtemptrainer
@@ -14,18 +14,26 @@ SeenByTrainerScript::
 	applymovementlasttalked wMovementBuffer
 	writeobjectxy LAST_TALKED
 	faceobject PLAYER, LAST_TALKED
-	sjump StartBattleWithMapTrainerScript
+	; fallthrough
 
 StartBattleWithMapTrainerScript:
 	opentext
-	trainertext TRAINERTEXT_SEEN
+	trainertext $0
 	waitbutton
 	closetext
 	loadtemptrainer
+	callasm CheckTrainerClass
+	iffalsefwd .nobattle
 	startbattle
 	reloadmapafterbattle
+.nobattle
 	trainerflagaction SET_FLAG
 	loadmem wRunningTrainerBattleScript, -1
 
 AlreadyBeatenTrainerScript:
 	scripttalkafter
+
+CheckTrainerClass:
+	ld a, [wTempTrainerClass]
+	ldh [hScriptVar], a
+	ret

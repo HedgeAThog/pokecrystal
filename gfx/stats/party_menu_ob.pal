@@ -1,39 +1,23 @@
-	RGB 27, 31, 27
+if !DEF(MONOCHROME)
+; red (item and mail)
+	RGB 31, 31, 31
 	RGB 31, 19, 10
-	RGB 31, 07, 04
+	RGB 31, 07, 01
 	RGB 00, 00, 00
-
-	RGB 27, 31, 27
+; blue (kris)
+	RGB 31, 31, 31
 	RGB 31, 19, 10
-	RGB 10, 14, 20
+	RGB 10, 09, 31
 	RGB 00, 00, 00
-
-	RGB 27, 31, 27
-	RGB 31, 19, 10
-	RGB 31, 07, 04
+; minis
+rept 6
+	RGB 31, 31, 31
+	RGB 20, 20, 20
+	RGB 10, 10, 10
 	RGB 00, 00, 00
-
-	RGB 27, 31, 27
-	RGB 31, 19, 10
-	RGB 31, 07, 04
-	RGB 00, 00, 00
-
-	RGB 27, 31, 27
-	RGB 31, 19, 10
-	RGB 31, 07, 04
-	RGB 00, 00, 00
-
-	RGB 27, 31, 27
-	RGB 31, 19, 10
-	RGB 31, 07, 04
-	RGB 00, 00, 00
-
-	RGB 27, 31, 27
-	RGB 31, 19, 10
-	RGB 31, 07, 04
-	RGB 00, 00, 00
-
-	RGB 27, 31, 27
-	RGB 31, 19, 10
-	RGB 31, 07, 04
-	RGB 00, 00, 00
+endr
+else
+rept 8
+	MONOCHROME_RGB_FOUR
+endr
+endc

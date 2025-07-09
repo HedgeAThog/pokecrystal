@@ -1,52 +1,7 @@
-	object_const_def
-	const MRPSYCHICSHOUSE_FISHING_GURU
-
-MrPsychicsHouse_MapScripts:
+MrPsychicsHouse_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
-
-MrPsychic:
-	faceplayer
-	opentext
-	checkevent EVENT_GOT_TM29_PSYCHIC
-	iftrue .AlreadyGotItem
-	writetext MrPsychicText1
-	promptbutton
-	verbosegiveitem TM_PSYCHIC_M
-	iffalse .Done
-	setevent EVENT_GOT_TM29_PSYCHIC
-.AlreadyGotItem:
-	writetext MrPsychicText2
-	waitbutton
-.Done:
-	closetext
-	end
-
-MrPsychicsHouseBookshelf:
-	jumpstd DifficultBookshelfScript
-
-MrPsychicText1:
-	text "…"
-
-	para "…"
-
-	para "…"
-
-	para "…I got it!"
-
-	para "You wanted this!"
-	done
-
-MrPsychicText2:
-	text "TM29 is PSYCHIC."
-
-	para "It may lower the"
-	line "target's SPCL.DEF."
-	done
-
-MrPsychicsHouse_MapEvents:
-	db 0, 0 ; filler
 
 	def_warp_events
 	warp_event  2,  7, SAFFRON_CITY, 5
@@ -55,8 +10,79 @@ MrPsychicsHouse_MapEvents:
 	def_coord_events
 
 	def_bg_events
-	bg_event  0,  1, BGEVENT_READ, MrPsychicsHouseBookshelf
-	bg_event  1,  1, BGEVENT_READ, MrPsychicsHouseBookshelf
+	bg_event  7,  1, BGEVENT_JUMPSTD, difficultbookshelf
 
 	def_object_events
-	object_event  5,  3, SPRITE_FISHING_GURU, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, MrPsychic, -1
+	object_event  5,  3, SPRITE_FISHING_GURU, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, MrPsychic, -1
+
+MrPsychic:
+	faceplayer
+	opentext
+	checkevent EVENT_LISTENED_TO_ZEN_HEADBUTT_INTRO
+	iftruefwd MrPsychicsHouseTutorZenHeadbuttScript
+	writetext MrPsychicText
+	waitbutton
+	setevent EVENT_LISTENED_TO_ZEN_HEADBUTT_INTRO
+MrPsychicsHouseTutorZenHeadbuttScript:
+	writetext Text_MrPsychicsHouseTutorZenHeadbutt
+	waitbutton
+	checkitem SILVER_LEAF
+	iffalsefwd .NoSilverLeaf
+	writetext Text_MrPsychicsHouseTutorQuestion
+	yesorno
+	iffalsefwd .TutorRefused
+	setval ZEN_HEADBUTT
+	writetext ClearText
+	special Special_MoveTutor
+	ifequalfwd $0, .TeachMove
+.TutorRefused
+	jumpopenedtext Text_MrPsychicsHouseTutorRefused
+
+.NoSilverLeaf
+	jumpopenedtext Text_MrPsychicsHouseTutorNoSilverLeaf
+
+.TeachMove
+	takeitem SILVER_LEAF
+	jumpopenedtext Text_MrPsychicsHouseTutorTaught
+
+MrPsychicText:
+	text "…"
+
+	para "…"
+
+	para "…"
+
+	para "…I got it!"
+
+	para "You want to learn"
+	line "Zen Headbutt!"
+	done
+
+Text_MrPsychicsHouseTutorZenHeadbutt:
+	text "I will teach your"
+	line "#mon to use Zen"
+
+	para "Headbutt for a"
+	line "Silver Leaf."
+	done
+
+Text_MrPsychicsHouseTutorNoSilverLeaf:
+	text "You don't have a"
+	line "Silver Leaf…"
+	done
+
+Text_MrPsychicsHouseTutorQuestion:
+	text "Should I teach"
+	line "your #mon"
+	cont "Zen Headbutt?"
+	done
+
+Text_MrPsychicsHouseTutorRefused:
+	text "…I was wrong?"
+	done
+
+Text_MrPsychicsHouseTutorTaught:
+	text "Your #mon now"
+	line "knows how to use"
+	cont "Zen Headbutt."
+	done

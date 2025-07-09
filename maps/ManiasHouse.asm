@@ -1,64 +1,70 @@
-	object_const_def
-	const MANIASHOUSE_ROCKER
-
-ManiasHouse_MapScripts:
+ManiasHouse_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
+
+	def_warp_events
+	warp_event  2,  7, CIANWOOD_CITY, 1
+	warp_event  3,  7, CIANWOOD_CITY, 1
+
+	def_coord_events
+
+	def_bg_events
+	bg_event  5,  1, BGEVENT_JUMPSTD, radio2
+	bg_event  7,  1, BGEVENT_JUMPSTD, picturebookshelf
+
+	def_object_events
+	object_event  2,  4, SPRITE_ROCKER, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, ManiaScript, -1
 
 ManiaScript:
 	faceplayer
 	opentext
 	checkevent EVENT_MANIA_TOOK_SHUCKIE_OR_LET_YOU_KEEP_HIM
-	iftrue .default_postevent
+	iftruefwd .default_postevent
 	checkevent EVENT_GOT_SHUCKIE
-	iftrue .alreadyhaveshuckie
-	writetext ManiaText_AskLookAfterShuckle
+	iftruefwd .alreadyhaveshuckie
+	writetext ManiaText_AskLookAfterShuckie
 	yesorno
-	iffalse .refusetotakeshuckie
-	special GiveShuckle
-	iffalse .partyfull
-	writetext ManiaText_TakeCareOfShuckle
+	iffalsefwd .refusetotakeshuckie
+	givepoke SHUCKLE, MALE | PLAIN_FORM, 25, BERRY_JUICE, NET_BALL, POISON_JAB, ShuckieName, ShuckieOTName, KIRK_SHUCKIE_ID
+	iffalse_jumpopenedtext ManiaText_PartyAndBoxFull
+	writetext ManiaText_TakeCareOfShuckie
 	promptbutton
 	waitsfx
-	writetext ManiaText_GotShuckle
+	writetext ManiaText_GotShuckie
 	playsound SFX_KEY_ITEM
 	waitsfx
+	ifequalfwd 1, .shuckieinparty
+	special Special_CurBoxFullCheck
+	iffalsefwd .BoxNotFull
+	farwritetext _CurBoxFullText
+.BoxNotFull
+	special GetCurBoxName
+	writetext ManiaText_ShuckieSentToPC
+	promptbutton
+.shuckieinparty
 	closetext
 	setevent EVENT_GOT_SHUCKIE
+	setflag ENGINE_GOT_SHUCKIE_TODAY
 	end
 
 .alreadyhaveshuckie
 	checkflag ENGINE_GOT_SHUCKIE_TODAY
-	iffalse .returnshuckie
-	writetext ManiaText_TakeCareOfShuckle
-	waitbutton
-	closetext
-	end
-
-.partyfull
-	writetext ManiaText_PartyFull
-	waitbutton
-	closetext
-	end
+	iffalsefwd .returnshuckie
+	jumpopenedtext ManiaText_TakeCareOfShuckie
 
 .refusetotakeshuckie
-	writetext ManiaText_IfHeComesBack
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ManiaText_IfHeComesBack
 
 .returnshuckie
 	writetext ManiaText_CanIHaveMyMonBack
 	yesorno
-	iffalse .refused
+	iffalsefwd .refused
 	special ReturnShuckie
-	ifequal SHUCKIE_WRONG_MON, .wrong
-	ifequal SHUCKIE_REFUSED, .refused
-	ifequal SHUCKIE_HAPPY, .superhappy
-; BUG: Mania uses wrong dialogue for trying to return Shuckie with no other Pokémon (see docs/bugs_and_glitches.md)
-	ifequal SHUCKIE_FAINTED, .default_postevent
-	; SHUCKIE_RETURNED
+	ifequalfwd $0, .wrong
+	ifequalfwd $1, .refused
+	ifequalfwd $3, .superhappy
+	ifequalfwd $4, .default_postevent
 	writetext ManiaText_ThankYou
 	waitbutton
 	closetext
@@ -66,40 +72,31 @@ ManiaScript:
 	end
 
 .wrong
-	writetext ManiaText_ShuckleNotThere
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ManiaText_ShuckieNotThere
 
 .superhappy
-	writetext ManiaText_ShuckleLikesYou
+	writetext ManiaText_ShuckieLikesYou
 	waitbutton
 	closetext
 	setevent EVENT_MANIA_TOOK_SHUCKIE_OR_LET_YOU_KEEP_HIM
 	end
 
 .refused
-	writetext ManiaText_SameAsBeingRobbed
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ManiaText_SameAsBeingRobbed
 
-.nothingleft ; unreferenced
-	writetext ManiaText_ShuckleIsYourLastMon
-	waitbutton
-	closetext
-	end
+.nothingleft
+	jumpopenedtext ManiaText_ShuckieIsYourLastMon
 
 .default_postevent
-	writetext ManiaText_HappinessSpeech
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ManiaText_HappinessSpeech
 
-ManiasHouseUnusedBookshelf: ; unreferenced
-	jumpstd PictureBookshelfScript
+ShuckieName:
+	rawchar "Shuckie@"
 
-ManiaText_AskLookAfterShuckle:
+ShuckieOTName:
+	rawchar "Kirk@"
+
+ManiaText_AskLookAfterShuckie:
 	text "I, I'm in shock!"
 
 	para "A guy about your"
@@ -110,7 +107,7 @@ ManiaText_AskLookAfterShuckle:
 
 	para "He scared me into"
 	line "giving him my"
-	cont "prized #MON!"
+	cont "prized #mon!"
 
 	para "I still have one"
 	line "left, but what if"
@@ -119,25 +116,32 @@ ManiaText_AskLookAfterShuckle:
 	para "You look strong."
 	line "Could you look"
 
-	para "after my #MON"
+	para "after my #mon"
 	line "for a while?"
 	done
 
-ManiaText_TakeCareOfShuckle:
+ManiaText_TakeCareOfShuckie:
 	text "Oh, thank you!"
 
 	para "Take good care of"
 	line "it, please!"
 	done
 
-ManiaText_GotShuckle:
+ManiaText_GotShuckie:
 	text "<PLAYER> received a"
-	line "#MON."
+	line "#mon."
 	done
 
-ManiaText_PartyFull:
-	text "Your #MON party"
-	line "is full."
+ManiaText_ShuckieSentToPC:
+	text "The #mon was"
+	line "sent to "
+	text_ram wStringBuffer1
+	text "."
+	done
+
+ManiaText_PartyAndBoxFull:
+	text "Your #mon party"
+	line "and Box are full."
 	done
 
 ManiaText_IfHeComesBack:
@@ -148,7 +152,7 @@ ManiaText_IfHeComesBack:
 
 ManiaText_CanIHaveMyMonBack:
 	text "Hi! How's my #-"
-	line "MON?"
+	line "mon?"
 
 	para "I think I'm safe"
 	line "now, so may I have"
@@ -159,14 +163,14 @@ ManiaText_ThankYou:
 	text "Thank you!"
 	done
 
-ManiaText_ShuckleNotThere:
+ManiaText_ShuckieNotThere:
 	text "Hey, you don't"
-	line "have my #MON"
+	line "have my #mon"
 	cont "with you."
 	done
 
-ManiaText_ShuckleLikesYou:
-	text "My #MON has"
+ManiaText_ShuckieLikesYou:
+	text "My #mon has"
 	line "come to like you."
 
 	para "All right, you"
@@ -183,31 +187,17 @@ ManiaText_SameAsBeingRobbed:
 	done
 
 ManiaText_HappinessSpeech:
-	text "For #MON, hap-"
+	text "For #mon, hap-"
 	line "piness is being"
 
 	para "with a person who"
 	line "treats them well."
 	done
 
-ManiaText_ShuckleIsYourLastMon:
+ManiaText_ShuckieIsYourLastMon:
 	text "If I take my #-"
-	line "MON back, what are"
+	line "mon back, what are"
 
 	para "you going to use"
 	line "in battle?"
 	done
-
-ManiasHouse_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2,  7, CIANWOOD_CITY, 1
-	warp_event  3,  7, CIANWOOD_CITY, 1
-
-	def_coord_events
-
-	def_bg_events
-
-	def_object_events
-	object_event  2,  4, SPRITE_ROCKER, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, ManiaScript, -1

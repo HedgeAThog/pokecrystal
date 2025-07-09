@@ -1,12 +1,10 @@
-CopyMonToTempMon:
-; gets the BaseData of a mon
-; and copies the party_struct to wTempMon
+CopyPkmnToTempMon:
+; gets the BaseData of a Pkmn
+; and copys the PkmnStructure to wTempMon
 
-	ld a, [wCurPartyMon]
-	ld e, a
-	call GetMonSpecies
-	ld a, [wCurPartySpecies]
-	ld [wCurSpecies], a
+	call GetPkmnSpecies
+	call GetPkmnForm
+_CopyPkmnToTempMon:
 	call GetBaseData
 
 	ld a, [wMonType]
@@ -18,110 +16,85 @@ CopyMonToTempMon:
 	ld bc, PARTYMON_STRUCT_LENGTH
 	cp OTPARTYMON
 	jr z, .copywholestruct
-	ld bc, BOXMON_STRUCT_LENGTH
-	callfar CopyBoxmonToTempMon
-	jr .done
+	ld a, ERR_OLDBOX
+	jmp Crash
 
 .copywholestruct
 	ld a, [wCurPartyMon]
-	call AddNTimes
+	rst AddNTimes
 	ld de, wTempMon
 	ld bc, PARTYMON_STRUCT_LENGTH
-	call CopyBytes
-
-.done
+	rst CopyBytes
 	ret
 
-CalcBufferMonStats:
-	ld bc, wBufferMon
-	jr _TempMonStatsCalculation
-
-CalcTempmonStats:
-	ld bc, wTempMon
-_TempMonStatsCalculation:
-	ld hl, MON_LEVEL
-	add hl, bc
-	ld a, [hl]
-	ld [wCurPartyLevel], a
-	ld hl, MON_MAXHP
-	add hl, bc
-	ld d, h
-	ld e, l
-	ld hl, MON_STAT_EXP - 1
-	add hl, bc
-	push bc
-	ld b, TRUE
-	predef CalcMonStats
-	pop bc
-	ld hl, MON_HP
-	add hl, bc
-	ld d, h
-	ld e, l
-	ld a, [wCurPartySpecies]
-	cp EGG
-	jr nz, .not_egg
-	xor a
-	ld [de], a
-	inc de
-	ld [de], a
-	jr .zero_status
-
-.not_egg
-	push bc
-	ld hl, MON_MAXHP
-	add hl, bc
-	ld bc, 2
-	call CopyBytes
-	pop bc
-
-.zero_status
-	ld hl, MON_STATUS
-	add hl, bc
-	xor a
-	ld [hli], a
-	ld [hl], a
-	ret
-
-GetMonSpecies:
-; [wMonType] has the type of the mon
-; e = Nr. of mon (i.e. [wCurPartyMon])
-
+GetPkmnSpecies:
 	ld a, [wMonType]
 	and a ; PARTYMON
 	jr z, .partymon
-	cp OTPARTYMON
+	dec a ; OTPARTYMON
 	jr z, .otpartymon
-	cp BOXMON
+	dec a ; BOXMON
 	jr z, .boxmon
-	cp TEMPMON
+	dec a ; TEMPMON
 	jr z, .breedmon
 	; WILDMON
 
 .partymon
-	ld hl, wPartySpecies
+	ld hl, wPartyMon1Species
 	jr .done
 
 .otpartymon
-	ld hl, wOTPartySpecies
-	jr .done
+	ld hl, wOTPartyMon1Species
+.done
+	ld a, [wCurPartyMon]
+	call GetPartyLocation
+	ld a, [hl]
+.done2
+	ld [wCurPartySpecies], a
+	ld [wCurSpecies], a
+	ret
 
 .boxmon
-	ld a, BANK(sBoxSpecies)
-	call OpenSRAM
-	ld hl, sBoxSpecies
-	call .done
-	call CloseSRAM
-	ret
+	ld a, ERR_OLDBOX
+	jmp Crash
 
 .breedmon
 	ld a, [wBreedMon1Species]
 	jr .done2
 
-.done
-	ld d, 0
-	add hl, de
-	ld a, [hl]
+GetPkmnForm:
+	ld a, [wMonType]
+	and a ; PARTYMON
+	jr z, .partymon
+	dec a ; OTPARTYMON
+	jr z, .otpartymon
+	dec a ; BOXMON
+	jr z, .boxmon
+	dec a ; TEMPMON
+	jr z, .breedmon
+	; WILDMON
 
-.done2
-	ld [wCurPartySpecies], a
+.partymon
+	ld hl, wPartyMon1Form
+	jr .getnthpartymon
+
+.otpartymon
+	ld hl, wOTPartyMon1Form
+.getnthpartymon
+	ld bc, PARTYMON_STRUCT_LENGTH
+.getnthmon
+	ld a, [wCurPartyMon]
+	rst AddNTimes
+	ld a, [hl]
+.done
+	and SPECIESFORM_MASK
+	ld [wCurForm], a
 	ret
+
+.boxmon
+	ld a, ERR_OLDBOX
+	jmp Crash
+
+.breedmon
+	ld a, [wBreedMon1Form]
+	jr .done

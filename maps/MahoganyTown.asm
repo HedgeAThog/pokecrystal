@@ -1,26 +1,35 @@
-DEF MAHOGANYTOWN_RAGECANDYBAR_PRICE EQU 300
+MahoganyTown_MapScriptHeader:
+	def_scene_scripts
+
+	def_callbacks
+	callback MAPCALLBACK_NEWMAP, MahoganyTownFlyPoint
+
+	def_warp_events
+	warp_event 11,  7, MAHOGANY_MART_1F, 1
+	warp_event 17,  7, MAHOGANY_RED_GYARADOS_SPEECH_HOUSE, 1
+	warp_event  6, 13, MAHOGANY_GYM, 1
+	warp_event 15, 13, MAHOGANY_POKECENTER_1F, 1
+	warp_event  9,  1, ROUTE_43_MAHOGANY_GATE, 3
+
+	def_coord_events
+	coord_event 19,  8, 0, MahoganyTownTryARageCandyBarScript
+	coord_event 19,  9, 0, MahoganyTownTryARageCandyBarScript
+
+	def_bg_events
+	bg_event  1,  5, BGEVENT_JUMPTEXT, MahoganyTownSignText
+	bg_event  9,  7, BGEVENT_READ, MahoganyTownSouvenirShopSign
+	bg_event  3, 13, BGEVENT_JUMPTEXT, MahoganyGymSignText
+
+	def_object_events
+	object_event 19,  8, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, MahoganyTownPokefanMScript, EVENT_MAHOGANY_TOWN_POKEFAN_M_BLOCKS_EAST
+	object_event  6,  9, SPRITE_GRAMPS, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, 0, OBJECTTYPE_SCRIPT, 0, MahoganyTownGrampsScript, -1
+	object_event  6, 14, SPRITE_FISHER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, MahoganyTownFisherText, EVENT_MAHOGANY_TOWN_POKEFAN_M_BLOCKS_GYM
+	object_event 12,  8, SPRITE_CUTE_GIRL, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_COMMAND, jumptextfaceplayer, MahoganyTownLassText, EVENT_MAHOGANY_MART_OWNERS
 
 	object_const_def
 	const MAHOGANYTOWN_POKEFAN_M
-	const MAHOGANYTOWN_GRAMPS
-	const MAHOGANYTOWN_FISHER
-	const MAHOGANYTOWN_LASS
 
-MahoganyTown_MapScripts:
-	def_scene_scripts
-	scene_script MahoganyTownNoop1Scene, SCENE_MAHOGANYTOWN_TRY_RAGECANDYBAR
-	scene_script MahoganyTownNoop2Scene, SCENE_MAHOGANYTOWN_NOOP
-
-	def_callbacks
-	callback MAPCALLBACK_NEWMAP, MahoganyTownFlypointCallback
-
-MahoganyTownNoop1Scene:
-	end
-
-MahoganyTownNoop2Scene:
-	end
-
-MahoganyTownFlypointCallback:
+MahoganyTownFlyPoint:
 	setflag ENGINE_FLYPOINT_MAHOGANY
 	endcallback
 
@@ -28,7 +37,7 @@ MahoganyTownTryARageCandyBarScript:
 	showemote EMOTE_SHOCK, MAHOGANYTOWN_POKEFAN_M, 15
 	applymovement MAHOGANYTOWN_POKEFAN_M, MahoganyTownRageCandyBarMerchantBlocksYouMovement
 	follow PLAYER, MAHOGANYTOWN_POKEFAN_M
-	applymovement PLAYER, MahoganyTownPlayerStepLeftMovement
+	applyonemovement PLAYER, step_left
 	stopfollow
 	turnobject PLAYER, RIGHT
 	scall RageCandyBarMerchantScript
@@ -39,131 +48,77 @@ MahoganyTownPokefanMScript:
 	faceplayer
 RageCandyBarMerchantScript:
 	checkevent EVENT_CLEARED_ROCKET_HIDEOUT
-	iftrue .ClearedRocketHideout
-	scall .SellRageCandyBars
-	end
-
-.ClearedRocketHideout:
-	opentext
-	writetext RageCandyBarMerchantSoldOutText
-	waitbutton
-	closetext
-	end
-
-.SellRageCandyBars:
+	iftrue_jumptext RageCandyBarMerchantSoldOutText
 	opentext
 	writetext RageCandyBarMerchantTryOneText
 	special PlaceMoneyTopRight
 	yesorno
-	iffalse .Refused
-	checkmoney YOUR_MONEY, MAHOGANYTOWN_RAGECANDYBAR_PRICE
-	ifequal HAVE_LESS, .NotEnoughMoney
+	iffalse_jumpopenedtext RageCandyBarMerchantRefusedText
+	checkmoney YOUR_MONEY, 300
+	ifequalfwd HAVE_LESS, .NotEnoughMoney
 	giveitem RAGECANDYBAR
-	iffalse .NoRoom
+	iffalse_jumpopenedtext RageCandyBarMerchantNoRoomText
 	waitsfx
 	playsound SFX_TRANSACTION
-	takemoney YOUR_MONEY, MAHOGANYTOWN_RAGECANDYBAR_PRICE
+	takemoney YOUR_MONEY, 300
 	special PlaceMoneyTopRight
-	writetext RageCandyBarMerchantSavorItText
-	waitbutton
-	closetext
-	end
+	jumpthisopenedtext
+
+	text "Good! Savor it!"
+	done
 
 .NotEnoughMoney:
-	writetext RageCandyBarMerchantNotEnoughMoneyText
-	waitbutton
-	closetext
-	end
+	jumpthisopenedtext
 
-.Refused:
-	writetext RageCandyBarMerchantRefusedText
-	waitbutton
-	closetext
-	end
-
-.NoRoom:
-	writetext RageCandyBarMerchantNoRoomText
-	waitbutton
-	closetext
-	end
+	text "You don't have"
+	line "enough money."
+	done
 
 MahoganyTownGrampsScript:
-	faceplayer
-	opentext
 	checkevent EVENT_CLEARED_ROCKET_HIDEOUT
-	iftrue .ClearedRocketHideout
-	writetext MahoganyTownGrampsText
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer MahoganyTownGrampsText_ClearedRocketHideout
+	jumptextfaceplayer MahoganyTownGrampsText
 
-.ClearedRocketHideout:
-	writetext MahoganyTownGrampsText_ClearedRocketHideout
-	waitbutton
-	closetext
-	end
+MahoganyTownSouvenirShopSign:
+	checkevent EVENT_MAHOGANY_MART_OWNERS
+	iftrue_jumptext MahoganyTownSouvenirShopSignText1
+	jumpthistext
 
-MahoganyTownFisherScript:
-	jumptextfaceplayer MahoganyTownFisherText
-
-MahoganyTownLassScript:
-	jumptextfaceplayer MahoganyTownLassText
-
-MahoganyTownSign:
-	jumptext MahoganyTownSignText
-
-MahoganyTownRagecandybarSign:
-	jumptext MahoganyTownRagecandybarSignText
-
-MahoganyGymSign:
-	jumptext MahoganyGymSignText
-
-MahoganyTownPokecenterSign:
-	jumpstd PokecenterSignScript
-
-MahoganyTownCollideDownFaceLeftMovement: ; unreferenced
-	step DOWN
-	big_step UP
-	turn_head DOWN
-MahoganyTownPlayerStepLeftMovement:
-	step LEFT
-	step_end
+	text "Grandma's"
+	line "Souvenir Shop"
+	done
 
 MahoganyTownRageCandyBarMerchantBlocksYouMovement:
-	step RIGHT
-	step DOWN
-	turn_head LEFT
+	step_right
+	step_down
+	turn_head_left
 	step_end
 
 MahoganyTownRageCandyBarMerchantReturnsMovement:
-	step UP
-	turn_head DOWN
+	step_up
+	turn_head_down
 	step_end
 
 RageCandyBarMerchantTryOneText:
 	text "Hiya, kid!"
 
 	para "I see you're new"
-	line "in MAHOGANY TOWN."
+	line "in Mahogany Town."
 
 	para "Since you're new,"
 	line "you should try a"
 
-	para "yummy RAGECANDY-"
-	line "BAR!"
+if DEF(FAITHFUL)
+	para "yummy RageCandy-"
+	line "Bar!"
+else
+	para "yummy Cake of"
+	line "Rage!"
+endc
 
 	para "Right now, it can"
 	line "be yours for just"
 	cont "¥300! Want one?"
-	done
-
-RageCandyBarMerchantSavorItText:
-	text "Good! Savor it!"
-	done
-
-RageCandyBarMerchantNotEnoughMoneyText:
-	text "You don't have"
-	line "enough money."
 	done
 
 RageCandyBarMerchantRefusedText:
@@ -176,7 +131,11 @@ RageCandyBarMerchantNoRoomText:
 	done
 
 RageCandyBarMerchantSoldOutText:
-	text "RAGECANDYBAR's"
+if DEF(FAITHFUL)
+	text "RageCandyBars are"
+else
+	text "Cakes of Rage are"
+endc
 	line "sold out."
 
 	para "I'm packing up."
@@ -186,14 +145,14 @@ RageCandyBarMerchantSoldOutText:
 
 MahoganyTownGrampsText:
 	text "Are you off to see"
-	line "the GYARADOS ram-"
-	cont "page at the LAKE?"
+	line "the Gyarados ram-"
+	cont "page at the lake?"
 	done
 
 MahoganyTownGrampsText_ClearedRocketHideout:
-	text "MAGIKARP have"
-	line "returned to LAKE"
-	cont "OF RAGE."
+	text "Magikarp have"
+	line "returned to Lake"
+	cont "of Rage."
 
 	para "That should be"
 	line "good news for the"
@@ -210,7 +169,7 @@ MahoganyTownFisherText:
 	para "You should head"
 	line "north and check"
 
-	para "out LAKE OF RAGE"
+	para "out Lake of Rage"
 	line "right now."
 	done
 
@@ -223,49 +182,28 @@ MahoganyTownLassText:
 	done
 
 MahoganyTownSignText:
-	text "MAHOGANY TOWN"
+	text "Mahogany Town"
 
 	para "Welcome to the"
 	line "Home of the Ninja"
 	done
 
-MahoganyTownRagecandybarSignText:
-	text "While visiting"
-	line "MAHOGANY TOWN, try"
-	cont "a RAGECANDYBAR!"
+MahoganyTownSouvenirShopSignText1:
+	text "Just a Souvenir"
+	line "Shop"
+
+	para "Nothing Suspicious"
+	line "About It"
+
+	para "No Need to Be"
+	line "Alarmed"
 	done
 
 MahoganyGymSignText:
-	text "MAHOGANY TOWN"
-	line "#MON GYM"
-	cont "LEADER: PRYCE"
+	text "Mahogany Town"
+	line "#mon Gym"
+	cont "Leader: Pryce"
 
 	para "The Teacher of"
 	line "Winter's Harshness"
 	done
-
-MahoganyTown_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event 11,  7, MAHOGANY_MART_1F, 1
-	warp_event 17,  7, MAHOGANY_RED_GYARADOS_SPEECH_HOUSE, 1
-	warp_event  6, 13, MAHOGANY_GYM, 1
-	warp_event 15, 13, MAHOGANY_POKECENTER_1F, 1
-	warp_event  9,  1, ROUTE_43_MAHOGANY_GATE, 3
-
-	def_coord_events
-	coord_event 19,  8, SCENE_MAHOGANYTOWN_TRY_RAGECANDYBAR, MahoganyTownTryARageCandyBarScript
-	coord_event 19,  9, SCENE_MAHOGANYTOWN_TRY_RAGECANDYBAR, MahoganyTownTryARageCandyBarScript
-
-	def_bg_events
-	bg_event  1,  5, BGEVENT_READ, MahoganyTownSign
-	bg_event  9,  7, BGEVENT_READ, MahoganyTownRagecandybarSign
-	bg_event  3, 13, BGEVENT_READ, MahoganyGymSign
-	bg_event 16, 13, BGEVENT_READ, MahoganyTownPokecenterSign
-
-	def_object_events
-	object_event 19,  8, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, MahoganyTownPokefanMScript, EVENT_MAHOGANY_TOWN_POKEFAN_M_BLOCKS_EAST
-	object_event  6,  9, SPRITE_GRAMPS, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 1, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, MahoganyTownGrampsScript, -1
-	object_event  6, 14, SPRITE_FISHER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, MahoganyTownFisherScript, EVENT_MAHOGANY_TOWN_POKEFAN_M_BLOCKS_GYM
-	object_event 12,  8, SPRITE_LASS, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, MahoganyTownLassScript, EVENT_MAHOGANY_MART_OWNERS

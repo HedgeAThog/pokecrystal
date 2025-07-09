@@ -1,13 +1,13 @@
 ParryNothingCanMatchText:
 	text "Nothing can match"
-	line "my @"
+	line "my "
 	text_ram wStringBuffer4
 	text " now."
 	done
 
 ParryDefeatedMonText:
 	text "Yeah, we KO'd a"
-	line "wild @"
+	line "wild "
 	text_ram wStringBuffer4
 	text "!"
 
@@ -19,7 +19,7 @@ ParryLostAMonText:
 	text "And yesterday, we"
 	line "spotted a wild"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text "."
 	line "We were debating"
@@ -42,7 +42,7 @@ ParryBattleRematchText:
 	line "right or what?"
 
 	para "Yep! We'll meet on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done
@@ -59,7 +59,7 @@ ParryBattleWithMeText:
 
 ParryHaventYouGottenToText:
 	text "Haven't you gotten"
-	line "to @"
+	line "to "
 	text_ram wStringBuffer5
 	text "?"
 

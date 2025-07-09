@@ -1,21 +1,23 @@
-	db SKARMORY ; 227
-
-	db  65,  80, 140,  70,  40,  70
-	;   hp  atk  def  spd  sat  sdf
+if DEF(FAITHFUL)
+	db  65,  80, 140,  70,  40,  70 ; 465 BST
+	;   hp  atk  def  spe  sat  sdf
+else
+	db  85,  80, 140,  70,  40,  70 ; 485 BST
+	;   hp  atk  def  spe  sat  sdf
+endc
 
 	db STEEL, FLYING ; type
 	db 25 ; catch rate
 	db 168 ; base exp
-	db NO_ITEM, NO_ITEM ; items
-	db GENDER_F50 ; gender ratio
-	db 100 ; unknown 1
-	db 25 ; step cycles to hatch
-	db 5 ; unknown 2
-	INCBIN "gfx/pokemon/skarmory/front.dimensions"
-	dw NULL, NULL ; unused (beta front/back pics)
+	db NO_ITEM, SHARP_BEAK ; held items
+	dn GENDER_F50, HATCH_MEDIUM_SLOW ; gender ratio, step cycles to hatch
+
+	abilities_for SKARMORY, KEEN_EYE, STURDY, WEAK_ARMOR
 	db GROWTH_SLOW ; growth rate
 	dn EGG_FLYING, EGG_FLYING ; egg groups
 
+	ev_yield 2 Def
+
 	; tm/hm learnset
-	tmhm CURSE, TOXIC, HIDDEN_POWER, SUNNY_DAY, SNORE, PROTECT, ENDURE, FRUSTRATION, RETURN, MUD_SLAP, DOUBLE_TEAM, SWAGGER, SLEEP_TALK, SANDSTORM, SWIFT, DETECT, REST, ATTRACT, THIEF, STEEL_WING, CUT, FLY
+	tmhm CURSE, ROAR, TOXIC, HIDDEN_POWER, SUNNY_DAY, PROTECT, RETURN, ROCK_SMASH, DOUBLE_TEAM, FLASH_CANNON, SANDSTORM, SWIFT, AERIAL_ACE, SUBSTITUTE, FACADE, REST, ATTRACT, THIEF, STEEL_WING, ROCK_SLIDE, ROOST, X_SCISSOR, DARK_PULSE, FLASH, SWORDS_DANCE, CUT, FLY, AGILITY, COUNTER, DOUBLE_EDGE, ENDURE, ICY_WIND, IRON_HEAD, SLEEP_TALK, SWAGGER
 	; end

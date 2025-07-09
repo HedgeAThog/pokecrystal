@@ -1,31 +1,29 @@
-BattleCommand_BellyDrum:
-; BUG: Belly Drum sharply boosts Attack even with under 50% HP (see docs/bugs_and_glitches.md)
-	call BattleCommand_AttackUp2
-	ld a, [wAttackMissed]
+BattleCommand_bellydrum:
+	call GetHalfMaxHP
+	call CompareHP
+	jr c, .failed
+	jr z, .failed
+
+	ld b, $f0 | ATTACK
+	ld a, STAT_SKIPTEXT
+	call _ForceRaiseStat
+	ld a, [wFailedMessage]
 	and a
 	jr nz, .failed
 
-	callfar GetHalfMaxHP
-	callfar CheckUserHasEnoughHP
-	jr nc, .failed
-
-	push bc
 	call AnimateCurrentMove
-	pop bc
-	callfar SubtractHPFromUser
+	call GetHalfMaxHP
+	predef SubtractHPFromUser
 	call UpdateUserInParty
-	ld a, MAX_STAT_LEVEL - BASE_STAT_LEVEL - 1
-
-.max_attack_loop
-	push af
-	call BattleCommand_AttackUp2
-	pop af
-	dec a
-	jr nz, .max_attack_loop
-
+	call GetTrueUserAbility
+	cp CONTRARY
+	ld hl, BellyDrumContraryText
+	jr z, .print
 	ld hl, BellyDrumText
-	jp StdBattleTextbox
+.print
+	xor a
+	farjp DoPrintStatChange
 
 .failed
 	call AnimateFailedMove
-	jp PrintButItFailed
+	jmp PrintButItFailed

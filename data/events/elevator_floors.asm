@@ -1,22 +1,21 @@
 ElevatorFloorNames:
-; entries correspond to FLOOR_* constants
-	table_width 2
-	dw .B4F
-	dw .B3F
-	dw .B2F
-	dw .B1F
-	dw ._1F
-	dw ._2F
-	dw ._3F
-	dw ._4F
-	dw ._5F
-	dw ._6F
-	dw ._7F
-	dw ._8F
-	dw ._9F
-	dw ._10F
-	dw ._11F
-	dw .ROOF
+	table_width 1
+	dr .B4F
+	dr .B3F
+	dr .B2F
+	dr .B1F
+	dr ._1F
+	dr ._2F
+	dr ._3F
+	dr ._4F
+	dr ._5F
+	dr ._6F
+	dr ._7F
+	dr ._8F
+	dr ._9F
+	dr ._10F
+	dr ._11F
+	dr .Roof
 	assert_table_length NUM_FLOORS
 
 .B4F:  db "B4F@"
@@ -34,4 +33,4 @@ ElevatorFloorNames:
 ._9F:  db "9F@"
 ._10F: db "10F@"
 ._11F: db "11F@"
-.ROOF: db "ROOF@"
+.Roof: db "Roof@"

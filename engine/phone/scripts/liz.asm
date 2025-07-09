@@ -1,40 +1,40 @@
-LizPhoneCalleeScript:
-	gettrainername STRING_BUFFER_3, PICNICKER, LIZ1
+LizPhoneScript1:
+	gettrainername PICNICKER, LIZ1, STRING_BUFFER_3
 	checkflag ENGINE_LIZ_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	farscall PhoneScript_AnswerPhone_Female
 	checkflag ENGINE_LIZ_THURSDAY_AFTERNOON
-	iftrue .NotThursday
+	iftruefwd .NotThursday
 	readvar VAR_WEEKDAY
 	ifnotequal THURSDAY, .NotThursday
-	checktime DAY
-	iftrue LizThursdayAfternoon
+	checktime 1 << DAY
+	iftruefwd LizThursdayAfternoon
 
 .NotThursday:
 	special RandomPhoneMon
 	farsjump LizHangUpScript
 
 .WantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_32
+	getlandmarkname ROUTE_32, STRING_BUFFER_5
 	farsjump LizReminderScript
 
-LizPhoneCallerScript:
-	gettrainername STRING_BUFFER_3, PICNICKER, LIZ1
+LizPhoneScript2:
+	gettrainername PICNICKER, LIZ1, STRING_BUFFER_3
 	farscall PhoneScript_Random4
-	ifequal 0, LizWrongNumber
+	ifequalfwd $0, LizWrongNumber
 	farscall PhoneScript_GreetPhone_Female
 	checkflag ENGINE_LIZ_READY_FOR_REMATCH
-	iftrue .next
+	iftruefwd .next
 	checkflag ENGINE_LIZ_THURSDAY_AFTERNOON
-	iftrue .next
+	iftruefwd .next
 
 .next:
 	farscall PhoneScript_Random2
-	ifequal 0, LizGossip
+	ifequalfwd $0, LizGossip
 	checkflag ENGINE_FLYPOINT_GOLDENROD
-	iffalse .Generic
+	iffalsefwd .Generic
 	farscall PhoneScript_Random2
-	ifequal 0, LizWantsBattle
+	ifequalfwd $0, LizWantsBattle
 
 .Generic:
 	farsjump Phone_GenericCall_Female
@@ -43,7 +43,7 @@ LizThursdayAfternoon:
 	setflag ENGINE_LIZ_THURSDAY_AFTERNOON
 
 LizWantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_32
+	getlandmarkname ROUTE_32, STRING_BUFFER_5
 	setflag ENGINE_LIZ_READY_FOR_REMATCH
 	farsjump PhoneScript_WantsToBattle_Female
 
@@ -51,52 +51,52 @@ LizWrongNumber:
 	farsjump LizWrongNumberScript
 
 LizGossip:
-	random 9
-	ifequal 0, .CoolTrainerM
-	ifequal 1, .Beauty
-	ifequal 2, .Grunt
-	ifequal 3, .Teacher
-	ifequal 4, .SwimmerF
-	ifequal 5, .KimonoGirl
-	ifequal 6, .Skier
-	ifequal 7, .Medium
-	ifequal 8, .PokefanM
+	random $9
+	ifequalfwd $0, .CoolTrainerM
+	ifequalfwd $1, .Beauty
+	ifequalfwd $2, .Grunt
+	ifequalfwd $3, .Teacher
+	ifequalfwd $4, .SwimmerF
+	ifequalfwd $5, .KimonoGirl
+	ifequalfwd $6, .Skier
+	ifequalfwd $7, .Medium
+	ifequalfwd $8, .PokefanM
 
 .CoolTrainerM:
-	gettrainerclassname STRING_BUFFER_4, COOLTRAINERM
-	sjump LizGossipScript
+	gettrainerclassname COOLTRAINERM, STRING_BUFFER_4
+	sjumpfwd LizGossipScript
 
 .Beauty:
-	gettrainerclassname STRING_BUFFER_4, BEAUTY
-	sjump LizGossipScript
+	gettrainerclassname BEAUTY, STRING_BUFFER_4
+	sjumpfwd LizGossipScript
 
 .Grunt:
-	gettrainerclassname STRING_BUFFER_4, GRUNTM
-	sjump LizGossipScript
+	gettrainerclassname GRUNTM, STRING_BUFFER_4
+	sjumpfwd LizGossipScript
 
 .Teacher:
-	gettrainerclassname STRING_BUFFER_4, TEACHER
-	sjump LizGossipScript
+	gettrainerclassname TEACHER_F, STRING_BUFFER_4
+	sjumpfwd LizGossipScript
 
 .SwimmerF:
-	gettrainerclassname STRING_BUFFER_4, SWIMMERF
-	sjump LizGossipScript
+	gettrainerclassname SWIMMERF, STRING_BUFFER_4
+	sjumpfwd LizGossipScript
 
 .KimonoGirl:
-	gettrainerclassname STRING_BUFFER_4, KIMONO_GIRL
-	sjump LizGossipScript
+	gettrainerclassname KIMONO_GIRL_1, STRING_BUFFER_4
+	sjumpfwd LizGossipScript
 
 .Skier:
-	gettrainerclassname STRING_BUFFER_4, SKIER
-	sjump LizGossipScript
+	gettrainerclassname SKIER, STRING_BUFFER_4
+	sjumpfwd LizGossipScript
 
 .Medium:
-	gettrainerclassname STRING_BUFFER_4, MEDIUM
-	sjump LizGossipScript
+	gettrainerclassname MEDIUM, STRING_BUFFER_4
+	sjumpfwd LizGossipScript
 
 .PokefanM:
-	gettrainerclassname STRING_BUFFER_4, POKEFANM
-	sjump LizGossipScript
+	gettrainerclassname POKEFANM, STRING_BUFFER_4
+	; fallthrough
 
 LizGossipScript:
 	farsjump LizGossipRandomScript

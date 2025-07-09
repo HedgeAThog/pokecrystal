@@ -1,164 +1,148 @@
-	object_const_def
-	const RADIOTOWER3F_SUPER_NERD
-	const RADIOTOWER3F_GYM_GUIDE
-	const RADIOTOWER3F_COOLTRAINER_F
-	const RADIOTOWER3F_ROCKET1
-	const RADIOTOWER3F_ROCKET2
-	const RADIOTOWER3F_ROCKET3
-	const RADIOTOWER3F_SCIENTIST
-
-RadioTower3F_MapScripts:
+RadioTower3F_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
-	callback MAPCALLBACK_TILES, RadioTower3FCardKeyShutterCallback
+	callback MAPCALLBACK_TILES, CardKeyShutterCallback
 
-RadioTower3FCardKeyShutterCallback:
+	def_warp_events
+	warp_event  0,  0, RADIO_TOWER_2F, 1
+	warp_event  7,  0, RADIO_TOWER_4F, 2
+	warp_event 17,  0, RADIO_TOWER_4F, 4
+
+	def_coord_events
+
+	def_bg_events
+	bg_event  3,  0, BGEVENT_JUMPTEXT, RadioTower3FPersonnelSignText
+	bg_event  9,  0, BGEVENT_JUMPTEXT, RadioTower3FPokemonMusicSignText
+	bg_event 14,  2, BGEVENT_UP, CardKeySlotScript
+
+	def_object_events
+	object_event  7,  4, SPRITE_POKEMANIAC, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, PAL_NPC_BLUE, OBJECTTYPE_COMMAND, jumptextfaceplayer, RadioTower3FSuperNerdText, EVENT_RADIO_TOWER_CIVILIANS_AFTER
+	object_event  3,  4, SPRITE_SUPER_NERD, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, RadioTower3FGymGuideScript, -1
+	object_event 11,  3, SPRITE_BATTLE_GIRL, SPRITEMOVEDATA_WANDER, 1, 1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, RadioTower3FCooltrainerFScript, -1
+	object_event  5,  1, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 2, GenericTrainerGruntM7, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+	object_event  6,  2, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerGruntM8, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+	object_event 16,  6, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerGruntM9, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+	object_event  9,  6, SPRITE_SCIENTIST, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 5, GenericTrainerRocketScientistMarc, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+
+CardKeyShutterCallback:
 	checkevent EVENT_USED_THE_CARD_KEY_IN_THE_RADIO_TOWER
-	iftrue .Change
+	iftruefwd .Change
 	endcallback
 
 .Change:
-	changeblock 14, 2, $2a ; open shutter
-	changeblock 14, 4, $01 ; floor
+	changeblock 14, 2, $2a
+	changeblock 14, 4, $1
 	endcallback
 
-RadioTower3FSuperNerdScript:
-	jumptextfaceplayer RadioTower3FSuperNerdText
-
 RadioTower3FGymGuideScript:
-	faceplayer
-	opentext
 	checkevent EVENT_CLEARED_RADIO_TOWER
-	iftrue .NoRockets
-	writetext RadioTower3FGymGuideText_Rockets
-	waitbutton
-	closetext
-	end
-
-.NoRockets:
-	writetext RadioTower3FGymGuideText
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer RadioTower3FGymGuideText
+	jumptextfaceplayer RadioTower3FGymGuideText_Rockets
 
 RadioTower3FCooltrainerFScript:
-	faceplayer
-	opentext
-	checkevent EVENT_GOT_SUNNY_DAY_FROM_RADIO_TOWER
-	iftrue .GotSunnyDay
+	checkevent EVENT_GOT_GBC_SOUNDS_FROM_RADIO_TOWER
+	iftrue_jumptextfaceplayer RadioTower3FCooltrainerFYouWereMarvelousText
 	checkevent EVENT_CLEARED_RADIO_TOWER
-	iftrue .NoRockets
+	iftruefwd .NoRockets
 	checkevent EVENT_USED_THE_CARD_KEY_IN_THE_RADIO_TOWER
-	iftrue .UsedCardKey
-	writetext RadioTower3FCooltrainerFPleaseSaveDirectorText
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer RadioTower3FCooltrainerFIsDirectorSafeText
+	jumpthistextfaceplayer
 
-.UsedCardKey:
-	writetext RadioTower3FCooltrainerFIsDirectorSafeText
-	waitbutton
-	closetext
-	end
+	text "The Team Rocket"
+	line "boss has locked"
+	cont "himself in."
+
+	para "But the Director"
+	line "can open it."
+
+	para "He's up on the"
+	line "fifth floor."
+
+	para "Please save him!"
+	done
 
 .NoRockets:
+	faceplayer
+	opentext
 	writetext RadioTower3FCooltrainerFYoureMyHeroText
 	promptbutton
-	verbosegiveitem TM_SUNNY_DAY
-	iffalse .NoRoom
-	writetext RadioTower3FCooltrainerFItsSunnyDayText
+	verbosegivekeyitem GBC_SOUNDS
+	iffalse_endtext
+	writetext RadioTower3FCooltrainerFItsAGBCSoundsText
 	waitbutton
 	closetext
-	setevent EVENT_GOT_SUNNY_DAY_FROM_RADIO_TOWER
+	setevent EVENT_GOT_GBC_SOUNDS_FROM_RADIO_TOWER
 	end
 
-.GotSunnyDay:
-	writetext RadioTower3FCooltrainerFYouWereMarvelousText
-	waitbutton
-.NoRoom:
-	closetext
-	end
+GenericTrainerGruntM7:
+	generictrainer GRUNTM, 7, EVENT_BEAT_ROCKET_GRUNTM_7, GruntM7SeenText, GruntM7BeatenText
 
-TrainerGruntM7:
-	trainer GRUNTM, GRUNTM_7, EVENT_BEAT_ROCKET_GRUNTM_7, GruntM7SeenText, GruntM7BeatenText, 0, .Script
+	text "I failed in my"
+	line "duties…"
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext GruntM7AfterBattleText
-	waitbutton
-	closetext
-	end
+	para "I'll be docked pay"
+	line "for this…"
+	done
 
-TrainerGruntM8:
-	trainer GRUNTM, GRUNTM_8, EVENT_BEAT_ROCKET_GRUNTM_8, GruntM8SeenText, GruntM8BeatenText, 0, .Script
+GenericTrainerGruntM8:
+	generictrainer GRUNTM, 8, EVENT_BEAT_ROCKET_GRUNTM_8, GruntM8SeenText, GruntM8BeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext GruntM8AfterBattleText
-	waitbutton
-	closetext
-	end
+	text "I feel lousy over"
+	line "losing!"
 
-TrainerGruntM9:
-	trainer GRUNTM, GRUNTM_9, EVENT_BEAT_ROCKET_GRUNTM_9, GruntM9SeenText, GruntM9BeatenText, 0, .Script
+	para "Darn it! I hate"
+	line "useless #mon!"
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext GruntM9AfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerGruntM9:
+	generictrainer GRUNTM, 9, EVENT_BEAT_ROCKET_GRUNTM_9, GruntM9SeenText, GruntM9BeatenText
 
-TrainerScientistMarc:
-	trainer SCIENTIST, MARC, EVENT_BEAT_SCIENTIST_MARC, ScientistMarcSeenText, ScientistMarcBeatenText, 0, .Script
+	text "What?! You made it"
+	line "past our men in"
+	cont "the Underground?"
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext ScientistMarcAfterBattleText
-	waitbutton
-	closetext
-	end
+	para "How could you?"
+	done
+
+GenericTrainerRocketScientistMarc:
+	generictrainer ROCKET_SCIENTIST, MARC, EVENT_BEAT_ROCKET_SCIENTIST_MARC, RocketScientistMarcSeenText, RocketScientistMarcBeatenText
+
+	text "Bwahahaha…"
+
+	para "I can transmit as"
+	line "strong a signal as"
+	cont "I need from here."
+	done
 
 CardKeySlotScript::
 	opentext
 	writetext RadioTower3FCardKeySlotText
 	waitbutton
 	checkevent EVENT_USED_THE_CARD_KEY_IN_THE_RADIO_TOWER
-	iftrue .UsedCardKey
-	checkitem CARD_KEY
-	iftrue .HaveCardKey
+	iftruefwd .UsedCardKey
+	checkkeyitem CARD_KEY
+	iftruefwd .HaveCardKey
 .UsedCardKey:
-	closetext
-	end
+	endtext
 
 .HaveCardKey:
 	writetext InsertedTheCardKeyText
 	waitbutton
 	setevent EVENT_USED_THE_CARD_KEY_IN_THE_RADIO_TOWER
 	playsound SFX_ENTER_DOOR
-	changeblock 14, 2, $2a ; open shutter
-	changeblock 14, 4, $01 ; floor
+	changeblock 14, 2, $2a
+	changeblock 14, 4, $1
 	refreshmap
 	closetext
 	waitsfx
 	end
 
-RadioTower3FPersonnelSign:
-	jumptext RadioTower3FPersonnelSignText
-
-RadioTower3FPokemonMusicSign:
-	jumptext RadioTower3FPokemonMusicSignText
-
 RadioTower3FSuperNerdText:
 	text "We have recordings"
 	line "of the cries of"
 
-	para "all #MON that"
+	para "all #mon that"
 	line "have been found."
 
 	para "We must have about"
@@ -167,14 +151,14 @@ RadioTower3FSuperNerdText:
 
 RadioTower3FGymGuideText_Rockets:
 	text "To trainers, #-"
-	line "MON are their"
+	line "mon are their"
 	cont "beloved partners."
 
 	para "It's terrible how"
-	line "TEAM ROCKET is"
+	line "Team Rocket is"
 
 	para "trying to control"
-	line "#MON."
+	line "#mon."
 	done
 
 RadioTower3FGymGuideText:
@@ -189,22 +173,8 @@ RadioTower3FGymGuideText:
 	cont "clock too!"
 	done
 
-RadioTower3FCooltrainerFPleaseSaveDirectorText:
-	text "The TEAM ROCKET"
-	line "boss has locked"
-	cont "himself in."
-
-	para "But the DIRECTOR"
-	line "can open it."
-
-	para "He's up on the"
-	line "fifth floor."
-
-	para "Please save him!"
-	done
-
 RadioTower3FCooltrainerFIsDirectorSafeText:
-	text "Is the DIRECTOR"
+	text "Is the Director"
 	line "safe?"
 	done
 
@@ -216,11 +186,25 @@ RadioTower3FCooltrainerFYoureMyHeroText:
 	line "my appreciation."
 	done
 
-RadioTower3FCooltrainerFItsSunnyDayText:
-	text "It's SUNNY DAY."
-	line "It powers up fire-"
-	cont "type moves for a"
-	cont "while."
+RadioTower3FCooltrainerFItsAGBCSoundsText:
+	text "That's GBC Sounds."
+
+	para "It's chock full of"
+	line "songs you can"
+
+	para "listen to any-"
+	line "where, even"
+	cont "during battles."
+
+	para "It has special"
+	line "features to adjust"
+	cont "pitch or tempo,"
+
+	para "but the controls"
+	line "are a bit fiddly."
+
+	para "Just play around"
+	line "with it!"
 	done
 
 RadioTower3FCooltrainerFYouWereMarvelousText:
@@ -234,37 +218,21 @@ GruntM7SeenText:
 
 	para "I'm to crush any-"
 	line "one who challenges"
-	cont "TEAM ROCKET!"
+	cont "Team Rocket!"
 	done
 
 GruntM7BeatenText:
 	text "What?!"
 	done
 
-GruntM7AfterBattleText:
-	text "I failed in my"
-	line "duties…"
-
-	para "I'll be docked pay"
-	line "for this…"
-	done
-
 GruntM8SeenText:
 	text "It feels great"
-	line "ordering #MON"
+	line "ordering #mon"
 	cont "to commit crimes."
 	done
 
 GruntM8BeatenText:
 	text "You're kidding!"
-	done
-
-GruntM8AfterBattleText:
-	text "I feel lousy over"
-	line "losing!"
-
-	para "Darn it! I hate"
-	line "useless #MON!"
 	done
 
 GruntM9SeenText:
@@ -279,73 +247,33 @@ GruntM9BeatenText:
 	text "I'm done for!"
 	done
 
-GruntM9AfterBattleText:
-	text "What?! You made it"
-	line "past our men in"
-	cont "the UNDERGROUND?"
-
-	para "How could you?"
-	done
-
-ScientistMarcSeenText:
+RocketScientistMarcSeenText:
 	text "An unknown child"
 	line "wandering here?"
 
 	para "Who are you?"
 	done
 
-ScientistMarcBeatenText:
+RocketScientistMarcBeatenText:
 	text "Tch! I took you"
 	line "too lightly!"
 	done
 
-ScientistMarcAfterBattleText:
-	text "Bwahahaha…"
-
-	para "I can transmit as"
-	line "strong a signal as"
-	cont "I need from here."
-	done
-
 RadioTower3FCardKeySlotText:
-	text "It's the CARD KEY"
+	text "It's the Card Key"
 	line "slot."
 	done
 
 InsertedTheCardKeyText:
 	text "<PLAYER> inserted"
-	line "the CARD KEY."
+	line "the Card Key."
 	done
 
 RadioTower3FPersonnelSignText:
-	text "3F PERSONNEL"
+	text "3F Personnel"
 	done
 
 RadioTower3FPokemonMusicSignText:
-	text "#MON MUSIC with"
-	line "Host DJ BEN"
+	text "#mon Music with"
+	line "Host DJ Ben"
 	done
-
-RadioTower3F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  0,  0, RADIO_TOWER_2F, 1
-	warp_event  7,  0, RADIO_TOWER_4F, 2
-	warp_event 17,  0, RADIO_TOWER_4F, 4
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  3,  0, BGEVENT_READ, RadioTower3FPersonnelSign
-	bg_event  9,  0, BGEVENT_READ, RadioTower3FPokemonMusicSign
-	bg_event 14,  2, BGEVENT_UP, CardKeySlotScript
-
-	def_object_events
-	object_event  7,  4, SPRITE_SUPER_NERD, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_SCRIPT, 0, RadioTower3FSuperNerdScript, EVENT_RADIO_TOWER_CIVILIANS_AFTER
-	object_event  3,  4, SPRITE_GYM_GUIDE, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, RadioTower3FGymGuideScript, -1
-	object_event 11,  3, SPRITE_COOLTRAINER_F, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, RadioTower3FCooltrainerFScript, -1
-	object_event  5,  1, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, OBJECTTYPE_TRAINER, 2, TrainerGruntM7, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
-	object_event  6,  2, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_TRAINER, 3, TrainerGruntM8, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
-	object_event 16,  6, SPRITE_ROCKET, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_TRAINER, 3, TrainerGruntM9, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
-	object_event  9,  6, SPRITE_SCIENTIST, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 5, TrainerScientistMarc, EVENT_RADIO_TOWER_ROCKET_TAKEOVER

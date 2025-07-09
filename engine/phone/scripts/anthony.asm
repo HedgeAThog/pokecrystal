@@ -1,60 +1,60 @@
-AnthonyPhoneCalleeScript:
-	gettrainername STRING_BUFFER_3, HIKER, ANTHONY2
+AnthonyPhoneScript1:
+	gettrainername HIKER, ANTHONY1, STRING_BUFFER_3
 	checkflag ENGINE_ANTHONY_READY_FOR_REMATCH
-	iftrue .WantsBattle
+	iftruefwd .WantsBattle
 	farscall PhoneScript_AnswerPhone_Male
 	checkflag ENGINE_ANTHONY_FRIDAY_NIGHT
-	iftrue .NotFriday
+	iftruefwd .NotFriday
 	readvar VAR_WEEKDAY
 	ifnotequal FRIDAY, .NotFriday
-	checktime NITE
-	iftrue AnthonyFridayNight
+	checktime (1 << EVE) | (1 << NITE)
+	iftruefwd AnthonyFridayNight
 
 .NotFriday:
 	checkflag ENGINE_DUNSPARCE_SWARM
-	iftrue .AlreadySwarming
+	iftruefwd .AlreadySwarming
 	farsjump AnthonyHangUpScript
 
 .WantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_33
+	getlandmarkname ROUTE_33, STRING_BUFFER_5
 	farsjump AnthonyReminderScript
 
 .AlreadySwarming:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_33
+	getlandmarkname ROUTE_33, STRING_BUFFER_5
 	farsjump AnthonyHurryScript
 
-AnthonyPhoneCallerScript:
-	gettrainername STRING_BUFFER_3, HIKER, ANTHONY2
+AnthonyPhoneScript2:
+	gettrainername HIKER, ANTHONY1, STRING_BUFFER_3
 	farscall PhoneScript_GreetPhone_Male
 	checkflag ENGINE_FLYPOINT_GOLDENROD
-	iffalse .TriesSwarm
+	iffalsefwd .TriesSwarm
 	checkflag ENGINE_ANTHONY_READY_FOR_REMATCH
-	iftrue .TriesSwarm
+	iftruefwd .TriesSwarm
 	checkflag ENGINE_ANTHONY_FRIDAY_NIGHT
-	iftrue .TriesSwarm
+	iftruefwd .TriesSwarm
 	farscall PhoneScript_Random2
-	ifequal 0, AnthonyWantsBattle
+	ifequalfwd $0, AnthonyWantsBattle
 
 .TriesSwarm:
 	farscall PhoneScript_Random5
-	ifequal 0, AnthonyTriesDunsparceSwarm
+	ifequalfwd $0, AnthonyTriesDunsparceSwarm
 	farsjump Phone_GenericCall_Male
 
 AnthonyFridayNight:
 	setflag ENGINE_ANTHONY_FRIDAY_NIGHT
 
 AnthonyWantsBattle:
-	getlandmarkname STRING_BUFFER_5, LANDMARK_ROUTE_33
+	getlandmarkname ROUTE_33, STRING_BUFFER_5
 	setflag ENGINE_ANTHONY_READY_FOR_REMATCH
 	farsjump PhoneScript_WantsToBattle_Male
 
 AnthonyTriesDunsparceSwarm:
 	checkflag ENGINE_DUNSPARCE_SWARM
-	iftrue .Generic
+	iftruefwd .Generic
 	setflag ENGINE_DUNSPARCE_SWARM
-	getmonname STRING_BUFFER_4, DUNSPARCE
+	getmonname DUNSPARCE, STRING_BUFFER_4
 	swarm SWARM_DUNSPARCE, DARK_CAVE_VIOLET_ENTRANCE
-	getlandmarkname STRING_BUFFER_5, LANDMARK_DARK_CAVE
+	getlandmarkname DARK_CAVE, STRING_BUFFER_5
 	farsjump AnthonySwarmScript
 
 .Generic:

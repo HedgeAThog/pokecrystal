@@ -1,6 +1,6 @@
 ReenaAnswerPhoneText:
 	text "Hello, this is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "…"
 
@@ -10,7 +10,7 @@ ReenaAnswerPhoneText:
 
 ReenaAnswerPhoneDayText:
 	text "Hello, this is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "…"
 
@@ -20,7 +20,7 @@ ReenaAnswerPhoneDayText:
 
 ReenaAnswerPhoneNiteText:
 	text "Hello, this is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "…"
 
@@ -32,7 +32,7 @@ ReenaGreetText:
 	text "You're slow! Hurry"
 	line "up and answer!"
 
-	para "It's me, @"
+	para "It's me, "
 	text_ram wStringBuffer3
 	text "!"
 	done
@@ -41,7 +41,7 @@ ReenaGreetDayText:
 	text "You're slow! Hurry"
 	line "up and answer!"
 
-	para "It's me, @"
+	para "It's me, "
 	text_ram wStringBuffer3
 	text "!"
 	done
@@ -50,19 +50,19 @@ ReenaGreetNiteText:
 	text "You're slow! Hurry"
 	line "up and answer!"
 
-	para "It's me, @"
+	para "It's me, "
 	text_ram wStringBuffer3
 	text "!"
 	done
 
 ReenaGenericText:
 	text "Hey, how are your"
-	line "#MON doing?"
+	line "#mon doing?"
 
 	para "What? Great?"
 	line "I see…"
 
-	para "What? My #MON?"
+	para "What? My #mon?"
 
 	para "Of course they're"
 	line "doing great! What"

@@ -1,88 +1,115 @@
-	object_const_def
-	const ROUTE15_YOUNGSTER1
-	const ROUTE15_YOUNGSTER2
-	const ROUTE15_YOUNGSTER3
-	const ROUTE15_YOUNGSTER4
-	const ROUTE15_TEACHER1
-	const ROUTE15_TEACHER2
-	const ROUTE15_POKE_BALL
-
-Route15_MapScripts:
+Route15_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-TrainerTeacherColette:
-	trainer TEACHER, COLETTE, EVENT_BEAT_TEACHER_COLETTE, TeacherColetteSeenText, TeacherColetteBeatenText, 0, .Script
+	def_warp_events
+	warp_event  4,  4, ROUTE_15_FUCHSIA_GATE, 3
+	warp_event  4,  5, ROUTE_15_FUCHSIA_GATE, 4
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext TeacherColetteAfterBattleText
-	waitbutton
-	closetext
-	end
+	def_coord_events
 
-TrainerTeacherHillary:
-	trainer TEACHER, HILLARY, EVENT_BEAT_TEACHER_HILLARY, TeacherHillarySeenText, TeacherHillaryBeatenText, 0, .Script
+	def_bg_events
+	bg_event 19,  9, BGEVENT_JUMPTEXT, Route15SignText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext TeacherHillaryAfterBattleText
-	waitbutton
-	closetext
-	end
+	def_object_events
+	object_event 10, 10, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 4, GenericTrainerSchoolboyKipp, -1
+	object_event 15, 13, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSchoolboyTommy, -1
+	object_event 27, 10, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSchoolboyBilly, -1
+	object_event 33, 10, SPRITE_SCHOOLGIRL, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSchoolgirlFaith, -1
+	object_event 30, 12, SPRITE_TEACHER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 4, GenericTrainerTeacherColette, -1
+	object_event 20, 10, SPRITE_TEACHER, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerTeacherHillary, -1
+	object_event 30,  4, SPRITE_POKEFAN_F, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 2, GenericTrainerPokefanfBoone, -1
+	object_event 14,  4, SPRITE_POKEFAN_F, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 4, GenericTrainerPokefanfEleanor, -1
+	object_event 19,  5, SPRITE_TWIN, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerTwinsKayandtia1, -1
+	object_event 20,  5, SPRITE_TWIN, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerTwinsKayandtia2, -1
+	itemball_event 12,  5, PP_UP, 1, EVENT_ROUTE_15_PP_UP
+	object_event 43,  6, SPRITE_BALL_CUT_FRUIT, SPRITEMOVEDATA_CUTTABLE_TREE, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_ROUTE_14_CUT_TREE_3
 
-TrainerSchoolboyKipp:
-	trainer SCHOOLBOY, KIPP, EVENT_BEAT_SCHOOLBOY_KIP, SchoolboyKippSeenText, SchoolboyKippBeatenText, 0, .Script
+GenericTrainerTeacherColette:
+	generictrainer TEACHER_F, COLETTE, EVENT_BEAT_TEACHER_COLETTE, TeacherColetteSeenText, TeacherColetteBeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SchoolboyKippAfterBattleText
-	waitbutton
-	closetext
-	end
+	text "Before I became a"
+	line "teacher, I used to"
 
-TrainerSchoolboyTommy:
-	trainer SCHOOLBOY, TOMMY, EVENT_BEAT_SCHOOLBOY_TOMMY, SchoolboyTommySeenText, SchoolboyTommyBeatenText, 0, .Script
+	para "forget a lot of"
+	line "things."
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SchoolboyTommyAfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerTeacherHillary:
+	generictrainer TEACHER_F, HILLARY, EVENT_BEAT_TEACHER_HILLARY, TeacherHillarySeenText, TeacherHillaryBeatenText
 
-TrainerSchoolboyJohnny:
-	trainer SCHOOLBOY, JOHNNY, EVENT_BEAT_SCHOOLBOY_JOHNNY, SchoolboyJohnnySeenText, SchoolboyJohnnyBeatenText, 0, .Script
+	text "Studying is impor-"
+	line "tant, but exercise"
+	cont "is just as vital."
+	done
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SchoolboyJohnnyAfterBattleText
-	waitbutton
-	closetext
-	end
+GenericTrainerSchoolboyKipp:
+	generictrainer SCHOOLBOY, KIPP, EVENT_BEAT_SCHOOLBOY_KIP, SchoolboyKippSeenText, SchoolboyKippBeatenText
 
-TrainerSchoolboyBilly:
-	trainer SCHOOLBOY, BILLY, EVENT_BEAT_SCHOOLBOY_BILLY, SchoolboyBillySeenText, SchoolboyBillyBeatenText, 0, .Script
+	text "My mom worries so"
+	line "much about me, I"
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SchoolboyBillyAfterBattleText
-	waitbutton
-	closetext
-	end
+	para "have to phone her"
+	line "all the time."
+	done
 
-Route15Sign:
-	jumptext Route15SignText
+GenericTrainerSchoolboyTommy:
+	generictrainer SCHOOLBOY, TOMMY, EVENT_BEAT_SCHOOLBOY_TOMMY, SchoolboyTommySeenText, SchoolboyTommyBeatenText
 
-Route15PPUp:
-	itemball PP_UP
+	text "Sayonara! I just"
+	line "learned that in my"
+	cont "Japanese class."
+	done
+
+GenericTrainerSchoolboyBilly:
+	generictrainer SCHOOLBOY, BILLY, EVENT_BEAT_SCHOOLBOY_BILLY, SchoolboyBillySeenText, SchoolboyBillyBeatenText
+
+	text "If #mon were a"
+	line "subject at school,"
+	cont "I'd be the best!"
+	done
+
+GenericTrainerSchoolgirlFaith:
+	generictrainer SCHOOLGIRL, FAITH, EVENT_BEAT_SCHOOLGIRL_FAITH, SchoolgirlFaithSeenText, SchoolgirlFaithBeatenText
+
+	text "I'm tired of walk-"
+	line "ing. I need to"
+	cont "take a break."
+	done
+
+GenericTrainerPokefanfBoone:
+	generictrainer POKEFANF, BOONE, EVENT_BEAT_POKEFANF_BOONE, PokefanfBooneSeenText, PokefanfBooneBeatenText
+
+	text "When you battle,"
+	line "you get to see"
+	cont "#mon you've"
+	cont "never seen before."
+
+	para "It's so great!"
+	done
+
+GenericTrainerPokefanfEleanor:
+	generictrainer POKEFANF, ELEANOR, EVENT_BEAT_POKEFANF_ELEANOR, PokefanfEleanorSeenText, PokefanfEleanorBeatenText
+
+	text "My #mon aren't"
+	line "weak! Your #mon"
+	cont "are too strong!"
+	done
+
+GenericTrainerTwinsKayandtia1:
+	generictrainer TWINS, KAYANDTIA1, EVENT_BEAT_TWINS_KAY_AND_TIA, TwinsKayandtia1SeenText, TwinsKayandtia1BeatenText
+
+	text "Absolute truth--"
+	line "I'm Kay! Maybe…"
+	done
+
+GenericTrainerTwinsKayandtia2:
+	generictrainer TWINS, KAYANDTIA2, EVENT_BEAT_TWINS_KAY_AND_TIA, TwinsKayandtia2SeenText, TwinsKayandtia2BeatenText
+
+	text "Maybe truth--I'm"
+	line "Tia! Absolutely!"
+	done
 
 TeacherColetteSeenText:
 	text "Have you forgotten"
@@ -91,14 +118,6 @@ TeacherColetteSeenText:
 
 TeacherColetteBeatenText:
 	text "Kyaaah!"
-	done
-
-TeacherColetteAfterBattleText:
-	text "Before I became a"
-	line "teacher, I used to"
-
-	para "forget a lot of"
-	line "things."
 	done
 
 TeacherHillarySeenText:
@@ -117,12 +136,6 @@ TeacherHillaryBeatenText:
 	line "lose…"
 	done
 
-TeacherHillaryAfterBattleText:
-	text "Studying is impor-"
-	line "tant, but exercise"
-	cont "is just as vital."
-	done
-
 SchoolboyKippSeenText:
 	text "Hang on. I have to"
 	line "phone my mom."
@@ -131,14 +144,6 @@ SchoolboyKippSeenText:
 SchoolboyKippBeatenText:
 	text "Sorry, Mom!"
 	line "I was beaten!"
-	done
-
-SchoolboyKippAfterBattleText:
-	text "My mom worries so"
-	line "much about me, I"
-
-	para "have to phone her"
-	line "all the time."
 	done
 
 SchoolboyTommySeenText:
@@ -151,29 +156,17 @@ SchoolboyTommyBeatenText:
 	line "homework!"
 	done
 
-SchoolboyTommyAfterBattleText:
-	text "Sayonara! I just"
-	line "learned that in my"
-	cont "Japanese class."
-	done
-
-SchoolboyJohnnySeenText:
+SchoolgirlFaithSeenText:
 	text "We're on a field"
-	line "trip to LAVENDER"
+	line "trip to Lavender"
 
-	para "RADIO TOWER for"
+	para "Radio Tower for"
 	line "social studies."
 	done
 
-SchoolboyJohnnyBeatenText:
+SchoolgirlFaithBeatenText:
 	text "You're wickedly"
 	line "tough!"
-	done
-
-SchoolboyJohnnyAfterBattleText:
-	text "I'm tired of walk-"
-	line "ing. I need to"
-	cont "take a break."
 	done
 
 SchoolboyBillySeenText:
@@ -186,36 +179,58 @@ SchoolboyBillyBeatenText:
 	line "How could I lose?"
 	done
 
-SchoolboyBillyAfterBattleText:
-	text "If #MON were a"
-	line "subject at school,"
-	cont "I'd be the best!"
+PokefanfBooneSeenText:
+	text "Hey, your"
+	line "#mon…"
+
+	para "Show me. Show me."
+	line "Show me!"
+	done
+
+PokefanfBooneBeatenText:
+	text "Yay! That was"
+	line "great!"
+	done
+
+PokefanfEleanorSeenText:
+	text "All right,"
+	line "#mon, time for"
+	cont "a battle!"
+	done
+
+PokefanfEleanorBeatenText:
+	text "Oh, well…"
+	done
+
+TwinsKayandtia1SeenText:
+	text "We're the twins"
+	line "Kay and Tia!"
+
+	para "Do you know which"
+	line "one I am?"
+	done
+
+TwinsKayandtia1BeatenText:
+	text "Tia and Kay both"
+	line "lost…"
+	done
+
+TwinsKayandtia2SeenText:
+	text "We're the twins"
+	line "Kay and Tia!"
+
+	para "Do you know which"
+	line "one I am?"
+	done
+
+TwinsKayandtia2BeatenText:
+	text "Tia and Kay both"
+	line "lost…"
 	done
 
 Route15SignText:
-	text "ROUTE 15"
+	text "Route 15"
 
-	para "FUCHSIA CITY -"
-	line "LAVENDER TOWN"
+	para "Fuchsia City -"
+	line "Lavender Town"
 	done
-
-Route15_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2,  4, ROUTE_15_FUCHSIA_GATE, 3
-	warp_event  2,  5, ROUTE_15_FUCHSIA_GATE, 4
-
-	def_coord_events
-
-	def_bg_events
-	bg_event 19,  9, BGEVENT_READ, Route15Sign
-
-	def_object_events
-	object_event 10, 10, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 4, TrainerSchoolboyKipp, -1
-	object_event 15, 13, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 3, TrainerSchoolboyTommy, -1
-	object_event 33, 10, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 3, TrainerSchoolboyJohnny, -1
-	object_event 27, 10, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 3, TrainerSchoolboyBilly, -1
-	object_event 30, 12, SPRITE_TEACHER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 4, TrainerTeacherColette, -1
-	object_event 20, 10, SPRITE_TEACHER, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 3, TrainerTeacherHillary, -1
-	object_event 12,  5, SPRITE_POKE_BALL, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_ITEMBALL, 0, Route15PPUp, EVENT_ROUTE_15_PP_UP

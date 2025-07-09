@@ -1,39 +1,126 @@
 HandleNewMap:
-	call ClearUnusedMapBuffer
-	call ResetMapBufferEventFlags
-	call ResetFlashIfOutOfCave
+	call ResetOWMapState
 	call GetCurrentMapSceneID
-	call ResetBikeFlags
 	ld a, MAPCALLBACK_NEWMAP
 	call RunMapCallback
 HandleContinueMap:
-	farcall ClearCmdQueue
-	ld a, MAPCALLBACK_CMDQUEUE
+	xor a
+	ld [wStoneTableAddress], a
+	ld [wStoneTableAddress+1], a
+	ld a, MAPCALLBACK_STONETABLE
 	call RunMapCallback
 	call GetMapTimeOfDay
 	ld [wMapTimeOfDay], a
 	ret
 
-EnterMapConnection:
-; Return carry if a connection has been entered.
-	ld a, [wPlayerStepDirection]
-	and a ; DOWN
-	jp z, .south
-	cp UP
-	jp z, .north
-	cp LEFT
-	jp z, .west
-	cp RIGHT
-	jp z, .east
+ResetOWMapState:
+; reset flash if out of cave
+	ld a, [wEnvironment]
+	cp ROUTE
+	jr z, .reset_flash
+	cp TOWN
+	jr nz, .keep_flash
+.reset_flash
+	ld hl, wStatusFlags
+	res 2, [hl]
+.keep_flash
+	xor a
+; reset map buffer event flags
+	ld [wEventFlags], a
+; reset ow state
+	ld hl, wOWState
+	ld [hli], a
+	ld [hl], a
 	ret
 
-.west
+EnterMapConnection:
+; Return carry if a connection has been entered.
+
+	ld hl, wPalFlags
+	set MAP_CONNECTION_PAL_F, [hl]
+
+	ld hl, DualMapConnections
+.dual_loop
+; check end
+	ld a, [hli]
+	and a
+	jr z, .not_dual
+; check map group
+	ld b, a
+	ld a, [wMapGroup]
+	cp b
+	jr nz, .skip31
+; check map number
+	ld a, [hli]
+	ld b, a
+	ld a, [wMapNumber]
+	cp b
+	jr nz, .skip30
+; check step direction
+	ld a, [hli]
+	ld b, a
+	ld a, [wPlayerStepDirection]
+	cp b
+	jr nz, .skip29
+; check coordinate
+	ld a, [hli]
+	ld e, a
+	ld a, [hli]
+	ld d, a
+	ld a, [hli]
+	ld b, a
+	ld a, [de]
+	cp b
+; de = map connection struct
+	ld a, [hli]
+	ld e, a
+	ld a, [hli]
+	ld d, a
+; hl = connection data
+	jr c, .lesser
+	ld bc, 12 ; size of connection
+	add hl, bc
+.lesser
+	call GetMapConnection
+	; fallthrough
+
+.not_dual
+	xor a
+	ld hl, wFollowedWarpData
+	ld bc, wFollowedWarpDataEnd - wFollowedWarpData
+	rst ByteFill
+
+	ld a, [wPlayerStepDirection]
+	and a
+	jmp z, EnterSouthConnection
+	dec a
+	jmp z, EnterNorthConnection
+	dec a
+	jr z, EnterWestConnection
+	dec a
+	jr z, EnterEastConnection
+	ret
+
+.skip31
+	inc hl
+.skip30
+	inc hl
+.skip29
+	ld bc, 8 + 12 * 2 - 3 ; size of dual_connection, minus 3 bytes passed already
+	add hl, bc
+	jr .dual_loop
+
+EnterWestConnection:
 	ld a, [wWestConnectedMapGroup]
 	ld [wMapGroup], a
 	ld a, [wWestConnectedMapNumber]
 	ld [wMapNumber], a
+	ld a, [wXCoord]
+	ld [wLastMapXCoord], a
 	ld a, [wWestConnectionStripXOffset]
 	ld [wXCoord], a
+	ld a, [wYCoord]
+	ld [wLastMapYCoord], a
 	ld a, [wWestConnectionStripYOffset]
 	ld hl, wYCoord
 	add [hl]
@@ -44,8 +131,9 @@ EnterMapConnection:
 	ld h, [hl]
 	ld l, a
 	srl c
-	jr z, .skip_to_load
 	ld a, [wWestConnectedMapWidth]
+_FinishEastWestConnection:
+	jr z, .skip_to_load
 	add 6
 	ld e, a
 	ld d, 0
@@ -60,15 +148,20 @@ EnterMapConnection:
 	ld [wOverworldMapAnchor], a
 	ld a, h
 	ld [wOverworldMapAnchor + 1], a
-	jp .done
+	scf
+	ret
 
-.east
+EnterEastConnection:
 	ld a, [wEastConnectedMapGroup]
 	ld [wMapGroup], a
 	ld a, [wEastConnectedMapNumber]
 	ld [wMapNumber], a
+	ld a, [wXCoord]
+	ld [wLastMapXCoord], a
 	ld a, [wEastConnectionStripXOffset]
 	ld [wXCoord], a
+	ld a, [wYCoord]
+	ld [wLastMapYCoord], a
 	ld a, [wEastConnectionStripYOffset]
 	ld hl, wYCoord
 	add [hl]
@@ -79,62 +172,45 @@ EnterMapConnection:
 	ld h, [hl]
 	ld l, a
 	srl c
-	jr z, .skip_to_load2
 	ld a, [wEastConnectedMapWidth]
-	add 6
-	ld e, a
-	ld d, 0
+	jr _FinishEastWestConnection
 
-.loop2
-	add hl, de
-	dec c
-	jr nz, .loop2
-
-.skip_to_load2
-	ld a, l
-	ld [wOverworldMapAnchor], a
-	ld a, h
-	ld [wOverworldMapAnchor + 1], a
-	jp .done
-
-.north
+EnterNorthConnection:
 	ld a, [wNorthConnectedMapGroup]
 	ld [wMapGroup], a
 	ld a, [wNorthConnectedMapNumber]
 	ld [wMapNumber], a
+	ld a, [wYCoord]
+	ld [wLastMapYCoord], a
 	ld a, [wNorthConnectionStripYOffset]
 	ld [wYCoord], a
+	ld a, [wXCoord]
+	ld [wLastMapXCoord], a
 	ld a, [wNorthConnectionStripXOffset]
 	ld hl, wXCoord
 	add [hl]
 	ld [hl], a
-	ld c, a
 	ld hl, wNorthConnectionWindow
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	ld b, 0
-	srl c
-	add hl, bc
-	ld a, l
-	ld [wOverworldMapAnchor], a
-	ld a, h
-	ld [wOverworldMapAnchor + 1], a
-	jp .done
+	jr _FinishNorthSouthConnection
 
-.south
+EnterSouthConnection:
 	ld a, [wSouthConnectedMapGroup]
 	ld [wMapGroup], a
 	ld a, [wSouthConnectedMapNumber]
 	ld [wMapNumber], a
+	ld a, [wYCoord]
+	ld [wLastMapYCoord], a
 	ld a, [wSouthConnectionStripYOffset]
 	ld [wYCoord], a
+	ld a, [wXCoord]
+	ld [wLastMapXCoord], a
 	ld a, [wSouthConnectionStripXOffset]
 	ld hl, wXCoord
 	add [hl]
 	ld [hl], a
-	ld c, a
 	ld hl, wSouthConnectionWindow
+_FinishNorthSouthConnection:
+	ld c, a
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
@@ -145,7 +221,6 @@ EnterMapConnection:
 	ld [wOverworldMapAnchor], a
 	ld a, h
 	ld [wOverworldMapAnchor + 1], a
-.done
 	scf
 	ret
 
@@ -162,7 +237,7 @@ EnterMapWarp:
 
 .SaveDigWarp:
 	call GetMapEnvironment
-	call CheckOutdoorMap
+	call CheckOutdoorOrIsolatedMap
 	ret nz
 	ld a, [wNextMapGroup]
 	ld b, a
@@ -171,20 +246,6 @@ EnterMapWarp:
 	call GetAnyMapEnvironment
 	call CheckIndoorMap
 	ret nz
-
-; MOUNT_MOON_SQUARE and TIN_TOWER_ROOF are outdoor maps within indoor maps.
-; Dig and Escape Rope should not take you to them.
-	ld a, [wPrevMapGroup]
-	cp GROUP_MOUNT_MOON_SQUARE
-	jr nz, .not_mt_moon_square_or_tin_tower_roof
-	assert GROUP_MOUNT_MOON_SQUARE == GROUP_TIN_TOWER_ROOF
-	ld a, [wPrevMapNumber]
-	cp MAP_MOUNT_MOON_SQUARE
-	ret z
-	cp MAP_TIN_TOWER_ROOF
-	ret z
-.not_mt_moon_square_or_tin_tower_roof
-
 	ld a, [wPrevWarp]
 	ld [wDigWarpNumber], a
 	ld a, [wPrevMapGroup]
@@ -208,17 +269,13 @@ EnterMapWarp:
 	ld b, a
 	ld a, [wNextMapNumber]
 	ld c, a
-
-; Respawn in Pokémon Centers.
 	call GetAnyMapTileset
 	ld a, c
 	cp TILESET_POKECENTER
 	jr z, .pokecenter_pokecom
 	cp TILESET_POKECOM_CENTER
-	jr z, .pokecenter_pokecom
-	ret
+	ret nz
 .pokecenter_pokecom
-
 	ld a, [wPrevMapGroup]
 	ld [wLastSpawnMapGroup], a
 	ld a, [wPrevMapNumber]
@@ -232,53 +289,16 @@ LoadMapTimeOfDay:
 	ld [wSpriteUpdatesEnabled], a
 	farcall ReplaceTimeOfDayPals
 	farcall UpdateTimeOfDayPal
-	call LoadOverworldTilemapAndAttrmapPals
+	call LoadMapPart
 	call .ClearBGMap
-	call .PushAttrmap
-	ret
-
-.ClearBGMap:
-	ld a, HIGH(vBGMap0)
-	ld [wBGMapAnchor + 1], a
-	xor a ; LOW(vBGMap0)
-	ld [wBGMapAnchor], a
-	ldh [hSCY], a
-	ldh [hSCX], a
-	farcall ApplyBGMapAnchorToObjects
-
-	ldh a, [rVBK]
-	push af
-	ld a, $1
-	ldh [rVBK], a
-
-	xor a
-	ld bc, vBGMap1 - vBGMap0
-	hlbgcoord 0, 0
-	call ByteFill
-
-	pop af
-	ldh [rVBK], a
-
-	ld a, "■"
-	ld bc, vBGMap1 - vBGMap0
-	hlbgcoord 0, 0
-	call ByteFill
-	ret
-
-.PushAttrmap:
 	decoord 0, 0
 	call .copy
-	ldh a, [hCGB]
-	and a
-	ret z
-
 	decoord 0, 0, wAttrmap
 	ld a, $1
 	ldh [rVBK], a
 .copy
 	hlbgcoord 0, 0
-	ld c, SCREEN_WIDTH
-	ld b, SCREEN_HEIGHT
+	lb bc, SCREEN_HEIGHT, SCREEN_WIDTH
 .row
 	push bc
 .column
@@ -292,41 +312,80 @@ LoadMapTimeOfDay:
 	pop bc
 	dec b
 	jr nz, .row
-	ld a, $0
+	xor a
 	ldh [rVBK], a
 	ret
 
-LoadMapGraphics:
+.ClearBGMap:
+	ld a, vBGMap0 / $100
+	ld [wBGMapAnchor + 1], a
+	xor a
+	ld [wBGMapAnchor], a
+	ldh [hSCY], a
+	ldh [hSCX], a
+	farcall ApplyBGMapAnchorToObjects
+	ldh a, [rVBK]
+	push af
+	ld a, $1
+	ldh [rVBK], a
+	xor a
+	ld bc, vBGMap1 - vBGMap0
+	hlbgcoord 0, 0
+	rst ByteFill
+	pop af
+	ldh [rVBK], a
+	ld a, "<BLACK>"
+	ld bc, vBGMap1 - vBGMap0
+	hlbgcoord 0, 0
+	rst ByteFill
+	ret
+
+DeferredLoadMapGraphics:
+	call TilesetUnchanged
+	jr z, .done
+	call LoadMapTileset
+	ld a, 3
+	ld [wPendingOverworldGraphics], a
+.done
+	xor a
+	ldh [hMapAnims], a
+	ldh [hTileAnimFrame], a
+	ret
+
+LoadMapTilesetGFX:
 	call LoadMapTileset
 	call LoadTilesetGFX
 	xor a
 	ldh [hMapAnims], a
-	xor a
 	ldh [hTileAnimFrame], a
-	farcall RefreshSprites
-	call LoadFontsExtra
-	farcall LoadOverworldFont
 	ret
 
+LoadMapGraphics:
+	call LoadMapTilesetGFX
+	farjp RefreshSprites
+
 LoadMapPalettes:
-	ld b, SCGB_MAPPALS
-	jp GetSGBLayout
+	ld a, CGB_MAPPALS
+	jmp GetCGBLayout
 
 RefreshMapSprites:
 	call ClearSprites
+	xor a
+	ldh [hBGMapMode], a
+
 	farcall InitMapNameSign
 	call GetMovementPermissions
 	farcall RefreshPlayerSprite
 	farcall CheckUpdatePlayerSprite
 	ld hl, wPlayerSpriteSetupFlags
-	bit PLAYERSPRITESETUP_SKIP_RELOAD_GFX_F, [hl]
+	bit 6, [hl]
 	jr nz, .skip
 	ld hl, wStateFlags
 	set SPRITE_UPDATES_DISABLED_F, [hl]
 	call SafeUpdateSprites
 .skip
 	ld a, [wPlayerSpriteSetupFlags]
-	and (1 << PLAYERSPRITESETUP_FEMALE_TO_MALE_F) | (1 << 3) | (1 << 4)
+	and %00011100
 	ld [wPlayerSpriteSetupFlags], a
 	ret
 
@@ -366,7 +425,7 @@ CheckMovingOffEdgeOfMap::
 
 .left
 	ld a, [wPlayerMapX]
-	sub 4
+	sub $4
 	cp -1
 	jr z, .ok
 	and a
@@ -390,43 +449,47 @@ CheckMovingOffEdgeOfMap::
 GetMapScreenCoords::
 	ld hl, wOverworldMapBlocks
 	ld a, [wXCoord]
-	bit 0, a ; even or odd?
-	jr nz, .odd_x
-; even x
+	bit 0, a
+	jr nz, .increment_then_halve1
 	srl a
-	add 1
-	jr .got_block_x
-.odd_x
-	add 1
+	inc a
+	jr .resume
+
+.increment_then_halve1
+	inc a
 	srl a
-.got_block_x
+
+.resume
 	ld c, a
-	ld b, 0
+	ld b, $0
 	add hl, bc
 	ld a, [wMapWidth]
-	add MAP_CONNECTION_PADDING_WIDTH * 2
+	add $6
 	ld c, a
-	ld b, 0
+	ld b, $0
 	ld a, [wYCoord]
-	bit 0, a ; even or odd?
-	jr nz, .odd_y
-; even y
+	bit 0, a
+	jr nz, .increment_then_halve2
 	srl a
-	add 1
-	jr .got_block_y
-.odd_y
-	add 1
+	inc a
+	jr .resume2
+
+.increment_then_halve2
+	inc a
 	srl a
-.got_block_y
-	call AddNTimes
+
+.resume2
+	rst AddNTimes
 	ld a, l
 	ld [wOverworldMapAnchor], a
 	ld a, h
 	ld [wOverworldMapAnchor + 1], a
 	ld a, [wYCoord]
-	and 1
-	ld [wPlayerMetatileY], a
+	and $1
+	ld [wMetatileStandingY], a
 	ld a, [wXCoord]
-	and 1
-	ld [wPlayerMetatileX], a
+	and $1
+	ld [wMetatileStandingX], a
 	ret
+
+INCLUDE "data/maps/dual_connections.asm"

@@ -1,68 +1,49 @@
+	const_def
+	const INCOMPATIBLE
+	const SLIGHTLY_COMPATIBLE
+	const MODERATELY_COMPATIBLE
+	const HIGHLY_COMPATIBLE
+
+	const_def
+	const BREEDGEN_MALE
+	const BREEDGEN_FEMALE
+	const BREEDGEN_GENDERLESS
+	const BREEDGEN_DITTO
+
 CheckBreedmonCompatibility:
 	call .CheckBreedingGroupCompatibility
-	ld c, $0
-	jp nc, .done
+	ld c, INCOMPATIBLE
+	jr nc, .done
 	ld a, [wBreedMon1Species]
 	ld [wCurPartySpecies], a
-	ld a, [wBreedMon1DVs]
-	ld [wTempMonDVs], a
-	ld a, [wBreedMon1DVs + 1]
-	ld [wTempMonDVs + 1], a
-	ld a, TEMPMON
-	ld [wMonType], a
-	predef GetGender
-	jr c, .genderless
-	ld b, $1
-	jr nz, .breedmon2
-	inc b
-
-.breedmon2
-	push bc
+	ld a, [wBreedMon1Gender]
+	ld [wTempMonGender], a
+	call .SetGenderData
+	ld b, a
 	ld a, [wBreedMon2Species]
 	ld [wCurPartySpecies], a
-	ld a, [wBreedMon2DVs]
-	ld [wTempMonDVs], a
-	ld a, [wBreedMon2DVs + 1]
-	ld [wTempMonDVs + 1], a
-	ld a, TEMPMON
-	ld [wMonType], a
-	predef GetGender
-	pop bc
-	jr c, .genderless
-	ld a, $1
-	jr nz, .compare_gender
-	inc a
-
-.compare_gender
+	ld a, [wBreedMon2Gender]
+	ld [wTempMonGender], a
+	call .SetGenderData
 	cp b
-	jr nz, .compute
+	ld c, INCOMPATIBLE
+	jr z, .done ; both are same gender, both are dittos or both are genderless
+	; Check for Ditto
+	or b
+	bit BREEDGEN_DITTO, a
+	jr nz, .breed_ok
+	; Check for genderless
+	bit BREEDGEN_GENDERLESS, a
+	jr nz, .done ; Any mon being genderless is incompatible with non-Ditto
 
-.genderless
-	ld c, $0
-	ld a, [wBreedMon1Species]
-	cp DITTO
-	jr z, .ditto1
-	ld a, [wBreedMon2Species]
-	cp DITTO
-	jr nz, .done
-	jr .compute
-
-.ditto1
-	ld a, [wBreedMon2Species]
-	cp DITTO
-	jr z, .done
-
-.compute
-	call .CheckDVs
-	ld c, 255
-	jp z, .done
+.breed_ok
 	ld a, [wBreedMon2Species]
 	ld b, a
 	ld a, [wBreedMon1Species]
 	cp b
-	ld c, 254
+	ld c, HIGHLY_COMPATIBLE
 	jr z, .compare_ids
-	ld c, 128
+	ld c, MODERATELY_COMPATIBLE
 .compare_ids
 	; Speed up
 	ld a, [wBreedMon1ID]
@@ -75,31 +56,11 @@ CheckBreedmonCompatibility:
 	ld a, [wBreedMon2ID + 1]
 	cp b
 	jr nz, .done
-	ld a, c
-	sub 77
-	ld c, a
+	dec c ; SLIGHTLY_COMPATIBLE
 
 .done
 	ld a, c
 	ld [wBreedingCompatibility], a
-	ret
-
-.CheckDVs:
-; If Defense DVs match and the lower 3 bits of the Special DVs match,
-; avoid breeding
-	ld a, [wBreedMon1DVs]
-	and %1111
-	ld b, a
-	ld a, [wBreedMon2DVs]
-	and %1111
-	cp b
-	ret nz
-	ld a, [wBreedMon1DVs + 1]
-	and %111
-	ld b, a
-	ld a, [wBreedMon2DVs + 1]
-	and %111
-	cp b
 	ret
 
 .CheckBreedingGroupCompatibility:
@@ -107,16 +68,24 @@ CheckBreedmonCompatibility:
 ; they are not compatible.
 	ld a, [wBreedMon2Species]
 	ld [wCurSpecies], a
+	ld a, [wBreedMon2Form]
+	and SPECIESFORM_MASK
+	ld [wCurForm], a
 	call GetBaseData
 	ld a, [wBaseEggGroups]
-	cp EGG_NONE * $11
+	assert EGG_NONE * $11 == $ff
+	inc a
 	jr z, .Incompatible
 
 	ld a, [wBreedMon1Species]
 	ld [wCurSpecies], a
+	ld a, [wBreedMon1Form]
+	and SPECIESFORM_MASK
+	ld [wCurForm], a
 	call GetBaseData
 	ld a, [wBaseEggGroups]
-	cp EGG_NONE * $11
+	assert EGG_NONE * $11 == $ff
+	inc a
 	jr z, .Incompatible
 
 ; Ditto is automatically compatible with everything.
@@ -125,6 +94,9 @@ CheckBreedmonCompatibility:
 	cp DITTO
 	jr z, .Compatible
 	ld [wCurSpecies], a
+	ld a, [wBreedMon2Form]
+	and SPECIESFORM_MASK
+	ld [wCurForm], a
 	call GetBaseData
 	ld a, [wBaseEggGroups]
 	push af
@@ -139,6 +111,9 @@ CheckBreedmonCompatibility:
 	cp DITTO
 	jr z, .Compatible
 	ld [wCurSpecies], a
+	ld a, [wBreedMon1Form]
+	and SPECIESFORM_MASK
+	ld [wCurForm], a
 	push bc
 	call GetBaseData
 	pop bc
@@ -171,166 +146,239 @@ CheckBreedmonCompatibility:
 	scf
 	ret
 
-DoEggStep::
-	ld de, wPartySpecies
-	ld hl, wPartyMon1Happiness
-	ld c, 0
-.loop
-	ld a, [de]
-	inc de
-	cp -1
+.SetGenderData:
+	ld a, [wCurPartySpecies]
+	cp DITTO
+	ld a, 1 << BREEDGEN_DITTO
 	ret z
-	cp EGG
-	jr nz, .next
-	dec [hl]
-	jr nz, .next
-	ld a, 1
-	and a
+	ld a, TEMPMON
+	ld [wMonType], a
+	push bc
+	farcall GetGender
+	pop bc
+	ld a, 1 << BREEDGEN_GENDERLESS
+	ret c
+	ld a, 1 << BREEDGEN_FEMALE
+	ret z
+	srl a ; 1 << BREEDGEN_MALE
 	ret
 
-.next
+DoEggStep::
+	ld a, [wPartyCount]
+	and a
+	ret z
+
+	; Check if Flame Body/Magma Armor applies
+	ld e, a
+	ld hl, wPartyMon1IsEgg
+	push hl
 	push de
-	ld de, PARTYMON_STRUCT_LENGTH
+.loop
+	bit MON_IS_EGG_F, [hl]
+	jr nz, .next_ability
+	push hl
+	push de
+	ld de, MON_SPECIES - MON_IS_EGG
 	add hl, de
+	ld c, [hl]
+	ld de, MON_ABILITY - MON_SPECIES
+	add hl, de
+	call GetAbility
 	pop de
-	jr .loop
+	pop hl
+	ld a, b
+	ld c, 2
+	cp FLAME_BODY
+	jr z, .got_decrement
+	cp MAGMA_ARMOR
+	jr z, .got_decrement
+.next_ability
+	call .NextPartyMon
+	jr nz, .loop
+	ld c, 1
+.got_decrement
+	; Check if Oval Charm applies
+	ld a, OVAL_CHARM
+	ld [wCurKeyItem], a
+	push bc
+	call CheckKeyItem
+	pop bc
+	jr nc, .no_oval_charm
+	sla c
+.no_oval_charm
+	pop de
+	pop hl
+	ld d, c
+
+	; Tick down eggs by d egg cycles.
+	xor a ; Hatching marker.
+	push af
+.egg_loop
+	bit MON_IS_EGG_F, [hl]
+	jr z, .next_egg
+	push hl
+	ld bc, MON_HAPPINESS - MON_IS_EGG
+	add hl, bc
+	ld a, [hl]
+	sub d
+	jr nc, .egg_ok
+	xor a
+.egg_ok
+	ld [hl], a
+	pop hl
+	jr nz, .next_egg
+	pop af
+	or 1
+	push af
+.next_egg
+	call .NextPartyMon
+	jr nz, .egg_loop
+	pop af
+	ret
+
+.NextPartyMon:
+	ld bc, PARTYMON_STRUCT_LENGTH
+	add hl, bc
+	dec e
+	ret
 
 OverworldHatchEgg::
+	call BackupSprites
 	call ReanchorMap
 	call LoadStandardMenuHeader
 	call HatchEggs
-	call ExitAllMenus
-	call RestartMapMusic
-	jp CloseText
+	farcall ClearSavedObjPals
+	farcall DisableDynPalUpdates
+	call ClearBGPalettes
+	call ExitMenu
+	call ReloadTilesetAndPalettes
+	call CloseText
+	call RestoreSprites
+	call UpdateSprites
+	farcall EnableDynPalUpdatesNoApply
+	call FinishExitMenu
+	farcall Script_refreshmap
+	jmp RestartMapMusic
 
 HatchEggs:
-	ld de, wPartySpecies
-	ld hl, wPartyMon1Happiness
 	xor a
 	ld [wCurPartyMon], a
 
-.loop
-	ld a, [de]
-	inc de
-	cp -1
-	jp z, .done
-	push de
-	push hl
-	cp EGG
-	jp nz, .next
-	ld a, [hl]
+	ld a, [wPartyCount]
 	and a
-	jp nz, .next
-	ld [hl], $78
+	ret z
+	ld e, a
 
+.loop
 	push de
 
-	farcall SetEggMonCaughtData
-	farcall StubbedTrainerRankings_EggsHatched
-	ld a, [wCurPartyMon]
-	ld hl, wPartyMon1Species
-	ld bc, PARTYMON_STRUCT_LENGTH
-	call AddNTimes
-	ld a, [hl]
-	ld [wCurPartySpecies], a
-	dec a
-	call SetSeenAndCaughtMon
+	; Check if egg cycles is zero.
+	ld a, MON_HAPPINESS
+	call GetPartyParamLocationAndValue
+	and a
+	jmp nz, .next
 
-	ld a, [wCurPartySpecies]
-	cp TOGEPI
-	jr nz, .nottogepi
-	; set the event flag for hatching togepi
-	ld de, EVENT_TOGEPI_HATCHED
-	ld b, SET_FLAG
-	call EventFlagAction
-.nottogepi
+	; Is this mon an egg?
+	push hl
+	ld bc, MON_IS_EGG - MON_HAPPINESS
+	add hl, bc
+	bit MON_IS_EGG_F, [hl]
+	res MON_IS_EGG_F, [hl]
+	pop hl
+	jmp z, .next
 
-	pop de
+	; We have a valid egg. Set friendship state.
+	ld [hl], HATCHED_HAPPINESS
 
-	ld a, [wCurPartySpecies]
-	dec de
-	ld [de], a
-	ld [wNamedObjectIndex], a
-	ld [wCurSpecies], a
-	call GetPokemonName
-	xor a
-	ld [wUnusedEggHatchFlag], a
-	call GetBaseData
-	ld a, [wCurPartyMon]
-	ld hl, wPartyMon1
-	ld bc, PARTYMON_STRUCT_LENGTH
-	call AddNTimes
-	push hl
-	ld bc, MON_MAXHP
-	add hl, bc
-	ld d, h
-	ld e, l
-	pop hl
-	push hl
-	ld bc, MON_LEVEL
-	add hl, bc
-	ld a, [hl]
-	ld [wCurPartyLevel], a
-	pop hl
-	push hl
-	ld bc, MON_STATUS
-	add hl, bc
-	xor a
-	ld [hli], a
-	ld [hl], a
-	pop hl
-	push hl
-	ld bc, MON_STAT_EXP - 1
-	add hl, bc
-	ld b, FALSE
-	predef CalcMonStats
-	pop bc
-	ld hl, MON_MAXHP
-	add hl, bc
-	ld d, h
-	ld e, l
-	ld hl, MON_HP
-	add hl, bc
-	ld a, [de]
-	inc de
-	ld [hli], a
-	ld a, [de]
-	ld [hl], a
-	ld hl, MON_OT_ID
+	; Set OTID
+	ld bc, MON_ID - MON_HAPPINESS
 	add hl, bc
 	ld a, [wPlayerID]
 	ld [hli], a
 	ld a, [wPlayerID + 1]
+	ld [hld], a
+
+	; Heal the mon. UpdatePkmnStats will readjust HP later if max HP changes.
+	ld bc, (MON_MAXHP + 1) - MON_ID
+	add hl, bc
+	ld a, [hld]
+	ld c, a
+	ld a, [hld]
+	ld [hl], c ; no-optimize *hl++|*hl-- = b|c|d|e
+	dec hl
+	ld [hld], a
+
+	; Zero status and Unused
+	xor a
+	ld [hld], a
 	ld [hl], a
+
+	; Initialize egg caught data.
+	farcall SetEggMonCaughtData
+
+	; Write to wTempMon, wCurPartySpecies and wCurForm. Also gets base data.
+	xor a
+	ld [wMonType], a
+	predef CopyPkmnToTempMon
+
+	; Mark the mon as caught.
+	ld a, [wTempMonSpecies]
+	ld c, a
+	ld a, [wTempMonForm]
+	ld b, a
+	push bc
+	call SetSeenAndCaughtMon
+	pop bc
+
+	; If we hatched a Togepi, set the relevant Prof Elm event flag.
+	ld de, TOGEPI
+	call CompareSpeciesWithDE
+	jr nz, .nottogepi
+	eventflagset EVENT_TOGEPI_HATCHED
+
+.nottogepi
+	call GetPartyPokemonName
+
+	; Write the species name to replace "Egg" (or "Bad Egg" I suppose...).
 	ld a, [wCurPartyMon]
-	ld hl, wPartyMonOTs
-	ld bc, NAME_LENGTH
-	call AddNTimes
+	ld hl, wPartyMonNicknames
+	call SkipNames
+	push hl
+	ld d, h
+	ld e, l
+	ld hl, wStringBuffer1
+	ld bc, MON_NAME_LENGTH
+	rst CopyBytes
+
+	; Update stats.
+	farcall UpdatePkmnStats
+
+	; Write OT name.
+	pop hl
+	push hl
+	ld bc, wPartyMonOTs - wPartyMonNicknames
+	add hl, bc
 	ld d, h
 	ld e, l
 	ld hl, wPlayerName
-	call CopyBytes
+	ld bc, MON_NAME_LENGTH
+	rst CopyBytes
+
+	; This prints "Huh?" and does the egg hatch animation.
+	ld a, TRUE
+	ld [wSpriteUpdatesEnabled], a ; needed so SafeCopyTilemapAtOnceproperly updates textbox palettes when within nickname menu
 	ld hl, .Text_HatchEgg
 	call PrintText
-	ld a, [wCurPartyMon]
-	ld hl, wPartyMonNicknames
-	ld bc, MON_NAME_LENGTH
-	call AddNTimes
-	ld d, h
-	ld e, l
-	push de
-	ld hl, .BreedAskNicknameText
+
+	ld hl, .Text_NicknameHatchling
 	call PrintText
 	call YesNoBox
-	pop de
 	jr c, .nonickname
 
-	ld a, TRUE
-	ld [wUnusedEggHatchFlag], a
-	xor a
-	ld [wMonType], a
+	; de = the relevant entry in wPartyMonNicknames.
+	pop de
 	push de
-	ld b, NAME_MON
+	ld b, $0 ; pokemon
 	farcall NamingScreen
 	pop hl
 	ld de, wStringBuffer1
@@ -338,21 +386,18 @@ HatchEggs:
 	jr .next
 
 .nonickname
+	pop de
 	ld hl, wStringBuffer1
 	ld bc, MON_NAME_LENGTH
-	call CopyBytes
+	rst CopyBytes
 
 .next
+	pop de
+	dec e
+	ret z
 	ld hl, wCurPartyMon
 	inc [hl]
-	pop hl
-	ld de, PARTYMON_STRUCT_LENGTH
-	add hl, de
-	pop de
-	jp .loop
-
-.done
-	ret
+	jmp .loop
 
 .Text_HatchEgg:
 	; Huh? @ @
@@ -366,279 +411,242 @@ HatchEggs:
 	ld a, [wCurPartySpecies]
 	push af
 	call EggHatch_AnimationSequence
-	ld hl, .BreedClearboxText
+	ld hl, .ClearTextbox
 	call PrintText
 	pop af
 	ld [wCurPartySpecies], a
 	pop bc
 	pop de
 	pop hl
-	ld hl, .BreedEggHatchText
+	ld hl, .CameOutOfItsEgg
 	ret
 
-.BreedClearboxText:
-	text_far _BreedClearboxText
+.ClearTextbox:
+	;
+	text_far ClearText
 	text_end
 
-.BreedEggHatchText:
+.CameOutOfItsEgg:
+	; came out of its EGG!@ @
 	text_far _BreedEggHatchText
 	text_end
 
-.BreedAskNicknameText:
+.Text_NicknameHatchling:
+	; Give a nickname to @ ?
 	text_far _BreedAskNicknameText
 	text_end
 
-InitEggMoves:
-	call GetHeritableMoves
-	ld d, h
-	ld e, l
-	ld b, NUM_MOVES
-.loop
-	ld a, [de]
+GetMotherAddr:
+	ld a, [wBreedMotherOrNonDitto]
 	and a
-	jr z, .done
-	ld hl, wEggMonMoves
-	ld c, NUM_MOVES
-.next
-	ld a, [de]
-	cp [hl]
-	jr z, .skip
-	inc hl
-	dec c
-	jr nz, .next
-	call GetEggMove
-	jr nc, .skip
-	call LoadEggMove
+	ret z
+	jr SwitchParentAddr
 
-.skip
-	inc de
-	dec b
-	jr nz, .loop
-
-.done
+GetFatherAddr:
+	ld a, [wBreedMotherOrNonDitto]
+	and a
+	ret nz
+SwitchParentAddr:
+	push bc
+	ld bc, wBreedMon2 - wBreedMon1
+	add hl, bc
+	pop bc
 	ret
 
-GetEggMove:
-	push bc
-	ld a, [wEggMonSpecies]
-	dec a
+InitEggMoves:
+; Order of move inheritance in VII:
+; * Default moves at level 1
+; * Inherited level up moves (both parents must know it)
+; * Egg moves from father
+; * Egg moves from mother
+; Further inheritances shift previous moves out, meaning that the list is in a
+; reversed inheritance priority
+
+	; Default level 1 moves
+	ld de, wTempMonMoves
+	xor a
+	ld [wEvolutionOldSpecies], a
+	; c = species
+	ld a, [wTempMonSpecies]
 	ld c, a
-	ld b, 0
-	ld hl, EggMovePointers
-	add hl, bc
-	add hl, bc
-	ld a, BANK(EggMovePointers)
-	call GetFarWord
-.loop
-	ld a, BANK("Egg Moves")
-	call GetFarByte
-	cp -1
-	jr z, .reached_end
+	; b = form
+	ld a, [wTempMonForm]
+	and SPECIESFORM_MASK
 	ld b, a
+	predef FillMoves
+
+	; Inherited level up moves
+	ld de, wBreedMon1Moves
+	ld b, NUM_MOVES
+.level_up_loop
 	ld a, [de]
-	cp b
-	jr z, .done_carry
+	inc de
+	and a
+	jr z, .level_up_done
+	ld c, a
+	ld hl, wBreedMon2Moves
+	push de
+	ld d, NUM_MOVES
+.level_up_loop_inner
+	ld a, [hli]
+	cp c
+	jr z, .got_level_up_move
+	and a
+	jr z, .level_up_done_inner
+	dec d
+	jr nz, .level_up_loop_inner
+.level_up_done_inner
+	pop de
+	dec b
+	jr nz, .level_up_loop
+	jr .level_up_done
+
+.got_level_up_move
+	ld d, c
+	push hl
+	push bc
+	call InheritLevelMove
+	pop bc
+	pop hl
+	jr .level_up_done_inner
+
+.level_up_done
+	; Egg moves from father
+	ld hl, wBreedMon1Moves
+	call GetFatherAddr
+	call .GetEggMoves
+
+	; Egg moves from mother
+	ld hl, wBreedMon1Moves
+	call GetMotherAddr
+	call .GetEggMoves
+
+	; Done, fill PP
+	ld hl, wTempMonMoves
+	ld de, wTempMonPP
+	predef_jump FillPP
+
+.GetEggMoves:
+	ld b, NUM_MOVES
+.egg_move_loop
+	ld a, [hli]
+	and a
+	ret z
+	ld d, a
+	push hl
+	push bc
+	call InheritEggMove
+	pop bc
+	pop hl
+	dec b
+	jr nz, .egg_move_loop
+	ret
+
+InheritLevelMove:
+; If move d is part of the level up moveset, inherit that move
+	; c = species
+	ld a, [wTempMonSpecies]
+	ld c, a
+	; b = form
+	ld a, [wTempMonForm]
+	and SPECIESFORM_MASK
+	ld b, a
+	; bc = index
+	predef GetEvosAttacksPointer
+.loop
+	ld a, BANK(EvosAttacks)
+	call GetFarByte
+	inc hl
+	inc a
+	jr nz, .loop
+.loop2
+	ld a, BANK(EvosAttacks)
+	call GetFarByte
+	inc a
+	ret z
+	inc hl
+	ld a, BANK(EvosAttacks)
+	call GetFarByte
+	cp d
+	jr z, InheritMove
+	inc hl
+	jr .loop2
+
+InheritEggMove:
+; If move d is an egg move, inherit that move
+	; c = species
+	ld a, [wTempMonSpecies]
+	ld c, a
+	; b = form
+	ld a, [wTempMonForm]
+	and SPECIESFORM_MASK
+	ld b, a
+	; bc = index
+	call GetSpeciesAndFormIndex
+	ld hl, EggSpeciesMovesPointers
+	add hl, bc
+	add hl, bc
+	ld a, BANK(EggSpeciesMovesPointers)
+	call GetFarWord
+	inc hl
+	inc hl
+.loop
+	ld a, BANK(EggSpeciesMoves)
+	call GetFarByte
+	inc a
+	ret z
+	dec a
+	cp d
+	jr z, InheritMove
 	inc hl
 	jr .loop
 
-.reached_end
-	call GetBreedmonMovePointer
+InheritMove:
+	ld hl, wTempMonMoves
 	ld b, NUM_MOVES
-.loop2
-	ld a, [de]
-	cp [hl]
-	jr z, .found_eggmove
-	inc hl
-	dec b
-	jr z, .inherit_tmhm
-	jr .loop2
-
-.found_eggmove
-	ld a, [wEggMonSpecies]
-	dec a
-	ld c, a
-	ld b, 0
-	ld hl, EvosAttacksPointers
-	add hl, bc
-	add hl, bc
-	ld a, BANK(EvosAttacksPointers)
-	call GetFarWord
-.loop3
-	ld a, BANK("Evolutions and Attacks")
-	call GetFarByte
-	inc hl
-	and a
-	jr nz, .loop3
-.loop4
-	ld a, BANK("Evolutions and Attacks")
-	call GetFarByte
-	and a
-	jr z, .inherit_tmhm
-	inc hl
-	ld a, BANK("Evolutions and Attacks")
-	call GetFarByte
-	ld b, a
-	ld a, [de]
-	cp b
-	jr z, .done_carry
-	inc hl
-	jr .loop4
-
-.inherit_tmhm
-	ld hl, TMHMMoves
-.loop5
-	ld a, BANK(TMHMMoves)
-	call GetFarByte
-	inc hl
-	and a
-	jr z, .done
-	ld b, a
-	ld a, [de]
-	cp b
-	jr nz, .loop5
-	ld [wPutativeTMHMMove], a
-	predef CanLearnTMHMMove
-	ld a, c
-	and a
-	jr z, .done
-
-.done_carry
-	pop bc
-	scf
-	ret
-
-.done
-	pop bc
-	and a
-	ret
-
-LoadEggMove:
-	push de
-	push bc
-	ld a, [de]
-	ld b, a
-	ld hl, wEggMonMoves
-	ld c, NUM_MOVES
 .loop
 	ld a, [hli]
 	and a
-	jr z, .done
-	dec c
+	jr z, .got_move_byte
+	cp d
+	ret z
+	dec b
 	jr nz, .loop
-	ld de, wEggMonMoves
-	ld hl, wEggMonMoves + 1
-	ld a, [hli]
-	ld [de], a
-	inc de
-	ld a, [hli]
-	ld [de], a
-	inc de
-	ld a, [hli]
-	ld [de], a
 
-.done
-	dec hl
-	ld [hl], b
-	ld hl, wEggMonMoves
-	ld de, wEggMonPP
-	predef FillPP
-	pop bc
+	; shift moves
+	push de
+	ld bc, 3
+	ld hl, wTempMonMoves + 1
+	ld de, wTempMonMoves
+	rst CopyBytes
 	pop de
-	ret
-
-GetHeritableMoves:
-	ld hl, wBreedMon2Moves
-	ld a, [wBreedMon1Species]
-	cp DITTO
-	jr z, .ditto1
-	ld a, [wBreedMon2Species]
-	cp DITTO
-	jr z, .ditto2
-	ld a, [wBreedMotherOrNonDitto]
-	and a
-	ret z
-	ld hl, wBreedMon1Moves
-	ret
-
-.ditto1
-	ld a, [wCurPartySpecies]
-	push af
-	ld a, [wBreedMon2Species]
-	ld [wCurPartySpecies], a
-	ld a, [wBreedMon2DVs]
-	ld [wTempMonDVs], a
-	ld a, [wBreedMon2DVs + 1]
-	ld [wTempMonDVs + 1], a
-	ld a, TEMPMON
-	ld [wMonType], a
-	predef GetGender
-	jr c, .inherit_mon2_moves
-	jr nz, .inherit_mon2_moves
-	jr .inherit_mon1_moves
-
-.ditto2
-	ld a, [wCurPartySpecies]
-	push af
-	ld a, [wBreedMon1Species]
-	ld [wCurPartySpecies], a
-	ld a, [wBreedMon1DVs]
-	ld [wTempMonDVs], a
-	ld a, [wBreedMon1DVs + 1]
-	ld [wTempMonDVs + 1], a
-	ld a, TEMPMON
-	ld [wMonType], a
-	predef GetGender
-	jr c, .inherit_mon1_moves
-	jr nz, .inherit_mon1_moves
-
-.inherit_mon2_moves
-	ld hl, wBreedMon2Moves
-	pop af
-	ld [wCurPartySpecies], a
-	ret
-
-.inherit_mon1_moves
-	ld hl, wBreedMon1Moves
-	pop af
-	ld [wCurPartySpecies], a
-	ret
-
-GetBreedmonMovePointer:
-	ld hl, wBreedMon1Moves
-	ld a, [wBreedMon1Species]
-	cp DITTO
-	ret z
-	ld a, [wBreedMon2Species]
-	cp DITTO
-	jr z, .ditto
-	ld a, [wBreedMotherOrNonDitto]
-	and a
-	ret z
-
-.ditto
-	ld hl, wBreedMon2Moves
+.got_move_byte
+	dec hl
+	ld [hl], d
 	ret
 
 GetEggFrontpic:
-; BUG: A hatching Unown egg would not show the right letter (see docs/bugs_and_glitches.md)
 	push de
+	ld a, MON_FORM
+	call GetPartyParamLocationAndValue
+	ld [wCurForm], a
+	ld a, EGG
 	ld [wCurPartySpecies], a
 	ld [wCurSpecies], a
 	call GetBaseData
-	ld hl, wBattleMonDVs
-	predef GetUnownLetter
 	pop de
-	predef_jump GetMonFrontpic
+	predef_jump GetFrontpic
 
 GetHatchlingFrontpic:
 	push de
-	ld [wCurPartySpecies], a
+	ld a, MON_FORM
+	call GetPartyParamLocationAndValue
+	ld [wCurForm], a
+	ld a, [wCurPartySpecies]
 	ld [wCurSpecies], a
 	call GetBaseData
-	ld hl, wBattleMonDVs
-	predef GetUnownLetter
 	pop de
-	predef_jump GetAnimatedFrontpic
+	predef_jump FrontpicPredef
 
 Hatch_UpdateFrontpicBGMapCenter:
 	push af
@@ -648,7 +656,7 @@ Hatch_UpdateFrontpicBGMapCenter:
 	hlcoord 0, 0
 	ld bc, SCREEN_AREA
 	ld a, " "
-	call ByteFill
+	rst ByteFill
 	pop bc
 	pop hl
 	ld a, b
@@ -660,46 +668,48 @@ Hatch_UpdateFrontpicBGMapCenter:
 	pop af
 	call Hatch_LoadFrontpicPal
 	call SetDefaultBGPAndOBP
-	jp WaitBGMap
+	jmp ApplyAttrAndTilemapInVBlank
 
 EggHatch_DoAnimFrame:
 	push hl
 	push de
 	push bc
-	callfar PlaySpriteAnimations
+	farcall PlaySpriteAnimations
 	call DelayFrame
-	pop bc
-	pop de
-	pop hl
-	ret
+	jmp PopBCDEHL
 
 EggHatch_AnimationSequence:
 	ld a, [wNamedObjectIndex]
 	ld [wJumptableIndex], a
 	ld a, [wCurSpecies]
 	push af
-	ld de, MUSIC_NONE
+	ld e, MUSIC_NONE
 	call PlayMusic
+	farcall FadeOutPalettes
 	farcall BlankScreen
 	call DisableLCD
+	ld a, CGB_PLAIN
+	call GetCGBLayout
+	ld a, " "
+	ld bc, vBGMap1 - vBGMap0
+	hlbgcoord 0, 0
+	rst ByteFill
 	ld hl, EggHatchGFX
 	ld de, vTiles0 tile $00
 	ld bc, 2 tiles
 	ld a, BANK(EggHatchGFX)
 	call FarCopyBytes
-	farcall ClearSpriteAnims
+	call ClearSpriteAnims
 	ld de, vTiles2 tile $00
 	ld a, [wJumptableIndex]
 	call GetHatchlingFrontpic
 	ld de, vTiles2 tile $31
-	ld a, EGG
 	call GetEggFrontpic
-	ld de, MUSIC_EVOLUTION
+	ld e, MUSIC_EVOLUTION
 	call PlayMusic
 	call EnableLCD
 	hlcoord 7, 4
-	ld b, HIGH(vBGMap0)
-	ld c, $31 ; Egg tiles start here
+	lb bc, HIGH(vBGMap0), $31 ; Egg tiles start at c
 	ld a, EGG
 	call Hatch_UpdateFrontpicBGMapCenter
 	ld c, 80
@@ -747,8 +757,7 @@ EggHatch_AnimationSequence:
 	call ClearSprites
 	call Hatch_InitShellFragments
 	hlcoord 6, 3
-	ld b, HIGH(vBGMap0)
-	ld c, $00 ; Hatchling tiles start here
+	lb bc, HIGH(vBGMap0), $00 ; Hatchling tiles start at c
 	ld a, [wJumptableIndex]
 	call Hatch_UpdateFrontpicBGMapCenter
 	call Hatch_ShellFragmentLoop
@@ -756,8 +765,7 @@ EggHatch_AnimationSequence:
 	ld a, [wJumptableIndex]
 	ld [wCurPartySpecies], a
 	hlcoord 6, 3
-	ld d, $0
-	ld e, ANIM_MON_HATCH
+	lb de, $0, ANIM_MON_HATCH
 	predef AnimateFrontpic
 	pop af
 	ld [wCurSpecies], a
@@ -765,36 +773,36 @@ EggHatch_AnimationSequence:
 
 Hatch_LoadFrontpicPal:
 	ld [wPlayerHPPal], a
-	ld b, SCGB_EVOLUTION
-	ld c, $0
-	jp GetSGBLayout
+	ld c, FALSE
+	ld a, CGB_EVOLUTION
+	jmp GetCGBLayout
 
 EggHatch_CrackShell:
 	ld a, [wFrameCounter]
 	dec a
-	and $7
+	and $7 ; no-optimize a & X == X
 	cp $7
 	ret z
 	srl a
 	ret nc
 	swap a
 	srl a
-	add 9 * TILE_WIDTH + 4
+	add 9 * 8 + 4
 	ld d, a
-	ld e, 11 * TILE_WIDTH
-	ld a, SPRITE_ANIM_OBJ_EGG_CRACK
+	ld e, 11 * 8
+	ld a, SPRITE_ANIM_INDEX_EGG_CRACK
 	call InitSpriteAnimStruct
 	ld hl, SPRITEANIMSTRUCT_TILE_ID
 	add hl, bc
 	ld [hl], $0
 	ld de, SFX_EGG_CRACK
-	jp PlaySFX
+	jmp PlaySFX
 
 EggHatchGFX:
 INCBIN "gfx/evo/egg_hatch.2bpp"
 
 Hatch_InitShellFragments:
-	farcall ClearSpriteAnims
+	call ClearSpriteAnims
 	ld hl, .SpriteData
 .loop
 	ld a, [hli]
@@ -810,7 +818,7 @@ Hatch_InitShellFragments:
 	push hl
 	push bc
 
-	ld a, SPRITE_ANIM_OBJ_EGG_HATCH
+	ld a, SPRITE_ANIM_INDEX_EGG_HATCH
 	call InitSpriteAnimStruct
 
 	ld hl, SPRITEANIMSTRUCT_TILE_ID
@@ -833,28 +841,20 @@ Hatch_InitShellFragments:
 .done
 	ld de, SFX_EGG_HATCH
 	call PlaySFX
-	call EggHatch_DoAnimFrame
-	ret
-
-MACRO shell_fragment
-; y tile, y pxl, x tile, x pxl, frameset, angle
-	db (\1) * TILE_WIDTH + (\2) ; y coord
-	db (\3) * TILE_WIDTH + (\4) ; x coord
-	db (\5) - SPRITE_ANIM_FRAMESET_EGG_HATCH_1 ; frameset offset
-	db \6 ; angle (6 bits)
-ENDM
+	jmp EggHatch_DoAnimFrame
 
 .SpriteData:
-	shell_fragment 10, 4,  9, 0, SPRITE_ANIM_FRAMESET_EGG_HATCH_1, $3c
-	shell_fragment 11, 4,  9, 0, SPRITE_ANIM_FRAMESET_EGG_HATCH_2, $04
-	shell_fragment 10, 4, 10, 0, SPRITE_ANIM_FRAMESET_EGG_HATCH_1, $30
-	shell_fragment 11, 4, 10, 0, SPRITE_ANIM_FRAMESET_EGG_HATCH_2, $10
-	shell_fragment 10, 4, 11, 0, SPRITE_ANIM_FRAMESET_EGG_HATCH_3, $24
-	shell_fragment 11, 4, 11, 0, SPRITE_ANIM_FRAMESET_EGG_HATCH_4, $1c
-	shell_fragment 10, 0,  9, 4, SPRITE_ANIM_FRAMESET_EGG_HATCH_1, $36
-	shell_fragment 12, 0,  9, 4, SPRITE_ANIM_FRAMESET_EGG_HATCH_2, $0a
-	shell_fragment 10, 0, 10, 4, SPRITE_ANIM_FRAMESET_EGG_HATCH_3, $2a
-	shell_fragment 12, 0, 10, 4, SPRITE_ANIM_FRAMESET_EGG_HATCH_4, $16
+; Probably OAM.
+	dsprite 10, 4,  9, 0, $00, $4 | OAM_XFLIP
+	dsprite 11, 4,  9, 0, $01, $4
+	dsprite 10, 4, 10, 0, $00, $0 | OAM_XFLIP
+	dsprite 11, 4, 10, 0, $01, $0
+	dsprite 10, 4, 11, 0, $02, $4 | OAM_XFLIP
+	dsprite 11, 4, 11, 0, $03, $4
+	dsprite 10, 0,  9, 4, $00, $6 | OAM_XFLIP
+	dsprite 12, 0,  9, 4, $01, $2
+	dsprite 10, 0, 10, 4, $02, $2 | OAM_XFLIP
+	dsprite 12, 0, 10, 4, $03, $6
 	db -1
 
 Hatch_ShellFragmentLoop:
@@ -865,40 +865,48 @@ Hatch_ShellFragmentLoop:
 	jr nz, .loop
 	ret
 
-DayCareMon1:
-	ld hl, LeftWithDayCareManText
+Special_DayCareMon1:
+	ld hl, DayCareMon1Text
 	call PrintText
 	ld a, [wBreedMon1Species]
+	ld c, a
+	ld a, [wBreedMon1Form]
+	ld b, a
 	call PlayMonCry
 	ld a, [wDayCareLady]
-	bit DAYCARELADY_HAS_MON_F, a
+	bit 0, a
 	jr z, DayCareMonCursor
-	call PromptButton
+	call ButtonSound
 	ld hl, wBreedMon2Nickname
 	call DayCareMonCompatibilityText
-	jp PrintText
+	jmp PrintText
 
-DayCareMon2:
-	ld hl, LeftWithDayCareLadyText
+Special_DayCareMon2:
+	ld hl, DayCareMon2Text
 	call PrintText
 	ld a, [wBreedMon2Species]
+	ld c, a
+	ld a, [wBreedMon2Form]
+	ld b, a
 	call PlayMonCry
 	ld a, [wDayCareMan]
-	bit DAYCAREMAN_HAS_MON_F, a
+	bit 0, a
 	jr z, DayCareMonCursor
-	call PromptButton
+	call ButtonSound
 	ld hl, wBreedMon1Nickname
 	call DayCareMonCompatibilityText
-	jp PrintText
+	jmp PrintText
 
 DayCareMonCursor:
-	jp WaitPressAorB_BlinkCursor
+	jmp WaitPressAorB_BlinkCursor
 
-LeftWithDayCareLadyText:
+DayCareMon2Text:
+	; It's @ that was left with the DAY-CARE LADY.
 	text_far _LeftWithDayCareLadyText
 	text_end
 
-LeftWithDayCareManText:
+DayCareMon1Text:
+	; It's @ that was left with the DAY-CARE MAN.
 	text_far _LeftWithDayCareManText
 	text_end
 
@@ -906,50 +914,42 @@ DayCareMonCompatibilityText:
 	push bc
 	ld de, wStringBuffer1
 	ld bc, NAME_LENGTH
-	call CopyBytes
+	rst CopyBytes
 	call CheckBreedmonCompatibility
 	pop bc
 	ld a, [wBreedingCompatibility]
-	ld hl, .BreedBrimmingWithEnergyText
-	cp -1
-	jr z, .done
-	ld hl, .BreedNoInterestText
-	and a
-	jr z, .done
-	ld hl, .BreedAppearsToCareForText
-	cp 230
-	jr nc, .done
-	cp 70
-	ld hl, .BreedFriendlyText
-	jr nc, .done
-	ld hl, .BreedShowsInterestText
 
-.done
+	ld hl, .Incompatible
+	and a
+	ret z
+
+	ld hl, .SlightCompatibility
+	dec a
+	ret z
+
+	ld hl, .ModerateCompatibility
+	dec a
+	ret z
+
+	ld hl, .HighCompatibility
 	ret
 
-.BreedBrimmingWithEnergyText:
-	text_far _BreedBrimmingWithEnergyText
-	text_end
-
-.BreedNoInterestText:
+.Incompatible:
+	; It has no interest in @ .
 	text_far _BreedNoInterestText
 	text_end
 
-.BreedAppearsToCareForText:
+.HighCompatibility:
+	; It appears to care for @ .
 	text_far _BreedAppearsToCareForText
 	text_end
 
-.BreedFriendlyText:
+.ModerateCompatibility:
+	; It's friendly with @ .
 	text_far _BreedFriendlyText
 	text_end
 
-.BreedShowsInterestText:
+.SlightCompatibility:
+	; It shows interest in @ .
 	text_far _BreedShowsInterestText
 	text_end
-
-DayCareMonPrintEmptyString: ; unreferenced
-	ld hl, .string
-	ret
-
-.string
-	db "@"

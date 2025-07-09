@@ -1,5 +1,5 @@
 ToddLooksCuteLikeMeText:
-	text "My @"
+	text "My "
 	text_ram wStringBuffer4
 	text " is"
 	line "looking more and"
@@ -12,25 +12,25 @@ ToddDefeatedMonText:
 	text "And, you know?"
 
 	para "Now we can KO"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text " easily."
 
 	para "I should challenge"
-	line "the GOLDENROD GYM."
+	line "the Goldenrod Gym."
 	done
 
 ToddLostAMonText:
 	text "And, you know?"
 	line "We just failed to"
 
-	para "beat @"
+	para "beat "
 	text_ram wStringBuffer4
 	text " by"
 	line "a tiny margin."
 
 	para "I'm guessing my"
-	line "#MON's levels"
+	line "#mon's levels"
 
 	para "aren't high enough"
 	line "yet…"
@@ -47,7 +47,7 @@ ToddBattleRematchText:
 	line "with me?"
 
 	para "I'll be waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 	done
@@ -61,15 +61,15 @@ ToddDepartmentStoreBargainSaleText:
 	line "one we've all been"
 	cont "waiting for!"
 
-	para "GOLDENROD DEPT."
-	line "STORE's bargain"
+	para "Goldenrod Dept."
+	line "Store's bargain"
 	cont "sale is on now!"
 
 	para "Want it cheap?"
 	line "Want it lots?"
 
 	para "Don't miss this"
-	line "GOLDENROD chance!"
+	line "Goldenrod chance!"
 
 	para "Huh? I sound like"
 	line "a huckster?"
@@ -97,16 +97,16 @@ ToddLookingForwardToBattleText:
 	line "battle soon!"
 
 	para "I'll be waiting on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 	done
 
 ToddHaveYouGoneToDepartmentStoreText:
 	text "Haven't you gone"
-	line "to GOLDENROD DEPT."
+	line "to Goldenrod Dept."
 
-	para "STORE? I've scoped"
+	para "Store? I've scoped"
 	line "it out already!"
 
 	para "They had some real"

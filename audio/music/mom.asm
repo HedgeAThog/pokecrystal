@@ -17,7 +17,7 @@ Music_Mom_Ch2:
 	note G#, 1
 	note A_, 1
 	note B_, 8
-.mainloop:
+Music_Mom_branch_f6c0e:
 	note_type 12, 11, 1
 	rest 4
 	octave 3
@@ -30,7 +30,7 @@ Music_Mom_Ch2:
 	note E_, 4
 	note A#, 2
 	note B_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_Mom_branch_f6c0e
 
 Music_Mom_Ch3:
 	stereo_panning TRUE, FALSE
@@ -43,7 +43,7 @@ Music_Mom_Ch3:
 	note G#, 1
 	note E_, 8
 	volume_envelope 2, 3
-.mainloop:
+Music_Mom_branch_f6c2e:
 	octave 2
 	note A_, 2
 	rest 6
@@ -75,13 +75,13 @@ Music_Mom_Ch3:
 	note C#, 4
 	note D_, 2
 	rest 2
-	sound_loop 0, .mainloop
+	sound_jump Music_Mom_branch_f6c2e
 
 Music_Mom_Ch4:
 	toggle_noise 3
 	drum_speed 12
 	rest 6
-.mainloop:
+Music_Mom_branch_f6c56:
 	drum_note 4, 1
 	rest 1
 	drum_note 7, 2
@@ -106,4 +106,4 @@ Music_Mom_Ch4:
 	drum_note 3, 2
 	drum_note 4, 1
 	rest 1
-	sound_loop 0, .mainloop
+	sound_jump Music_Mom_branch_f6c56

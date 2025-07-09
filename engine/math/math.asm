@@ -1,189 +1,236 @@
-_Multiply::
+Multiply::
+; Multiply hMultiplicand (3 bytes) by hMultiplier. Result in hProduct.
+; All values are big endian.
+	push hl
+	push de
+	push bc
+
+	call ._Multiply
+
+	jmp PopBCDEHL
+
+._Multiply
+; Multiply hMultiplicand (3 bytes) by hMultiplier. Result in hProduct.
+; All values are big endian.
+
 ; hMultiplier is one byte.
-	ld a, 8
-	ld b, a
+; performs dehl * a
+	ldh a, [hMultiplicand]
+	ld e, a
+	ldh a, [hMultiplicand + 1]
+	ld h, a
+	ldh a, [hMultiplicand + 2]
+	ld l, a
 
 	xor a
-	ldh [hMultiplicand - 1], a
-	ldh [hMathBuffer + 1], a
-	ldh [hMathBuffer + 2], a
-	ldh [hMathBuffer + 3], a
-	ldh [hMathBuffer + 4], a
-
-.loop
+	ld d, a
+	ldh [hProduct], a
+	ldh [hProduct + 1], a
+	ldh [hProduct + 2], a
+	ldh [hProduct + 3], a
 	ldh a, [hMultiplier]
-	srl a
-	ldh [hMultiplier], a
+	and a
+	ret z
+.loop
+	rra
 	jr nc, .next
 
-	ldh a, [hMathBuffer + 4]
-	ld c, a
-	ldh a, [hMultiplicand + 2]
-	add c
-	ldh [hMathBuffer + 4], a
+	ld c, a ; store multiplier in c
 
-	ldh a, [hMathBuffer + 3]
-	ld c, a
-	ldh a, [hMultiplicand + 1]
-	adc c
-	ldh [hMathBuffer + 3], a
-
-	ldh a, [hMathBuffer + 2]
-	ld c, a
-	ldh a, [hMultiplicand + 0]
-	adc c
-	ldh [hMathBuffer + 2], a
-
-	ldh a, [hMathBuffer + 1]
-	ld c, a
-	ldh a, [hMultiplicand - 1]
-	adc c
-	ldh [hMathBuffer + 1], a
-
-.next
-	dec b
-	jr z, .done
-
-; hMultiplicand <<= 1
-
-	ldh a, [hMultiplicand + 2]
-	add a
-	ldh [hMultiplicand + 2], a
-
-	ldh a, [hMultiplicand + 1]
-	rla
-	ldh [hMultiplicand + 1], a
-
-	ldh a, [hMultiplicand + 0]
-	rla
-	ldh [hMultiplicand + 0], a
-
-	ldh a, [hMultiplicand - 1]
-	rla
-	ldh [hMultiplicand - 1], a
-
-	jr .loop
-
-.done
-	ldh a, [hMathBuffer + 4]
+	ldh a, [hProduct + 3]
+	add l
 	ldh [hProduct + 3], a
-
-	ldh a, [hMathBuffer + 3]
+	ldh a, [hProduct + 2]
+	adc h
 	ldh [hProduct + 2], a
-
-	ldh a, [hMathBuffer + 2]
+	ldh a, [hProduct + 1]
+	adc e
 	ldh [hProduct + 1], a
+	ldh a, [hProduct]
+	adc d
+	ldh [hProduct], a
 
-	ldh a, [hMathBuffer + 1]
-	ldh [hProduct + 0], a
-
-	ret
-
-_Divide::
-	xor a
-	ldh [hMathBuffer + 0], a
-	ldh [hMathBuffer + 1], a
-	ldh [hMathBuffer + 2], a
-	ldh [hMathBuffer + 3], a
-	ldh [hMathBuffer + 4], a
-
-	ld a, 9
-	ld e, a
-
-.loop
-	ldh a, [hMathBuffer + 0]
-	ld c, a
-	ldh a, [hDividend + 1]
-	sub c
-	ld d, a
-
-	ldh a, [hDivisor]
-	ld c, a
-	ldh a, [hDividend + 0]
-	sbc c
-	jr c, .next
-
-	ldh [hDividend + 0], a
-
-	ld a, d
-	ldh [hDividend + 1], a
-
-	ldh a, [hMathBuffer + 4]
-	inc a
-	ldh [hMathBuffer + 4], a
-
-	jr .loop
+	ld a, c ; retrieve multiplier
 
 .next
-	ld a, b
-	cp 1
-	jr z, .done
-
-	ldh a, [hMathBuffer + 4]
-	add a
-	ldh [hMathBuffer + 4], a
-
-	ldh a, [hMathBuffer + 3]
-	rla
-	ldh [hMathBuffer + 3], a
-
-	ldh a, [hMathBuffer + 2]
-	rla
-	ldh [hMathBuffer + 2], a
-
-	ldh a, [hMathBuffer + 1]
-	rla
-	ldh [hMathBuffer + 1], a
-
-	dec e
-	jr nz, .next2
-
-	ld e, 8
-	ldh a, [hMathBuffer + 0]
-	ldh [hDivisor], a
-	xor a
-	ldh [hMathBuffer + 0], a
-
-	ldh a, [hDividend + 1]
-	ldh [hDividend + 0], a
-
-	ldh a, [hDividend + 2]
-	ldh [hDividend + 1], a
-
-	ldh a, [hDividend + 3]
-	ldh [hDividend + 2], a
-
-.next2
-	ld a, e
-	cp 1
-	jr nz, .okay
-	dec b
-
-.okay
-	ldh a, [hDivisor]
-	srl a
-	ldh [hDivisor], a
-
-	ldh a, [hMathBuffer + 0]
-	rr a
-	ldh [hMathBuffer + 0], a
-
-	jr .loop
-
-.done
-	ldh a, [hDividend + 1]
-	ldh [hRemainder], a
-
-	ldh a, [hMathBuffer + 4]
-	ldh [hQuotient + 3], a
-
-	ldh a, [hMathBuffer + 3]
-	ldh [hQuotient + 2], a
-
-	ldh a, [hMathBuffer + 2]
-	ldh [hQuotient + 1], a
-
-	ldh a, [hMathBuffer + 1]
-	ldh [hQuotient + 0], a
-
+	add hl, hl
+	rl e
+	rl d
+	and a
+	jr nz, .loop
 	ret
+
+Divide::
+; Divide hDividend length b (max 4 bytes) by hDivisor. Result in hQuotient.
+; All values are big endian.
+	push hl
+	push de
+	push bc
+
+	call ._Divide
+
+	jmp PopBCDEHL
+
+._Divide
+; Divide hDividend length b (max 4 bytes) by hDivisor. Result in hQuotient.
+; All values are big endian.
+	ldh a, [hDivisor]
+	and a
+	jr z, .div0
+
+	ldh a, [hDivisor]
+	ld d, a
+	ld c, LOW(hDividend)
+	ld e, 0
+	ld l, e
+.loop
+	push bc
+	ld b, 8
+	ldh a, [c]
+	ld h, a
+	ld l, 0
+.loop2
+	sla h
+	rl e
+	ld a, e
+	jr c, .carry
+	cp d
+	jr c, .skip
+.carry
+	sub d
+	ld e, a
+	inc l
+.skip
+	dec b
+	jr z, .done
+	sla l
+	jr .loop2
+.done
+	ld a, c
+	add hMathBuffer - hDividend
+	ld c, a
+	ld a, l
+	ldh [c], a
+	pop bc
+	inc c
+	dec b
+	jr nz, .loop
+
+	xor a
+	ldh [hDividend], a
+	ldh [hDividend + 1], a
+	ldh [hDividend + 2], a
+	ldh [hDividend + 3], a
+	ld a, e
+	ldh [hRemainder], a
+	ld a, c
+	sub LOW(hDividend)
+	ld b, a
+	ld a, c
+	add hMathBuffer - hDividend - 1
+	ld c, a
+	ldh a, [c]
+	ldh [hDividend + 3], a
+	dec b
+	ret z
+	dec c
+	ldh a, [c]
+	ldh [hDividend + 2], a
+	dec b
+	ret z
+	dec c
+	ldh a, [c]
+	ldh [hDividend + 1], a
+	dec b
+	ret z
+	dec c
+	ldh a, [c]
+	ldh [hDividend], a
+	ret
+.div0
+	ld a, ERR_DIV_ZERO
+	jmp Crash
+
+Divide16::
+; calculates bc / de, stores quotient in de and remainder in bc
+; also stores quotient in hQuotient and remainder in hRemainder
+	push hl
+	call ._Divide16
+	pop hl
+	ret
+
+._Divide16
+	; calculates bc / de, stores quotient in de and remainder in bc
+	; also stores quotient in hQuotient and remainder in hRemainder
+	; does not preserve af or hl
+	ld a, d
+	and a
+	jr z, .divisor_8_bit
+	ld hl, 1
+.initial_shift_loop
+	bit 7, d
+	jr nz, .main_division_loop
+	sla e
+	rl d
+	sla l
+	jr .initial_shift_loop
+.main_division_loop
+	ld a, c
+	sub e
+	ld a, b
+	sbc d
+	jr c, .remainder_smaller
+	ld a, h
+	add l
+	ld h, a
+	ld a, c
+	sub e
+	ld c, a
+	ld a, b
+	sbc d
+	ld b, a
+.remainder_smaller
+	srl d
+	rr e
+	srl l
+	jr nc, .main_division_loop
+	ld e, h
+	ld d, 0
+	xor a
+	ld hl, hDividend
+	ld [hli], a
+	ld [hli], a
+	ld a, d
+	ld [hli], a
+	ld a, e
+	ld [hli], a
+	ld a, b
+	ld [hli], a
+	ld [hl], c
+	ret
+.divisor_8_bit
+	ld a, e
+	and a
+	jr z, .division_by_zero
+	ldh [hDivisor], a
+	ld a, b
+	ldh [hDividend], a
+	ld a, c
+	ldh [hDividend + 1], a
+	ld b, 2
+	call Divide
+	ld hl, hQuotient + 1
+	ld a, [hli]
+	ld d, a
+	ld a, [hli]
+	ld e, a
+	ld c, [hl]
+	xor a
+	ld [hli], a
+	ld [hl], c
+	ld b, 0
+	ret
+
+.division_by_zero
+	ld a, ERR_DIV_ZERO
+	jmp Crash

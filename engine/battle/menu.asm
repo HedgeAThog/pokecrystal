@@ -1,100 +1,105 @@
 LoadBattleMenu:
-	ld hl, BattleMenuHeader
-	call LoadMenuHeader
-	ld a, [wBattleMenuCursorPosition]
-	ld [wMenuCursorPosition], a
-	call InterpretBattleMenu
-	ld a, [wMenuCursorPosition]
-	ld [wBattleMenuCursorPosition], a
-	call ExitMenu
-	ret
-
-SafariBattleMenu: ; unreferenced
-	ld hl, SafariBattleMenuHeader
-	call LoadMenuHeader
-	jr CommonBattleMenu
+	ld hl, BattleMenuDataHeader
+	jr _BattleMenuCommon
 
 ContestBattleMenu:
-	ld hl, ContestBattleMenuHeader
+	ld hl, ContestBattleMenuDataHeader
+	jr _BattleMenuCommon
+
+SafariBattleMenu:
+	ld hl, SafariBattleMenuDataHeader
+_BattleMenuCommon:
 	call LoadMenuHeader
-	; fallthrough
-
-CommonBattleMenu:
-	ld a, [wBattleMenuCursorPosition]
-	ld [wMenuCursorPosition], a
+	ld a, [wBattleMenuCursorBuffer]
+	ld [wMenuCursorBuffer], a
+	ld b, QUICK_B
+	ld a, [wBattleType]
+	cp BATTLETYPE_SAFARI
+	jr z, .ok
+	cp BATTLETYPE_CONTEST
+	jr z, .ok
+	ld b, QUICK_B | QUICK_START | QUICK_SELECT
+	ld a, [wBattleMode]
+	dec a
+	ld a, QUICK_START | QUICK_SELECT
+	jr nz, .ok2
+.ok
+	ld a, b
+.ok2
+	ld [wBattleMenuFlags], a
 	call _2DMenu
-	ld a, [wMenuCursorPosition]
-	ld [wBattleMenuCursorPosition], a
-	call ExitMenu
-	ret
+	ld a, [wBattleMenuFlags]
+	and QUICK_PACK
+	ld [wBattleMenuFlags], a
+	ld a, [wMenuCursorBuffer]
+	ld [wBattleMenuCursorBuffer], a
+	jmp ExitMenu
 
-BattleMenuHeader:
-	db MENU_BACKUP_TILES ; flags
-	menu_coords 8, 12, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1
-	dw .MenuData
+BattleMenuDataHeader:
+	db MENU_BACKUP_TILES
+	menu_coords 8, 12, 19, 17
+	dw .MenuData2
 	db 1 ; default option
 
-.MenuData:
-	db STATICMENU_CURSOR | STATICMENU_DISABLE_B ; flags
+.MenuData2:
+	db $87 ; flags
 	dn 2, 2 ; rows, columns
 	db 6 ; spacing
-	dba .Text
-	dbw BANK(@), NULL
+	dba .Strings
+	dbw BANK(.MenuData2), 0
 
-.Text:
-	db "FIGHT@"
-	db "<PKMN>@"
-	db "PACK@"
-	db "RUN@"
+.Strings:
+	db "Fight@"
+	db "<PK><MN>@"
+	db "Bag@"
+	db "Run@"
 
-SafariBattleMenuHeader:
-	db MENU_BACKUP_TILES ; flags
-	menu_coords 0, 12, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1
-	dw .MenuData
+ContestBattleMenuDataHeader:
+	db MENU_BACKUP_TILES
+	menu_coords 5, 12, 19, 17
+	dw .MenuData2
 	db 1 ; default option
 
-.MenuData:
-	db STATICMENU_CURSOR | STATICMENU_DISABLE_B ; flags
+.MenuData2:
+	db $81 ; flags
 	dn 2, 2 ; rows, columns
-	db 11 ; spacing
-	dba .Text
-	dba .PrintSafariBallsRemaining
+	db 8 ; spacing
+	dba .Strings
+	dba ShowParkBallsRemaining
 
-.Text:
-	db "サファりボール×　　@" ; "SAFARI BALL×  @"
-	db "エサをなげる@" ; "THROW BAIT"
-	db "いしをなげる@" ; "THROW ROCK"
-	db "にげる@" ; "RUN"
+.Strings:
+	db "Fight@"
+	db "<PK><MN>@"
+	db "Ball×  @"
+	db "Run@"
 
-.PrintSafariBallsRemaining:
-	hlcoord 17, 13
-	ld de, wSafariBallsRemaining
-	lb bc, PRINTNUM_LEADINGZEROS | 1, 2
-	call PrintNum
-	ret
-
-ContestBattleMenuHeader:
-	db MENU_BACKUP_TILES ; flags
-	menu_coords 2, 12, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1
-	dw .MenuData
-	db 1 ; default option
-
-.MenuData:
-	db STATICMENU_CURSOR | STATICMENU_DISABLE_B ; flags
-	dn 2, 2 ; rows, columns
-	db 12 ; spacing
-	dba .Text
-	dba .PrintParkBallsRemaining
-
-.Text:
-	db "FIGHT@"
-	db "<PKMN>@"
-	db "PARKBALL×  @"
-	db "RUN@"
-
-.PrintParkBallsRemaining:
-	hlcoord 13, 16
+ShowParkBallsRemaining:
+	hlcoord 12, 16
 	ld de, wParkBallsRemaining
 	lb bc, PRINTNUM_LEADINGZEROS | 1, 2
-	call PrintNum
-	ret
+	jmp PrintNum
+
+SafariBattleMenuDataHeader:
+	db MENU_BACKUP_TILES
+	menu_coords 4, 12, 19, 17
+	dw .MenuData2
+	db 1 ; default option
+
+.MenuData2:
+	db $81 ; flags
+	dn 2, 2 ; rows, columns
+	db 8 ; spacing
+	dba .Strings
+	dba ShowSafariBallsRemaining
+
+.Strings:
+	db "Ball×  @"
+	db "Bait@"
+	db "Rock@"
+	db "Run@"
+
+ShowSafariBallsRemaining:
+	hlcoord 11, 14
+	ld de, wSafariBallsRemaining
+	lb bc, PRINTNUM_LEADINGZEROS | 1, 2
+	jmp PrintNum

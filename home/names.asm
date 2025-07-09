@@ -1,87 +1,27 @@
-NamesPointers::
-; entries correspond to GetName constants (see constants/text_constants.asm)
-	table_width 3
-	dba PokemonNames        ; MON_NAME (not used; jumps to GetPokemonName)
-	dba MoveNames           ; MOVE_NAME
-	dba NULL                ; DUMMY_NAME
-	dba ItemNames           ; ITEM_NAME
-	dbw 0, wPartyMonOTs     ; PARTY_OT_NAME
-	dbw 0, wOTPartyMonOTs   ; ENEMY_OT_NAME
-	dba TrainerClassNames   ; TRAINER_NAME
-	dbw 4, MoveDescriptions ; MOVE_DESC_NAME_BROKEN (wrong bank)
-	assert_table_length NUM_NAME_TYPES
-
-GetName::
-; Return name wCurSpecies from name list wNamedObjectType in wStringBuffer1.
-
-	ldh a, [hROMBank]
-	push af
-	push hl
-	push bc
-	push de
-
-	ld a, [wNamedObjectType]
-	cp MON_NAME
-	jr nz, .NotPokeName
-
-	ld a, [wCurSpecies]
-	ld [wNamedObjectIndex], a
-	call GetPokemonName
-	ld hl, MON_NAME_LENGTH
-	add hl, de
-	ld e, l
-	ld d, h
-	jr .done
-
-.NotPokeName:
-	ld a, [wNamedObjectType]
-	dec a
-	ld e, a
-	ld d, 0
-	ld hl, NamesPointers
-	add hl, de
-	add hl, de
-	add hl, de
-	ld a, [hli]
-	rst Bankswitch
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-
-	ld a, [wCurSpecies]
-	dec a
-	call GetNthString
-
-	ld de, wStringBuffer1
-	ld bc, ITEM_NAME_LENGTH
-	call CopyBytes
-
-.done
-	ld a, e
-	ld [wUnusedNamesPointer], a
-	ld a, d
-	ld [wUnusedNamesPointer + 1], a
-
-	pop de
-	pop bc
-	pop hl
-	pop af
-	rst Bankswitch
-	ret
+; GetName types
+	const_def 0, 4
+	const TRAINER_CLASS_NAME ; 0
+	const MOVE_NAME          ; 1
+	const ITEM_NAME          ; 2
+	const KEY_ITEM_NAME      ; 3
+	const SPECIAL_ITEM_NAME  ; 4
+	const BADGE_NAME         ; 5
+	const APRICORN_NAME      ; 6
+	const WING_NAME          ; 7
+	const EXP_CANDY_NAME     ; 8
+DEF NUM_NAME_TYPES EQU const_value / 4
 
 GetNthString::
 ; Return the address of the
 ; ath string starting from hl.
-
 	and a
 	ret z
 
 	push bc
 	ld b, a
-	ld c, "@"
 .readChar
 	ld a, [hli]
-	cp c
+	cp "@"
 	jr nz, .readChar
 	dec b
 	jr nz, .readChar
@@ -90,7 +30,6 @@ GetNthString::
 
 GetBasePokemonName::
 ; Discards gender (Nidoran).
-
 	push hl
 	call GetPokemonName
 
@@ -111,161 +50,148 @@ GetBasePokemonName::
 	pop hl
 	ret
 
-GetPokemonName::
-; Get Pokemon name for wNamedObjectIndex.
-
-	ldh a, [hROMBank]
-	push af
+GetPartyPokemonName::
+; Get Pokemon name wCurPartySpecies + wCurForm
 	push hl
-	ld a, BANK(PokemonNames)
-	rst Bankswitch
+	ld hl, wNamedObjectIndex
+	ld a, [wCurPartySpecies]
+	ld [hli], a
+	ld a, [wCurForm]
+	ld [hl], a
+	pop hl
+	; fallthrough
 
-; Each name is ten characters
-	ld a, [wNamedObjectIndex]
-	dec a
-	ld d, 0
+GetPokemonName::
+; Get Pokemon name wNamedObjectIndex.
+	push hl
+	ld hl, wNamedObjectIndex
+	ld a, [hli]
 	ld e, a
-	ld h, 0
-	ld l, a
-	add hl, hl
-	add hl, hl
-	add hl, de
-	add hl, hl
+	ld a, [hl]
+	call ConvertFormToExtendedSpecies
+	ld d, a
+	ld h, d
+	ld l, e
+	assert MON_NAME_LENGTH - 1 == 10
+	add hl, hl ; hl = hl * 2
+	add hl, hl ; hl = hl * 4
+	add hl, de ; hl = (hl*4) + hl
+	add hl, hl ; hl = (5*hl) + (5*hl)
 	ld de, PokemonNames
 	add hl, de
-
-; Terminator
 	ld de, wStringBuffer1
 	push de
 	ld bc, MON_NAME_LENGTH - 1
-	call CopyBytes
-	ld hl, wStringBuffer1 + MON_NAME_LENGTH - 1
+	ld a, BANK(PokemonNames)
+	call FarCopyBytes
+	ld h, d
+	ld l, e
 	ld [hl], "@"
 	pop de
-
-	pop hl
-	pop af
-	rst Bankswitch
-	ret
-
-GetItemName::
-; Get item name for wNamedObjectIndex.
-
-	push hl
-	push bc
-	ld a, [wNamedObjectIndex]
-
-	cp TM01
-	jr nc, .TM
-
-	ld [wCurSpecies], a
-	ld a, ITEM_NAME
-	ld [wNamedObjectType], a
-	call GetName
-	jr .Copied
-.TM:
-	call GetTMHMName
-.Copied:
-	ld de, wStringBuffer1
-	pop bc
 	pop hl
 	ret
 
-GetTMHMName::
-; Get TM/HM name for item wNamedObjectIndex.
-
-	push hl
-	push de
-	push bc
-	ld a, [wNamedObjectIndex]
-	push af
-
-; TM/HM prefix
-	cp HM01
-	push af
-	jr c, .TM
-
-	ld hl, .HMText
-	ld bc, .HMTextEnd - .HMText
-	jr .copy
-
-.TM:
-	ld hl, .TMText
-	ld bc, .TMTextEnd - .TMText
-
-.copy
-	ld de, wStringBuffer1
-	call CopyBytes
-
-; TM/HM number
-	push de
-	ld a, [wNamedObjectIndex]
-	ld c, a
-	callfar GetTMHMNumber
-	pop de
-
-; HM numbers start from 51, not 1
-	pop af
-	ld a, c
-	jr c, .not_hm
-	sub NUM_TMS
-.not_hm
-
-; Divide and mod by 10 to get the top and bottom digits respectively
-	ld b, "0"
-.mod10
-	sub 10
-	jr c, .done_mod
-	inc b
-	jr .mod10
-
-.done_mod
-	add 10
-	push af
-	ld a, b
-	ld [de], a
-	inc de
-	pop af
-
-	ld b, "0"
-	add b
-	ld [de], a
-
-; End the string
-	inc de
-	ld a, "@"
-	ld [de], a
-
-	pop af
+GetCurTMHMName::
+	ld a, [wCurTMHM]
 	ld [wNamedObjectIndex], a
-	pop bc
-	pop de
-	pop hl
+	; fallthrough
+GetTMHMName::
+	homecall _GetTMHMName
 	ret
-
-.TMText:
-	db "TM"
-.TMTextEnd:
-	db "@"
-
-.HMText:
-	db "HM"
-.HMTextEnd:
-	db "@"
-
-INCLUDE "home/hm_moves.asm"
 
 GetMoveName::
-	push hl
-
 	ld a, MOVE_NAME
-	ld [wNamedObjectType], a
+	jr GetName
 
-	ld a, [wNamedObjectIndex] ; move id
-	ld [wCurSpecies], a
+GetCurItemName::
+	ld a, [wCurItem]
+	ld [wNamedObjectIndex], a
+	; fallthrough
+GetItemName::
+	ld a, ITEM_NAME
+	jr GetName
 
-	call GetName
+GetCurKeyItemName::
+	ld a, [wCurKeyItem]
+	ld [wNamedObjectIndex], a
+	; fallthrough
+GetKeyItemName::
+	ld a, KEY_ITEM_NAME
+	jr GetName
+
+GetSpecialItemName::
+	ld a, SPECIAL_ITEM_NAME
+	jr GetName
+
+GetBadgeName::
+	ld a, BADGE_NAME
+	jr GetName
+
+GetApricornName::
+	ld a, APRICORN_NAME
+	jr GetName
+
+GetWingName::
+	ld a, WING_NAME
+	jr GetName
+
+GetExpCandyName::
+	ld a, EXP_CANDY_NAME
+	jr GetName
+
+GetTrainerClassName::
+	assert TRAINER_CLASS_NAME == 0
+	xor a
+	; fallthrough
+
+GetName:
+; input: a = .NamesPointers offset, [wNamedObjectIndex] = item index
+; output: de = wStringBuffer1 (filled with name), [wCurSpecies] = cur item
+	push hl
 	ld de, wStringBuffer1
+	push de
+	push bc
+	add LOW(.NamesPointers)
+	ld l, a
+	adc HIGH(.NamesPointers)
+	sub l
+	ld h, a
+	ldh a, [hROMBank]
+	push af
+	ld a, [hli]
+	ld b, a
+	ld a, [hli]
+	rst Bankswitch
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
 
-	pop hl
-	ret
+	; Yes, setting wCurSpecies before adding b is intentional.
+	ld a, [wNamedObjectIndex]
+	ld [wCurSpecies], a
+	add b
+	call GetNthString
+	ld bc, ITEM_NAME_LENGTH
+	rst CopyBytes
+	pop af
+	rst Bankswitch
+	jmp PopBCDEHL
+
+MACRO names_list
+	db \2 ; index offset
+	dba \1 ; list pointer
+ENDM
+
+.NamesPointers:
+; entries correspond to *_NAME constants
+	table_width 4
+	names_list TrainerClassNames, -1
+	names_list MoveNames,         -1
+	names_list ItemNames,         0
+	names_list KeyItemNames,      0
+	names_list SpecialItemNames,  0
+	names_list BadgeNames,        0
+	names_list ApricornNames,     -1
+	names_list WingNames,         0
+	names_list ExpCandyNames,     -1
+	assert_table_length NUM_NAME_TYPES

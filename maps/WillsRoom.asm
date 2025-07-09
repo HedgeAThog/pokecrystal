@@ -1,100 +1,99 @@
-	object_const_def
-	const WILLSROOM_WILL
-
-WillsRoom_MapScripts:
+WillsRoom_MapScriptHeader:
 	def_scene_scripts
-	scene_script WillsRoomLockDoorScene, SCENE_WILLSROOM_LOCK_DOOR
-	scene_script WillsRoomNoopScene,     SCENE_WILLSROOM_NOOP
+	scene_script WillsRoomEntranceTrigger
 
 	def_callbacks
-	callback MAPCALLBACK_TILES, WillsRoomDoorsCallback
+	callback MAPCALLBACK_TILES, WillsRoomDoorCallback
 
-WillsRoomLockDoorScene:
-	sdefer WillsRoomDoorLocksBehindYouScript
+	def_warp_events
+	warp_event  5, 17, INDIGO_PLATEAU_POKECENTER_1F, 4
+	warp_event  4,  2, KOGAS_ROOM, 1
+	warp_event  5,  2, KOGAS_ROOM, 2
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event  5,  7, SPRITE_WILL, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, WillScript, -1
+
+WillsRoomEntranceTrigger:
+	sdefer .Script
 	end
 
-WillsRoomNoopScene:
-	end
-
-WillsRoomDoorsCallback:
-	checkevent EVENT_WILLS_ROOM_ENTRANCE_CLOSED
-	iffalse .KeepEntranceOpen
-	changeblock 4, 14, $2a ; wall
-.KeepEntranceOpen:
-	checkevent EVENT_WILLS_ROOM_EXIT_OPEN
-	iffalse .KeepExitClosed
-	changeblock 4, 2, $16 ; open door
-.KeepExitClosed:
-	endcallback
-
-WillsRoomDoorLocksBehindYouScript:
-	applymovement PLAYER, WillsRoom_EnterMovement
-	reanchormap $86
+.Script:
+	applymovement PLAYER, WalkIntoEliteFourRoomMovement
+	reanchormap
 	playsound SFX_STRENGTH
 	earthquake 80
-	changeblock 4, 14, $2a ; wall
+	changeblock 4, 14, $2a
 	refreshmap
 	closetext
-	setscene SCENE_WILLSROOM_NOOP
+	setscene $1
 	setevent EVENT_WILLS_ROOM_ENTRANCE_CLOSED
 	waitsfx
 	end
 
-WillScript_Battle:
-	faceplayer
-	opentext
+WillsRoomDoorCallback:
+	checkevent EVENT_WILLS_ROOM_ENTRANCE_CLOSED
+	iffalsefwd .KeepDoorClosed
+	changeblock 4, 14, $2a
+.KeepDoorClosed:
+	checkevent EVENT_WILLS_ROOM_EXIT_OPEN
+	iffalsefwd .OpenDoor
+	changeblock 4, 2, $16
+.OpenDoor:
+	endcallback
+
+WillScript:
+	readvar VAR_BADGES
+	ifequalfwd 16, .Rematch
 	checkevent EVENT_BEAT_ELITE_4_WILL
-	iftrue WillScript_AfterBattle
-	writetext WillScript_WillBeforeText
-	waitbutton
-	closetext
-	winlosstext WillScript_WillBeatenText, 0
-	loadtrainer WILL, WILL1
+	iftrue_jumptextfaceplayer .AfterText
+	showtextfaceplayer .SeenText
+	winlosstext .BeatenText, 0
+	loadtrainer WILL, 1
 	startbattle
 	reloadmapafterbattle
-	setevent EVENT_BEAT_ELITE_4_WILL
-	opentext
-	writetext WillScript_WillDefeatText
-	waitbutton
-	closetext
+	showtext .AfterText
+	sjumpfwd .EndBattle
+
+.Rematch:
+	checkevent EVENT_BEAT_ELITE_4_WILL
+	iftrue_jumptextfaceplayer .AfterRematchText
+	showtextfaceplayer .SeenRematchText
+	winlosstext .BeatenText, 0
+	loadtrainer WILL, 2
+	startbattle
+	reloadmapafterbattle
+	showtext .AfterRematchText
+.EndBattle:
 	playsound SFX_ENTER_DOOR
-	changeblock 4, 2, $16 ; open door
+	changeblock 4, 2, $16
 	refreshmap
-	closetext
 	setevent EVENT_WILLS_ROOM_EXIT_OPEN
+	setevent EVENT_BEAT_ELITE_4_WILL
 	waitsfx
 	end
 
-WillScript_AfterBattle:
-	writetext WillScript_WillDefeatText
-	waitbutton
-	closetext
-	end
-
-WillsRoom_EnterMovement:
-	step UP
-	step UP
-	step UP
-	step UP
-	step_end
-
-WillScript_WillBeforeText:
-	text "Welcome to #MON"
-	line "LEAGUE, <PLAYER>."
+.SeenText:
+	text "Welcome to the"
+	line "#mon League,"
+	cont "<PLAYER>."
 
 	para "Allow me to intro-"
 	line "duce myself. I am"
-	cont "WILL."
+	cont "Will."
 
 	para "I have trained all"
 	line "around the world,"
 
-	para "making my psychic"
-	line "#MON powerful."
+	para "making my Psychic"
+	line "#mon powerful."
 
 	para "And, at last, I've"
 	line "been accepted into"
-	cont "the ELITE FOUR."
+	cont "the Elite Four."
 
 	para "I can only keep"
 	line "getting better!"
@@ -103,12 +102,12 @@ WillScript_WillBeforeText:
 	line "option!"
 	done
 
-WillScript_WillBeatenText:
+.BeatenText:
 	text "I… I can't…"
 	line "believe it…"
 	done
 
-WillScript_WillDefeatText:
+.AfterText:
 	text "Even though I was"
 	line "defeated, I won't"
 	cont "change my course."
@@ -123,20 +122,30 @@ WillScript_WillDefeatText:
 	line "on and experience"
 
 	para "the true ferocity"
-	line "of the ELITE FOUR."
+	line "of the Elite Four."
 	done
 
-WillsRoom_MapEvents:
-	db 0, 0 ; filler
+.SeenRematchText:
+	text "So, you have"
+	line "finally appeared."
 
-	def_warp_events
-	warp_event  5, 17, INDIGO_PLATEAU_POKECENTER_1F, 4
-	warp_event  4,  2, KOGAS_ROOM, 1
-	warp_event  5,  2, KOGAS_ROOM, 2
+	para "I have observed"
+	line "your battle"
+	cont "techniques."
 
-	def_coord_events
+	para "I'm ready for you!"
 
-	def_bg_events
+	para "All right."
 
-	def_object_events
-	object_event  5,  7, SPRITE_WILL, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, WillScript_Battle, -1
+	para "Prepare for"
+	line "battle!"
+	done
+
+.AfterRematchText:
+	text "I've expended all"
+	line "my power."
+
+	para "I have no regrets"
+	line "about losing"
+	cont "this way."
+	done

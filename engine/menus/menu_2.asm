@@ -1,253 +1,272 @@
+PlaceMenuKeyItemName:
+; places a star near the name if registered
+	push hl
+	push de
+	dec de
+	dec de
+	ld a, " "
+	ld [de], a
+	ld a, [wMenuSelection]
+	push bc
+	and a
+	jr z, .not_registered
+	ld b, a
+	ld hl, wRegisteredItems
+	ld a, [hli]
+	cp b
+	ld c, "▲"
+	jr z, .registered
+	ld a, [hli]
+	cp b
+	ld c, "◀"
+	jr z, .registered
+	ld a, [hli]
+	cp b
+	ld c, "▶"
+	jr z, .registered
+	ld a, [hli]
+	cp b
+	ld c, "▼"
+	jr nz, .not_registered
+.registered
+	push bc
+	push de
+	farcall CheckRegisteredItem
+	pop de
+	pop bc
+	dec a
+	jr nz, .not_unique
+	ld c, "★"
+.not_unique
+	ld a, c
+	ld [de], a
+.not_registered
+	pop bc
+	pop de
+	pop hl
+
+	; Now, handle the item name itself.
+	push de
+	ld de, GetKeyItemName
+	ld a, [wMenuSelection]
+	and a
+	jr _PlaceMenuItemName
 PlaceMenuItemName:
+	push de
+	ld de, GetItemName
+	ld a, [wMenuSelection]
+	cp CANCEL
+	; fallthrough
+_PlaceMenuItemName:
+	jr z, .cancel
+	ld [wNamedObjectIndex], a
+	call _de_
+	jr .got_string
+.cancel
+	ld de, ScrollingMenu_CancelString ; found in scrolling_menu.asm
+.got_string
+	pop hl
+	rst PlaceString
+	ret
+
+PlaceMenuExpCandyName:
+	push de
+	ld de, GetExpCandyName
+	ld a, [wMenuSelection]
+	cp CANCEL
+	jr _PlaceMenuItemName
+
+PlaceMenuTMHMName:
 	push de
 	ld a, [wMenuSelection]
 	ld [wNamedObjectIndex], a
-	call GetItemName
+	call GetTMHMName
 	pop hl
-	call PlaceString
+	rst PlaceString
 	ret
 
-PlaceMenuItemQuantity:
-	push de
+PlaceMenuApricornQuantity:
 	ld a, [wMenuSelection]
 	ld [wCurItem], a
-	farcall _CheckTossableItem
-	ld a, [wItemAttributeValue]
-	pop hl
 	and a
-	jr nz, .done
-	ld de, $15
+	ret nz
+	ld l, e
+	ld h, d
+	jr _PlaceMenuQuantity
+
+PlaceMenuItemQuantity:
+	ld a, [wMenuSelection]
+	ld [wCurItem], a
+	push de
+	pop hl
+_PlaceMenuQuantity:
+	ld de, SCREEN_WIDTH + 1
 	add hl, de
-	ld [hl], "×"
-	inc hl
+	ld a, "×"
+	ld [hli], a
 	ld de, wMenuSelectionQuantity
 	lb bc, 1, 2
-	call PrintNum
-
-.done
-	ret
+	jmp PrintNum
 
 PlaceMoneyTopRight:
 	ld hl, MoneyTopRightMenuHeader
 	call CopyMenuHeader
-	jr PlaceMoneyTextbox
+	jr PlaceMoneyDataHeader
 
 PlaceMoneyBottomLeft:
 	ld hl, MoneyBottomLeftMenuHeader
 	call CopyMenuHeader
-	jr PlaceMoneyTextbox
+	jr PlaceMoneyDataHeader
 
 PlaceMoneyAtTopLeftOfTextbox:
 	ld hl, MoneyTopRightMenuHeader
 	lb de, 0, 11
-	call OffsetMenuHeader
+	call OffsetMenuDataHeader
 
-PlaceMoneyTextbox:
+PlaceMoneyDataHeader:
 	call MenuBox
 	call MenuBoxCoord2Tile
 	ld de, SCREEN_WIDTH + 1
 	add hl, de
 	ld de, wMoney
-	lb bc, PRINTNUM_MONEY | 3, 6
-	call PrintNum
-	ret
+	lb bc, PRINTNUM_MONEY | 3, 7
+	jmp PrintNum
 
 MoneyTopRightMenuHeader:
-	db MENU_BACKUP_TILES ; flags
-	menu_coords 11, 0, SCREEN_WIDTH - 1, 2
+	db MENU_BACKUP_TILES
+	menu_coords 10, 0, 19, 2
 	dw NULL
 	db 1 ; default option
 
 MoneyBottomLeftMenuHeader:
 	db MENU_BACKUP_TILES ; flags
-	menu_coords 0, 11, 8, 13
+	menu_coords 0, 11, 9, 13
 	dw NULL
 	db 1 ; default option
 
-DisplayCoinCaseBalance:
+PlaceBlueCardPointsTopRight:
+	hlcoord 11, 0
+	lb bc, 1, 7
+	call Textbox
+	hlcoord 12, 1
+	ld de, wBlueCardBalance
+	lb bc, 1, 3
+	call PrintNum
+	ld de, .PointsString
+	rst PlaceString
+	ret
+
+.PointsString:
+	db " Pts@"
+
+PlaceBattlePointsTopRight:
+	hlcoord 10, 0
+	lb bc, 1, 8
+	call Textbox
+	hlcoord 11, 1
+	ld de, wBattlePoints
+	lb bc, 2, 5
+	call PrintNum
+	ld de, .BPString
+	rst PlaceString
+	ret
+
+.BPString:
+	db " BP@"
+
+Special_DisplayCoinCaseBalance:
 	; Place a text box of size 1x7 at 11, 0.
 	hlcoord 11, 0
-	ld b, 1
-	ld c, 7
+	lb bc, 1, 7
 	call Textbox
 	hlcoord 12, 0
 	ld de, CoinString
-	call PlaceString
-	hlcoord 17, 1
-	ld de, ShowMoney_TerminatorString
-	call PlaceString
+	rst PlaceString
 	ld de, wCoins
-	lb bc, 2, 4
+	lb bc, 2, 5
 	hlcoord 13, 1
-	call PrintNum
-	ret
+	jmp PrintNum
 
-DisplayMoneyAndCoinBalance:
+Special_DisplayMoneyAndCoinBalance:
 	hlcoord 5, 0
-	ld b, 3
-	ld c, 13
+	lb bc, 3, 13
 	call Textbox
 	hlcoord 6, 1
 	ld de, MoneyString
-	call PlaceString
-	hlcoord 12, 1
+	rst PlaceString
+	hlcoord 11, 1
 	ld de, wMoney
-	lb bc, PRINTNUM_MONEY | 3, 6
+	lb bc, PRINTNUM_MONEY | 3, 7
 	call PrintNum
 	hlcoord 6, 3
 	ld de, CoinString
-	call PlaceString
-	hlcoord 15, 3
+	rst PlaceString
+	hlcoord 14, 3
 	ld de, wCoins
-	lb bc, 2, 4
-	call PrintNum
-	ret
+	lb bc, 2, 5
+	jmp PrintNum
 
 MoneyString:
-	db "MONEY@"
+	db "Money@"
 CoinString:
-	db "COIN@"
-ShowMoney_TerminatorString:
-	db "@"
-
-StartMenu_PrintSafariGameStatus: ; unreferenced
-	ld hl, wOptions
-	ld a, [hl]
-	push af
-	set NO_TEXT_SCROLL, [hl]
-	hlcoord 0, 0
-	ld b, 3
-	ld c, 7
-	call Textbox
-	hlcoord 1, 1
-	ld de, wSafariTimeRemaining
-	lb bc, 2, 3
-	call PrintNum
-	hlcoord 4, 1
-	ld de, .slash_500
-	call PlaceString
-	hlcoord 1, 3
-	ld de, .booru_ko
-	call PlaceString
-	hlcoord 5, 3
-	ld de, wSafariBallsRemaining
-	lb bc, 1, 2
-	call PrintNum
-	pop af
-	ld [wOptions], a
-	ret
-
-.slash_500
-	db "／５００@"
-.booru_ko
-	db "ボール　　　こ@"
+	db "Coin@"
 
 StartMenu_DrawBugContestStatusBox:
 	hlcoord 0, 0
-	ld b, 5
-	ld c, 17
-	call Textbox
-	ret
+	lb bc, 5, 17
+	jmp Textbox
 
 StartMenu_PrintBugContestStatus:
-	ld hl, wOptions
+	ld hl, wOptions1
 	ld a, [hl]
 	push af
 	set NO_TEXT_SCROLL, [hl]
 	call StartMenu_DrawBugContestStatusBox
 	hlcoord 1, 5
-	ld de, .BallsString
-	call PlaceString
+	ld de, .Balls
+	rst PlaceString
 	hlcoord 8, 5
 	ld de, wParkBallsRemaining
 	lb bc, PRINTNUM_LEFTALIGN | 1, 2
 	call PrintNum
 	hlcoord 1, 1
-	ld de, .CaughtString
-	call PlaceString
-	ld a, [wContestMon]
+	ld de, .Caught
+	rst PlaceString
+	ld a, [wContestMonSpecies]
 	and a
-	ld de, .NoneString
+	ld de, .None
 	jr z, .no_contest_mon
 	ld [wNamedObjectIndex], a
+	ld a, [wContestMonForm]
+	ld [wNamedObjectIndex+1], a
 	call GetPokemonName
 
 .no_contest_mon
 	hlcoord 8, 1
-	call PlaceString
+	rst PlaceString
 	ld a, [wContestMon]
 	and a
 	jr z, .skip_level
 	hlcoord 1, 3
-	ld de, .LevelString
-	call PlaceString
+	ld de, .Level
+	rst PlaceString
 	ld a, [wContestMonLevel]
 	ld h, b
 	ld l, c
 	inc hl
 	ld c, 3
-	call Print8BitNumLeftAlign
+	call Print8BitNumRightAlign
 
 .skip_level
 	pop af
-	ld [wOptions], a
+	ld [wOptions1], a
 	ret
 
-.BallsJPString: ; unreferenced
-	db "ボール　　　こ@"
-.CaughtString:
-	db "CAUGHT@"
-.BallsString:
-	db "BALLS:@"
-.NoneString:
+.Caught:
+	db "Caught@"
+.Balls:
+	db "Balls:@"
+.None:
 	db "None@"
-.LevelString:
-	db "LEVEL@"
-
-FindApricornsInBag:
-; Checks the bag for Apricorns.
-	ld hl, wKurtApricornCount
-	xor a
-	ld [hli], a
-	assert wKurtApricornCount + 1 == wKurtApricornItems
-	dec a
-	ld bc, 10
-	call ByteFill
-
-	ld hl, ApricornBalls
-.loop
-	ld a, [hl]
-	cp -1
-	jr z, .done
-	push hl
-	ld [wCurItem], a
-	ld hl, wNumItems
-	call CheckItem
-	pop hl
-	jr nc, .nope
-	ld a, [hl]
-	call .addtobuffer
-.nope
-	inc hl
-	inc hl
-	jr .loop
-
-.done
-	ld a, [wKurtApricornCount]
-	and a
-	ret nz
-	scf
-	ret
-
-.addtobuffer:
-	push hl
-	ld hl, wKurtApricornCount
-	inc [hl]
-	ld e, [hl]
-	ld d, 0
-	add hl, de
-	ld [hl], a
-	pop hl
-	ret
-
-INCLUDE "data/items/apricorn_balls.asm"
+.Level:
+	db "Level@"

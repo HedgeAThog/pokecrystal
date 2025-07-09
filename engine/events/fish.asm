@@ -1,11 +1,10 @@
 Fish:
 ; Using a fishing rod.
 ; Fish for monsters with rod e in encounter group d.
-; Return monster d at level e.
+; Return monster bc at level d.
 
-	push af
-	push bc
 	push hl
+	push af
 
 	ld b, e
 	call GetFishGroupIndex
@@ -16,26 +15,49 @@ rept FISHGROUP_DATA_LENGTH
 endr
 	call .Fish
 
-	pop hl
-	pop bc
 	pop af
+	pop hl
 	ret
 
 .Fish:
 ; Fish for monsters with rod b from encounter data in FishGroup at hl.
-; Return monster d at level e.
+; Return monster bc at level d; or item bc if d = 0; or nothing if bc = 0 and d = 0.
 
+	ld e, b
+	ld d, 0
 	call Random
+	cp [hl]
+	jr c, .bite
+	inc hl
 	cp [hl]
 	jr nc, .no_bite
 
+	; Get item by rod
+	; 0: Old
+	; 1: Good
+	; 2: Super (10% of the time)
+	ld a, b
+	cp 2
+	jr c, .not_super
+	ld a, 10
+	call RandomRange
+	and a
+	jr nz, .no_bite
+
+.not_super
+	ld hl, FishItems
+	add hl, de
+	ld c, [hl]
+	ld b, d ; ld b, 0
+	ret
+
+.bite
 	; Get encounter data by rod:
 	; 0: Old
 	; 1: Good
 	; 2: Super
 	inc hl
-	ld e, b
-	ld d, 0
+	inc hl
 	add hl, de
 	add hl, de
 	ld a, [hli]
@@ -46,6 +68,7 @@ endr
 	call Random
 .loop
 	cp [hl]
+	inc hl
 	jr z, .ok
 	jr c, .ok
 	inc hl
@@ -53,48 +76,177 @@ endr
 	inc hl
 	jr .loop
 .ok
-	inc hl
-
-	; Species 0 reads from a time-based encounter table.
+	; Species 0 is Corsola during morning/day
+	; and Staryu during evening/night.
 	ld a, [hli]
-	ld d, a
 	and a
 	call z, .TimeEncounter
+	ld c, a
 
-	ld e, [hl]
+	ld a, [hli]
+	ld b, a
+	ld d, [hl]
 	ret
 
 .no_bite
-	ld de, 0
+	ld b, d ; d already = 0
+	ld c, d
 	ret
 
 .TimeEncounter:
-	; The level byte is repurposed as the index for the new table.
-	ld e, [hl]
-	ld d, 0
-	ld hl, TimeFishGroups
-rept 4
-	add hl, de
-endr
-
 	ld a, [wTimeOfDay]
-	maskbits NUM_DAYTIMES
-	cp NITE_F
-	jr c, .time_species
-	inc hl
-	inc hl
+	and 3
+	cp NITE
+	; a = carry ? CORSOLA : STARYU
+	sbc a
+	and CORSOLA - STARYU
+	add STARYU
+	ret
 
-.time_species
-	ld d, [hl]
+GetFishLocations:
+; Writes to wDexAreaMons. Assumes we're in the correct WRAM bank for this.
+; Parameters: e = type, d = region, c = species, b = form.
+	; Clear area locator data.
+	ld hl, wDexAreaValidFishGroups
+	push bc
+	ld bc, NUM_FISHGROUPS
+	xor a
+	rst ByteFill
+	pop bc
+
+	push de
+
+	; If this loop finishes with carry flag still set, return afterwards since
+	; we didn't find anything.
+	scf
+	push af
+	ld d, a
+
+	; By doubling e, we can use it as an offset into the
+	; FishGroup pointer tables, as long as we account for constant offsets
+	; when reading from it.
+	sla e
+.moncheck_loop
+	call .GetFishTable
+	call .CheckTable
+	call nc, .AppendFishSet ; This function screws with previously pushed af.
+	inc d
+	ld a, d
+	cp NUM_FISHGROUPS
+	jr c, .moncheck_loop
+
+	; Check if the mon occupies any slot. We have to do this before
+	; the farjp (despite code duplication) because farjp screws with
+	; the stack.
+	pop af
+	pop de
+	ret c
+
+	assert wDexAreaValidTreeGroups == wDexAreaValidFishGroups
+
+	; TODO: fix labels, we don't want "call/jp a.b"...
+	ld hl, FishMonMaps
+	farjp GetTreeOrRockLocations.CheckMaps
+
+.GetFishTable:
+; Returns the relevant fishing table in hl.
+; d: fish group, e: rod type with an offset.
+	; The fish group pointer table is 8 bytes per entry.
+	ld a, d
+	add a
+	add a
+	add a
+
+	; e contains DEXAREA_(OLD|GOOD|SUPER)_ROD*2. Factor that into
+	; initial hl.
+	; + 2 skips the percent values which we don't care for.
+	push de
+	ld hl, FishGroups + 2 - (DEXAREA_OLD_ROD * 2)
+
+	; Get the correct rod table.
+	ld d, 0
+	add hl, de
+
+	; Get the correct group table.
+	ld e, a
+	add hl, de
+	pop de
+
+	; Return the table pointed to in hl + 1 (ignore encounter rate).
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
 	inc hl
 	ret
+
+.CheckTable:
+	; Old Rod encounters have 3 entries, good+super has 4.
+	push de
+	ld d, 3 ; iterator
+	ld a, e
+	cp DEXAREA_OLD_ROD * 2
+	jr z, .got_iterator
+	inc d
+.got_iterator
+	; Figure out if Corsola or Starmie is the time of day encounter. We're not
+	; in WRAM1 so we need to use GetFarWRAM for time of day checking.
+	push hl
+	ld hl, wTimeOfDay
+	ld a, BANK(wTimeOfDay)
+	call GetFarWRAMByte
+	pop hl
+	and 3
+	cp NITE
+	ld e, CORSOLA
+	jr nz, .checktable_loop
+	ld e, STARYU
+.checktable_loop
+	; Return carry if d==0 before decrement
+	ld a, d
+	dec d
+	cp d
+	jr nc, .continue
+	pop de
+	ret
+
+.continue
+	ld a, [hli]
+	and a
+	jr nz, .not_tod
+	ld a, e
+.not_tod
+	cp c
+	ld a, [hli]
+	inc hl ; skip level
+	inc hl ; skip (next entry's) encounter rate
+	jr nz, .checktable_loop
+	call DexCompareWildForm
+	jr nz, .checktable_loop
+
+	; Returns noncarry if species+form matches.
+	pop de
+	ret
+
+.AppendFishSet:
+	ld a, LOW(wDexAreaValidFishGroups)
+	add d
+	ld h, HIGH(wDexAreaValidFishGroups)
+	ld l, a
+	ld [hl], 1
+
+	; Resets carry on previously pushed af.
+	pop hl ; return addr
+	pop af
+	and a
+	push af
+	jp hl
 
 GetFishGroupIndex:
 ; Return the index of fishgroup d in de.
 
 	push hl
-	ld hl, wDailyFlags1
-	bit DAILYFLAGS1_FISH_SWARM_F, [hl]
+	ld hl, wDailyFlags
+	bit 2, [hl] ; ENGINE_FISH_SWARM
 	pop hl
 	jr z, .done
 
@@ -105,7 +257,6 @@ GetFishGroupIndex:
 	jr z, .remoraid
 
 .done
-	dec d
 	ld e, d
 	ld d, 0
 	ret
@@ -125,3 +276,4 @@ GetFishGroupIndex:
 	jr .done
 
 INCLUDE "data/wild/fish.asm"
+INCLUDE "data/items/fish_items.asm"

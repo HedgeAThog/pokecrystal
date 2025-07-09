@@ -1,40 +1,57 @@
-	object_const_def
-	const ROUTE1_YOUNGSTER
-	const ROUTE1_COOLTRAINER_F
-	const ROUTE1_FRUIT_TREE
-
-Route1_MapScripts:
+Route1_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-TrainerSchoolboyDanny:
-	trainer SCHOOLBOY, DANNY, EVENT_BEAT_SCHOOLBOY_DANNY, SchoolboyDannySeenText, SchoolboyDannyBeatenText, 0, .Script
+	def_warp_events
+	warp_event 10,  1, ROUTE_1_VIRIDIAN_GATE, 3
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SchoolboyDannyAfterBattleText
-	waitbutton
-	closetext
-	end
+	def_coord_events
 
-TrainerCooltrainerfQuinn:
-	trainer COOLTRAINERF, QUINN, EVENT_BEAT_COOLTRAINERF_QUINN, CooltrainerfQuinnSeenText, CooltrainerfQuinnBeatenText, 0, .Script
+	def_bg_events
+	bg_event  9, 27, BGEVENT_JUMPTEXT, Route1SignText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext CooltrainerfQuinnAfterBattleText
-	waitbutton
-	closetext
-	end
+	def_object_events
+	object_event  6, 12, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSchoolboyDanny, -1
+	object_event 17, 14, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerSchoolboySherman, -1
+	object_event 16, 21, SPRITE_ACE_TRAINER_M, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 2, GenericTrainerCooltrainermFrench, -1
+	object_event 11, 25, SPRITE_ACE_TRAINER_F, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 2, GenericTrainerCooltrainerfQuinn, -1
+	fruittree_event  5,  7, FRUITTREE_ROUTE_1, FIGY_BERRY, PAL_NPC_BROWN
 
-Route1Sign:
-	jumptext Route1SignText
+GenericTrainerSchoolboyDanny:
+	generictrainer SCHOOLBOY, DANNY, EVENT_BEAT_SCHOOLBOY_DANNY, SchoolboyDannySeenText, SchoolboyDannyBeatenText
 
-Route1FruitTree:
-	fruittree FRUITTREE_ROUTE_1
+	text "For trainers, it's"
+	line "a given that we'll"
+
+	para "battle whenever we"
+	line "meet."
+	done
+
+GenericTrainerSchoolboySherman:
+	generictrainer SCHOOLBOY, SHERMAN, EVENT_BEAT_SCHOOLBOY_SHERMAN, SchoolboyShermanSeenText, SchoolboyShermanBeatenText
+
+	text "I should record"
+	line "all of today's"
+	cont "mistakes."
+	done
+
+GenericTrainerCooltrainermFrench:
+	generictrainer COOLTRAINERM, FRENCH, EVENT_BEAT_COOLTRAINERM_FRENCH, CooltrainermFrenchSeenText, CooltrainermFrenchBeatenText
+
+	text "That was a great"
+	line "fight!"
+	cont "Don't you agree?"
+	done
+
+GenericTrainerCooltrainerfQuinn:
+	generictrainer COOLTRAINERF, QUINN, EVENT_BEAT_COOLTRAINERF_QUINN, CooltrainerfQuinnSeenText, CooltrainerfQuinnBeatenText
+
+	text "You're strong."
+
+	para "You obviously must"
+	line "have trained hard."
+	done
 
 SchoolboyDannySeenText:
 	text "If trainers meet,"
@@ -47,12 +64,28 @@ SchoolboyDannyBeatenText:
 	line "losing record…"
 	done
 
-SchoolboyDannyAfterBattleText:
-	text "For trainers, it's"
-	line "a given that we'll"
+SchoolboyShermanSeenText:
+	text "Right after class,"
+	line "I head outside to"
+	cont "practice!"
+	done
 
-	para "battle whenever we"
-	line "meet."
+SchoolboyShermanBeatenText:
+	text "I need to follow"
+	line "the textbook."
+	done
+
+CooltrainermFrenchSeenText:
+	text "You!"
+
+	para "I've been waiting"
+	line "for someone like"
+	cont "you!"
+	done
+
+CooltrainermFrenchBeatenText:
+	text "Yep, as strong as"
+	line "expected!"
 	done
 
 CooltrainerfQuinnSeenText:
@@ -64,31 +97,9 @@ CooltrainerfQuinnBeatenText:
 	text "Down and out…"
 	done
 
-CooltrainerfQuinnAfterBattleText:
-	text "You're strong."
-
-	para "You obviously must"
-	line "have trained hard."
-	done
-
 Route1SignText:
-	text "ROUTE 1"
+	text "Route 1"
 
-	para "PALLET TOWN -"
-	line "VIRIDIAN CITY"
+	para "Pallet Town -"
+	line "Viridian City"
 	done
-
-Route1_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  7, 27, BGEVENT_READ, Route1Sign
-
-	def_object_events
-	object_event  4, 12, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_BLUE, OBJECTTYPE_TRAINER, 4, TrainerSchoolboyDanny, -1
-	object_event  9, 25, SPRITE_COOLTRAINER_F, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 2, TrainerCooltrainerfQuinn, -1
-	object_event  3,  7, SPRITE_FRUIT_TREE, SPRITEMOVEDATA_STILL, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, Route1FruitTree, -1

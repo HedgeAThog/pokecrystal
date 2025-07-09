@@ -1,5 +1,5 @@
 JackIntelligenceKeepsRisingText:
-	text "My @"
+	text "My "
 	text_ram wStringBuffer4
 	text "'s"
 	line "intelligence keeps"
@@ -12,7 +12,7 @@ JackIntelligenceKeepsRisingText:
 JackDefeatedMonText:
 	text "The other day, I"
 	line "easily defeated a"
-	cont "@"
+	cont ""
 	text_ram wStringBuffer4
 	text "."
 
@@ -25,7 +25,7 @@ JackLostAMonText:
 	text "Oh, and listen."
 	line "I missed catching"
 
-	para "a @"
+	para "a "
 	text_ram wStringBuffer4
 	text " by"
 	line "just a tiny bit."
@@ -45,7 +45,7 @@ JackBattleRematchText:
 	line "logically."
 
 	para "I'll be in"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 
@@ -61,15 +61,15 @@ JackThunderTriviaText:
 	text "Did you know?"
 
 	para "When it's raining,"
-	line "THUNDER is sure to"
+	line "Thunder is sure to"
 	cont "strike."
 	done
 
 JackRolloutTriviaText:
 	text "Did you know…?"
 
-	para "If you use DEFENSE"
-	line "CURL, ROLLOUT's"
+	para "If you use Defense"
+	line "Curl, Rollout's"
 
 	para "power goes way up"
 	line "past normal."
@@ -79,7 +79,7 @@ JackSolarbeamTriviaText:
 	text "Did you know…?"
 
 	para "If the sunlight is"
-	line "harsh, SOLARBEAM"
+	line "harsh, Solar Beam"
 
 	para "doesn't need to be"
 	line "charged up."
@@ -89,9 +89,9 @@ JackStompTriviaText:
 	text "Did you know…?"
 
 	para "If the opponent"
-	line "uses MINIMIZE,"
+	line "uses Minimize,"
 
-	para "your STOMP becomes"
+	para "your Stomp becomes"
 	line "more powerful."
 	done
 
@@ -99,29 +99,33 @@ JackGustTriviaText:
 	text "Did you know…?"
 
 	para "If your opponent"
-	line "is FLYing, your"
+	line "is Flying, your"
 
-	para "GUST becomes much"
+	para "Gust becomes much"
 	line "more powerful."
 	done
 
-JackTwisterTriviaText:
+JackKnockOffTriviaText:
 	text "Did you know…?"
 
 	para "If your opponent"
-	line "is FLYing, your"
+	line "is holding an item"
 
-	para "TWISTER becomes"
-	line "more powerful."
+	para "that your Knock"
+	line "Off can remove,"
+
+	para "your Knock Off"
+	line "becomes more"
+	cont "powerful."
 	done
 
 JackEarthquakeTriviaText:
 	text "Did you know…?"
 
 	para "If your opponent"
-	line "uses DIG, your"
+	line "uses Dig, your"
 
-	para "EARTHQUAKE becomes"
+	para "Earthquake becomes"
 	line "more powerful."
 	done
 
@@ -129,27 +133,27 @@ JackMagnitudeTriviaText:
 	text "Did you know…?"
 
 	para "If your opponent"
-	line "uses DIG, your"
+	line "uses Dig, your"
 
-	para "MAGNITUDE becomes"
+	para "Magnitude becomes"
 	line "more powerful."
 	done
 
 JackSandstormTriviaText:
 	text "Did you know…?"
 
-	para "The rock, ground"
-	line "and steel types"
+	para "The Rock, Ground"
+	line "and Steel types"
 
 	para "can't be hurt by"
-	line "SANDSTORM."
+	line "Sandstorm."
 	done
 
 JackSunnyDayTriviaText:
 	text "Did you know…?"
 
 	para "If the sunlight is"
-	line "harsh, water-type"
+	line "harsh, Water-type"
 
 	para "moves become much"
 	line "weaker."
@@ -159,7 +163,7 @@ JackRainDanceTriviaText:
 	text "Did you know…?"
 
 	para "When it's raining,"
-	line "fire-type moves"
+	line "Fire-type moves"
 
 	para "become much weaker"
 	line "than usual."
@@ -178,7 +182,7 @@ JackHeardSomeGreatTipsText:
 	done
 
 JackReminderText:
-	text "Hey, <PLAY_G>!"
+	text "Hey, <PLAYER>!"
 
 	para "Do you remember"
 	line "your promise?"
@@ -187,7 +191,7 @@ JackReminderText:
 	line "soon!"
 
 	para "I'll be at"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "."
 	done

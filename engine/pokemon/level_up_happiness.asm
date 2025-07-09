@@ -3,7 +3,7 @@ LevelUpHappinessMod:
 	ld hl, wPartyMon1CaughtLocation
 	call GetPartyLocation
 	ld a, [hl]
-	and CAUGHT_LOCATION_MASK
+	and $7f
 	ld d, a
 	ld a, [wMapGroup]
 	ld b, a
@@ -16,5 +16,4 @@ LevelUpHappinessMod:
 	ld c, HAPPINESS_GAINLEVELATHOME
 
 .ok
-	callfar ChangeHappiness
-	ret
+	predef_jump ChangeHappiness

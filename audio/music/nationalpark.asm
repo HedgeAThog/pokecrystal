@@ -13,11 +13,11 @@ Music_NationalPark_Ch1:
 	duty_cycle 1
 	note_type 12, 7, 7
 	rest 2
-.mainloop:
-	sound_call .sub1
-	sound_call .sub1
+Music_NationalPark_branch_f5504:
+	sound_call Music_NationalPark_branch_f554a
+	sound_call Music_NationalPark_branch_f554a
 	note_type 6, 6, 7
-	sound_call .sub2
+	sound_call Music_NationalPark_branch_f563a
 	note_type 12, 7, 7
 	rest 16
 	octave 2
@@ -45,7 +45,7 @@ Music_NationalPark_Ch1:
 	rest 3
 	note D_, 1
 	rest 1
-	sound_call .sub2
+	sound_call Music_NationalPark_branch_f563a
 	volume_envelope 7, 7
 	octave 3
 	note E_, 1
@@ -61,9 +61,9 @@ Music_NationalPark_Ch1:
 	note D_, 7
 	note_type 12, 7, 7
 	rest 4
-	sound_loop 0, .mainloop
+	sound_jump Music_NationalPark_branch_f5504
 
-.sub1:
+Music_NationalPark_branch_f554a:
 	octave 2
 	note G#, 6
 	octave 3
@@ -270,7 +270,7 @@ Music_NationalPark_Ch1:
 	note A#, 2
 	sound_ret
 
-.sub2:
+Music_NationalPark_branch_f563a:
 	rest 16
 	rest 3
 	octave 4
@@ -302,12 +302,12 @@ Music_NationalPark_Ch2:
 	note_type 12, 10, 7
 	rest 2
 	stereo_panning TRUE, FALSE
-.mainloop:
+Music_NationalPark_branch_f565d:
 	note_type 12, 10, 7
-	sound_call .sub1
+	sound_call Music_NationalPark_branch_f56b8
 	octave 3
 	note D_, 8
-	sound_call .sub1
+	sound_call Music_NationalPark_branch_f56b8
 	rest 2
 	volume_envelope 10, 7
 	octave 4
@@ -315,7 +315,7 @@ Music_NationalPark_Ch2:
 	note F#, 2
 	note F_, 2
 	note_type 6, 10, 7
-	sound_call .sub2
+	sound_call Music_NationalPark_branch_f56f5
 	octave 3
 	note B_, 1
 	octave 4
@@ -347,7 +347,7 @@ Music_NationalPark_Ch2:
 	note G#, 1
 	rest 1
 	volume_envelope 10, 7
-	sound_call .sub2
+	sound_call Music_NationalPark_branch_f56f5
 	octave 3
 	note B_, 1
 	octave 4
@@ -369,9 +369,9 @@ Music_NationalPark_Ch2:
 	octave 2
 	note D#, 2
 	note D_, 2
-	sound_loop 0, .mainloop
+	sound_jump Music_NationalPark_branch_f565d
 
-.sub1:
+Music_NationalPark_branch_f56b8:
 	octave 2
 	note C#, 6
 	note G#, 2
@@ -434,7 +434,7 @@ Music_NationalPark_Ch2:
 	note F_, 2
 	sound_ret
 
-.sub2:
+Music_NationalPark_branch_f56f5:
 	octave 4
 	note E_, 1
 	note F_, 5
@@ -485,25 +485,25 @@ Music_NationalPark_Ch3:
 	note G#, 1
 	note A#, 1
 	stereo_panning TRUE, TRUE
-.mainloop:
-	sound_call .sub1
+Music_NationalPark_branch_f572e:
+	sound_call Music_NationalPark_branch_f5756
 	octave 5
 	note A#, 14
 	octave 4
 	note G#, 1
 	note A#, 1
-	sound_call .sub1
+	sound_call Music_NationalPark_branch_f5756
 	octave 5
 	note A#, 8
 	octave 4
 	note D_, 8
 	volume_envelope 1, 5
-	sound_call .sub2
+	sound_call Music_NationalPark_branch_f578f
 	octave 4
 	note D_, 1
 	octave 3
 	note F_, 3
-	sound_call .sub2
+	sound_call Music_NationalPark_branch_f578f
 	octave 4
 	note D_, 1
 	octave 3
@@ -512,9 +512,9 @@ Music_NationalPark_Ch3:
 	octave 4
 	note G#, 1
 	note A#, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_NationalPark_branch_f572e
 
-.sub1:
+Music_NationalPark_branch_f5756:
 	octave 5
 	note C_, 16
 	note C#, 14
@@ -573,7 +573,7 @@ Music_NationalPark_Ch3:
 	note C_, 2
 	sound_ret
 
-.sub2:
+Music_NationalPark_branch_f578f:
 	octave 2
 	note F#, 3
 	octave 3
@@ -620,17 +620,16 @@ Music_NationalPark_Ch4:
 	toggle_noise 3
 	drum_speed 12
 	rest 2
-.mainloop:
-.loop1:
+Music_NationalPark_branch_f57bd:
 	rest 16
-	sound_loop 23, .loop1
+	sound_loop 23, Music_NationalPark_branch_f57bd
 	rest 8
 	drum_note 11, 2
 	drum_note 3, 2
 	drum_note 11, 1
 	drum_note 3, 1
 	drum_note 12, 2
-.loop2:
+Music_NationalPark_branch_f57c8:
 	drum_note 11, 2
 	drum_note 8, 1
 	drum_note 8, 1
@@ -642,7 +641,7 @@ Music_NationalPark_Ch4:
 	drum_note 8, 1
 	drum_note 3, 2
 	drum_note 12, 2
-	sound_loop 7, .loop2
+	sound_loop 7, Music_NationalPark_branch_f57c8
 	drum_note 11, 2
 	drum_note 8, 1
 	drum_note 8, 1
@@ -656,4 +655,4 @@ Music_NationalPark_Ch4:
 	drum_note 3, 1
 	drum_note 11, 1
 	drum_note 4, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_NationalPark_branch_f57bd

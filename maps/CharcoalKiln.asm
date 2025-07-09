@@ -1,82 +1,29 @@
-	object_const_def
-	const CHARCOALKILN_BLACK_BELT
-	const CHARCOALKILN_YOUNGSTER
-	const CHARCOALKILN_MOLTRES
-
-CharcoalKiln_MapScripts:
+CharcoalKiln_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
+	def_warp_events
+	warp_event  3,  7, AZALEA_TOWN, 2
+	warp_event  4,  7, AZALEA_TOWN, 2
+
+	def_coord_events
+
+	def_bg_events
+
+	def_object_events
+	object_event  1,  4, SPRITE_BLACK_BELT, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, CharcoalKilnBoss, EVENT_CHARCOAL_KILN_BOSS
+	object_event  4,  3, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_WANDER, 1, 1, -1, 0, OBJECTTYPE_SCRIPT, 0, CharcoalKilnApprentice, EVENT_CHARCOAL_KILN_APPRENTICE
+	object_event  8,  6, SPRITE_FARFETCH_D, SPRITEMOVEDATA_WANDER, 2, 2, -1, 0, OBJECTTYPE_SCRIPT, 0, CharcoalKilnFarfetchdScript, EVENT_CHARCOAL_KILN_FARFETCH_D
+
 CharcoalKilnBoss:
-	faceplayer
-	opentext
 	checkevent EVENT_GOT_HM01_CUT
-	iftrue .GotCut
+	iftrue_jumptextfaceplayer .Text3
 	checkevent EVENT_CLEARED_SLOWPOKE_WELL
-	iftrue .SavedSlowpoke
-	writetext CharcoalKilnBossText1
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer .Text2
+	jumpthistextfaceplayer
 
-.SavedSlowpoke:
-	writetext CharcoalKilnBossText2
-	waitbutton
-	closetext
-	end
-
-.GotCut:
-	writetext CharcoalKilnBossText3
-	waitbutton
-	closetext
-	end
-
-CharcoalKilnApprentice:
-	faceplayer
-	opentext
-	checkevent EVENT_GOT_CHARCOAL_IN_CHARCOAL_KILN
-	iftrue .YoureTheCoolest
-	checkevent EVENT_GOT_HM01_CUT
-	iftrue .Thanks
-	writetext CharcoalKilnApprenticeText1
-	waitbutton
-	closetext
-	end
-
-.Thanks:
-	writetext CharcoalKilnApprenticeText2
-	promptbutton
-	verbosegiveitem CHARCOAL
-	iffalse .Done
-	setevent EVENT_GOT_CHARCOAL_IN_CHARCOAL_KILN
-	closetext
-	end
-
-.YoureTheCoolest:
-	writetext CharcoalKilnApprenticeText3
-	waitbutton
-.Done:
-	closetext
-	end
-
-CharcoalKilnFarfetchd:
-	faceplayer
-	opentext
-	writetext FarfetchdText
-	cry FARFETCH_D
-	waitbutton
-	closetext
-	end
-
-CharcoalKilnBookshelf:
-	jumpstd MagazineBookshelfScript
-
-CharcoalKilnRadio:
-	jumpstd Radio2Script
-
-CharcoalKilnBossText1:
-	text "All the SLOWPOKE"
+	text "All the Slowpoke"
 	line "have disappeared"
 	cont "from the town."
 
@@ -89,78 +36,78 @@ CharcoalKilnBossText1:
 	cont "stay in."
 	done
 
-CharcoalKilnBossText2:
-	text "The SLOWPOKE have"
+.Text2:
+	text "The Slowpoke have"
 	line "returned…"
 
-	para "But my APPRENTICE"
+	para "But my Apprentice"
 	line "hasn't come back"
-	cont "from ILEX FOREST."
+	cont "from Ilex Forest."
 
 	para "Where in the world"
 	line "is that lazy guy?"
 	done
 
-CharcoalKilnBossText3:
+.Text3:
 	text "You chased off"
-	line "TEAM ROCKET and"
+	line "Team Rocket and"
 
-	para "went to ILEX"
-	line "FOREST alone?"
+	para "went to Ilex"
+	line "Forest alone?"
 
 	para "That takes guts!"
 	line "I like that. Come"
 	cont "train with us."
 	done
 
-CharcoalKilnApprenticeText1:
+CharcoalKilnApprentice:
+	checkevent EVENT_GOT_CHARCOAL_IN_CHARCOAL_KILN
+	iftrue_jumptextfaceplayer .Text3
+	checkevent EVENT_GOT_HM01_CUT
+	iffalse_jumptextfaceplayer .Text1
+	faceplayer
+	opentext
+	writetext .Text2
+	promptbutton
+	verbosegiveitem CHARCOAL
+	iffalse_endtext
+	setevent EVENT_GOT_CHARCOAL_IN_CHARCOAL_KILN
+	endtext
+
+.Text1:
 	text "Where have all the"
-	line "SLOWPOKE gone?"
+	line "Slowpoke gone?"
 
 	para "Are they out play-"
 	line "ing somewhere?"
 	done
 
-CharcoalKilnApprenticeText2:
+.Text2:
 	text "I'm sorry--I for-"
 	line "got to thank you."
 
-	para "This is CHARCOAL"
+	para "This is Charcoal"
 	line "that I made."
 
-	para "Fire-type #MON"
+	para "Fire-type #mon"
 	line "would be happy to"
 	cont "hold that."
 	done
 
-CharcoalKilnApprenticeText3:
-	text "The SLOWPOKE came"
+.Text3:
+	text "The Slowpoke came"
 	line "back, and you even"
-	cont "found FARFETCH'D."
+	cont "found Farfetch'd."
 
 	para "You're the cool-"
 	line "est, man!"
 	done
 
-FarfetchdText:
-	text "FARFETCH'D: Kwaa!"
+CharcoalKilnFarfetchdScript:
+	faceplayer
+	showcrytext .Text, FARFETCH_D
+	end
+
+.Text:
+	text "Farfetch'd: Kwaa!"
 	done
-
-CharcoalKiln_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2,  7, AZALEA_TOWN, 2
-	warp_event  3,  7, AZALEA_TOWN, 2
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  0,  1, BGEVENT_READ, CharcoalKilnBookshelf
-	bg_event  1,  1, BGEVENT_READ, CharcoalKilnBookshelf
-	bg_event  7,  1, BGEVENT_READ, CharcoalKilnRadio
-
-	def_object_events
-	object_event  2,  3, SPRITE_BLACK_BELT, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CharcoalKilnBoss, EVENT_CHARCOAL_KILN_BOSS
-	object_event  5,  3, SPRITE_YOUNGSTER, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, CharcoalKilnApprentice, EVENT_CHARCOAL_KILN_APPRENTICE
-	object_event  5,  6, SPRITE_MOLTRES, SPRITEMOVEDATA_POKEMON, 2, 2, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, CharcoalKilnFarfetchd, EVENT_CHARCOAL_KILN_FARFETCH_D

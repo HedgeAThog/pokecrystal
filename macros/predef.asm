@@ -1,17 +1,15 @@
-; Predef function calls
-
-MACRO lda_predef
-; Some functions load the predef id
-; without immediately calling Predef.
-	ld a, (\1Predef - PredefPointers) / 3
+MACRO add_predef
+\1Predef::
+	db LOW(\1), BANK(\1), HIGH(\1)
+	assert warn, BANK(\1) != 0, "Predef in ROM0 \1"
 ENDM
 
 MACRO predef
-	lda_predef \1
-	call Predef
+	rst Predef
+	db (\1Predef - PredefPointers) / 3
 ENDM
 
 MACRO predef_jump
-	lda_predef \1
-	jp Predef
+	rst Predef
+	db ((\1Predef - PredefPointers) / 3) | $80
 ENDM

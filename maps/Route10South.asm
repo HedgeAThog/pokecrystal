@@ -1,36 +1,48 @@
-	object_const_def
-	const ROUTE10SOUTH_POKEFAN_M1
-	const ROUTE10SOUTH_POKEFAN_M2
-
-Route10South_MapScripts:
+Route10South_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-TrainerHikerJim:
-	trainer HIKER, JIM, EVENT_BEAT_HIKER_JIM, HikerJimSeenText, HikerJimBeatenText, 0, .Script
+	def_warp_events
+	warp_event  6,  3, ROCK_TUNNEL_1F, 2
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext HikerJimAfterBattleText
-	waitbutton
-	closetext
-	end
+	def_coord_events
 
-TrainerPokefanmRobert:
-	trainer POKEFANM, ROBERT, EVENT_BEAT_POKEFANM_ROBERT, PokefanmRobertSeenText, PokefanmRobertBeatenText, 0, .Script
+	def_bg_events
+	bg_event  5,  5, BGEVENT_JUMPTEXT, Route10SignText
+	bg_event 16,  3, BGEVENT_ITEM + MAX_ETHER, EVENT_ROUTE_10_HIDDEN_MAX_ETHER
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext PokefanmRobertAfterBattleText
-	waitbutton
-	closetext
-	end
+	def_object_events
+	object_event 17,  5, SPRITE_HIKER, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerHikerJim, -1
+	object_event  4,  7, SPRITE_POKEFAN_M, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 4, GenericTrainerPokefanmRobert, -1
+	object_event  8, 12, SPRITE_HEX_MANIAC, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 4, GenericTrainerHexManiacAmy, -1
+	tmhmball_event  9,  7, TM_VOLT_SWITCH, EVENT_ROUTE_10_TM_VOLT_SWITCH
 
-Route10Sign:
-	jumptext Route10SignText
+GenericTrainerHikerJim:
+	generictrainer HIKER, JIM, EVENT_BEAT_HIKER_JIM, HikerJimSeenText, HikerJimBeatenText
+
+	text "Hay fever is"
+	line "making me sneeze!"
+	cont "Ahahah-CHOO!"
+	done
+
+GenericTrainerPokefanmRobert:
+	generictrainer POKEFANM, ROBERT, EVENT_BEAT_POKEFANM_ROBERT, PokefanmRobertSeenText, PokefanmRobertBeatenText
+
+	text "Look what you did"
+	line "to my #mon…"
+
+	para "I won't forget"
+	line "this…"
+	done
+
+GenericTrainerHexManiacAmy:
+	generictrainer HEX_MANIAC, AMY, EVENT_BEAT_HEX_MANIAC_AMY, HexManiacAmySeenText, HexManiacAmyBeatenText
+
+	text "A Hex Maniac is"
+	line "at peace among"
+	cont "the spirits…"
+	done
 
 HikerJimSeenText:
 	text "Hahahah!"
@@ -40,14 +52,8 @@ HikerJimBeatenText:
 	text "Hahaha-hachoo!"
 	done
 
-HikerJimAfterBattleText:
-	text "Hay fever is"
-	line "making me sneeze!"
-	cont "Ahahah-CHOO!"
-	done
-
 PokefanmRobertSeenText:
-	text "You like #MON,"
+	text "You like #mon,"
 	line "don't you?"
 
 	para "Me too!"
@@ -58,32 +64,22 @@ PokefanmRobertBeatenText:
 	line "that's my loss."
 	done
 
-PokefanmRobertAfterBattleText:
-	text "Look what you did"
-	line "to my #MON…"
+HexManiacAmySeenText:
+	text "Lavender Town…"
 
-	para "I won't forget"
-	line "this…"
+	para "Where the spirits"
+	line "of #mon sleep…"
+	done
+
+HexManiacAmyBeatenText:
+	text "Your #mon are"
+	line "overflowing with"
+	cont "vitality…"
 	done
 
 Route10SignText:
-	text "ROUTE 10"
+	text "Route 10"
 
-	para "CERULEAN CITY -"
-	line "LAVENDER TOWN"
+	para "Cerulean City -"
+	line "Lavender Town"
 	done
-
-Route10South_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  6,  1, ROCK_TUNNEL_1F, 2
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  5,  3, BGEVENT_READ, Route10Sign
-
-	def_object_events
-	object_event 17,  3, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_TRAINER, 3, TrainerHikerJim, -1
-	object_event  8, 10, SPRITE_POKEFAN_M, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 3, TrainerPokefanmRobert, -1

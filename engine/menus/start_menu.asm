@@ -11,7 +11,10 @@
 	const STARTMENUITEM_QUIT     ; 8
 
 StartMenu::
+
 	call ClearWindowData
+	call BackupSprites
+	call ClearSpritesUnderStartMenu
 
 	ld de, SFX_MENU
 	call PlaySFX
@@ -20,53 +23,46 @@ StartMenu::
 
 	ld hl, wStatusFlags2
 	bit STATUSFLAGS2_BUG_CONTEST_TIMER_F, [hl]
-	ld hl, .MenuHeader
+	ld hl, .MenuDataHeader
 	jr z, .GotMenuData
-	ld hl, .ContestMenuHeader
-
+	ld hl, .ContestMenuDataHeader
 .GotMenuData:
+
 	call LoadMenuHeader
 	call .SetUpMenuItems
-	ld a, [wBattleMenuCursorPosition]
-	ld [wMenuCursorPosition], a
-	call .DrawMenuAccount
+	ld a, [wBattleMenuCursorBuffer]
+	ld [wMenuCursorBuffer], a
 	call DrawVariableLengthMenuBox
 	call .DrawBugContestStatusBox
 	call SafeUpdateSprites
-	call HDMATransferTilemapAndAttrmap_Menu
+	call BGMapAnchorTopLeft
 	farcall LoadFonts_NoOAMUpdate
 	call .DrawBugContestStatus
 	call UpdateTimePals
 	jr .Select
 
 .Reopen:
+	call RestoreSprites
+	farcall LoadWeatherPal
+	call ClearSpritesUnderStartMenu
 	call UpdateSprites
 	call UpdateTimePals
 	call .SetUpMenuItems
-	ld a, [wBattleMenuCursorPosition]
-	ld [wMenuCursorPosition], a
+	ld a, [wBattleMenuCursorBuffer]
+	ld [wMenuCursorBuffer], a
 
 .Select:
 	call .GetInput
 	jr c, .Exit
-	call ._DrawMenuAccount
-	ld a, [wMenuCursorPosition]
-	ld [wBattleMenuCursorPosition], a
+	ld a, [wMenuCursorBuffer]
+	ld [wBattleMenuCursorBuffer], a
 	call PlayClickSFX
 	call PlaceHollowCursor
 	call .OpenMenu
 
 ; Menu items have different return functions.
 ; For example, saving exits the menu.
-	ld hl, .MenuReturns
-	ld e, a
-	ld d, 0
-	add hl, de
-	add hl, de
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	jp hl
+	call StackJumpTable
 
 .MenuReturns:
 	dw .Reopen
@@ -82,33 +78,30 @@ StartMenu::
 	push af
 	ld a, 1
 	ldh [hOAMUpdate], a
-	call LoadFontsExtra
+	call LoadFrame
+	call RestoreSprites
 	pop af
 	ldh [hOAMUpdate], a
 .ReturnEnd:
 	call ExitMenu
 .ReturnEnd2:
 	call CloseText
-	call UpdateTimePals
-	ret
+	jmp UpdateTimePals
 
 .GetInput:
 ; Return carry on exit, and no-carry on selection.
 	xor a
 	ldh [hBGMapMode], a
-	call ._DrawMenuAccount
 	call SetUpMenu
 	ld a, $ff
 	ld [wMenuSelection], a
 .loop
-	call .PrintMenuAccount
-	call GetScrollingMenuJoypad
+	call ReadMenuJoypad
 	ld a, [wMenuJoypad]
 	cp PAD_B
 	jr z, .b
 	cp PAD_A
-	jr z, .a
-	jr .loop
+	jr nz, .loop
 .a
 	call PlayClickSFX
 	and a
@@ -131,155 +124,88 @@ StartMenu::
 
 .ExitMenuCallFuncCloseText:
 	call ExitMenu
-	ld hl, wQueuedScriptAddr
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	ld a, [wQueuedScriptBank]
-	rst FarCall
+	ld hl, wQueuedScriptBank
+	call FarPointerCall
 	jr .ReturnEnd2
 
 .ReturnRedraw:
-	call .Clear
-	jp .Reopen
-
-.Clear:
+	farcall ClearSavedObjPals
+	farcall DisableDynPalUpdates
 	call ClearBGPalettes
-	call Call_ExitMenu
+	call ExitMenu
 	call ReloadTilesetAndPalettes
-	call .DrawMenuAccount
 	call DrawVariableLengthMenuBox
 	call .DrawBugContestStatus
 	call UpdateSprites
-	call GSReloadPalettes
 	call FinishExitMenu
-	ret
+	jmp .Reopen
 
-.MenuHeader:
-	db MENU_BACKUP_TILES ; flags
-	menu_coords 10, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1
+.MenuDataHeader:
+	db MENU_BACKUP_TILES
+	menu_coords 10, 0, 19, 17
 	dw .MenuData
 	db 1 ; default selection
 
-.ContestMenuHeader:
-	db MENU_BACKUP_TILES ; flags
-	menu_coords 10, 2, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1
+.ContestMenuDataHeader:
+	db MENU_BACKUP_TILES
+	menu_coords 10, 2, 19, 17
 	dw .MenuData
 	db 1 ; default selection
 
 .MenuData:
-	db STATICMENU_CURSOR | STATICMENU_WRAP | STATICMENU_ENABLE_START ; flags
+	db %10101000 ; x padding, wrap around, start can close
 	dn 0, 0 ; rows, columns
 	dw wMenuItemsList
 	dw .MenuString
 	dw .Items
 
 .Items:
-; entries correspond to STARTMENUITEM_* constants
-	dw StartMenu_Pokedex,  .PokedexString,  .PokedexDesc
-	dw StartMenu_Pokemon,  .PartyString,    .PartyDesc
-	dw StartMenu_Pack,     .PackString,     .PackDesc
-	dw StartMenu_Status,   .StatusString,   .StatusDesc
-	dw StartMenu_Save,     .SaveString,     .SaveDesc
-	dw StartMenu_Option,   .OptionString,   .OptionDesc
-	dw StartMenu_Exit,     .ExitString,     .ExitDesc
-	dw StartMenu_Pokegear, .PokegearString, .PokegearDesc
-	dw StartMenu_Quit,     .QuitString,     .QuitDesc
+	dw StartMenu_Pokedex,  .PokedexString
+	dw StartMenu_Pokemon,  .PartyString
+	dw StartMenu_Pack,     .PackString
+	dw StartMenu_Status,   .StatusString
+	dw StartMenu_Save,     .SaveString
+	dw StartMenu_Option,   .OptionString
+	dw StartMenu_Exit,     .ExitString
+	dw StartMenu_Pokegear, .PokegearString
+	dw StartMenu_Quit,     .QuitString
 
-.PokedexString:  db "#DEX@"
-.PartyString:    db "#MON@"
-.PackString:     db "PACK@"
+.PokedexString:  db "#dex@"
+.PartyString:    db "#mon@"
+.PackString:     db "Bag@"
 .StatusString:   db "<PLAYER>@"
-.SaveString:     db "SAVE@"
-.OptionString:   db "OPTION@"
-.ExitString:     db "EXIT@"
-.PokegearString: db "<POKE>GEAR@"
-.QuitString:     db "QUIT@"
-
-.PokedexDesc:
-	db   "#MON"
-	next "database@"
-
-.PartyDesc:
-	db   "Party <PKMN>"
-	next "status@"
-
-.PackDesc:
-	db   "Contains"
-	next "items@"
-
-.PokegearDesc:
-	db   "Trainer's"
-	next "key device@"
-
-.StatusDesc:
-	db   "Your own"
-	next "status@"
-
-.SaveDesc:
-	db   "Save your"
-	next "progress@"
-
-.OptionDesc:
-	db   "Change"
-	next "settings@"
-
-.ExitDesc:
-	db   "Close this"
-	next "menu@"
-
-.QuitDesc:
-	db   "Quit and"
-	next "be judged.@"
+.SaveString:     db "Save@"
+.OptionString:   db "Options@"
+.ExitString:     db "Exit@"
+.PokegearString: db "<PO><KE>gear@"
+.QuitString:     db "Quit@"
 
 .OpenMenu:
 	ld a, [wMenuSelection]
-	call .GetMenuAccountTextPointer
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	jp hl
+	call .GetMenuItemPointer
+	jmp IndirectHL
 
 .MenuString:
 	push de
 	ld a, [wMenuSelection]
-	call .GetMenuAccountTextPointer
+	call .GetMenuItemPointer
 	inc hl
 	inc hl
 	ld a, [hli]
 	ld d, [hl]
 	ld e, a
 	pop hl
-	call PlaceString
+	rst PlaceString
 	ret
 
-.MenuDesc:
-	push de
-	ld a, [wMenuSelection]
-	cp $ff
-	jr z, .none
-	call .GetMenuAccountTextPointer
-rept 4
-	inc hl
-endr
-	ld a, [hli]
-	ld d, [hl]
-	ld e, a
-	pop hl
-	call PlaceString
-	ret
-.none
-	pop de
-	ret
-
-.GetMenuAccountTextPointer:
+.GetMenuItemPointer:
 	ld e, a
 	ld d, 0
 	ld hl, wMenuDataPointerTableAddr
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-rept 6
+rept 4
 	add hl, de
 endr
 	ret
@@ -290,9 +216,9 @@ endr
 	call .FillMenuList
 
 	ld hl, wStatusFlags
-	bit STATUSFLAGS_POKEDEX_F, [hl]
+	bit 0, [hl]
 	jr z, .no_pokedex
-	ld a, STARTMENUITEM_POKEDEX
+	xor a ; STARTMENUITEM_POKEDEX
 	call .AppendMenuList
 .no_pokedex
 
@@ -349,7 +275,7 @@ endr
 	ld [hli], a
 	ld a, -1
 	ld bc, wMenuItemsListEnd - (wMenuItemsList + 1)
-	call ByteFill
+	rst ByteFill
 	ld de, wMenuItemsList + 1
 	ld c, 0
 	ret
@@ -360,58 +286,24 @@ endr
 	inc c
 	ret
 
-.DrawMenuAccount:
-	jp ._DrawMenuAccount
-
-.PrintMenuAccount:
-	call .IsMenuAccountOn
-	ret z
-	call ._DrawMenuAccount
-	decoord 0, 14
-	jp .MenuDesc
-
-._DrawMenuAccount:
-	call .IsMenuAccountOn
-	ret z
-	hlcoord 0, 13
-	lb bc, 5, 10
-	call ClearBox
-	hlcoord 0, 13
-	ld b, 3
-	ld c, 8
-	jp TextboxPalette
-
-.IsMenuAccountOn:
-	ld a, [wOptions2]
-	and 1 << MENU_ACCOUNT
-	ret
-
 .DrawBugContestStatusBox:
 	ld hl, wStatusFlags2
 	bit STATUSFLAGS2_BUG_CONTEST_TIMER_F, [hl]
 	ret z
-	farcall StartMenu_DrawBugContestStatusBox
-	ret
+	farjp StartMenu_DrawBugContestStatusBox
 
 .DrawBugContestStatus:
 	ld hl, wStatusFlags2
 	bit STATUSFLAGS2_BUG_CONTEST_TIMER_F, [hl]
-	jr nz, .contest
-	ret
-.contest
-	farcall StartMenu_PrintBugContestStatus
-	ret
+	ret z
+	farjp StartMenu_PrintBugContestStatus
 
 StartMenu_Exit:
-; Exit the menu.
-
 	ld a, 1
 	ret
 
 StartMenu_Quit:
-; Retire from the bug catching contest.
-
-	ld hl, .StartMenuContestEndText
+	ld hl, .EndTheContestText
 	call StartMenuYesNo
 	jr c, .DontEndContest
 	ld a, BANK(BugCatchingContestReturnToGateScript)
@@ -421,20 +313,19 @@ StartMenu_Quit:
 	ret
 
 .DontEndContest:
-	ld a, 0
+	xor a
 	ret
 
-.StartMenuContestEndText:
+.EndTheContestText:
 	text_far _StartMenuContestEndText
 	text_end
 
 StartMenu_Save:
-; Save the game.
-
+	call ClearSprites
 	call BufferScreen
 	farcall SaveMenu
 	jr nc, .saved
-	ld a, 0
+	xor a
 	ret
 
 .saved
@@ -442,53 +333,54 @@ StartMenu_Save:
 	ret
 
 StartMenu_Option:
-; Game options.
-
 	call FadeToMenu
-	farcall Option
+	farcall OptionsMenu
 	ld a, 6
 	ret
 
 StartMenu_Status:
-; Player status.
-
 	call FadeToMenu
 	farcall TrainerCard
 	call CloseSubmenu
-	ld a, 0
+	xor a
 	ret
 
 StartMenu_Pokedex:
 	ld a, [wPartyCount]
 	and a
 	jr z, .empty
-
 	call FadeToMenu
 	farcall Pokedex
 	call CloseSubmenu
-
 .empty
-	ld a, 0
+	xor a
 	ret
 
 StartMenu_Pokegear:
 	call FadeToMenu
+	farcall InitPokegearPalettes
 	farcall PokeGear
+	ld a, [wDefaultSpawnpoint]
+	and a
+	jr nz, _ExitStartMenuAndDoScript
 	call CloseSubmenu
-	ld a, 0
+	call ApplyTilemapInVBlank
+	call SetDefaultBGPAndOBP
+	call DelayFrame
+	xor a
 	ret
 
 StartMenu_Pack:
 	call FadeToMenu
-	farcall Pack
+	call Pack
 	ld a, [wPackUsedItem]
 	and a
-	jr nz, .used_item
+	jr nz, _ExitStartMenuAndDoScript
 	call CloseSubmenu
-	ld a, 0
+	xor a
 	ret
 
-.used_item
+_ExitStartMenuAndDoScript:
 	call ExitAllMenus
 	ld a, 4
 	ret
@@ -497,41 +389,47 @@ StartMenu_Pokemon:
 	ld a, [wPartyCount]
 	and a
 	jr z, .return
-
 	call FadeToMenu
-
 .choosemenu
 	xor a
 	ld [wPartyMenuActionText], a ; Choose a POKéMON.
 	call ClearBGPalettes
-
 .menu
 	farcall LoadPartyMenuGFX
 	farcall InitPartyMenuWithCancel
 	farcall InitPartyMenuGFX
-
 .menunoreload
+	ld a, PAD_A | PAD_B | PAD_SELECT
+	ld [wMenuJoypadFilter], a
 	farcall WritePartyMenuTilemap
 	farcall PlacePartyMenuText
-	call WaitBGMap
-	call SetDefaultBGPAndOBP
+	call ApplyTilemapInVBlank
+	call SetDefaultBGPAndOBP ; load regular palettes?
 	call DelayFrame
 	farcall PartyMenuSelect
 	jr c, .return ; if cancelled or pressed B
-
+	ldh a, [hJoyLast]
+	and PAD_SELECT
+	jr z, .not_switch
+	call SwitchPartyMons
+	jr .after_action
+.not_switch
 	call PokemonActionSubmenu
-	cp 3
-	jr z, .menu
-	cp 0
+.after_action
+	push af
+	call SFXDelay2
+	pop af
+	and a ; 0?
 	jr z, .choosemenu
-	cp 1
+	dec a ; 1?
 	jr z, .menunoreload
-	cp 2
+	dec a ; 2?
 	jr z, .quit
-
+	dec a ; 3?
+	jr z, .menu
 .return
 	call CloseSubmenu
-	ld a, 0
+	xor a
 	ret
 
 .quit
@@ -540,3 +438,36 @@ StartMenu_Pokemon:
 	call ExitAllMenus
 	pop af
 	ret
+
+ClearSpritesUnderStartMenu:
+	ld de, wShadowOAMSprite00XCoord
+	ld h, d
+	ld l, e
+	ld c, OAM_COUNT
+.loop
+	; Check if XCoord >= 10 * TILE_WIDTH,
+	; which is the starting x-coord of the start menu.
+	ld a, [hl]
+	cp 10 * TILE_WIDTH
+	jr nc, .clear_sprite
+; fallthrough
+.next
+	ld hl, OBJ_SIZE
+	add hl, de
+	ld e, l
+	dec c
+	jr nz, .loop
+	ldh a, [hOAMUpdate]
+	push af
+	ld a, TRUE
+	ldh [hOAMUpdate], a
+	call DelayFrame
+	pop af
+	ldh [hOAMUpdate], a
+	ret
+
+.clear_sprite
+	dec l
+	ld [hl], OAM_YCOORD_HIDDEN
+	inc l
+	jr .next

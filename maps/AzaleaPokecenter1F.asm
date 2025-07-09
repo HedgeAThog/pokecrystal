@@ -1,62 +1,99 @@
-	object_const_def
-	const AZALEAPOKECENTER1F_NURSE
-	const AZALEAPOKECENTER1F_GENTLEMAN
-	const AZALEAPOKECENTER1F_FISHING_GURU
-	const AZALEAPOKECENTER1F_POKEFAN_F
-
-AzaleaPokecenter1F_MapScripts:
+AzaleaPokeCenter1F_MapScriptHeader:
 	def_scene_scripts
-	scene_script AzaleaPokecenter1FNoopScene ; unusable
 
 	def_callbacks
 
-AzaleaPokecenter1FNoopScene:
-	end
+	def_warp_events
+	warp_event  5,  7, AZALEA_TOWN, 1
+	warp_event  6,  7, AZALEA_TOWN, 1
+	warp_event  0,  7, POKECENTER_2F, 1
 
-AzaleaPokecenter1FNurseScript:
-	jumpstd PokecenterNurseScript
+	def_coord_events
 
-AzaleaPokecenter1FGentlemanScript:
-	jumptextfaceplayer AzaleaPokecenter1FGentlemanText
+	def_bg_events
+	bg_event 10,  1, BGEVENT_READ, PokemonJournalBugsyScript
 
-AzaleaPokecenter1FFishingGuruScript:
-	jumptextfaceplayer AzaleaPokecenter1FFishingGuruText
+	def_object_events
+	pc_nurse_event  5, 1
+	object_event  8,  4, SPRITE_ACE_TRAINER_M, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaPokeCenter1FCooltrainermScript, -1
+	object_event 11,  6, SPRITE_GENTLEMAN, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, AzaleaPokeCenter1FGentlemanText, -1
+	object_event  8,  1, SPRITE_SIGHTSEER_M, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_COMMAND, jumptextfaceplayer, AzaleaPokeCenter1FSightseermText, -1
+	object_event  2,  5, SPRITE_MATRON, SPRITEMOVEDATA_WANDER, 2, 1, -1, PAL_NPC_BROWN, OBJECTTYPE_COMMAND, jumptextfaceplayer, AzaleaPokeCenter1FPokefanfText, -1
 
-AzaleaPokecenter1FPokefanFScript:
-	jumptextfaceplayer AzaleaPokecenter1FPokefanFText
+PokemonJournalBugsyScript:
+	setflag ENGINE_READ_BUGSY_JOURNAL
+	jumpthistext
 
-AzaleaPokecenter1FGentlemanText:
-	text "Do your #MON"
+	text "#mon Journal"
+
+	para "Special Feature:"
+	line "Leader Bugsy!"
+
+	para "Bugsy is reported"
+	line "to have won the"
+
+	para "Bug-Catching Con-"
+	line "test so often that"
+
+	para "he no longer par-"
+	line "ticipates."
+	done
+
+AzaleaPokeCenter1FCooltrainermScript:
+	checktime (1 << EVE) | (1 << NITE)
+	iftrue_jumptextfaceplayer .NiteText
+	jumpthistextfaceplayer
+
+	text "For a guy who"
+	line "makes # Balls,"
+
+	para "Kurt isn't much of"
+	line "a trainer."
+
+	para "He does have a"
+	line "#mon, but he"
+
+	para "doesn't use it"
+	line "much."
+	done
+
+.NiteText:
+	text "Kurt and Prof.Oak"
+	line "are old friends."
+
+	para "They're also close"
+	line "with Agatha, a"
+
+	para "former member of"
+	line "the Elite Four."
+	done
+
+AzaleaPokeCenter1FGentlemanText:
+	text "Do your #mon"
 	line "know HM moves?"
 
 	para "Those moves can"
 	line "be used even if"
 
-	para "your #MON has"
+	para "your #mon has"
 	line "fainted."
 	done
 
-AzaleaPokecenter1FUnusedText: ; unreferenced
-	text "This BILL guy"
+AzaleaPokeCenter1FSightseermText:
+	text "This Bill guy"
 	line "created the system"
 
 	para "for storing"
-	line "#MON in a PC."
+	line "#mon in a PC."
 
-	para "BILL's PC can"
+	para "Bill's PC can"
 	line "store up to 20"
-	cont "#MON per BOX."
+	cont "#mon per Box."
 	done
 
-AzaleaPokecenter1FFishingGuruText:
-	text "BILL's PC can"
-	line "store up to 20"
-	cont "#MON per BOX."
-	done
-
-AzaleaPokecenter1FPokefanFText:
+AzaleaPokeCenter1FPokefanfText:
 	text "Do you know about"
-	line "APRICORNS?"
+	line "Apricorns?"
 
 	para "Crack one open,"
 	line "hollow it out and"
@@ -65,29 +102,11 @@ AzaleaPokecenter1FPokefanFText:
 	line "special device."
 
 	para "Then you can catch"
-	line "#MON with it."
+	line "#mon with it."
 
-	para "Before # BALLS"
+	para "Before # Balls"
 	line "were invented,"
 
 	para "everyone used"
-	line "APRICORNS."
+	line "Apricorns."
 	done
-
-AzaleaPokecenter1F_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  3,  7, AZALEA_TOWN, 1
-	warp_event  4,  7, AZALEA_TOWN, 1
-	warp_event  0,  7, POKECENTER_2F, 1
-
-	def_coord_events
-
-	def_bg_events
-
-	def_object_events
-	object_event  3,  1, SPRITE_NURSE, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaPokecenter1FNurseScript, -1
-	object_event  9,  6, SPRITE_GENTLEMAN, SPRITEMOVEDATA_WALK_UP_DOWN, 0, 1, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaPokecenter1FGentlemanScript, -1
-	object_event  6,  1, SPRITE_FISHING_GURU, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaPokecenter1FFishingGuruScript, -1
-	object_event  1,  4, SPRITE_POKEFAN_F, SPRITEMOVEDATA_WANDER, 1, 2, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, AzaleaPokecenter1FPokefanFScript, -1

@@ -19,9 +19,6 @@ DEF NUM_MAPSETUP_SCRIPTS EQU const_value - $f1
 	const_def 1
 	const MAPCALLBACK_TILES
 	const MAPCALLBACK_OBJECTS
-	const MAPCALLBACK_CMDQUEUE
-	const MAPCALLBACK_SPRITES
+	const MAPCALLBACK_STONETABLE
+	const_skip ; unused
 	const MAPCALLBACK_NEWMAP
-
-; see data/maps/setup_script_pointers.asm
-DEF MAPSETUPSCRIPT_HAS_PARAM_F EQU 7

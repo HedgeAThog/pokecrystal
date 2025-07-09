@@ -1,71 +1,71 @@
 TiffanyAnswerPhoneText:
 	text "Yes? This is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 
-	para "Oh, <PLAY_G>."
+	para "Oh, <PLAYER>."
 	line "Good morning."
 	done
 
 TiffanyAnswerPhoneDayText:
 	text "Yes? This is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 
-	para "Oh, <PLAY_G>."
+	para "Oh, <PLAYER>."
 	line "Hello."
 	done
 
 TiffanyAnswerPhoneNiteText:
 	text "Yes? This is"
-	line "@"
+	line ""
 	text_ram wStringBuffer3
 	text "."
 
-	para "Oh, <PLAY_G>, good"
+	para "Oh, <PLAYER>, good"
 	line "evening."
 	done
 
 TiffanyGreetText:
-	text "Is this <PLAY_G>?"
+	text "Is this <PLAYER>?"
 
 	para "Good morning. This"
-	line "is @"
+	line "is "
 	text_ram wStringBuffer3
 	text "."
 	done
 
 TiffanyGreetDayText:
-	text "Is this <PLAY_G>?"
+	text "Is this <PLAYER>?"
 
-	para "Hi, it's @"
+	para "Hi, it's "
 	text_ram wStringBuffer3
 	text "."
 	done
 
 TiffanyGreetNiteText:
-	text "Is this <PLAY_G>?"
+	text "Is this <PLAYER>?"
 
 	para "Good evening. This"
-	line "is @"
+	line "is "
 	text_ram wStringBuffer3
 	text "."
 	done
 
 TiffanyGenericText:
-	text "Are your #MON"
+	text "Are your #mon"
 	line "doing well?"
 
 	para "I hope you take"
-	line "them to a #MON"
-	cont "CENTER every day."
+	line "them to a #mon"
+	cont "Center every day."
 
 	para "Don't push them"
 	line "too hard."
 
-	para "My @"
+	para "My "
 	text_ram wStringBuffer4
 	text " is"
 	line "cute and lively"
@@ -73,6 +73,6 @@ TiffanyGenericText:
 	para "precisely because"
 	line "I take it to a"
 
-	para "#MON CENTER"
+	para "#mon Center"
 	line "every day."
 	done

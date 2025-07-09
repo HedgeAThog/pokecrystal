@@ -1,59 +1,63 @@
-	object_const_def
-	const GOLDENRODBIKESHOP_CLERK
-
-GoldenrodBikeShop_MapScripts:
+GoldenrodBikeShop_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-GoldenrodBikeShopNoopScene: ; unreferenced
-	end
+	def_warp_events
+	warp_event  2,  7, GOLDENROD_CITY, 2
+	warp_event  3,  7, GOLDENROD_CITY, 2
+
+	def_coord_events
+
+	def_bg_events
+	bg_event  1,  2, BGEVENT_JUMPTEXT, GoldenrodBikeShopBicycleText
+	bg_event  0,  3, BGEVENT_JUMPTEXT, GoldenrodBikeShopBicycleText
+	bg_event  1,  3, BGEVENT_JUMPTEXT, GoldenrodBikeShopBicycleText
+	bg_event  0,  5, BGEVENT_JUMPTEXT, GoldenrodBikeShopBicycleText
+	bg_event  1,  5, BGEVENT_JUMPTEXT, GoldenrodBikeShopBicycleText
+	bg_event  0,  6, BGEVENT_JUMPTEXT, GoldenrodBikeShopBicycleText
+	bg_event  1,  6, BGEVENT_JUMPTEXT, GoldenrodBikeShopBicycleText
+	bg_event  6,  6, BGEVENT_JUMPTEXT, GoldenrodBikeShopBicycleText
+	bg_event  7,  6, BGEVENT_JUMPTEXT, GoldenrodBikeShopBicycleText
+	bg_event  3,  0, BGEVENT_JUMPTEXT, GoldenrodBikeShopJustReleasedCompactBikeText
+
+	def_object_events
+	object_event  7,  2, SPRITE_CLERK, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, GoldenrodBikeShopClerkScript, -1
 
 GoldenrodBikeShopClerkScript:
+	checkevent EVENT_GOT_BICYCLE
+	iftrue_jumptextfaceplayer GoldenrodBikeShopClerkFirstRateBikesText
 	faceplayer
 	opentext
-	checkevent EVENT_GOT_BICYCLE
-	iftrue .GotBicycle
 	writetext GoldenrodBikeShopClerkIntroText
 	yesorno
-	iffalse .Refused
+	iffalse_jumpopenedtext GoldenrodBikeShopClerkRefusedText
 	writetext GoldenrodBikeShopClerkAgreedText
 	promptbutton
 	waitsfx
-	giveitem BICYCLE
-	writetext BorrowedABicycleText
-	playsound SFX_KEY_ITEM
-	waitsfx
-	itemnotify
+	verbosegivekeyitem BICYCLE
 	setflag ENGINE_BIKE_SHOP_CALL_ENABLED
 	setevent EVENT_GOT_BICYCLE
-.GotBicycle:
-	writetext GoldenrodBikeShopClerkFirstRateBikesText
-	waitbutton
-	closetext
-	end
+	jumpthisopenedtext
 
-.Refused:
-	writetext GoldenrodBikeShopClerkRefusedText
-	waitbutton
-	closetext
-	end
+GoldenrodBikeShopClerkFirstRateBikesText:
+	text "My Bicycles are"
+	line "first-rate! You"
 
-GoldenrodBikeShopJustReleasedCompactBike: ; unreferenced
-	jumptext GoldenrodBikeShopJustReleasedCompactBikeText
-
-GoldenrodBikeShopBicycle:
-	jumptext GoldenrodBikeShopBicycleText
+	para "can ride them"
+	line "anywhere."
+	done
 
 GoldenrodBikeShopClerkIntroText:
-	text "…sigh… I moved"
-	line "here, but I can't"
+	text "…sigh… I opened"
+	line "a branch here,"
 
-	para "sell my BICYCLES."
-	line "Why is that?"
+	para "but I can't sell"
+	line "my Bicycles."
+	cont "Why is that?"
 
 	para "Could you ride a"
-	line "BICYCLE and adver-"
+	line "Bicycle and adver-"
 	cont "tise for me?"
 	done
 
@@ -64,20 +68,7 @@ GoldenrodBikeShopClerkAgreedText:
 	line "and phone number,"
 
 	para "and I'll loan you"
-	line "a BICYCLE."
-	done
-
-BorrowedABicycleText:
-	text "<PLAYER> borrowed a"
-	line "BICYCLE."
-	done
-
-GoldenrodBikeShopClerkFirstRateBikesText:
-	text "My BICYCLES are"
-	line "first-rate! You"
-
-	para "can ride them"
-	line "anywhere."
+	line "a Bicycle."
 	done
 
 GoldenrodBikeShopClerkRefusedText:
@@ -86,37 +77,14 @@ GoldenrodBikeShopClerkRefusedText:
 	cont "people…"
 	done
 
+GoldenrodBikeShopBicycleText:
+	text "It's a shiny new"
+	line "Bicycle!"
+	done
+
 GoldenrodBikeShopJustReleasedCompactBikeText:
 	text "Just released!"
 
 	para "First-rate compact"
-	line "BICYCLES!"
+	line "Bicycles!"
 	done
-
-GoldenrodBikeShopBicycleText:
-	text "It's a shiny new"
-	line "BICYCLE!"
-	done
-
-GoldenrodBikeShop_MapEvents:
-	db 0, 0 ; filler
-
-	def_warp_events
-	warp_event  2,  7, GOLDENROD_CITY, 2
-	warp_event  3,  7, GOLDENROD_CITY, 2
-
-	def_coord_events
-
-	def_bg_events
-	bg_event  1,  2, BGEVENT_READ, GoldenrodBikeShopBicycle
-	bg_event  0,  3, BGEVENT_READ, GoldenrodBikeShopBicycle
-	bg_event  1,  3, BGEVENT_READ, GoldenrodBikeShopBicycle
-	bg_event  0,  5, BGEVENT_READ, GoldenrodBikeShopBicycle
-	bg_event  1,  5, BGEVENT_READ, GoldenrodBikeShopBicycle
-	bg_event  0,  6, BGEVENT_READ, GoldenrodBikeShopBicycle
-	bg_event  1,  6, BGEVENT_READ, GoldenrodBikeShopBicycle
-	bg_event  6,  6, BGEVENT_READ, GoldenrodBikeShopBicycle
-	bg_event  7,  6, BGEVENT_READ, GoldenrodBikeShopBicycle
-
-	def_object_events
-	object_event  7,  2, SPRITE_CLERK, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, GoldenrodBikeShopClerkScript, -1

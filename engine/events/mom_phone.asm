@@ -1,12 +1,6 @@
-; Constants for momitem offsets (see data/items/mom_phone.asm)
-rsreset
-DEF MOMITEM_TRIGGER rb 3 ; 0
-DEF MOMITEM_COST    rb 3 ; 3
-DEF MOMITEM_KIND    rb   ; 6
-DEF MOMITEM_ITEM    rb   ; 7
-DEF MOMITEM_SIZE EQU _RS ; 8
+DEF NUM_MOM_ITEMS_1 EQUS "((MomItems_1.End - MomItems_1) / 8)"
+DEF NUM_MOM_ITEMS_2 EQUS "((MomItems_2.End - MomItems_2) / 8)"
 
-; momitem kind values
 	const_def 1
 	const MOM_ITEM
 	const MOM_DOLL
@@ -48,8 +42,8 @@ MomTriesToBuySomething::
 	ld bc, wCallerContact
 	ld hl, PHONE_CONTACT_TRAINER_CLASS
 	add hl, bc
-	ld [hl], TRAINER_NONE
-	inc hl
+	xor a ; TRAINER_NONE
+	ld [hli], a
 	ld [hl], PHONE_MOM
 	ld hl, PHONE_CONTACT_SCRIPT2_BANK
 	add hl, bc
@@ -63,10 +57,9 @@ MomTriesToBuySomething::
 
 CheckBalance_MomItem2:
 	ld a, [wWhichMomItem]
-	cp (MomItems_2.End - MomItems_2) / MOMITEM_SIZE
-	jr nc, .nope
+	cp NUM_MOM_ITEMS_2
+	jr nc, .check_have_2300
 	call GetItemFromMom
-	assert MOMITEM_TRIGGER == 0
 	ld a, [hli]
 	ldh [hMoneyTemp], a
 	ld a, [hli]
@@ -76,21 +69,17 @@ CheckBalance_MomItem2:
 	ld de, wMomsMoney
 	ld bc, hMoneyTemp
 	farcall CompareMoney
-	jr nc, .have_enough_money
-
-.nope
-	jr .check_have_2300
-
-.have_enough_money
+	jr c, .check_have_2300
 	scf
 	ret
 
 .check_have_2300
 	ld hl, hMoneyTemp
-	ld [hl], HIGH(MOM_MONEY >> 8)
-	inc hl
-	ld [hl], HIGH(MOM_MONEY) ; mid
-	inc hl
+	xor a
+	assert MOM_MONEY < $10000
+	ld [hli], a
+	ld a, HIGH(MOM_MONEY)
+	ld [hli], a
 	ld [hl], LOW(MOM_MONEY)
 .loop
 	ld de, wMomItemTriggerBalance
@@ -107,7 +96,7 @@ CheckBalance_MomItem2:
 
 .exact
 	call .AddMoney
-	ld a, (MomItems_1.End - MomItems_1) / MOMITEM_SIZE
+	ld a, NUM_MOM_ITEMS_1
 	call RandomRange
 	inc a
 	ld [wWhichMomItemSet], a
@@ -117,12 +106,11 @@ CheckBalance_MomItem2:
 .AddMoney:
 	ld de, wMomItemTriggerBalance
 	ld bc, hMoneyTemp
-	farcall AddMoney
-	ret
+	farjp AddMoney
 
 MomBuysItem_DeductFunds:
 	call GetItemFromMom
-	ld de, MOMITEM_COST
+	ld de, 3 ; cost
 	add hl, de
 	ld a, [hli]
 	ldh [hMoneyTemp], a
@@ -132,17 +120,15 @@ MomBuysItem_DeductFunds:
 	ldh [hMoneyTemp + 2], a
 	ld de, wMomsMoney
 	ld bc, hMoneyTemp
-	farcall TakeMoney
-	ret
+	farjp TakeMoney
 
 Mom_GiveItemOrDoll:
 	call GetItemFromMom
-	ld de, MOMITEM_KIND
+	ld de, 6 ; item type
 	add hl, de
 	ld a, [hli]
 	cp MOM_ITEM
 	jr z, .not_doll
-	assert MOMITEM_KIND + 1 == MOMITEM_ITEM
 	ld a, [hl]
 	ld c, a
 	ld b, 1
@@ -154,14 +140,13 @@ Mom_GiveItemOrDoll:
 	ld a, [hl]
 	ld [wCurItem], a
 	ld a, 1
-	ld [wItemQuantityChange], a
+	ld [wItemQuantityChangeBuffer], a
 	ld hl, wNumPCItems
-	call ReceiveItem
-	ret
+	jmp ReceiveItem
 
 Mom_GetScriptPointer:
 	call GetItemFromMom
-	ld de, MOMITEM_KIND
+	ld de, 6 ; item type
 	add hl, de
 	ld a, [hli]
 	ld de, .ItemScript
@@ -171,17 +156,17 @@ Mom_GetScriptPointer:
 	ret
 
 .ItemScript:
-	writetext MomHiHowAreYouText
-	writetext MomFoundAnItemText
-	writetext MomBoughtWithYourMoneyText
-	writetext MomItsInPCText
+	farwritetext _MomHiHowAreYouText
+	farwritetext _MomFoundAnItemText
+	farwritetext _MomBoughtWithYourMoneyText
+	farwritetext _MomItsInPCText
 	end
 
 .DollScript:
-	writetext MomHiHowAreYouText
-	writetext MomFoundADollText
-	writetext MomBoughtWithYourMoneyText
-	writetext MomItsInYourRoomText
+	farwritetext _MomHiHowAreYouText
+	farwritetext _MomFoundADollText
+	farwritetext _MomBoughtWithYourMoneyText
+	farwritetext _MomItsInYourRoomText
 	end
 
 GetItemFromMom:
@@ -194,7 +179,7 @@ GetItemFromMom:
 
 .zero
 	ld a, [wWhichMomItem]
-	cp (MomItems_2.End - MomItems_2) / MOMITEM_SIZE
+	cp NUM_MOM_ITEMS_2
 	jr c, .ok
 	xor a
 
@@ -204,44 +189,10 @@ GetItemFromMom:
 .GetFromList1:
 	ld l, a
 	ld h, 0
-	assert MOMITEM_SIZE == 8
-rept 3 ; multiply hl by MOMITEM_SIZE
+rept 3 ; multiply hl by 8
 	add hl, hl
 endr
 	add hl, de
 	ret
 
 INCLUDE "data/items/mom_phone.asm"
-
-MomHiHowAreYouText:
-	text_far _MomHiHowAreYouText
-	text_end
-
-MomFoundAnItemText:
-	text_far _MomFoundAnItemText
-	text_end
-
-MomBoughtWithYourMoneyText:
-	text_far _MomBoughtWithYourMoneyText
-	text_end
-
-MomItsInPCText:
-	text_far _MomItsInPCText
-	text_end
-
-MomFoundADollText:
-	text_far _MomFoundADollText
-	text_end
-
-MomItsInYourRoomText:
-	text_far _MomItsInYourRoomText
-	text_end
-
-DummyPredef3A_DummyData: ; unreferenced
-	db 0
-
-DummyPredef3A:
-	ret
-
-DummyPredef3A_DummyFunction: ; unreferenced
-	ret

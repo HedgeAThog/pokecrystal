@@ -1,69 +1,55 @@
-	object_const_def
-	const ROUTE6_POKEFAN_M1
-	const ROUTE6_POKEFAN_M2
-	const ROUTE6_POKEFAN_M3
-
-Route6_MapScripts:
+Route6_MapScriptHeader:
 	def_scene_scripts
 
 	def_callbacks
 
-TrainerPokefanmRex:
-	trainer POKEFANM, REX, EVENT_BEAT_POKEFANM_REX, PokefanmRexSeenText, PokefanmRexBeatenText, 0, .Script
+	def_warp_events
+	warp_event 21,  9, ROUTE_6_UNDERGROUND_ENTRANCE, 1
+	warp_event 10,  1, ROUTE_6_SAFFRON_GATE, 3
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext PokefanmRexAfterBattleText
-	waitbutton
-	closetext
-	end
+	def_coord_events
 
-TrainerPokefanmAllan:
-	trainer POKEFANM, ALLAN, EVENT_BEAT_POKEFANM_ALLAN, PokefanmAllanSeenText, PokefanmAllanBeatenText, 0, .Script
+	def_bg_events
+	bg_event 23, 11, BGEVENT_JUMPTEXT, Route6UndergroundPathSignText
+	bg_event  7,  9, BGEVENT_JUMPTEXT, Route6AdvancedTipsSignText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext PokefanmAllanAfterBattleText
-	waitbutton
-	closetext
-	end
+	def_object_events
+	object_event 21, 10, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, PAL_NPC_BROWN, OBJECTTYPE_COMMAND, jumptextfaceplayer, Route6PokefanMText, EVENT_ROUTE_5_6_POKEFAN_M_BLOCKS_UNDERGROUND_PATH
+	object_event 13, 24, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 0, GenericTrainerPokefanmRex, -1
+	object_event 14, 24, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 0, GenericTrainerPokefanmAllan, -1
+	object_event 16, 17, SPRITE_TWIN, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerTwinsDayanddani1, -1
+	object_event 17, 17, SPRITE_TWIN, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerTwinsDayanddani2, -1
+	object_event 20, 27, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 3, GenericTrainerYoungsterChaz, -1
+	object_event 12, 13, SPRITE_BATTLE_GIRL, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_GENERICTRAINER, 4, GenericTrainerGuitaristfWanda, -1
+	object_event 21, 19, SPRITE_OFFICER_F, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_SCRIPT, 1, OfficerfJennyScript, -1
+	fruittree_event 17,  5, FRUITTREE_ROUTE_6, STARF_BERRY, PAL_NPC_GREEN
 
-Route6PokefanMScript:
-	jumptextfaceplayer Route6PokefanMText
+GenericTrainerPokefanmRex:
+	generictrainer POKEFANM, REX, EVENT_BEAT_POKEFANM_REX, PokefanmRexSeenText, PokefanmRexBeatenText
 
-Route6UndergroundPathSign:
-	jumptext Route6UndergroundPathSignText
+	text "Look how adorable"
+	line "my Phanpy acts!"
 
-Route6PokefanMText:
-	text "The road is closed"
-	line "until the problem"
-
-	para "at the POWER PLANT"
-	line "is solved."
-	done
-
-Route6UndergroundPathSignText:
-	text "UNDERGROUND PATH"
-
-	para "CERULEAN CITY -"
-	line "VERMILION CITY"
+	para "Isn't it cute"
+	line "enough to make"
+	cont "your heart melt?"
 	done
 
 PokefanmRexSeenText:
-	text "My PHANPY is the"
+	text "My Phanpy is the"
 	line "cutest in the"
 	cont "world."
 	done
 
 PokefanmRexBeatenText:
-	text "My PHANPY!"
+	text "My Phanpy!"
 	done
 
-PokefanmRexAfterBattleText:
+GenericTrainerPokefanmAllan:
+	generictrainer POKEFANM, ALLAN, EVENT_BEAT_POKEFANM_ALLAN, PokefanmAllanSeenText, PokefanmAllanBeatenText
+
 	text "Look how adorable"
-	line "my PHANPY acts!"
+	line "my Teddiursa acts!"
 
 	para "Isn't it cute"
 	line "enough to make"
@@ -71,37 +57,156 @@ PokefanmRexAfterBattleText:
 	done
 
 PokefanmAllanSeenText:
-	text "My TEDDIURSA is"
+	text "My Teddiursa is"
 	line "the cutest in the"
 	cont "world."
 	done
 
 PokefanmAllanBeatenText:
-	text "My TEDDIURSA!"
+	text "My Teddiursa!"
 	done
 
-PokefanmAllanAfterBattleText:
-	text "Look how adorable"
-	line "my TEDDIURSA acts!"
+GenericTrainerTwinsDayanddani1:
+	generictrainer TWINS, DAYANDDANI1, EVENT_BEAT_TWINS_DAY_AND_DANI, TwinsDayanddani1SeenText, TwinsDayanddani1BeatenText
 
-	para "Isn't it cute"
-	line "enough to make"
-	cont "your heart melt?"
+	text "Day: You beat us…"
 	done
 
-Route6_MapEvents:
-	db 0, 0 ; filler
+TwinsDayanddani1SeenText:
+	text "Day: Are you going"
+	line "to beat us?"
+	done
 
-	def_warp_events
-	warp_event 17,  3, ROUTE_6_UNDERGROUND_PATH_ENTRANCE, 1
-	warp_event  6,  1, ROUTE_6_SAFFRON_GATE, 3
+TwinsDayanddani1BeatenText:
+	text "Day: Waah!"
+	done
 
-	def_coord_events
+GenericTrainerTwinsDayanddani2:
+	generictrainer TWINS, DAYANDDANI2, EVENT_BEAT_TWINS_DAY_AND_DANI, TwinsDayanddani2SeenText, TwinsDayanddani2BeatenText
 
-	def_bg_events
-	bg_event 19,  5, BGEVENT_READ, Route6UndergroundPathSign
+	text "Dani: Looks like"
+	line "we got bounced."
+	done
 
-	def_object_events
-	object_event 17,  4, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 2, Route6PokefanMScript, EVENT_ROUTE_5_6_POKEFAN_M_BLOCKS_UNDERGROUND_PATH
-	object_event  9, 12, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 0, TrainerPokefanmRex, -1
-	object_event 10, 12, SPRITE_POKEFAN_M, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_TRAINER, 0, TrainerPokefanmAllan, -1
+TwinsDayanddani2SeenText:
+	text "Dani: We'll knock"
+	line "you flat!"
+	done
+
+TwinsDayanddani2BeatenText:
+	text "Dani: Eeeeh!"
+	done
+
+GenericTrainerYoungsterChaz:
+	generictrainer YOUNGSTER, CHAZ, EVENT_BEAT_YOUNGSTER_CHAZ, .SeenText, .BeatenText
+
+	text "Me and my big"
+	line "mouth…"
+	done
+
+.SeenText:
+	text "Do I see a strong"
+	line "trainer?"
+
+	para "Nope, there's only"
+	line "trash here!"
+	done
+
+.BeatenText:
+	text "The trash was me…"
+	done
+
+GenericTrainerGuitaristfWanda:
+	generictrainer GUITARISTF, WANDA, EVENT_BEAT_GUITARISTF_WANDA, .SeenText, .BeatenText
+
+	text "Just move along…"
+	done
+
+.SeenText:
+	text "You'd better"
+	line "scatter and run!"
+	done
+
+.BeatenText:
+	text "The battle's lost"
+	line "and not won…"
+	done
+
+OfficerfJennyScript:
+	checktime 1 << NITE
+	iffalse_jumptextfaceplayer .DaytimeText
+	checkevent EVENT_BEAT_OFFICERF_JENNY
+	iftrue_jumptextfaceplayer .AfterText
+	faceplayer
+	opentext
+	special SaveMusic
+	playmusic MUSIC_OFFICER_ENCOUNTER
+	writetext .SeenText
+	waitbutton
+	closetext
+	winlosstext .BeatenText, 0
+	loadtrainer OFFICERF, JENNY
+	startbattle
+	reloadmapafterbattle
+	setevent EVENT_BEAT_OFFICERF_JENNY
+	endtext
+
+.DaytimeText:
+	text "Us Officers are"
+	line "here to keep the"
+	cont "peace."
+	done
+
+.SeenText:
+	text "You don't look"
+	line "familiar."
+
+	para "Squirtle Squad,"
+	line "attack!"
+	done
+
+.BeatenText:
+	text "Squirtle Squad,"
+	line "retreat…"
+	done
+
+.AfterText:
+	text "Sorry to bother"
+	line "you, kid."
+
+	para "I get jumpy at"
+	line "night."
+	done
+
+Route6PokefanMText:
+	text "The road is closed"
+	line "until the problem"
+
+	para "at the Power Plant"
+	line "is solved."
+	done
+
+Route6UndergroundPathSignText:
+	text "Underground Path"
+
+	para "Cerulean City -"
+	line "Vermilion City"
+	done
+
+Route6AdvancedTipsSignText:
+	text "Advanced Tips!"
+
+	para "Some items may"
+	line "seem harmful to"
+	cont "the holder, like"
+
+	para "an Iron Ball or"
+	line "a Choice Scarf."
+
+	para "But with the move"
+	line "Trick, the holder"
+
+	para "can swap their"
+	line "item with the"
+	cont "opponent!"
+	done

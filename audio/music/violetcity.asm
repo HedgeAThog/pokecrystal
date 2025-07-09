@@ -65,7 +65,7 @@ Music_VioletCity_Ch1:
 	octave 3
 	note C#, 12
 	rest 8
-.mainloop:
+Music_VioletCity_branch_f0056:
 	note_type 6, 9, 5
 	rest 4
 	octave 2
@@ -295,7 +295,7 @@ Music_VioletCity_Ch1:
 	octave 4
 	note C#, 4
 	rest 4
-	sound_loop 0, .mainloop
+	sound_jump Music_VioletCity_branch_f0056
 
 Music_VioletCity_Ch2:
 	vibrato 18, 2, 4
@@ -348,7 +348,7 @@ Music_VioletCity_Ch2:
 	rest 2
 	note D#, 1
 	note E_, 1
-.mainloop:
+Music_VioletCity_branch_f0199:
 	volume_envelope 11, 7
 	note F#, 4
 	rest 2
@@ -501,7 +501,7 @@ Music_VioletCity_Ch2:
 	rest 2
 	note D#, 1
 	note E_, 1
-	sound_loop 0, .mainloop
+	sound_jump Music_VioletCity_branch_f0199
 
 Music_VioletCity_Ch3:
 	note_type 12, 2, 5
@@ -528,7 +528,7 @@ Music_VioletCity_Ch3:
 	note F#, 2
 	octave 2
 	note A#, 2
-.mainloop:
+Music_VioletCity_branch_f0261:
 	note_type 12, 2, 5
 	note B_, 1
 	rest 5
@@ -624,7 +624,7 @@ Music_VioletCity_Ch3:
 	note B_, 2
 	rest 2
 	note A_, 8
-	sound_call .sub1
+	sound_call Music_VioletCity_branch_f0311
 	note F#, 2
 	rest 10
 	note B_, 2
@@ -634,7 +634,7 @@ Music_VioletCity_Ch3:
 	note A#, 8
 	note A_, 2
 	rest 2
-	sound_call .sub1
+	sound_call Music_VioletCity_branch_f0311
 	note F#, 2
 	rest 10
 	note B_, 2
@@ -689,9 +689,9 @@ Music_VioletCity_Ch3:
 	rest 4
 	octave 2
 	note A#, 4
-	sound_loop 0, .mainloop
+	sound_jump Music_VioletCity_branch_f0261
 
-.sub1:
+Music_VioletCity_branch_f0311:
 	note G_, 2
 	rest 10
 	note G_, 2
@@ -716,35 +716,35 @@ Music_VioletCity_Ch4:
 	drum_note 3, 2
 	drum_note 3, 4
 	drum_note 7, 4
-	sound_call .sub1
-	sound_call .sub1
-	sound_call .sub1
+	sound_call Music_VioletCity_branch_f036c
+	sound_call Music_VioletCity_branch_f036c
+	sound_call Music_VioletCity_branch_f036c
 	drum_note 3, 2
 	drum_note 4, 1
 	drum_note 4, 1
 	drum_note 3, 2
 	drum_note 1, 8
 	drum_note 4, 2
-.mainloop:
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_call .sub2
-	sound_loop 0, .mainloop
+Music_VioletCity_branch_f0338:
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_call Music_VioletCity_branch_f037a
+	sound_jump Music_VioletCity_branch_f0338
 
-.sub1:
+Music_VioletCity_branch_f036c:
 	drum_note 3, 1
 	drum_note 3, 1
 	drum_note 4, 1
@@ -760,7 +760,7 @@ Music_VioletCity_Ch4:
 	drum_note 8, 1
 	sound_ret
 
-.sub2:
+Music_VioletCity_branch_f037a:
 	drum_note 4, 2
 	drum_note 8, 1
 	drum_note 8, 1

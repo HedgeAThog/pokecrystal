@@ -1,70 +1,117 @@
-	object_const_def
-	const RUINSOFALPHOUTSIDE_YOUNGSTER1
-	const RUINSOFALPHOUTSIDE_SCIENTIST
-	const RUINSOFALPHOUTSIDE_FISHER
-	const RUINSOFALPHOUTSIDE_YOUNGSTER2
-	const RUINSOFALPHOUTSIDE_YOUNGSTER3
-
-RuinsOfAlphOutside_MapScripts:
+RuinsOfAlphOutside_MapScriptHeader:
 	def_scene_scripts
-	scene_script RuinsOfAlphOutsideNoop1Scene, SCENE_RUINSOFALPHOUTSIDE_NOOP
-	scene_script RuinsOfAlphOutsideNoop2Scene, SCENE_RUINSOFALPHOUTSIDE_GET_UNOWN_DEX
+	scene_script RuinsofAlphOutsideTrigger0
 
 	def_callbacks
+	callback MAPCALLBACK_TILES, RuinsofAlphOutsideTileScript
 	callback MAPCALLBACK_OBJECTS, RuinsOfAlphOutsideScientistCallback
 
-RuinsOfAlphOutsideNoop1Scene:
+	def_warp_events
+	warp_event  4, 23, RUINS_OF_ALPH_HO_OH_CHAMBER, 1
+	warp_event 16, 13, RUINS_OF_ALPH_KABUTO_CHAMBER, 1
+	warp_event  4, 35, RUINS_OF_ALPH_OMANYTE_CHAMBER, 1
+	warp_event 18, 39, RUINS_OF_ALPH_AERODACTYL_CHAMBER, 1
+	warp_event 12, 19, RUINS_OF_ALPH_ENTRANCE_CHAMBER, 1
+	warp_event 19, 17, RUINS_OF_ALPH_RESEARCH_CENTER, 1
+	warp_event  8, 25, UNION_CAVE_B1F_NORTH, 1
+	warp_event  8, 33, UNION_CAVE_B1F_NORTH, 2
+	warp_event  3,  5, ROUTE_36_RUINS_OF_ALPH_GATE, 3
+	warp_event 15, 26, ROUTE_32_RUINS_OF_ALPH_GATE, 1
+	warp_event 15, 27, ROUTE_32_RUINS_OF_ALPH_GATE, 2
+	warp_event 10,  9, RUINS_OF_ALPH_SINJOH_CHAMBER, 1
+	warp_event 11, 36, HIDDEN_CAVE_GROTTO, 1
+
+	def_coord_events
+	coord_event 13, 20, 1, RuinsOfAlphOutsideScientistScene1
+	coord_event 12, 21, 1, RuinsOfAlphOutsideScientistScene1
+
+	def_bg_events
+	bg_event 18, 14, BGEVENT_JUMPTEXT, RuinsOfAlphOutsideMysteryChamberSignText
+	bg_event 14, 22, BGEVENT_JUMPTEXT, RuinsOfAlphSignText
+	bg_event 20, 18, BGEVENT_JUMPTEXT, RuinsOfAlphResearchCenterSignText
+	bg_event  3,  9, BGEVENT_JUMPTEXT, RuinsOfAlphAdvancedTipsSignText
+	bg_event 10,  9, BGEVENT_IFNOTSET, MapRuinsofAlphOutsideSealedCaveSign
+	bg_event  4, 13, BGEVENT_ITEM + RARE_CANDY, EVENT_RUINS_OF_ALPH_OUTSIDE_HIDDEN_RARE_CANDY
+	bg_event 11, 35, BGEVENT_JUMPSTD, cavegrotto, HIDDENGROTTO_RUINS_OF_ALPH
+
+	def_object_events
+	object_event 13, 21, SPRITE_SCIENTIST, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, RuinsOfAlphOutsideScientistScript, EVENT_RUINS_OF_ALPH_OUTSIDE_SCIENTIST
+	object_event 18, 18, SPRITE_SCIENTIST, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, ObjectEvent, EVENT_RUINS_OF_ALPH_OUTSIDE_SCIENTIST_CLIMAX
+	object_event  6, 26, SPRITE_PSYCHIC, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerPsychicNathan, -1
+	object_event  5, 37, SPRITE_SUPER_NERD, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, 0, OBJECTTYPE_GENERICTRAINER, 1, GenericTrainerSuperNerdStan, -1
+	object_event 15, 23, SPRITE_FISHER, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, RuinsOfAlphOutsideFisherScript, EVENT_RUINS_OF_ALPH_OUTSIDE_TOURIST_FISHER
+	object_event 14, 14, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, RuinsOfAlphOutsideYoungster2Script, EVENT_RUINS_OF_ALPH_OUTSIDE_TOURIST_YOUNGSTERS
+	object_event 16, 17, SPRITE_SCHOOLBOY, SPRITEMOVEDATA_WANDER, 1, 1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, RuinsOfAlphOutsideYoungster1Script, EVENT_RUINS_OF_ALPH_OUTSIDE_TOURIST_YOUNGSTERS
+	smashrock_event  7, 10
+	smashrock_event  8, 10
+	smashrock_event  4, 12
+	smashrock_event  5, 13
+	smashrock_event  7, 13
+	smashrock_event  8, 15
+
+	object_const_def
+	const RUINSOFALPHOUTSIDE_SCIENTIST1
+	const RUINSOFALPHOUTSIDE_SCIENTIST2
+
+RuinsofAlphOutsideTrigger0:
+	checkevent EVENT_DO_RUINS_OF_ALPH_CLIMAX
+	iffalsefwd .End
+	showtext RuinsofAlphScientistClimax1Text
+	follow RUINSOFALPHOUTSIDE_SCIENTIST2, PLAYER
+	applymovement RUINSOFALPHOUTSIDE_SCIENTIST2, RuinsofAlphScientistClimaxApproachMovementData
+	stopfollow
+	showemote EMOTE_SHOCK, RUINSOFALPHOUTSIDE_SCIENTIST2, 15
+	turnobject RUINSOFALPHOUTSIDE_SCIENTIST2, DOWN
+	showtext RuinsofAlphScientistClimax2Text
+	applymovement RUINSOFALPHOUTSIDE_SCIENTIST2, RuinsofAlphScientistClimaxLeaveMovementData
+	disappear RUINSOFALPHOUTSIDE_SCIENTIST2
+	clearevent EVENT_RUINS_OF_ALPH_OUTSIDE_TOURIST_YOUNGSTERS
+	clearevent EVENT_DO_RUINS_OF_ALPH_CLIMAX
+	setevent EVENT_RUINS_OF_ALPH_CLIMAX_DONE
+.End
 	end
 
-RuinsOfAlphOutsideNoop2Scene:
-	end
+RuinsofAlphOutsideTileScript:
+	checkevent EVENT_DOOR_OPENED_IN_RUINS_OF_ALPH
+	iffalsefwd .locked
+	changeblock 10, 8, $9f
+.locked
+	endcallback
 
 RuinsOfAlphOutsideScientistCallback:
 	checkflag ENGINE_UNOWN_DEX
-	iftrue .NoScientist
+	iftruefwd .NoScientist
 	checkevent EVENT_MADE_UNOWN_APPEAR_IN_RUINS
-	iftrue .MaybeScientist
-	sjump .NoScientist
+	iftruefwd .MaybeScientist
+	sjumpfwd .NoScientist
 
 .MaybeScientist:
 	readvar VAR_UNOWNCOUNT
-	ifgreater 2, .YesScientist
-	sjump .NoScientist
+	ifgreater $0, .YesScientist
+	sjumpfwd .NoScientist
 
 .YesScientist:
-	appear RUINSOFALPHOUTSIDE_SCIENTIST
-	setscene SCENE_RUINSOFALPHOUTSIDE_GET_UNOWN_DEX
+	appear RUINSOFALPHOUTSIDE_SCIENTIST1
+	setscene $1
 	endcallback
 
 .NoScientist:
-	disappear RUINSOFALPHOUTSIDE_SCIENTIST
-	setscene SCENE_RUINSOFALPHOUTSIDE_NOOP
+	disappear RUINSOFALPHOUTSIDE_SCIENTIST1
+	setscene $0
 	endcallback
 
 RuinsOfAlphOutsideScientistScene1:
-	turnobject RUINSOFALPHOUTSIDE_SCIENTIST, UP
-	turnobject PLAYER, DOWN
-	sjump RuinsOfAlphOutsideScientistSceneContinue
-
-RuinsOfAlphOutsideScientistScene2:
-	turnobject RUINSOFALPHOUTSIDE_SCIENTIST, LEFT
-	turnobject PLAYER, RIGHT
-	sjump RuinsOfAlphOutsideScientistSceneContinue
-
 RuinsOfAlphOutsideScientistScript:
-	faceplayer
-RuinsOfAlphOutsideScientistSceneContinue:
-	opentext
-	writetext RuinsOfAlphOutsideScientistText
-	waitbutton
-	closetext
+	faceobject RUINSOFALPHOUTSIDE_SCIENTIST1, PLAYER
+	faceobject PLAYER, RUINSOFALPHOUTSIDE_SCIENTIST1
+	showtext RuinsOfAlphOutsideScientistText
 	playmusic MUSIC_SHOW_ME_AROUND
-	follow RUINSOFALPHOUTSIDE_SCIENTIST, PLAYER
-	applymovement RUINSOFALPHOUTSIDE_SCIENTIST, RuinsOfAlphOutsideScientistWalkToLabMovement
-	disappear RUINSOFALPHOUTSIDE_SCIENTIST
+	follow RUINSOFALPHOUTSIDE_SCIENTIST1, PLAYER
+	applymovement RUINSOFALPHOUTSIDE_SCIENTIST1, RuinsOfAlphOutsideScientistWalkToLabMovement
+	disappear RUINSOFALPHOUTSIDE_SCIENTIST1
 	stopfollow
-	applymovement PLAYER, RuinsOfAlphOutsidePlayerEnterLabMovement
-	setmapscene RUINS_OF_ALPH_RESEARCH_CENTER, SCENE_RUINSOFALPHRESEARCHCENTER_GET_UNOWN_DEX
+	applyonemovement PLAYER, step_up
+	setmapscene RUINS_OF_ALPH_RESEARCH_CENTER, $1
 	warpcheck
 	end
 
@@ -72,108 +119,125 @@ RuinsOfAlphOutsideFisherScript:
 	faceplayer
 	opentext
 	checkevent EVENT_TALKED_TO_RUINS_COWARD
-	iftrue .Next
+	iftrue_jumpopenedtext RuinsOfAlphOutsideFisherText2
 	setevent EVENT_TALKED_TO_RUINS_COWARD
 	writetext RuinsOfAlphOutsideFisherText1
 	promptbutton
-.Next:
-	writetext RuinsOfAlphOutsideFisherText2
-	waitbutton
-	closetext
-	end
+	jumpthisopenedtext
+
+RuinsOfAlphOutsideFisherText2:
+	text "The ruins hide a"
+	line "huge secret!"
+
+	para "…I think…"
+	done
 
 RuinsOfAlphOutsideYoungster1Script:
 	faceplayer
-	opentext
-	writetext RuinsOfAlphOutsideYoungster1Text
-	waitbutton
-	closetext
-	end
+	jumptext RuinsOfAlphOutsideYoungster1Text
 
 RuinsOfAlphOutsideYoungster2Script:
-	faceplayer
-	opentext
-	writetext RuinsOfAlphOutsideYoungster2Text
-	waitbutton
-	closetext
-	turnobject RUINSOFALPHOUTSIDE_YOUNGSTER3, UP
+	showtextfaceplayer RuinsOfAlphOutsideYoungster2Text
+	turnobject LAST_TALKED, UP
 	end
 
-TrainerPsychicNathan:
-	trainer PSYCHIC_T, NATHAN, EVENT_BEAT_PSYCHIC_NATHAN, PsychicNathanSeenText, PsychicNathanBeatenText, 0, .Script
+GenericTrainerPsychicNathan:
+	generictrainer PSYCHIC_T, NATHAN, EVENT_BEAT_PSYCHIC_NATHAN, PsychicNathanSeenText, PsychicNathanBeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext PsychicNathanAfterBattleText
-	waitbutton
-	closetext
-	end
+	text "I like thinking"
+	line "here."
+	done
 
-TrainerSuperNerdStan: ; unreferenced
-	trainer SUPER_NERD, STAN, EVENT_BEAT_SUPER_NERD_STAN, SuperNerdStanSeenText, SuperNerdStanBeatenText, 0, .Script
+GenericTrainerSuperNerdStan:
+	generictrainer SUPER_NERD, STAN, EVENT_BEAT_SUPER_NERD_STAN, SuperNerdStanSeenText, SuperNerdStanBeatenText
 
-.Script:
-	endifjustbattled
-	opentext
-	writetext SuperNerdStanAfterBattleText
-	waitbutton
-	closetext
-	end
+	text "The ruins are from"
+	line "about 1,500 years"
+	cont "ago."
 
-RuinsOfAlphOutsideMysteryChamberSign:
-	jumptext RuinsOfAlphOutsideMysteryChamberSignText
+	para "Nobody knows who"
+	line "built them."
 
-RuinsOfAlphSign:
-	jumptext RuinsOfAlphSignText
+	para "It's also not"
+	line "known if the #-"
+	cont "mon statues have"
+	cont "any meaning."
 
-RuinsOfAlphResearchCenterSign:
-	jumptext RuinsOfAlphResearchCenterSignText
+	para "It's all one big"
+	line "mystery…"
+	done
 
 RuinsOfAlphOutsideScientistWalkToLabMovement:
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step RIGHT
-	step UP
-	step UP
-	step RIGHT
-	step RIGHT
-	step UP
-	step UP
+	step_right
+	step_right
+	step_right
+	step_right
+	step_up
+	step_up
+	step_right
+	step_right
+	step_up
+	step_up
 	step_end
 
-RuinsOfAlphOutsidePlayerEnterLabMovement:
-	step UP
+RuinsofAlphScientistClimaxApproachMovementData:
+	step_left
+	step_up
+	step_up
+	step_up
+	step_left
+	step_left
+	step_left
+	step_left
+	step_left
+	step_left
+	step_left
+	step_up
+	step_up
+	step_up
+	step_up
+	step_end
+
+RuinsofAlphScientistClimaxLeaveMovementData:
+	step_right
+	step_down
+	step_down
+	step_down
+	step_down
+	step_right
+	step_right
+	step_right
+	step_right
+	step_right
 	step_end
 
 RuinsOfAlphOutsideScientistText:
 	text "Hm? That's a #-"
-	line "DEX, isn't it?"
+	line "dex, isn't it?"
 	cont "May I see it?"
 
 	para "There are so many"
-	line "kinds of #MON."
+	line "kinds of #mon."
 
 	para "Hm? What's this?"
 
 	para "What is this"
-	line "#MON?"
+	line "#mon?"
 
 	para "It looks like the"
 	line "strange writing on"
 
 	para "the walls of the"
-	line "RUINS."
+	line "ruins."
 
 	para "If those drawings"
 	line "are really #-"
-	cont "MON, there should"
+	cont "mon, there should"
 	cont "be many more."
 
 	para "I know! Let me up-"
 	line "grade your #-"
-	cont "DEX. Follow me."
+	cont "dex. Follow me."
 	done
 
 SuperNerdStanSeenText:
@@ -190,58 +254,59 @@ SuperNerdStanBeatenText:
 	line "understanding…"
 	done
 
-SuperNerdStanAfterBattleText:
-	text "The RUINS are from"
-	line "about 1500 years"
-	cont "ago."
-
-	para "Nobody knows who"
-	line "built them."
-
-	para "It's also not"
-	line "known if the #-"
-	cont "MON statues have"
-	cont "any meaning."
-
-	para "It's all one big"
-	line "mystery…"
-	done
-
 PsychicNathanSeenText:
 	text "Hmmm… This is a"
 	line "strange place."
 	done
 
-PsychicNathanBeatenText:
+PsychicNathanBeatenText: ; text > text
 	text "…"
 	done
 
-PsychicNathanAfterBattleText:
-	text "I like thinking"
-	line "here."
-	done
-
 RuinsOfAlphOutsideMysteryChamberSignText:
-	text "MYSTERY STONE"
-	line "PANEL CHAMBER"
+	text "Mystery Stone"
+	line "Panel Chamber"
 	done
 
 RuinsOfAlphSignText:
-	text "RUINS OF ALPH"
-	line "VISITORS WELCOME"
+	text "Ruins of Alph"
+	line "Visitors Welcome"
 	done
 
 RuinsOfAlphResearchCenterSignText:
-	text "RUINS OF ALPH"
-	line "RESEARCH CENTER"
+	text "Ruins of Alph"
+	line "Research Center"
 
-	para "THE AUTHORITY ON"
-	line "THE RUINS OF ALPH"
+	para "The Authority On"
+	line "The Ruins of Alph"
+	done
+
+RuinsOfAlphAdvancedTipsSignText:
+	text "Advanced Tips!"
+
+	para "The #dex is a"
+	line "powerful tool!"
+
+	para "Its Area map shows"
+	line "a yellow icon if a"
+
+	para "#mon can be"
+	line "found right where"
+	cont "you are!"
+	done
+
+MapRuinsofAlphOutsideSealedCaveSign:
+	dw EVENT_DOOR_OPENED_IN_RUINS_OF_ALPH
+	jumpthistext
+
+	text "There's a door-"
+	line "shaped groove in"
+	cont "the rock."
 	done
 
 RuinsOfAlphOutsideFisherText1:
 	text "While exploring"
-	line "the RUINS, we"
+	line "the ruins, we"
 
 	para "suddenly noticed"
 	line "an odd presence."
@@ -253,16 +318,9 @@ RuinsOfAlphOutsideFisherText1:
 	line "careful too."
 	done
 
-RuinsOfAlphOutsideFisherText2:
-	text "The RUINS hide a"
-	line "huge secret!"
-
-	para "…I think…"
-	done
-
 RuinsOfAlphOutsideYoungster1Text:
 	text "There are many"
-	line "kinds of UNOWN, so"
+	line "kinds of Unown, so"
 
 	para "we use them for"
 	line "our secret codes."
@@ -278,34 +336,31 @@ RuinsOfAlphOutsideYoungster2Text:
 	line "message!"
 	done
 
-RuinsOfAlphOutside_MapEvents:
-	db 0, 0 ; filler
+RuinsofAlphScientistClimax1Text:
+	text "That sounded like"
+	line "it came from over"
+	cont "here…"
+	done
 
-	def_warp_events
-	warp_event  2, 17, RUINS_OF_ALPH_HO_OH_CHAMBER, 1
-	warp_event 14,  7, RUINS_OF_ALPH_KABUTO_CHAMBER, 1
-	warp_event  2, 29, RUINS_OF_ALPH_OMANYTE_CHAMBER, 1
-	warp_event 16, 33, RUINS_OF_ALPH_AERODACTYL_CHAMBER, 1
-	warp_event 10, 13, RUINS_OF_ALPH_INNER_CHAMBER, 1
-	warp_event 17, 11, RUINS_OF_ALPH_RESEARCH_CENTER, 1
-	warp_event  6, 19, UNION_CAVE_B1F, 1
-	warp_event  6, 27, UNION_CAVE_B1F, 2
-	warp_event  7,  5, ROUTE_36_RUINS_OF_ALPH_GATE, 3
-	warp_event 13, 20, ROUTE_32_RUINS_OF_ALPH_GATE, 1
-	warp_event 13, 21, ROUTE_32_RUINS_OF_ALPH_GATE, 2
+RuinsofAlphScientistClimax2Text:
+	text "Incredible!"
 
-	def_coord_events
-	coord_event 11, 14, SCENE_RUINSOFALPHOUTSIDE_GET_UNOWN_DEX, RuinsOfAlphOutsideScientistScene1
-	coord_event 10, 15, SCENE_RUINSOFALPHOUTSIDE_GET_UNOWN_DEX, RuinsOfAlphOutsideScientistScene2
+	para "Another chamber"
+	line "was hidden here"
+	cont "all this time!"
 
-	def_bg_events
-	bg_event 16,  8, BGEVENT_READ, RuinsOfAlphOutsideMysteryChamberSign
-	bg_event 12, 16, BGEVENT_READ, RuinsOfAlphSign
-	bg_event 18, 12, BGEVENT_READ, RuinsOfAlphResearchCenterSign
+	para "We could spend"
+	line "years studying it!"
 
-	def_object_events
-	object_event  4, 20, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_TRAINER, 1, TrainerPsychicNathan, -1
-	object_event 11, 15, SPRITE_SCIENTIST, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, RuinsOfAlphOutsideScientistScript, EVENT_RUINS_OF_ALPH_OUTSIDE_SCIENTIST
-	object_event 13, 17, SPRITE_FISHER, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, RuinsOfAlphOutsideFisherScript, EVENT_RUINS_OF_ALPH_OUTSIDE_TOURIST_FISHER
-	object_event 14, 11, SPRITE_YOUNGSTER, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, PAL_NPC_BROWN, OBJECTTYPE_SCRIPT, 0, RuinsOfAlphOutsideYoungster1Script, EVENT_RUINS_OF_ALPH_OUTSIDE_TOURIST_YOUNGSTERS
-	object_event 12,  8, SPRITE_YOUNGSTER, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, PAL_NPC_RED, OBJECTTYPE_SCRIPT, 0, RuinsOfAlphOutsideYoungster2Script, EVENT_RUINS_OF_ALPH_OUTSIDE_TOURIST_YOUNGSTERS
+	para "…Although, that"
+	line "was quite a loud"
+	cont "earthquake."
+
+	para "Could there be"
+	line "more than one"
+	cont "hidden chamber?"
+
+	para "Anyway, I'll go"
+	line "tell my colleagues"
+	cont "about this."
+	done

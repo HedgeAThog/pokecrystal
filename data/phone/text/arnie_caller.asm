@@ -1,6 +1,6 @@
 ArnieMonIsSoCuteText:
 	text "I'm always with my"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text "!"
 
@@ -12,7 +12,7 @@ ArnieDefeatedMonText:
 	text "Changing the topic"
 	line "here, I saw this"
 
-	para "@"
+	para ""
 	text_ram wStringBuffer4
 	text " for the"
 	line "first time."
@@ -24,7 +24,7 @@ ArnieDefeatedMonText:
 ArnieLostAMonText:
 	text "I was wondering,"
 	line "do you happen to"
-	cont "have @"
+	cont "have "
 	text_ram wStringBuffer4
 	text "?"
 
@@ -37,7 +37,7 @@ ArnieLostAMonText:
 
 ArnieBattleRematchText:
 	text "Hey, let's battle"
-	line "our #MON!"
+	line "our #mon!"
 
 	para "I won't lose to"
 	line "you battling or in"
@@ -46,7 +46,7 @@ ArnieBattleRematchText:
 	line "Contest!"
 
 	para "I'll be here on"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 	done
@@ -61,12 +61,12 @@ ArnieSwarmText:
 	line "caught you!"
 
 	para "A whole bunch of"
-	line "@"
+	line ""
 	text_ram wStringBuffer4
 	text " have"
 
 	para "appeared around"
-	line "@"
+	line ""
 	text_ram wStringBuffer5
 	text "!"
 
@@ -77,7 +77,7 @@ ArnieSwarmText:
 ArnieHaventSeenRareMonText:
 	text "I haven't had any"
 	line "luck seeing rare"
-	cont "#MON lately…"
+	cont "#mon lately…"
 
 	para "But I know they're"
 	line "out there!"
@@ -89,7 +89,7 @@ ArnieReminderText:
 
 	para "Let's battle. I'll"
 	line "be waiting for you"
-	cont "on @"
+	cont "on "
 	text_ram wStringBuffer5
 	text "!"
 	done
@@ -99,8 +99,8 @@ ArnieHurryText:
 	line "coming or what?"
 
 	para "You're missing out"
-	line "on seeing YANMA!"
+	line "on seeing Yanma!"
 
-	para "Get down to ROUTE"
+	para "Get down to Route"
 	line "35 right now!"
 	done

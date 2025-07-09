@@ -43,41 +43,37 @@ DEF STRING_BUFFER_LENGTH EQU 19
 	const TRAINERTEXT_LOSS
 
 ; readvar/writevar/loadvar arguments
-; _GetVarAction.VarActionTable indexes (see engine/overworld/variables.asm)
+; VarActionTable indexes (see engine/overworld/variables.asm)
 	const_def
 	const VAR_STRINGBUFFER2    ; 00
 	const VAR_PARTYCOUNT       ; 01
 	const VAR_BATTLERESULT     ; 02
 	const VAR_BATTLETYPE       ; 03
 	const VAR_TIMEOFDAY        ; 04
-	const VAR_DEXCAUGHT        ; 05
-	const VAR_DEXSEEN          ; 06
-	const VAR_BADGES           ; 07
-	const VAR_MOVEMENT         ; 08
-	const VAR_FACING           ; 09
-	const VAR_HOUR             ; 0a
-	const VAR_WEEKDAY          ; 0b
-	const VAR_MAPGROUP         ; 0c
-	const VAR_MAPNUMBER        ; 0d
-	const VAR_UNOWNCOUNT       ; 0e
-	const VAR_ENVIRONMENT      ; 0f
-	const VAR_BOXSPACE         ; 10
-	const VAR_CONTESTMINUTES   ; 11
-	const VAR_XCOORD           ; 12
-	const VAR_YCOORD           ; 13
-	const VAR_SPECIALPHONECALL ; 14
-	const VAR_BT_WIN_STREAK    ; 15
-	const VAR_KURT_APRICORNS   ; 16
-	const VAR_CALLERID         ; 17
-	const VAR_BLUECARDBALANCE  ; 18
-	const VAR_BUENASPASSWORD   ; 19
-	const VAR_KENJI_BREAK      ; 1a
-DEF NUM_VARS EQU const_value
-
-; variable action types
-DEF RETVAR_STRBUF2 EQU 0 << 6
-DEF RETVAR_ADDR_DE EQU 1 << 6
-DEF RETVAR_EXECUTE EQU 2 << 6
+	const VAR_BADGES           ; 05
+	const VAR_MOVEMENT         ; 06
+	const VAR_FACING           ; 07
+	const VAR_HOUR             ; 08
+	const VAR_WEEKDAY          ; 09
+	const VAR_MAPGROUP         ; 0a
+	const VAR_MAPNUMBER        ; 0b
+	const VAR_UNOWNCOUNT       ; 0c
+	const VAR_ENVIRONMENT      ; 0d
+	const VAR_BOXSPACE         ; 0e
+	const VAR_CONTESTMINUTES   ; 0f
+	const VAR_XCOORD           ; 10
+	const VAR_YCOORD           ; 11
+	const VAR_SPECIALPHONECALL ; 12
+	const VAR_KURT_APRICORNS   ; 13
+	const VAR_CALLERID         ; 14
+	const VAR_BLUECARDBALANCE  ; 15
+	const VAR_BUENASPASSWORD   ; 16
+	const VAR_KENJI_BREAK      ; 17
+	const VAR_PKMN_JOURNALS    ; 18
+	const VAR_TRAINER_STARS    ; 19
+	const VAR_LANDMARK         ; 1a
+	const VAR_PLAYERGENDER     ; 1b
+DEF NUM_VARS EQU const_value       ; 1c
 
 ; PlayerEventScriptPointers indexes (see engine/overworld/events.asm)
 	const_def -1
@@ -92,6 +88,8 @@ DEF RETVAR_EXECUTE EQU 2 << 6
 	const PLAYEREVENT_WHITEOUT
 	const PLAYEREVENT_HATCH
 	const PLAYEREVENT_JOYCHANGEFACING
+	const PLAYEREVENT_TMHMBALL
+	const PLAYEREVENT_KEYITEMBALL
 DEF NUM_PLAYER_EVENTS EQU const_value
 
 ; PlayerMovementPointers indexes (see engine/overworld/events.asm)
@@ -107,20 +105,15 @@ DEF NUM_PLAYER_EVENTS EQU const_value
 DEF NUM_PLAYER_MOVEMENTS EQU const_value
 
 ; script data sizes (see macros/scripts/maps.asm)
-DEF SCENE_SCRIPT_SIZE EQU  4 ; scene_script
+DEF SCENE_SCRIPT_SIZE EQU  2 ; scene_script
 DEF CALLBACK_SIZE     EQU  3 ; callback
 DEF WARP_EVENT_SIZE   EQU  5 ; warp_event
-DEF COORD_EVENT_SIZE  EQU  8 ; coord_event
+DEF COORD_EVENT_SIZE  EQU  5 ; coord_event
 DEF BG_EVENT_SIZE     EQU  5 ; bg_event
-; An object_event is a map_object without its initial MAPOBJECT_OBJECT_STRUCT_ID or final padding
-DEF OBJECT_EVENT_SIZE EQU MAPOBJECT_LENGTH - 3 ; 13
-
-; A coord_event for scene -1 will always activate,
-; regardless of the map's scene variable value.
-DEF SCENE_ALWAYS EQU -1
+DEF OBJECT_EVENT_SIZE EQU 13 ; object_event
 
 ; bg_event types
-; BGEventJumptable indexes (see engine/overworld/events.asm)
+; TryBGEvent arguments (see engine/overworld/events.asm)
 	const_def
 	const BGEVENT_READ
 	const BGEVENT_UP
@@ -129,41 +122,30 @@ DEF SCENE_ALWAYS EQU -1
 	const BGEVENT_LEFT
 	const BGEVENT_IFSET
 	const BGEVENT_IFNOTSET
-	const BGEVENT_ITEM
-	const BGEVENT_COPY
+	const BGEVENT_JUMPTEXT
+	const BGEVENT_JUMPSTD
+	const BGEVENT_GROTTOITEM
 DEF NUM_BGEVENTS EQU const_value
 
+; BGEVENT_ITEM has to be the last BG event type, since hidden item BG events
+; use type BGEVENT_ITEM + (item id) to save space.
+; Note that this requires BGEVENT_ITEM + (item id) <= $ff, so currently most
+; of the mail items cannot be hidden.
+DEF BGEVENT_ITEM EQU NUM_BGEVENTS
+
 ; object_event types
-; ObjectEventTypeArray indexes (see engine/overworld/events.asm)
+; TryObjectEvent.Jumptable indexes (see engine/overworld/events.asm)
 	const_def
 	const OBJECTTYPE_SCRIPT
 	const OBJECTTYPE_ITEMBALL
 	const OBJECTTYPE_TRAINER
-	const OBJECTTYPE_3
-	const OBJECTTYPE_4
-	const OBJECTTYPE_5
-	const OBJECTTYPE_6
+	const OBJECTTYPE_GENERICTRAINER
+	const OBJECTTYPE_POKEMON
+	const OBJECTTYPE_COMMAND
+DEF SILENT_OBJECT_TYPES EQU const_value ; types below do not call PlayTalkObject to play SFX_READ_TEXT_2
+	const OBJECTTYPE_SCRIPT_SILENT
+	const OBJECTTYPE_DONOTHING
 DEF NUM_OBJECT_TYPES EQU const_value
-
-; command queue members
-rsreset
-DEF CMDQUEUE_TYPE            rb
-DEF CMDQUEUE_ADDR            rb
-DEF CMDQUEUE_02              rb
-DEF CMDQUEUE_03              rb
-DEF CMDQUEUE_04              rb
-DEF CMDQUEUE_JUMPTABLE_INDEX rb
-DEF CMDQUEUE_ENTRY_SIZE EQU _RS
-DEF CMDQUEUE_CAPACITY EQU 4
-
-; HandleQueuedCommand.Jumptable indexes (see engine/overworld/events.asm)
-	const_def
-	const CMDQUEUE_NULL
-	const CMDQUEUE_TYPE1
-	const CMDQUEUE_STONETABLE
-	const CMDQUEUE_TYPE3
-	const CMDQUEUE_TYPE4
-DEF NUM_CMDQUEUE_TYPES EQU const_value
 
 ; elevfloor macro values
 ; ElevatorFloorNames indexes (see data/events/elevator_floors.asm)
@@ -197,48 +179,88 @@ DEF NUM_FLOORS EQU const_value
 	const EMOTE_BOLT
 	const EMOTE_SLEEP
 	const EMOTE_FISH
-	const EMOTE_SHADOW
-	const EMOTE_ROD
-	const EMOTE_BOULDER_DUST
-	const EMOTE_GRASS_RUSTLE
 DEF NUM_EMOTES EQU const_value
 DEF EMOTE_FROM_MEM EQU -1
-DEF EMOTE_LENGTH EQU 6
 
 ; fruittree arguments
 ; FruitTreeItems indexes (see data/items/fruit_trees.asm)
 	const_def 1
-	const FRUITTREE_ROUTE_29      ; 01
-	const FRUITTREE_ROUTE_30_1    ; 02
-	const FRUITTREE_ROUTE_38      ; 03
-	const FRUITTREE_ROUTE_46_1    ; 04
-	const FRUITTREE_ROUTE_30_2    ; 05
-	const FRUITTREE_ROUTE_33      ; 06
-	const FRUITTREE_ROUTE_31      ; 07
-	const FRUITTREE_ROUTE_43      ; 08
-	const FRUITTREE_VIOLET_CITY   ; 09
-	const FRUITTREE_ROUTE_46_2    ; 0a
-	const FRUITTREE_ROUTE_35      ; 0b
-	const FRUITTREE_ROUTE_45      ; 0c
-	const FRUITTREE_ROUTE_36      ; 0d
-	const FRUITTREE_ROUTE_26      ; 0e
-	const FRUITTREE_ROUTE_39      ; 0f
-	const FRUITTREE_ROUTE_44      ; 10
-	const FRUITTREE_ROUTE_37_1    ; 11
-	const FRUITTREE_ROUTE_37_2    ; 12
-	const FRUITTREE_ROUTE_37_3    ; 13
-	const FRUITTREE_AZALEA_TOWN   ; 14
-	const FRUITTREE_ROUTE_42_1    ; 15
-	const FRUITTREE_ROUTE_42_2    ; 16
-	const FRUITTREE_ROUTE_42_3    ; 17
-	const FRUITTREE_ROUTE_11      ; 18
-	const FRUITTREE_ROUTE_2       ; 19
-	const FRUITTREE_ROUTE_1       ; 1a
-	const FRUITTREE_ROUTE_8       ; 1b
-	const FRUITTREE_PEWTER_CITY_1 ; 1c
-	const FRUITTREE_PEWTER_CITY_2 ; 1d
-	const FRUITTREE_FUCHSIA_CITY  ; 1e
+; Apricorn trees come first, then Berry trees
+	const FRUITTREE_AZALEA_TOWN       ; 01
+	const FRUITTREE_ROUTE_37_1        ; 02
+	const FRUITTREE_ROUTE_37_2        ; 03
+	const FRUITTREE_ROUTE_37_3        ; 04
+	const FRUITTREE_ROUTE_42_1        ; 05
+	const FRUITTREE_ROUTE_42_2        ; 06
+	const FRUITTREE_ROUTE_42_3        ; 07
+DEF FIRST_BERRY_TREE EQU const_value
+	const FRUITTREE_ROUTE_29          ; 08
+	const FRUITTREE_ROUTE_30_1        ; 09
+	const FRUITTREE_ROUTE_30_2        ; 0a
+	const FRUITTREE_ROUTE_31          ; 0b
+	const FRUITTREE_VIOLET_CITY       ; 0c
+	const FRUITTREE_ROUTE_32_COAST    ; 0d
+	const FRUITTREE_ROUTE_33          ; 0e
+	const FRUITTREE_ROUTE_35          ; 0f
+	const FRUITTREE_ROUTE_36          ; 10
+	const FRUITTREE_ROUTE_38          ; 11
+	const FRUITTREE_ROUTE_39          ; 12
+	const FRUITTREE_ROUTE_43          ; 13
+	const FRUITTREE_ROUTE_44          ; 14
+	const FRUITTREE_ROUTE_45          ; 15
+	const FRUITTREE_ROUTE_46_1        ; 16
+	const FRUITTREE_ROUTE_46_2        ; 17
+	const FRUITTREE_ROUTE_27          ; 18
+	const FRUITTREE_ROUTE_26          ; 19
+	const FRUITTREE_ROUTE_8           ; 1a
+	const FRUITTREE_ROUTE_11          ; 1b
+	const FRUITTREE_FUCHSIA_CITY      ; 1c
+	const FRUITTREE_PEWTER_CITY_1     ; 1d
+	const FRUITTREE_PEWTER_CITY_2     ; 1e
+	const FRUITTREE_ROUTE_2           ; 1f
+	const FRUITTREE_ROUTE_1           ; 20
+	const FRUITTREE_LUCKY_ISLAND      ; 21
+	const FRUITTREE_SHAMOUTI_ISLAND   ; 22
+	const FRUITTREE_ROUTE_49          ; 23
+	const FRUITTREE_ROUTE_6           ; 24
+	const FRUITTREE_ROUTE_14          ; 25
+	const FRUITTREE_ROUTE_21          ; 26
+	const FRUITTREE_ROUTE_24          ; 27
+	const FRUITTREE_VIOLET_OUTSKIRTS  ; 28
+	const FRUITTREE_CHERRYGROVE_BAY_1 ; 29
+	const FRUITTREE_CHERRYGROVE_BAY_2 ; 2a
+	const FRUITTREE_CHERRYGROVE_BAY_3 ; 2b
+	const FRUITTREE_CHERRYGROVE_BAY_4 ; 2c
+	const FRUITTREE_CHERRYGROVE_BAY_5 ; 2d
+	const FRUITTREE_CHERRYGROVE_BAY_6 ; 2e
 DEF NUM_FRUIT_TREES EQU const_value - 1
+
+; hidden grottoes
+; HiddenGrottoData indexes (see data/events/hidden_grottoes/grottoes.asm)
+	const_def 1
+	const HIDDENGROTTO_ROUTE_32                ; 01
+	const HIDDENGROTTO_ILEX_FOREST             ; 02
+	const HIDDENGROTTO_ROUTE_35                ; 03
+	const HIDDENGROTTO_ROUTE_36                ; 04
+	const HIDDENGROTTO_CHERRYGROVE_BAY         ; 05
+	const HIDDENGROTTO_VIOLET_OUTSKIRTS        ; 06
+	const HIDDENGROTTO_ROUTE_32_COAST          ; 07
+	const HIDDENGROTTO_STORMY_BEACH            ; 08
+	const HIDDENGROTTO_ROUTE_35_COAST          ; 09
+	const HIDDENGROTTO_RUINS_OF_ALPH           ; 0a
+	const HIDDENGROTTO_ROUTE_47                ; 0b
+	const HIDDENGROTTO_YELLOW_FOREST           ; 0c
+	const HIDDENGROTTO_RUGGED_ROAD_NORTH       ; 0d
+	const HIDDENGROTTO_SNOWTOP_MOUNTAIN_INSIDE ; 0e
+	const HIDDENGROTTO_ROUTE_42                ; 0f
+	const HIDDENGROTTO_LAKE_OF_RAGE            ; 10
+	const HIDDENGROTTO_BELLCHIME_TRAIL         ; 11
+	const HIDDENGROTTO_ROUTE_44                ; 12
+	const HIDDENGROTTO_ROUTE_45                ; 13
+	const HIDDENGROTTO_ROUTE_46                ; 14
+	const HIDDENGROTTO_SINJOH_RUINS            ; 15
+	const HIDDENGROTTO_SILVER_CAVE             ; 16
+DEF NUM_HIDDEN_GROTTOES EQU const_value - 1
 
 ; describedecoration arguments
 ; DescribeDecoration.JumpTable indexes (see engine/overworld/decorations.asm)
@@ -261,12 +283,6 @@ DEF NUM_DECODESCS EQU const_value
 	const FISHSWARM_NONE     ; 0
 	const FISHSWARM_QWILFISH ; 1
 	const FISHSWARM_REMORAID ; 2
-
-; SpecialGameboyCheck return values
-	const_def
-	const GBCHECK_GB  ; 0
-	const GBCHECK_SGB ; 1
-	const GBCHECK_CGB ; 2
 
 ; CheckMagikarpLength return values
 	const_def
@@ -320,11 +336,26 @@ DEF NUM_UNOWN_PUZZLES EQU const_value
 	const UNOWNWORDS_LIGHT  ; 1
 	const UNOWNWORDS_WATER  ; 2
 	const UNOWNWORDS_HO_OH  ; 3
-DEF NUM_UNOWN_WALLS EQU const_value
-DEF UNOWN_WALL_MENU_HEADER_SIZE EQU 5
 
-; MoveTutor setval arguments
+; paintingpic arguments
+; PaintingPicPointers indexes (see data/events/paintings/pic_pointers.asm)
+; PaintingPalettes indexes (see data/events/paintings/palettes.asm)
+	const_def
+	const HO_OH_PAINTING
+	const LUGIA_PAINTING
+	const BELL_TOWER_PAINTING
+	const KABUTO_PUZZLE
+	const OMANYTE_PUZZLE
+	const AERODACTYL_PUZZLE
+	const HO_OH_PUZZLE
+DEF NUM_PAINTINGS EQU const_value
+
+; DailyTrainerHouseOpponents indexes (see data/events/trainer_house_opponents.asm)
 	const_def 1
-	const MOVETUTOR_FLAMETHROWER ; 1
-	const MOVETUTOR_THUNDERBOLT  ; 2
-	const MOVETUTOR_ICE_BEAM     ; 3
+	const OPP_CAL
+	const OPP_CARRIE
+	const OPP_JACKY
+	const OPP_EN
+	const OPP_MADOKA
+DEF NUM_TRAINER_HOUSE_OPPONENTS EQU const_value - 1
+DEF TRAINER_HOUSE_OPPONENT_SIZE EQU 2 ; class, id
